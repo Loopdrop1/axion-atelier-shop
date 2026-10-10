@@ -8,6 +8,7 @@
  --green:oklch(from #1E3A2F l c h);--deep:oklch(from #12261D l c h);--sand:oklch(from #E9E1D2 l c h);--paper:oklch(from #F5F1E8 l c h);--gold:oklch(from #B8955A l c h);--ink:oklch(from #141414 l c h);--muted:oklch(from #6B6A62 l c h);--line:oklch(from #DCD5C8 l c h);
  --background:var(--paper);--foreground:var(--ink);--primary:var(--green);--primary-foreground:var(--paper);--secondary:var(--sand);--secondary-foreground:var(--green);--muted-foreground:var(--muted);--accent:var(--sand);--accent-foreground:var(--green);--border:var(--line);--input:var(--line);--ring:var(--gold);--card:var(--paper);--card-foreground:var(--ink);--popover:var(--paper);--popover-foreground:var(--ink);--destructive:oklch(.5 .15 25);--radius:0px;
  --font-body:'Inter Variable',sans-serif;--font-display:'Jost Variable',sans-serif;
+ --placeholder-background:#FFF1B8;--placeholder-foreground:#6B4E00;
  --shadow-cart:-10px 0 60px oklch(.15 0 0 / .14);--backdrop:oklch(.15 .02 160 / .55);--category-scrim:linear-gradient(to top,oklch(from #12261D l c h / .55),transparent);--mark-sweep:linear-gradient(110deg,transparent 30%,color-mix(in oklab,var(--paper) 45%,transparent) 50%,transparent 70%);--hero-glow:radial-gradient(ellipse at 73% 48%,oklch(.37 .047 157 / .42),transparent 57%);
 }
 @theme inline {--color-green:var(--green);--color-deep:var(--deep);--color-sand:var(--sand);--color-paper:var(--paper);--color-gold:var(--gold);--color-ink:var(--ink);--color-background:var(--background);--color-foreground:var(--foreground);--color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);--color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);--color-muted:var(--muted);--color-muted-foreground:var(--muted-foreground);--color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);--color-border:var(--border);--color-input:var(--input);--color-ring:var(--ring);--color-card:var(--card);--color-card-foreground:var(--card-foreground);--color-popover:var(--popover);--color-popover-foreground:var(--popover-foreground);--color-destructive:var(--destructive);--font-sans:var(--font-body);--font-display:var(--font-display);--radius-md:0px;--radius-lg:0px;}
@@ -92,3 +93,27 @@
 }
 
 @media(min-width:768px) and (max-width:1023px){.category-label{flex-wrap:wrap;gap:8px}.category-label h3{font-size:1.7rem}.category-label span{white-space:nowrap}}
+
+input[type="checkbox"],input[type="radio"]{accent-color:var(--green)}
+.placeholder{background:var(--placeholder-background);color:var(--placeholder-foreground);padding:1px 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.written-content{max-width:68ch;margin-inline:auto;overflow-wrap:anywhere}
+.draft-notice{border:1px solid var(--line);padding:14px 18px;margin:0 0 32px;font-size:12px;color:var(--muted)}
+.written-content p,.written-content li,.written-content dd{font-family:var(--font-body);font-size:15px;line-height:1.8}
+.written-content p{margin-bottom:20px}
+.written-content ul,.written-content ol{padding-left:24px;margin:0 0 24px;list-style-position:outside}
+.written-content ul{list-style-type:disc}.written-content ol{list-style-type:decimal}
+.written-content li{margin-bottom:12px}
+.written-content h2{font-family:var(--font-display);font-size:1.6rem;margin:36px 0 18px}
+.written-content a{text-decoration:underline;text-underline-offset:3px}
+.inline-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.written-questions{border-top:1px solid var(--line)}
+.written-questions h3{margin:0}
+.written-questions button{font-family:var(--font-display);font-size:15px;line-height:1.5;gap:16px}
+.written-questions p{margin:0}
+.shipping-definitions{margin:0 0 24px}
+.shipping-definitions>div{display:grid;grid-template-columns:155px minmax(0,1fr);gap:24px;padding:16px 0;border-bottom:1px solid var(--line)}
+.shipping-definitions dt{font-family:var(--font-display);font-size:15px}
+.shipping-definitions dd{margin:0}
+.carousel-controls button:disabled{opacity:.35}
+.new-section .carousel-controls{display:flex}
+@media(max-width:767px){.shipping-definitions>div{grid-template-columns:1fr;gap:4px}.written-content h2{font-size:1.4rem}}

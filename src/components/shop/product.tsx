@@ -269,7 +269,6 @@ export function ProductPage({
                   {p.variants.map((v) => (
                     <option key={v.id} value={v.id} disabled={!v.availableForSale}>
                       {v.title}
-                  {!v.availableForSale && <span className="sr-only">, ausverkauft</span>}
                       {!v.availableForSale ? " – ausverkauft" : ""}
                     </option>
                   ))}

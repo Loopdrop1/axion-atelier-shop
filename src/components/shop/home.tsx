@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowRight, ArrowLeft, Truck, Clock3, CreditCard, RotateCcw, Plus } from "lucide-react";
@@ -20,6 +20,14 @@ export function HomePage({
   editorial: Awaited<ReturnType<typeof getEditorial>>;
 }) {
   const [embla, api] = useEmblaCarousel({ align: "start", dragFree: true });
+  const [carousel, setCarousel] = useState({ previous: false, next: false, overflow: false });
+  useEffect(() => {
+    if (!api) return;
+    const update = () => setCarousel({ previous: api.canScrollPrev(), next: api.canScrollNext(), overflow: api.scrollSnapList().length > 1 });
+    update();
+    api.on("select", update).on("reInit", update).on("settle", update);
+    return () => { api.off("select", update).off("reInit", update).off("settle", update); };
+  }, [api]);
   const [hotspot, setHotspot] = useState<string | null>(null);
   const lookProducts = editorial.look.hotspots.flatMap((h) => {
     const p = products.find((p) => p.handle === h.handle);
@@ -76,11 +84,12 @@ export function HomePage({
             ))}
           </div>
         </div>
-        <div className="carousel-controls justify-end mt-6">
+        {carousel.overflow && <div className="carousel-controls justify-end mt-6">
           <Button
             variant="icon"
             size="icon"
             aria-label="Vorherige Produkte"
+            disabled={!carousel.previous}
             onClick={() => api?.scrollPrev()}
           >
             <ArrowLeft />
@@ -89,11 +98,12 @@ export function HomePage({
             variant="icon"
             size="icon"
             aria-label="Nächste Produkte"
+            disabled={!carousel.next}
             onClick={() => api?.scrollNext()}
           >
             <ArrowRight />
           </Button>
-        </div>
+        </div>}
       </section>
       <section className="section look-section">
         <div className="container look-layout">
