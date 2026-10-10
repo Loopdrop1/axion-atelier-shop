@@ -39,13 +39,21 @@ export function Reveal({
   const visible = useInView(ref, { once: true, margin: "0px 0px 100px 0px", amount: 0.05 });
   return (
     <div ref={ref} className={className}>
-    <motion.div
-      initial={reduced ? false : image ? { clipPath: "inset(100% 0 0 0)" } : { opacity: 0, y: 16 }}
-      animate={visible || reduced ? image ? { clipPath: "inset(0% 0 0 0)" } : { opacity: 1, y: 0 } : false}
-      transition={{ duration: image ? 0.9 : 0.6, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </motion.div>
+      <motion.div
+        initial={
+          reduced ? false : image ? { clipPath: "inset(100% 0 0 0)" } : { opacity: 0, y: 16 }
+        }
+        animate={
+          visible || reduced
+            ? image
+              ? { clipPath: "inset(0% 0 0 0)" }
+              : { opacity: 1, y: 0 }
+            : false
+        }
+        transition={{ duration: image ? 0.9 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
 }

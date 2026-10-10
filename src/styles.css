@@ -21,3 +21,5 @@
 @media(max-width:767px){.hero-bottom>span:first-child{display:none}.hero-bottom{justify-content:flex-end}.hero-copy{padding-bottom:50px}}
 
 @media(max-width:767px){.filters-bar{gap:10px}.mobile-filters{padding-inline:12px!important;font-size:9px!important;letter-spacing:.04em;min-width:0}.content-page h1{overflow-wrap:anywhere;hyphens:auto}.page-title{overflow-wrap:anywhere}}
+
+.shop-backdrop[data-state=closed]{animation:fade-out .35s}.panel-right[data-state=closed]{animation:drawer-out .45s cubic-bezier(.22,1,.36,1)}.panel-bottom[data-state=closed]{animation:bottom-out .45s cubic-bezier(.22,1,.36,1)}@keyframes fade-out{to{opacity:0}}@keyframes drawer-out{to{transform:translateX(100%)}}@keyframes bottom-out{to{transform:translateY(100%)}}
