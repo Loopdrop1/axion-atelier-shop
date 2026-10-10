@@ -58,7 +58,7 @@
 .hotspot-card h3{font-size:14px;margin-bottom:8px}
 .hotspot-card p{margin-bottom:10px}
 .hotspot-card .text-link{font-size:11px;gap:6px}
-.hotspot-card-sakko{left:2%;top:17%;width:30%;flex-direction:column}
+.hotspot-card-sakko{left:43%;top:38%;width:55%;flex-direction:row}
 .hotspot-card-weste{left:56%;top:27%;width:42%}
 .hotspot-card-schuhe{left:53%;top:auto;bottom:2%;width:45%}
 .hero-copy{animation:hero-enter .6s cubic-bezier(.22,1,.36,1)}
