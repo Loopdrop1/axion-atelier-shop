@@ -10,12 +10,78 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgbRouteImport } from './routes/agb'
+import { Route as DatenschutzRouteImport } from './routes/datenschutz'
+import { Route as GroessenberatungRouteImport } from './routes/groessenberatung'
+import { Route as HaeufigeFragenRouteImport } from './routes/haeufige-fragen'
+import { Route as ImpressumRouteImport } from './routes/impressum'
+import { Route as KontaktRouteImport } from './routes/kontakt'
+import { Route as MerklisteRouteImport } from './routes/merkliste'
+import { Route as SucheRouteImport } from './routes/suche'
+import { Route as UeberUnsRouteImport } from './routes/ueber-uns'
+import { Route as VersandUndRueckgabeRouteImport } from './routes/versand-und-rueckgabe'
+import { Route as WarenkorbRouteImport } from './routes/warenkorb'
 import { Route as KollektionHandleRouteImport } from './routes/kollektion.$handle'
 import { Route as ProduktHandleRouteImport } from './routes/produkt.$handle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgbRoute = AgbRouteImport.update({
+  id: '/agb',
+  path: '/agb',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatenschutzRoute = DatenschutzRouteImport.update({
+  id: '/datenschutz',
+  path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroessenberatungRoute = GroessenberatungRouteImport.update({
+  id: '/groessenberatung',
+  path: '/groessenberatung',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HaeufigeFragenRoute = HaeufigeFragenRouteImport.update({
+  id: '/haeufige-fragen',
+  path: '/haeufige-fragen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpressumRoute = ImpressumRouteImport.update({
+  id: '/impressum',
+  path: '/impressum',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KontaktRoute = KontaktRouteImport.update({
+  id: '/kontakt',
+  path: '/kontakt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerklisteRoute = MerklisteRouteImport.update({
+  id: '/merkliste',
+  path: '/merkliste',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SucheRoute = SucheRouteImport.update({
+  id: '/suche',
+  path: '/suche',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UeberUnsRoute = UeberUnsRouteImport.update({
+  id: '/ueber-uns',
+  path: '/ueber-uns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VersandUndRueckgabeRoute = VersandUndRueckgabeRouteImport.update({
+  id: '/versand-und-rueckgabe',
+  path: '/versand-und-rueckgabe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarenkorbRoute = WarenkorbRouteImport.update({
+  id: '/warenkorb',
+  path: '/warenkorb',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KollektionHandleRoute = KollektionHandleRouteImport.update({
@@ -31,30 +97,117 @@ const ProduktHandleRoute = ProduktHandleRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/groessenberatung': typeof GroessenberatungRoute
+  '/haeufige-fragen': typeof HaeufigeFragenRoute
+  '/impressum': typeof ImpressumRoute
+  '/kontakt': typeof KontaktRoute
+  '/merkliste': typeof MerklisteRoute
+  '/suche': typeof SucheRoute
+  '/ueber-uns': typeof UeberUnsRoute
+  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
+  '/warenkorb': typeof WarenkorbRoute
   '/kollektion/$handle': typeof KollektionHandleRoute
   '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/groessenberatung': typeof GroessenberatungRoute
+  '/haeufige-fragen': typeof HaeufigeFragenRoute
+  '/impressum': typeof ImpressumRoute
+  '/kontakt': typeof KontaktRoute
+  '/merkliste': typeof MerklisteRoute
+  '/suche': typeof SucheRoute
+  '/ueber-uns': typeof UeberUnsRoute
+  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
+  '/warenkorb': typeof WarenkorbRoute
   '/kollektion/$handle': typeof KollektionHandleRoute
   '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
+  '/datenschutz': typeof DatenschutzRoute
+  '/groessenberatung': typeof GroessenberatungRoute
+  '/haeufige-fragen': typeof HaeufigeFragenRoute
+  '/impressum': typeof ImpressumRoute
+  '/kontakt': typeof KontaktRoute
+  '/merkliste': typeof MerklisteRoute
+  '/suche': typeof SucheRoute
+  '/ueber-uns': typeof UeberUnsRoute
+  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
+  '/warenkorb': typeof WarenkorbRoute
   '/kollektion/$handle': typeof KollektionHandleRoute
   '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kollektion/$handle' | '/produkt/$handle'
+  fullPaths:
+    | '/'
+    | '/agb'
+    | '/datenschutz'
+    | '/groessenberatung'
+    | '/haeufige-fragen'
+    | '/impressum'
+    | '/kontakt'
+    | '/merkliste'
+    | '/suche'
+    | '/ueber-uns'
+    | '/versand-und-rueckgabe'
+    | '/warenkorb'
+    | '/kollektion/$handle'
+    | '/produkt/$handle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kollektion/$handle' | '/produkt/$handle'
-  id: '__root__' | '/' | '/kollektion/$handle' | '/produkt/$handle'
+  to:
+    | '/'
+    | '/agb'
+    | '/datenschutz'
+    | '/groessenberatung'
+    | '/haeufige-fragen'
+    | '/impressum'
+    | '/kontakt'
+    | '/merkliste'
+    | '/suche'
+    | '/ueber-uns'
+    | '/versand-und-rueckgabe'
+    | '/warenkorb'
+    | '/kollektion/$handle'
+    | '/produkt/$handle'
+  id:
+    | '__root__'
+    | '/'
+    | '/agb'
+    | '/datenschutz'
+    | '/groessenberatung'
+    | '/haeufige-fragen'
+    | '/impressum'
+    | '/kontakt'
+    | '/merkliste'
+    | '/suche'
+    | '/ueber-uns'
+    | '/versand-und-rueckgabe'
+    | '/warenkorb'
+    | '/kollektion/$handle'
+    | '/produkt/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgbRoute: typeof AgbRoute
+  DatenschutzRoute: typeof DatenschutzRoute
+  GroessenberatungRoute: typeof GroessenberatungRoute
+  HaeufigeFragenRoute: typeof HaeufigeFragenRoute
+  ImpressumRoute: typeof ImpressumRoute
+  KontaktRoute: typeof KontaktRoute
+  MerklisteRoute: typeof MerklisteRoute
+  SucheRoute: typeof SucheRoute
+  UeberUnsRoute: typeof UeberUnsRoute
+  VersandUndRueckgabeRoute: typeof VersandUndRueckgabeRoute
+  WarenkorbRoute: typeof WarenkorbRoute
   KollektionHandleRoute: typeof KollektionHandleRoute
   ProduktHandleRoute: typeof ProduktHandleRoute
 }
@@ -66,6 +219,83 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agb': {
+      id: '/agb'
+      path: '/agb'
+      fullPath: '/agb'
+      preLoaderRoute: typeof AgbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/datenschutz': {
+      id: '/datenschutz'
+      path: '/datenschutz'
+      fullPath: '/datenschutz'
+      preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groessenberatung': {
+      id: '/groessenberatung'
+      path: '/groessenberatung'
+      fullPath: '/groessenberatung'
+      preLoaderRoute: typeof GroessenberatungRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/haeufige-fragen': {
+      id: '/haeufige-fragen'
+      path: '/haeufige-fragen'
+      fullPath: '/haeufige-fragen'
+      preLoaderRoute: typeof HaeufigeFragenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impressum': {
+      id: '/impressum'
+      path: '/impressum'
+      fullPath: '/impressum'
+      preLoaderRoute: typeof ImpressumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kontakt': {
+      id: '/kontakt'
+      path: '/kontakt'
+      fullPath: '/kontakt'
+      preLoaderRoute: typeof KontaktRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merkliste': {
+      id: '/merkliste'
+      path: '/merkliste'
+      fullPath: '/merkliste'
+      preLoaderRoute: typeof MerklisteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suche': {
+      id: '/suche'
+      path: '/suche'
+      fullPath: '/suche'
+      preLoaderRoute: typeof SucheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ueber-uns': {
+      id: '/ueber-uns'
+      path: '/ueber-uns'
+      fullPath: '/ueber-uns'
+      preLoaderRoute: typeof UeberUnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/versand-und-rueckgabe': {
+      id: '/versand-und-rueckgabe'
+      path: '/versand-und-rueckgabe'
+      fullPath: '/versand-und-rueckgabe'
+      preLoaderRoute: typeof VersandUndRueckgabeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warenkorb': {
+      id: '/warenkorb'
+      path: '/warenkorb'
+      fullPath: '/warenkorb'
+      preLoaderRoute: typeof WarenkorbRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kollektion/$handle': {
@@ -87,6 +317,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgbRoute: AgbRoute,
+  DatenschutzRoute: DatenschutzRoute,
+  GroessenberatungRoute: GroessenberatungRoute,
+  HaeufigeFragenRoute: HaeufigeFragenRoute,
+  ImpressumRoute: ImpressumRoute,
+  KontaktRoute: KontaktRoute,
+  MerklisteRoute: MerklisteRoute,
+  SucheRoute: SucheRoute,
+  UeberUnsRoute: UeberUnsRoute,
+  VersandUndRueckgabeRoute: VersandUndRueckgabeRoute,
+  WarenkorbRoute: WarenkorbRoute,
   KollektionHandleRoute: KollektionHandleRoute,
   ProduktHandleRoute: ProduktHandleRoute,
 }
