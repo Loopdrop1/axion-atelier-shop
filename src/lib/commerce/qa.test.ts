@@ -19,10 +19,10 @@ describe("QA regressions", () => {
     const validateCollection = CollectionRoute.options.validateSearch;
     const validateSearch = SearchRoute.options.validateSearch;
     if (typeof validateCollection !== "function" || typeof validateSearch !== "function") throw new Error("Validators missing");
-    expect(validateCollection({}).sort).toBeUndefined();
-    expect(validateCollection({ groesse: 48 }).groesse).toBe("48");
-    expect(validateSearch({}).q).toBeUndefined();
-    expect(validateSearch({ q: 48 }).q).toBe("48");
+    expect(validateCollection({})).toMatchObject({ sort: undefined });
+    expect(validateCollection({ groesse: 48 })).toMatchObject({ groesse: "48" });
+    expect(validateSearch({})).toMatchObject({ q: undefined });
+    expect(validateSearch({ q: 48 })).toMatchObject({ q: "48" });
     const stringify = getRouter().options.stringifySearch;
     expect(stringify?.({ groesse: "48", sort: undefined })).toBe("?groesse=48");
     expect(stringify?.({ groesse: "48,50" })).toBe("?groesse=48,50");

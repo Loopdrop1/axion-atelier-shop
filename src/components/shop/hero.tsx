@@ -27,6 +27,7 @@ export function Hero() {
     if (!node) return;
     let visible = true;
     let scheduled = false;
+    let loaded = false;
     let idle: number | undefined;
     let fallback: number | undefined;
     const phone = window.matchMedia("(max-width: 767px)").matches;
@@ -36,6 +37,10 @@ export function Hero() {
       if (!permitted || scheduled) return;
       scheduled = true;
       const load = () => {
+        if (loaded) return;
+        loaded = true;
+        if (idle !== undefined) window.cancelIdleCallback(idle);
+        if (fallback !== undefined) window.clearTimeout(fallback);
         const canvas = document.createElement("canvas");
         try { if (canvas.getContext("webgl2") || canvas.getContext("webgl")) setEnabled(true); } catch { setEnabled(false); }
       };
