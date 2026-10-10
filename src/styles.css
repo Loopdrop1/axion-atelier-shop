@@ -19,3 +19,5 @@
 .hotspot-sakko{left:37%;top:25%}.hotspot-weste{left:50%;top:31%}.hotspot-schuhe{left:47%;top:89%}
 
 @media(max-width:767px){.hero-bottom>span:first-child{display:none}.hero-bottom{justify-content:flex-end}.hero-copy{padding-bottom:50px}}
+
+@media(max-width:767px){.filters-bar{gap:10px}.mobile-filters{padding-inline:12px!important;font-size:9px!important;letter-spacing:.04em;min-width:0}.content-page h1{overflow-wrap:anywhere;hyphens:auto}.page-title{overflow-wrap:anywhere}}
