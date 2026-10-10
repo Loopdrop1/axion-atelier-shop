@@ -96,7 +96,7 @@
 
 input[type="checkbox"],input[type="radio"]{accent-color:var(--green)}
 .placeholder{background:var(--placeholder-background);color:var(--placeholder-foreground);padding:1px 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-.written-content{max-width:68ch;margin-inline:auto;overflow-wrap:anywhere}
+.written-content{max-width:68ch;margin-inline:0;overflow-wrap:anywhere}
 .draft-notice{border:1px solid var(--line);padding:14px 18px;margin:0 0 32px;font-size:12px;color:var(--muted)}
 .written-content p,.written-content li,.written-content dd{font-family:var(--font-body);font-size:15px;line-height:1.8}
 .written-content p{margin-bottom:20px}
