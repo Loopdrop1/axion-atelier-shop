@@ -27,3 +27,4 @@
 - Persisted-store screens await hydration and data resolution before showing an empty state, to prevent false empty flashes.
 - Leaf metadata uses the configured site URL for canonical and structured-image URLs, keeping deployment-specific values centralised.
 - Missing catalogue/product records use a leaf not-found component so their metadata executes alongside HTTP 404 rendering.
+- Store client legal/help copy as structured page data in `src/content/pages.ts`; the shared renderer interpolates config values and detects placeholders at render time so content and draft status stay aligned.
