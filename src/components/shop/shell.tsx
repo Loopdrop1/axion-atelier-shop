@@ -64,7 +64,8 @@ export function ShopShell({ children }: { children: ReactNode }) {
       const y = window.scrollY;
       const announcementHeight = document.querySelector(".announcement")?.getBoundingClientRect().height ?? 32;
       const top = Math.max(0, announcementHeight - y);
-      const hidden = y > 180 && y > last;
+      const direction = y - last;
+      const hidden = y > 180 && (direction > 0 || (direction === 0 && header.current?.classList.contains("hidden-header") === true));
       setHeaderTop(top);
       setScroll({ solid: y > 40, hidden });
       document.documentElement.style.setProperty("--filter-header-offset", hidden ? "0px" : `${(header.current?.offsetHeight ?? 88) + top}px`);

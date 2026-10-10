@@ -44,7 +44,7 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
   const data = contentPages[handle];
   return (
     <article className="container page-body content-page">
-      <p className="eyebrow">AXION</p>
+      <p className="eyebrow">Axion</p>
       <h1>{data.title}</h1>
       {handle === "ueber-uns" ? (
         <>

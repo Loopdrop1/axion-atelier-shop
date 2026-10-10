@@ -22,6 +22,7 @@ function SearchPage() {
     <div className="container page-body">
       <h1 className="page-title">Suche</h1>
       <input
+        id="page-search"
         className="search-input mb-10"
         aria-label="Kollektion durchsuchen"
         placeholder="Was suchst du?"
