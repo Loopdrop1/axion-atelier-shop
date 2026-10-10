@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { pages } from "@/content/pages";
+import { WrittenContent } from "./written-content";
 import { shopConfig } from "@/config/shop";
 import { SizeGuide } from "./size-guide";
 import { Photo } from "./primitives";
@@ -42,11 +43,12 @@ export type ContentHandle = keyof typeof contentPages;
 const placeholder = <div className="placeholder-box">Inhalt folgt vor dem Livegang</div>;
 export function ContentPage({ handle, image }: { handle: ContentHandle; image?: ShopImage }) {
   const data = contentPages[handle];
+  const written = handle in pages ? pages[handle as keyof typeof pages] : undefined;
   return (
     <article className="container page-body content-page">
       <p className="eyebrow">Axion</p>
-      <h1>{data.title}</h1>
-      {handle === "ueber-uns" ? (
+      <h1>{written?.title || data.title}</h1>
+      {written ? <WrittenContent page={written} /> : handle === "ueber-uns" ? (
         <>
           {image && <Photo image={image} />}
           <h2>Klare Schnitte. Dein Auftritt.</h2>
@@ -61,43 +63,6 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
         </>
       ) : handle === "groessenberatung" ? (
         <SizeGuide />
-      ) : handle === "haeufige-fragen" ? (
-        <>
-          <p>Hier findest du Antworten auf die häufigsten Fragen.</p>
-          <div className="accordion">
-            {[
-              {
-                title: "Grössen",
-                text: "Nutze unsere Grössentabelle für Anzüge, Westen und Schuhe. Die Beispielwerte werden vor dem Livegang durch bestätigte Masse ersetzt.",
-              },
-              {
-                title: "Lieferung",
-                text: `Der Versand in der Schweiz ist gratis. Die Lieferung erfolgt in ${shopConfig.shipping.minDays} bis ${shopConfig.shipping.maxDays} Arbeitstagen.`,
-              },
-              {
-                title: "Rückgabe",
-                text: `Vorgesehen ist eine Rückgabe innert ${shopConfig.returnDays} Tagen. Die endgültigen Bedingungen werden vor dem Livegang bestätigt.`,
-              },
-              {
-                title: "Zahlung",
-                text: `Vorgesehene Zahlungsarten: ${shopConfig.paymentMethods.join(", ")}. Die Kasse wird beim Livegang verbunden.`,
-              },
-              {
-                title: "Pflege",
-                text: "Die produktspezifischen Pflegeangaben folgen vor dem Livegang. Beachte anschliessend die Angaben am jeweiligen Kleidungsstück.",
-              },
-            ].map((a) => (
-              <details key={a.title}>
-                <summary>
-                  {a.title}
-                  <Plus size={16} />
-                </summary>
-                <p>{a.text}</p>
-              </details>
-            ))}
-          </div>
-          {placeholder}
-        </>
       ) : handle === "kontakt" ? (
         <>
           <p>Hast du eine Frage zu einem Stück oder deiner Bestellung?</p>
@@ -109,61 +74,7 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
           </p>
           {placeholder}
         </>
-      ) : handle === "versand-und-rueckgabe" ? (
-        <>
-          <h2>Versand in der Schweiz</h2>
-          <p>
-            Der Versand in der ganzen Schweiz ist gratis. Deine Lieferung trifft in{" "}
-            {shopConfig.shipping.minDays} bis {shopConfig.shipping.maxDays} Arbeitstagen ein.
-          </p>
-          <h2>Rückgabe</h2>
-          <p>
-            Vorgesehen ist eine Rückgabe innert {shopConfig.returnDays} Tagen. Diese Frist und die
-            Rückgabebedingungen werden vom Kunden noch bestätigt.
-          </p>
-          {placeholder}
-        </>
-      ) : handle === "impressum" ? (
-        <>
-          <h2>Unternehmen</h2>
-          <p>
-            {shopConfig.contact.company}
-            <br />
-            {shopConfig.contact.address}
-            <br />
-            {shopConfig.contact.uid}
-          </p>
-          <h2>Kontakt</h2>
-          <p>
-            {shopConfig.contact.email}
-            <br />
-            {shopConfig.contact.phone}
-          </p>
-          {placeholder}
-        </>
-      ) : handle === "datenschutz" ? (
-        <>
-          <h2>Verantwortliche Stelle</h2>
-          <p>
-            {shopConfig.contact.company}
-            <br />
-            {shopConfig.contact.address}
-          </p>
-          <h2>Bearbeitung deiner Daten</h2>
-          {placeholder}
-          <h2>Deine Rechte und Kontakt</h2>
-          {placeholder}
-        </>
-      ) : (
-        <>
-          <h2>Geltungsbereich</h2>
-          {placeholder}
-          <h2>Bestellung und Zahlung</h2>
-          {placeholder}
-          <h2>Lieferung und Rückgabe</h2>
-          {placeholder}
-        </>
-      )}
+      ) : null}
     </article>
   );
 }
