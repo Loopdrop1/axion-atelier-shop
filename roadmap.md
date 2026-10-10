@@ -1,9 +1,9 @@
 # AXION
-- [ ] QA A: filters, URLs, sticky controls, zoom, hotspots, 404 and header
-- [ ] QA B: layout, spacing, badges, tablet hero and mobile menu
-- [ ] QA C–D: focus, accessibility, first paint and German copy
-- [ ] QA E: metadata, phone 3D loading, hydration and sale cart prices
-- [ ] Verify all 33 corrections with tests and browser checks
+- [x] QA A: filters, URLs, sticky controls, zoom, hotspots, 404 and header
+- [x] QA B: layout, spacing, badges, tablet hero and mobile menu
+- [x] QA C–D: focus, accessibility, first paint and German copy
+- [x] QA E: metadata, phone 3D loading, hydration and sale cart prices
+- [x] Verify all 33 corrections with tests and browser checks
 - [x] Brand system, exact logos, generated media and lazy 3D hero
 - [x] Typed async sample commerce layer, config, price tests and filter tests
 - [x] Home, collections, product, cart, wishlist and search experiences
