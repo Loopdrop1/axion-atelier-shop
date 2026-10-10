@@ -1,7 +1,7 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, useInView } from "motion/react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { ShopImage } from "@/lib/commerce";
 export function Photo({
@@ -35,16 +35,18 @@ export function Reveal({
   className?: string;
 }) {
   const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const visible = useInView(ref, { once: true, margin: "0px 0px 100px 0px", amount: 0.05 });
   return (
+    <div ref={ref} className={className}>
     <motion.div
-      className={className}
       initial={reduced ? false : image ? { clipPath: "inset(100% 0 0 0)" } : { opacity: 0, y: 16 }}
-      whileInView={image ? { clipPath: "inset(0% 0 0 0)" } : { opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.05, margin: "0px 0px 100px 0px" }}
+      animate={visible || reduced ? image ? { clipPath: "inset(0% 0 0 0)" } : { opacity: 1, y: 0 } : undefined}
       transition={{ duration: image ? 0.9 : 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
+    </div>
   );
 }
 export function Panel({
