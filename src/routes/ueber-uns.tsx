@@ -4,7 +4,7 @@ import { ContentPage, contentPages } from "@/components/shop/content";
 import { getEditorial } from "@/lib/commerce";
 export const Route = createFileRoute("/ueber-uns")({
   loader: () => getEditorial(),
-  head: () => pageHead(contentPages["ueber-uns"].title, contentPages["ueber-uns"].description),
+  head: () => pageHead(contentPages["ueber-uns"].title, contentPages["ueber-uns"].description, "/ueber-uns"),
   component: Page,
 });
 function Page() {

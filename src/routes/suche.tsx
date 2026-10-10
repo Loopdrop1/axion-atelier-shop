@@ -1,34 +1,36 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { searchProducts } from "@/lib/commerce";
+import { searchString, resultCount } from "@/lib/commerce/presentation";
 import { pageHead } from "@/lib/commerce/seo";
 import { ProductCard } from "@/components/shop/product-card";
 const searchQuery = (q: string) =>
   queryOptions({ queryKey: ["search", q], queryFn: () => searchProducts(q) });
 export const Route = createFileRoute("/suche")({
-  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s["q"] === "string" ? s["q"] : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({ q: searchString(s["q"]) }),
   loaderDeps: ({ search }) => search,
-  loader: ({ context, deps }) => context.queryClient.ensureQueryData(searchQuery(deps["q"])),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(searchQuery(deps["q"] ?? "")),
   head: () =>
-    pageHead("Suche", "Suche nach Anzügen, Westen, Schuhen und Farben in der Axion Kollektion."),
+    pageHead("Suche", "Suche nach Anzügen, Westen, Schuhen und Farben in der Axion Kollektion.", "/suche"),
   component: SearchPage,
 });
 function SearchPage() {
   const { q } = Route.useSearch();
   const navigate = useNavigate();
-  const { data } = useSuspenseQuery(searchQuery(q));
+  const { data } = useSuspenseQuery(searchQuery(q ?? ""));
   return (
     <div className="container page-body">
       <h1 className="page-title">Suche</h1>
       <input
+        id="page-search"
         className="search-input mb-10"
         aria-label="Kollektion durchsuchen"
         placeholder="Was suchst du?"
-        value={q}
+        value={q ?? ""}
         onChange={(e) => navigate({ to: "/suche", search: { q: e.target.value }, replace: true })}
       />
       <p className="text-muted mb-8">
-        {data.length} Ergebnisse{q ? ` für «${q}»` : ""}
+        {resultCount(data.length)}{q ? ` für «${q}»` : ""}
       </p>
       {data.length ? (
         <div className="product-grid">

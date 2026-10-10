@@ -1,6 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getCollection, listProducts } from "@/lib/commerce";
+import { searchString } from "@/lib/commerce/presentation";
+import { MissingPage } from "@/components/shop/missing-page";
 import { pageHead } from "@/lib/commerce/seo";
 import { CollectionPage, type CollectionSearch } from "@/components/shop/collection";
 const collectionQuery = (handle: string, s: CollectionSearch) =>
@@ -11,6 +13,7 @@ const collectionQuery = (handle: string, s: CollectionSearch) =>
       if (!collection) throw notFound();
       return {
         collection,
+        catalogue: await listProducts({ collection: handle }),
         products: await listProducts({
           collection: handle,
           occasion: s["anlass"],
@@ -25,21 +28,23 @@ const collectionQuery = (handle: string, s: CollectionSearch) =>
   });
 export const Route = createFileRoute("/kollektion/$handle")({
   validateSearch: (s: Record<string, unknown>): CollectionSearch => ({
-    anlass: typeof s["anlass"] === "string" ? s["anlass"] : undefined,
-    groesse: typeof s["groesse"] === "string" ? s["groesse"] : undefined,
-    farbe: typeof s["farbe"] === "string" ? s["farbe"] : undefined,
-    passform: typeof s["passform"] === "string" ? s["passform"] : undefined,
+    anlass: searchString(s["anlass"]),
+    groesse: searchString(s["groesse"]),
+    farbe: searchString(s["farbe"]),
+    passform: searchString(s["passform"]),
     preis: s["preis"] && Number.isFinite(Number(s["preis"])) ? Number(s["preis"]) : undefined,
-    sort: s["sort"] === "price-asc" || s["sort"] === "price-desc" ? s["sort"] : "newest",
+    sort: s["sort"] === "price-asc" || s["sort"] === "price-desc" ? s["sort"] : s["sort"] === "newest" ? "newest" : undefined,
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ context, params, deps }) =>
     context.queryClient.ensureQueryData(collectionQuery(params.handle, deps)),
-  head: ({ loaderData }) =>
+  head: ({ loaderData, params }) =>
     pageHead(
-      loaderData?.collection.title || "Kollektion",
-      "Entdecke die Axion Kollektion und finde Anzüge, Westen und Schuhe für deinen Anlass.",
+      loaderData?.collection.title || "Seite nicht gefunden",
+      loaderData?.collection.description || "Diese Kollektion wurde nicht gefunden. Entdecke die Stücke von Axion.",
+      `/kollektion/${params.handle}`,
     ),
+  notFoundComponent: MissingPage,
   component: Collection,
 });
 function Collection() {

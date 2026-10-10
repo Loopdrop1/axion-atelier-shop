@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { pageHead } from "@/lib/commerce/seo";
 import { ContentPage, contentPages } from "@/components/shop/content";
 export const Route = createFileRoute("/datenschutz")({
-  head: () => pageHead(contentPages["datenschutz"].title, contentPages["datenschutz"].description),
+  head: () => pageHead(contentPages["datenschutz"].title, contentPages["datenschutz"].description, "/datenschutz"),
   component: Page,
 });
 function Page() {

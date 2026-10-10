@@ -5,8 +5,7 @@ export const Route = createFileRoute("/warenkorb")({
   head: () =>
     pageHead(
       "Dein Warenkorb",
-      "Deine ausgewählten Stücke von Axion. Gratisversand in der Schweiz.",
-    ),
+      "Deine ausgewählten Stücke von Axion. Gratisversand in der Schweiz.", "/warenkorb"),
   component: CartPage,
 });
 function CartPage() {

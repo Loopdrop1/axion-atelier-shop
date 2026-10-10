@@ -3,7 +3,7 @@ import { pageHead } from "@/lib/commerce/seo";
 import { ContentPage, contentPages } from "@/components/shop/content";
 export const Route = createFileRoute("/haeufige-fragen")({
   head: () =>
-    pageHead(contentPages["haeufige-fragen"].title, contentPages["haeufige-fragen"].description),
+    pageHead(contentPages["haeufige-fragen"].title, contentPages["haeufige-fragen"].description, "/haeufige-fragen"),
   component: Page,
 });
 function Page() {

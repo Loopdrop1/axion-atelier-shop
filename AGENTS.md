@@ -20,3 +20,10 @@
 - Motion respects reduced-motion preferences; the hero uses the exact flat SVG when animation/WebGL is unavailable and pauses its canvas offscreen.
 - `launched` controls metadata; after changing it regenerate `public/robots.txt` using `bun scripts/sync-robots.ts` before publishing so both protections stay aligned.
 - Cart checkout is null in sample mode; hosted checkout must come from the future commerce adapter, never a UI hardcoded link.
+
+- Search serialization uses plain string query values, with optional defaults resolved by consumers, to avoid redirecting clean URLs.
+- Shared Dialog panels restore their external opener and initialise search focus; filter and occasion dropdowns use controlled non-modal Radix Popovers for keyboard and outside-click handling.
+- Reveal visibility is controlled by the pre-paint html.js class and CSS reduced-motion media queries, so SSR content remains visible without JavaScript.
+- Persisted-store screens await hydration and data resolution before showing an empty state, to prevent false empty flashes.
+- Leaf metadata uses the configured site URL for canonical and structured-image URLs, keeping deployment-specific values centralised.
+- Missing catalogue/product records use a leaf not-found component so their metadata executes alongside HTTP 404 rendering.

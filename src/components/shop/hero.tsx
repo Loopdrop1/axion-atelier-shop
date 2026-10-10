@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { useReducedMotion, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Mark } from "./logo";
 const Scene = lazy(() => import("./hero-scene"));
@@ -15,30 +14,47 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
 }
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
-  const reduced = useReducedMotion();
+  const [reduced, setReduced] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [active, setActive] = useState(true);
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState(0);
   useEffect(() => {
-    if (reduced) return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(media.matches);
+    if (media.matches) return;
     const node = ref.current;
     if (!node) return;
     let visible = true;
+    let scheduled = false;
+    let loaded = false;
+    let idle: number | undefined;
+    let fallback: number | undefined;
+    const phone = window.matchMedia("(max-width: 767px)").matches;
+    const device = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+    const permitted = !phone || (!device.connection?.saveData && (device.deviceMemory ?? 4) >= 4);
+    const enable = () => {
+      if (!permitted || scheduled) return;
+      scheduled = true;
+      const load = () => {
+        if (loaded) return;
+        loaded = true;
+        if (idle !== undefined) window.cancelIdleCallback(idle);
+        if (fallback !== undefined) window.clearTimeout(fallback);
+        const canvas = document.createElement("canvas");
+        try { if (canvas.getContext("webgl2") || canvas.getContext("webgl")) setEnabled(true); } catch { setEnabled(false); }
+      };
+      if (phone) {
+        if ("requestIdleCallback" in window) idle = window.requestIdleCallback(load, { timeout: 2000 });
+        fallback = window.setTimeout(load, 2000);
+      } else requestAnimationFrame(load);
+    };
     const update = () => setActive(visible && !document.hidden);
     const observer = new IntersectionObserver(
       ([entry]) => {
         visible = Boolean(entry?.isIntersecting);
         update();
-        if (visible) {
-          const canvas = document.createElement("canvas");
-          try {
-            if (canvas.getContext("webgl2") || canvas.getContext("webgl"))
-              requestAnimationFrame(() => setEnabled(true));
-          } catch {
-            setEnabled(false);
-          }
-        }
+        if (visible) enable();
       },
       { threshold: 0.05 },
     );
@@ -48,19 +64,16 @@ export function Hero() {
     window.addEventListener("scroll", scroll, { passive: true });
     return () => {
       observer.disconnect();
+      if (idle !== undefined) window.cancelIdleCallback(idle);
+      if (fallback !== undefined) window.clearTimeout(fallback);
       document.removeEventListener("visibilitychange", update);
       window.removeEventListener("scroll", scroll);
     };
-  }, [reduced]);
+  }, []);
   return (
     <section className="hero" ref={ref}>
       <div className="container hero-inner">
-        <motion.div
-          className="hero-copy"
-          initial={reduced ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div className="hero-copy">
           <p className="eyebrow">Anzüge · Westen · Schuhe</p>
           <h1>
             Präzise geschnitten.
@@ -83,7 +96,7 @@ export function Hero() {
               </Link>
             </Button>
           </div>
-        </motion.div>
+        </div>
         <div className={`hero-mark ${ready ? "scene-ready" : ""}`}>
           <Mark className="flat-mark" aria-hidden="true" />
           {enabled && !reduced && (
@@ -96,9 +109,8 @@ export function Hero() {
         </div>
       </div>
       <div className="hero-bottom">
-        <span>Dein Auftritt. Dein Stil.</span>
         <a className="scroll-cue" href="#kollektionen" aria-label="Zu den Kollektionen" />
-        <span>AXION · Schweiz</span>
+        <span>Axion · Schweiz</span>
       </div>
     </section>
   );

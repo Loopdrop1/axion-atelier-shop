@@ -1,5 +1,6 @@
 export const shopConfig = {
   brand: "Axion",
+  siteUrl: "https://www.axion-shop.ch", // Platzhalter, vor Livegang bestätigen.
   launched: false,
   vatRegistered: false,
   contact: {

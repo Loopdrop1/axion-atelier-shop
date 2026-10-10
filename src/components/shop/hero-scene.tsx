@@ -3,6 +3,7 @@ import { Environment, Lightformer } from "@react-three/drei";
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
 import { ExtrudeGeometry, Box3, Vector3, MathUtils, Color, Group } from "three";
 import { useEffect, useMemo, useRef } from "react";
+import { FitCamera } from "./fit-camera";
 import { markPath } from "./logo";
 function ObjectMark({ progress }: { progress: number }) {
   const ref = useRef<Group>(null);
@@ -114,6 +115,7 @@ export default function HeroScene({
         onReady();
       }}
     >
+      <FitCamera />
       <ambientLight intensity={0.25} />
       <directionalLight position={[-4, 5, 4]} color="#F5E4C1" intensity={4} />
       <Environment resolution={128}>

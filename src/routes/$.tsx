@@ -1,11 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { pageHead } from "@/lib/commerce/seo";
 import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/$")({
-  head: () =>
+  loader: () => { throw notFound(); },
+  notFoundComponent: Missing,
+  head: ({ params }) =>
     pageHead(
       "Seite nicht gefunden",
       "Diese Seite wurde nicht gefunden. Entdecke die Kollektion von Axion.",
+      `/${params._splat || ""}`,
     ),
   component: Missing,
 });
