@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getCollection, listProducts } from "@/lib/commerce";
 import { searchString } from "@/lib/commerce/presentation";
+import { MissingPage } from "@/components/shop/missing-page";
 import { pageHead } from "@/lib/commerce/seo";
 import { CollectionPage, type CollectionSearch } from "@/components/shop/collection";
 const collectionQuery = (handle: string, s: CollectionSearch) =>
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/kollektion/$handle")({
       loaderData?.collection.description || "Diese Kollektion wurde nicht gefunden. Entdecke die Stücke von Axion.",
       `/kollektion/${params.handle}`,
     ),
+  notFoundComponent: MissingPage,
   component: Collection,
 });
 function Collection() {

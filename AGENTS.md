@@ -26,3 +26,4 @@
 - Reveal visibility is controlled by the pre-paint html.js class and CSS reduced-motion media queries, so SSR content remains visible without JavaScript.
 - Persisted-store screens await hydration and data resolution before showing an empty state, to prevent false empty flashes.
 - Leaf metadata uses the configured site URL for canonical and structured-image URLs, keeping deployment-specific values centralised.
+- Missing catalogue/product records use a leaf not-found component so their metadata executes alongside HTTP 404 rendering.

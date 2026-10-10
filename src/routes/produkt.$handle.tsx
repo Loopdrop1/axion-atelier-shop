@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getProduct, getSiblings, getRecommendations, getProductsByHandles } from "@/lib/commerce";
 import { shopConfig } from "@/config/shop";
+import { MissingPage } from "@/components/shop/missing-page";
 import { pageHead } from "@/lib/commerce/seo";
 import { ProductPage } from "@/components/shop/product";
 const productQuery = (handle: string) =>
@@ -54,6 +55,7 @@ export const Route = createFileRoute("/produkt/$handle")({
         : [],
     };
   },
+  notFoundComponent: MissingPage,
   component: Product,
 });
 function Product() {

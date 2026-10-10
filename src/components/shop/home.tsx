@@ -99,6 +99,7 @@ export function HomePage({
         <div className="container look-layout">
           <Reveal image>
             <div className="look-photo">
+              <div className="look-image">
               <Photo image={editorial.look.image} />
               {editorial.look.hotspots.map((h) => (
                 <Button
@@ -112,6 +113,7 @@ export function HomePage({
                   <Plus />
                 </Button>
               ))}
+              </div>
               {active && (
                 <div className={`hotspot-card hotspot-card-${editorial.look.hotspots.find(h => h.handle === active.handle)?.label.toLowerCase()}`}>
                   <Photo image={active.images[0]} />
