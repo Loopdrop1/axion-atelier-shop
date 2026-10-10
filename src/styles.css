@@ -115,4 +115,5 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--green)}
 .shipping-definitions dt{font-family:var(--font-display);font-size:15px}
 .shipping-definitions dd{margin:0}
 .carousel-controls button:disabled{opacity:.35}
+.new-section .carousel-controls{display:flex}
 @media(max-width:767px){.shipping-definitions>div{grid-template-columns:1fr;gap:4px}.written-content h2{font-size:1.4rem}}

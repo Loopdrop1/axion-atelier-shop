@@ -14,10 +14,10 @@ function structure(title: string, text: string, mode?: "questions" | "definition
   for (const line of text.trim().split("\n")) {
     if (!line.trim()) { section.blocks.push({ type: "paragraph", text: "" }); continue; }
     const heading = line.match(/^### (.+)$/) || (mode === "impressum" ? line.match(/^\*\*(.+)\*\*$/) : null);
-    if (heading) { section = { heading: heading[1], blocks: [] }; sections.push(section); continue; }
+    if (heading?.[1]) { section = { heading: heading[1], blocks: [] }; sections.push(section); continue; }
     const last = section.blocks.at(-1);
     const question = mode === "questions" ? line.match(/^\*\*(.+)\*\*$/) : null;
-    if (question) {
+    if (question?.[1]) {
       if (last?.type === "questions") last.items.push({ question: question[1], answer: "" });
       else section.blocks.push({ type: "questions", items: [{ question: question[1], answer: "" }] });
       continue;
@@ -30,8 +30,8 @@ function structure(title: string, text: string, mode?: "questions" | "definition
     const bullet = line.match(/^- (.+)$/);
     const step = line.match(/^\d+\. (.+)$/);
     if (bullet && mode === "definitions") {
-      const pair = bullet[1].match(/^\*\*(.+?):\*\* (.+)$/);
-      if (pair) {
+      const pair = bullet[1]?.match(/^\*\*(.+?):\*\* (.+)$/);
+      if (pair?.[1] && pair[2]) {
         const item = { label: pair[1] + ":", value: pair[2] };
         if (last?.type === "definitions") last.items.push(item);
         else section.blocks.push({ type: "definitions", items: [item] });

@@ -17,7 +17,17 @@ export function resolvePageVariables(text: string) {
   return text.replace(/\{\{(\w+)\}\}/g, (token, key: string) => key in variables ? String(variables[key as keyof typeof variables]) : token);
 }
 export function pageHasPlaceholder(page: WrittenPage) {
-  return /\[/.test(resolvePageVariables(JSON.stringify(page)));
+  const strings: string[] = [page.title];
+  for (const section of page.sections) {
+    if (section.heading) strings.push(section.heading);
+    for (const block of section.blocks) {
+      if (block.type === "paragraph") strings.push(block.text);
+      else if (block.type === "bullets" || block.type === "steps") strings.push(...block.items);
+      else if (block.type === "definitions") block.items.forEach(item => strings.push(item.label, item.value));
+      else if (block.type === "questions") block.items.forEach(item => strings.push(item.question, item.answer));
+    }
+  }
+  return strings.some(text => /\[/.test(resolvePageVariables(text)));
 }
 
 export function InlineText({ text, marked = false, variablesEnabled = true }: { text: string; marked?: boolean; variablesEnabled?: boolean }) {
@@ -39,9 +49,8 @@ export function InlineText({ text, marked = false, variablesEnabled = true }: { 
         end++;
       }
       value = text.slice(match.index, end);
-      node = marked ? value : <mark className="placeholder"><InlineText text={value.slice(1, depth ? undefined : -1)} marked variablesEnabled={variablesEnabled} />{depth ? "" : "]"}</mark>;
-      // Keep the opening bracket visible, including nested config placeholders.
-      if (!marked) node = <mark className="placeholder">[<InlineText text={value.slice(1, depth ? undefined : -1)} marked variablesEnabled={variablesEnabled} />{depth ? "" : "]"}</mark>;
+      const content = <>[<InlineText text={value.slice(1, depth ? undefined : -1)} marked variablesEnabled={variablesEnabled} />{depth ? "" : "]"}</>;
+      node = marked ? content : <mark className="placeholder">{content}</mark>;
     } else if (value.startsWith("{{") && variablesEnabled) {
       const key = value.slice(2, -2) as keyof typeof variables;
       const resolved = key in variables ? String(variables[key]) : value;
