@@ -5,8 +5,7 @@ export const Route = createFileRoute("/versand-und-rueckgabe")({
   head: () =>
     pageHead(
       contentPages["versand-und-rueckgabe"].title,
-      contentPages["versand-und-rueckgabe"].description,
-    ),
+      contentPages["versand-und-rueckgabe"].description, "/versand-und-rueckgabe"),
   component: Page,
 });
 function Page() {

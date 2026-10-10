@@ -15,8 +15,7 @@ export const Route = createFileRoute("/")({
   head: () =>
     pageHead(
       "Anzüge, Westen und Schuhe",
-      "Entdecke Axion: Anzüge, Westen und Schuhe für Hochzeit, Business und besondere Momente. Gratisversand in der Schweiz.",
-    ),
+      "Entdecke Axion: Anzüge, Westen und Schuhe für Hochzeit, Business und besondere Momente. Gratisversand in der Schweiz.", "/"),
   loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
   component: Index,
 });

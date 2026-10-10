@@ -6,13 +6,14 @@ import { formatPrice } from "@/lib/commerce/format";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import type { Product } from "@/lib/commerce";
 export function ProductCard({ product }: { product: Product }) {
+  const name = `${product.title}, ${product.color.name}`;
   const { handles, toggle } = useWishlist();
   const add = useCart((s) => s.add);
   const setCart = useShopUI((s) => s.setCart);
   return (
     <article className="product-card">
       <div className="product-card-image">
-        <Link to="/produkt/$handle" params={{ handle: product.handle }} aria-label={product.title}>
+        <Link to="/produkt/$handle" params={{ handle: product.handle }} aria-label={name}>
           <Photo image={product.images[0]} />
           {product.images[1] && <Photo image={product.images[1]} className="second-image" />}
         </Link>
@@ -23,7 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
           variant="icon"
           size="icon"
           className="product-heart"
-          aria-label={`${product.title} ${handles.includes(product.handle) ? "aus Merkliste entfernen" : "merken"}`}
+          aria-label={`${name} ${handles.includes(product.handle) ? "aus Merkliste entfernen" : "merken"}`}
           aria-pressed={handles.includes(product.handle)}
           onClick={() => toggle(product.handle)}
         >
@@ -41,9 +42,10 @@ export function ProductCard({ product }: { product: Product }) {
                   add(v.id);
                   setCart(true);
                 }}
-                aria-label={`${product.title}, Grösse ${v.title} hinzufügen`}
+                aria-label={`${name}, Grösse ${v.title}${v.availableForSale ? " hinzufügen" : ", ausverkauft"}`}
               >
                 {v.title}
+                {!v.availableForSale && <span className="sr-only">, ausverkauft</span>}
               </Button>
             ))}
           </div>

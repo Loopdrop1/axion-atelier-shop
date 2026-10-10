@@ -9,6 +9,7 @@ export function SearchOverlay() {
   const { searchOpen, setSearch } = useShopUI();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
+  const input = useRef<HTMLInputElement>(null);
   const refs = useRef<(HTMLAnchorElement | null)[]>([]);
   useEffect(() => {
     let live = true;
@@ -22,6 +23,8 @@ export function SearchOverlay() {
   return (
     <Panel open={searchOpen} onOpenChange={setSearch} title="Was suchst du?" kind="search">
       <input
+        ref={input}
+        id="overlay-search"
         aria-label="Produkte suchen"
         placeholder="Anzüge, Westen, Schuhe …"
         className="search-input"
@@ -52,7 +55,8 @@ export function SearchOverlay() {
               }
               if (e.key === "ArrowUp") {
                 e.preventDefault();
-                refs.current[Math.max(i - 1, 0)]?.focus();
+                if (i === 0) input.current?.focus();
+                else refs.current[i - 1]?.focus();
               }
             }}
           >
@@ -66,7 +70,7 @@ export function SearchOverlay() {
         ))}
       </div>
       {query && !results.length && <p className="text-muted">Keine passenden Stücke gefunden.</p>}
-      {query && (
+      {query && results.length > 0 && (
         <Link
           className="text-link"
           to="/suche"

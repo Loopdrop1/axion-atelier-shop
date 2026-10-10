@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useCart } from "@/lib/commerce/stores";
 import { resolveCart, type Cart as CartType } from "@/lib/commerce";
 import { formatPrice } from "@/lib/commerce/format";
@@ -28,9 +29,11 @@ export function CartContents({
   page?: boolean;
   onNavigate?: () => void;
 }) {
+  const hydrated = useStoreHydrated(useCart.persist);
   const { lines, quantity, remove } = useCart();
   const [cart, setCart] = useState<CartType | null>(null);
   useEffect(() => {
+    if (!hydrated) return;
     let live = true;
     resolveCart(lines).then((c) => {
       if (live) setCart(c);
@@ -38,8 +41,8 @@ export function CartContents({
     return () => {
       live = false;
     };
-  }, [lines]);
-  if (!cart) return <p>Warenkorb wird geladen …</p>;
+  }, [lines, hydrated]);
+  if (!hydrated || !cart) return <p>Warenkorb wird geladen …</p>;
   if (!cart.lines.length)
     return (
       <EmptyState
@@ -66,7 +69,7 @@ export function CartContents({
               <p>
                 {l.product.color.name} · Grösse {l.variant.title}
               </p>
-              <span className="price">{formatPrice(l.variant.price)}</span>
+              <span className="price">{formatPrice(l.variant.price)}{l.product.compareAtPrice && <del>{formatPrice(l.product.compareAtPrice)}</del>}</span>
               <div className="cart-line-controls">
                 <div className="stepper">
                   <Button

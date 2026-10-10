@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { pageHead } from "@/lib/commerce/seo";
 import { ContentPage, contentPages } from "@/components/shop/content";
 export const Route = createFileRoute("/impressum")({
-  head: () => pageHead(contentPages["impressum"].title, contentPages["impressum"].description),
+  head: () => pageHead(contentPages["impressum"].title, contentPages["impressum"].description, "/impressum"),
   component: Page,
 });
 function Page() {

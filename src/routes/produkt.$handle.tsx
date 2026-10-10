@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getProduct, getSiblings, getRecommendations, getProductsByHandles } from "@/lib/commerce";
+import { shopConfig } from "@/config/shop";
 import { pageHead } from "@/lib/commerce/seo";
 import { ProductPage } from "@/components/shop/product";
 const productQuery = (handle: string) =>
@@ -19,12 +20,13 @@ const productQuery = (handle: string) =>
   });
 export const Route = createFileRoute("/produkt/$handle")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(productQuery(params.handle)),
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const p = loaderData?.product;
     return {
       ...pageHead(
-        p?.title || "Produkt",
-        p?.description || "Entdecke Anzüge, Westen und Schuhe von Axion.",
+        p ? `${p.title}, ${p.color.name}` : "Seite nicht gefunden",
+        p?.description || "Dieses Produkt wurde nicht gefunden. Entdecke die Stücke von Axion.",
+        `/produkt/${params.handle}`,
       ),
       scripts: p
         ? [
@@ -33,8 +35,8 @@ export const Route = createFileRoute("/produkt/$handle")({
               children: JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Product",
-                name: p.title,
-                image: p.images.map((i) => i.url),
+                name: `${p.title}, ${p.color.name}`,
+                image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href),
                 description: p.description,
                 offers: {
                   "@type": "AggregateOffer",
