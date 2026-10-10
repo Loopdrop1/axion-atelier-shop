@@ -1,13 +1,231 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import useEmblaCarousel from 'embla-carousel-react';
-import { ArrowRight, ArrowLeft, Truck, Clock3, CreditCard, RotateCcw, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { formatPrice } from '@/lib/commerce/format';
-import { shopConfig } from '@/config/shop';
-import type { Collection, Product, getEditorial } from '@/lib/commerce';
-import { Hero } from './hero';
-import { Photo, Reveal } from './primitives';
-import { ProductCard } from './product-card';
-import { occasions } from './shell';
-export function HomePage({products,collections,editorial}:{products:Product[];collections:Collection[];editorial:Awaited<ReturnType<typeof getEditorial>>}) {const [embla,api]=useEmblaCarousel({align:'start',dragFree:true});const [hotspot,setHotspot]=useState<string|null>(null);const lookProducts=editorial.look.hotspots.flatMap(h=>{const p=products.find(p=>p.handle===h.handle);return p?[p]:[];});const active=lookProducts.find(p=>p.handle===hotspot);return <><Hero/><section className="section container" id="kollektionen"><Reveal><div className="section-head"><div><p className="eyebrow">Die Kollektionen</p><h2>Ein Auftritt. Dein Stil.</h2></div></div></Reveal><div className="category-grid">{collections.filter(c=>c.image).map(c=><Link to="/kollektion/$handle" params={{handle:c.handle}} key={c.handle}><Reveal image><div className="category-tile">{c.image&&<Photo image={c.image}/>}<div className="category-label"><h3>{c.title}</h3><span>Entdecken ↗</span></div></div></Reveal></Link>)}</div></section><section className="section container new-section"><Reveal><div className="section-head"><div><p className="eyebrow">Frisch in der Kollektion</p><h2>Neu eingetroffen</h2></div><Link className="text-link" to="/kollektion/$handle" params={{handle:'neu'}}>Alle Neuheiten <ArrowRight/></Link></div></Reveal><div className="carousel-viewport" ref={embla}><div className="carousel-track">{products.map(p=><ProductCard key={p.handle} product={p}/>)}</div></div><div className="carousel-controls justify-end mt-6"><Button variant="icon" size="icon" aria-label="Vorherige Produkte" onClick={()=>api?.scrollPrev()}><ArrowLeft/></Button><Button variant="icon" size="icon" aria-label="Nächste Produkte" onClick={()=>api?.scrollNext()}><ArrowRight/></Button></div></section><section className="section look-section"><div className="container look-layout"><Reveal image><div className="look-photo"><Photo image={editorial.look.image}/>{editorial.look.hotspots.map(h=><Button key={h.handle} variant="icon" className={`hotspot hotspot-${h.label.toLowerCase()}`} aria-label={`${h.label} ansehen`} aria-expanded={hotspot===h.handle} onClick={()=>setHotspot(hotspot===h.handle?null:h.handle)}><Plus/></Button>)}{active&&<div className="hotspot-card"><Photo image={active.images[0]}/><div><h3>{active.title}</h3><p className="price">{formatPrice(active.priceRange.min)}</p><Link to="/produkt/$handle" params={{handle:active.handle}} className="text-link">Ansehen <ArrowRight/></Link></div></div>}</div></Reveal><Reveal className="look-copy"><p className="eyebrow">Stücke, die zusammenpassen</p><h2>Komplettes Outfit.<br/>Ganz du.</h2><p className="text-muted">Vom ersten Knopf bis zum letzten Schritt.</p><div className="look-items">{lookProducts.map(p=><Link className="look-item" key={p.handle} to="/produkt/$handle" params={{handle:p.handle}}><Photo image={p.images[0]}/><div><h3>{p.title}</h3><p>{p.color.name}</p></div><span className="price">{formatPrice(p.priceRange.min)}</span></Link>)}</div><div className="look-total"><span>Ganzes Outfit ab</span><strong>{formatPrice(lookProducts.reduce((s,p)=>s+p.priceRange.min.amount,0))}</strong></div><Button asChild><Link to="/produkt/$handle" params={{handle:'anzug-limmat-marine'}} hash="outfit">Outfit zusammenstellen</Link></Button></Reveal></div></section><section className="section container"><Reveal><p className="eyebrow">Für deine Momente</p><h2>Der Anlass ist deiner.</h2></Reveal><div className="occasion-grid">{occasions.map(o=><Link className="occasion-link" key={o.handle} to="/kollektion/$handle" params={{handle:'alle'}} search={{anlass:o.handle}}><h3>{o.label}<ArrowRight/></h3><p>{o.text}</p></Link>)}</div></section><div className="container"><div className="benefits">{[{Icon:Truck,text:'Gratisversand in der Schweiz'},{Icon:Clock3,text:'Lieferung in 2 bis 5 Arbeitstagen'},{Icon:CreditCard,text:'TWINT, Karte, Apple Pay, Klarna'},{Icon:RotateCcw,text:`Rückgabe innert ${shopConfig.returnDays} Tagen`}].map(({Icon,text})=><div className="benefit" key={text}><Icon/><span>{text}</span></div>)}</div></div><section className="section container about-layout"><Reveal image><Photo image={editorial.fabric}/></Reveal><Reveal><p className="eyebrow">AXION</p><h2>Das Ganze beginnt<br/>mit den Details.</h2><p>Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste und Schuhe zu deinem Auftritt.</p><Link className="text-link" to="/ueber-uns">Über uns <ArrowRight/></Link></Reveal></section></>;}
+import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import useEmblaCarousel from "embla-carousel-react";
+import { ArrowRight, ArrowLeft, Truck, Clock3, CreditCard, RotateCcw, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/commerce/format";
+import { shopConfig } from "@/config/shop";
+import type { Collection, Product, getEditorial } from "@/lib/commerce";
+import { Hero } from "./hero";
+import { Photo, Reveal } from "./primitives";
+import { ProductCard } from "./product-card";
+import { occasions } from "./shell";
+export function HomePage({
+  products,
+  collections,
+  editorial,
+}: {
+  products: Product[];
+  collections: Collection[];
+  editorial: Awaited<ReturnType<typeof getEditorial>>;
+}) {
+  const [embla, api] = useEmblaCarousel({ align: "start", dragFree: true });
+  const [hotspot, setHotspot] = useState<string | null>(null);
+  const lookProducts = editorial.look.hotspots.flatMap((h) => {
+    const p = products.find((p) => p.handle === h.handle);
+    return p ? [p] : [];
+  });
+  const active = lookProducts.find((p) => p.handle === hotspot);
+  return (
+    <>
+      <Hero />
+      <section className="section container" id="kollektionen">
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Die Kollektionen</p>
+              <h2>Ein Auftritt. Dein Stil.</h2>
+            </div>
+          </div>
+        </Reveal>
+        <div className="category-grid">
+          {collections
+            .filter((c) => c.image)
+            .map((c) => (
+              <Link to="/kollektion/$handle" params={{ handle: c.handle }} key={c.handle}>
+                <Reveal image>
+                  <div className="category-tile">
+                    {c.image && <Photo image={c.image} />}
+                    <div className="category-label">
+                      <h3>{c.title}</h3>
+                      <span>Entdecken ↗</span>
+                    </div>
+                  </div>
+                </Reveal>
+              </Link>
+            ))}
+        </div>
+      </section>
+      <section className="section container new-section">
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Frisch in der Kollektion</p>
+              <h2>Neu eingetroffen</h2>
+            </div>
+            <Link className="text-link" to="/kollektion/$handle" params={{ handle: "neu" }}>
+              Alle Neuheiten <ArrowRight />
+            </Link>
+          </div>
+        </Reveal>
+        <div className="carousel-viewport" ref={embla}>
+          <div className="carousel-track">
+            {products.map((p) => (
+              <ProductCard key={p.handle} product={p} />
+            ))}
+          </div>
+        </div>
+        <div className="carousel-controls justify-end mt-6">
+          <Button
+            variant="icon"
+            size="icon"
+            aria-label="Vorherige Produkte"
+            onClick={() => api?.scrollPrev()}
+          >
+            <ArrowLeft />
+          </Button>
+          <Button
+            variant="icon"
+            size="icon"
+            aria-label="Nächste Produkte"
+            onClick={() => api?.scrollNext()}
+          >
+            <ArrowRight />
+          </Button>
+        </div>
+      </section>
+      <section className="section look-section">
+        <div className="container look-layout">
+          <Reveal image>
+            <div className="look-photo">
+              <Photo image={editorial.look.image} />
+              {editorial.look.hotspots.map((h) => (
+                <Button
+                  key={h.handle}
+                  variant="icon"
+                  className={`hotspot hotspot-${h.label.toLowerCase()}`}
+                  aria-label={`${h.label} ansehen`}
+                  aria-expanded={hotspot === h.handle}
+                  onClick={() => setHotspot(hotspot === h.handle ? null : h.handle)}
+                >
+                  <Plus />
+                </Button>
+              ))}
+              {active && (
+                <div className="hotspot-card">
+                  <Photo image={active.images[0]} />
+                  <div>
+                    <h3>{active.title}</h3>
+                    <p className="price">{formatPrice(active.priceRange.min)}</p>
+                    <Link
+                      to="/produkt/$handle"
+                      params={{ handle: active.handle }}
+                      className="text-link"
+                    >
+                      Ansehen <ArrowRight />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Reveal>
+          <Reveal className="look-copy">
+            <p className="eyebrow">Stücke, die zusammenpassen</p>
+            <h2>
+              Komplettes Outfit.
+              <br />
+              Ganz du.
+            </h2>
+            <p className="text-muted">Vom ersten Knopf bis zum letzten Schritt.</p>
+            <div className="look-items">
+              {lookProducts.map((p) => (
+                <Link
+                  className="look-item"
+                  key={p.handle}
+                  to="/produkt/$handle"
+                  params={{ handle: p.handle }}
+                >
+                  <Photo image={p.images[0]} />
+                  <div>
+                    <h3>{p.title}</h3>
+                    <p>{p.color.name}</p>
+                  </div>
+                  <span className="price">{formatPrice(p.priceRange.min)}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="look-total">
+              <span>Ganzes Outfit ab</span>
+              <strong>
+                {formatPrice(lookProducts.reduce((s, p) => s + p.priceRange.min.amount, 0))}
+              </strong>
+            </div>
+            <Button asChild>
+              <Link to="/produkt/$handle" params={{ handle: "anzug-limmat-marine" }} hash="outfit">
+                Outfit zusammenstellen
+              </Link>
+            </Button>
+          </Reveal>
+        </div>
+      </section>
+      <section className="section container">
+        <Reveal>
+          <p className="eyebrow">Für deine Momente</p>
+          <h2>Der Anlass ist deiner.</h2>
+        </Reveal>
+        <div className="occasion-grid">
+          {occasions.map((o) => (
+            <Link
+              className="occasion-link"
+              key={o.handle}
+              to="/kollektion/$handle"
+              params={{ handle: "alle" }}
+              search={{ anlass: o.handle }}
+            >
+              <h3>
+                {o.label}
+                <ArrowRight />
+              </h3>
+              <p>{o.text}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+      <div className="container">
+        <div className="benefits">
+          {[
+            { Icon: Truck, text: "Gratisversand in der Schweiz" },
+            { Icon: Clock3, text: "Lieferung in 2 bis 5 Arbeitstagen" },
+            { Icon: CreditCard, text: "TWINT, Karte, Apple Pay, Klarna" },
+            { Icon: RotateCcw, text: `Rückgabe innert ${shopConfig.returnDays} Tagen` },
+          ].map(({ Icon, text }) => (
+            <div className="benefit" key={text}>
+              <Icon />
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <section className="section container about-layout">
+        <Reveal image>
+          <Photo image={editorial.fabric} />
+        </Reveal>
+        <Reveal>
+          <p className="eyebrow">AXION</p>
+          <h2>
+            Das Ganze beginnt
+            <br />
+            mit den Details.
+          </h2>
+          <p>
+            Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste
+            und Schuhe zu deinem Auftritt.
+          </p>
+          <Link className="text-link" to="/ueber-uns">
+            Über uns <ArrowRight />
+          </Link>
+        </Reveal>
+      </section>
+    </>
+  );
+}
