@@ -1,0 +1,2 @@
+import { shopConfig } from '@/config/shop';
+export function pageHead(title:string,description:string) { return { meta:[{title:`${title} · Axion`},{name:'description',content:description},{property:'og:title',content:`${title} · Axion`},{property:'og:description',content:description},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'},...(!shopConfig.launched?[{name:'robots',content:'noindex, nofollow'}]:[])] }; }
