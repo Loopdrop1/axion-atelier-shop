@@ -1,4 +1,7 @@
 # AXION
+- [ ] Add verbatim legal/help content with config variables, placeholders and page-specific presentation
+- [ ] Fix outfit options, carousel endpoints and native control accent
+- [ ] Verify content, links, accordions and re-test corrections
 - [x] QA A: filters, URLs, sticky controls, zoom, hotspots, 404 and header
 - [x] QA B: layout, spacing, badges, tablet hero and mobile menu
 - [x] QA C–D: focus, accessibility, first paint and German copy
