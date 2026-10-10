@@ -1,11 +1,13 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Search, Heart, ShoppingBag, Menu, ChevronDown } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { Logo } from "./logo";
+import * as Popover from "@radix-ui/react-popover";
+import { pieceCount } from "@/lib/commerce/presentation";
 import { Panel } from "./primitives";
 import { CartContents } from "./cart";
 import { SearchOverlay } from "./search";
@@ -35,9 +37,12 @@ const legal = [
 export function ShopShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const home = pathname === "/";
+  const header = useRef<HTMLElement>(null);
+  const [occasionOpen, setOccasionOpen] = useState(false);
+  const [headerTop, setHeaderTop] = useState<number | null>(null);
   const [scroll, setScroll] = useState({ solid: false, hidden: false });
   const [announcement, setAnnouncement] = useState(0);
-  const reduced = useReducedMotion();
+
   const { cartOpen, setCart, menuOpen, setMenu, setSearch } = useShopUI();
   const count = useCart((s) => s.lines.reduce((a, l) => a + l.quantity, 0));
   const wishes = useWishlist((s) => s.handles.length);
@@ -57,30 +62,42 @@ export function ShopShell({ children }: { children: ReactNode }) {
     let last = window.scrollY;
     const update = () => {
       const y = window.scrollY;
-      setScroll({ solid: y > 40, hidden: y > 180 && y > last });
+      const announcementHeight = document.querySelector(".announcement")?.getBoundingClientRect().height ?? 32;
+      const top = Math.max(0, announcementHeight - y);
+      const hidden = y > 180 && y > last;
+      setHeaderTop(top);
+      setScroll({ solid: y > 40, hidden });
+      document.documentElement.style.setProperty("--filter-header-offset", hidden ? "0px" : `${(header.current?.offsetHeight ?? 88) + top}px`);
       last = y;
     };
     update();
+    const resize = new ResizeObserver(update);
+    if (header.current) resize.observe(header.current);
     window.addEventListener("scroll", update, { passive: true });
     const timer = window.setInterval(
       () => setAnnouncement((n) => (n + 1) % shopConfig.announcements.length),
       6500,
     );
     return () => {
+      resize.disconnect();
       window.removeEventListener("scroll", update);
       clearInterval(timer);
     };
   }, []);
   useEffect(() => {
     setMenu(false);
+    setOccasionOpen(false);
     setScroll((s) => ({ ...s, hidden: false }));
   }, [pathname, setMenu]);
   return (
     <>
+      <a href="#main-content" className="skip-link">Zum Inhalt springen</a>
       <div className="announcement">
         <span key={announcement}>{shopConfig.announcements[announcement]}</span>
       </div>
       <header
+        ref={header}
+        style={headerTop === null ? undefined : { top: headerTop }}
         className={`site-header ${!home || scroll.solid ? "solid" : ""} ${scroll.hidden ? "hidden-header" : ""}`}
       >
         <div className="container header-inner">
@@ -102,25 +119,14 @@ export function ShopShell({ children }: { children: ReactNode }) {
                 {n.label}
               </Link>
             ))}
-            <div className="occasion-nav">
-              <Button variant="icon" className="font-display text-sm" aria-haspopup="true">
-                Anlässe <ChevronDown />
-              </Button>
-              <div className="occasion-dropdown">
-                <div>
-                  {occasions.map((o) => (
-                    <Link
-                      key={o.handle}
-                      to="/kollektion/$handle"
-                      params={{ handle: "alle" }}
-                      search={{ anlass: o.handle }}
-                    >
-                      {o.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <Popover.Root open={occasionOpen} onOpenChange={setOccasionOpen}>
+              <Popover.Trigger asChild>
+                <Button variant="icon" className="occasion-trigger" aria-expanded={occasionOpen} aria-controls="occasion-navigation">Anlässe <ChevronDown /></Button>
+              </Popover.Trigger>
+              <Popover.Portal><Popover.Content id="occasion-navigation" className="nav-popover" align="start" sideOffset={20}>
+                {occasions.map(o => <Link key={o.handle} to="/kollektion/$handle" params={{ handle: "alle" }} search={{ anlass: o.handle }} onClick={() => setOccasionOpen(false)}>{o.label}</Link>)}
+              </Popover.Content></Popover.Portal>
+            </Popover.Root>
             <Link to="/kollektion/$handle" params={{ handle: "sale" }}>
               Sale
             </Link>
@@ -135,7 +141,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
               <Search />
             </Button>
             <Button variant="icon" size="icon" className="count-icon header-wishlist" asChild>
-              <Link to="/merkliste" aria-label={`Merkliste, ${wishes} Stücke`}>
+              <Link to="/merkliste" aria-label={`Merkliste, ${pieceCount(wishes)}`}>
                 <Heart />
                 {wishes > 0 && <span className="count">{wishes}</span>}
               </Link>
@@ -144,7 +150,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
               variant="icon"
               size="icon"
               className="count-icon"
-              aria-label={`Warenkorb öffnen, ${count} Stücke`}
+              aria-label={`Warenkorb öffnen, ${pieceCount(count)}`}
               onClick={() => setCart(true)}
             >
               <ShoppingBag />
@@ -153,12 +159,12 @@ export function ShopShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>{children}</main>
       <Footer />
       <Panel open={cartOpen} onOpenChange={setCart} title="Dein Warenkorb">
         <CartContents onNavigate={() => setCart(false)} />
       </Panel>
-      <Panel open={menuOpen} onOpenChange={setMenu} title="AXION" kind="menu">
+      <Panel open={menuOpen} onOpenChange={setMenu} title={<Logo />} kind="menu">
         <nav className="menu-links" aria-label="Mobile Hauptnavigation">
           {[
             ...navItems,
@@ -167,7 +173,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
           ].map((n, i) => (
             <motion.div
               key={n.handle}
-              initial={reduced ? false : { opacity: 0, y: 16 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
             >
@@ -194,7 +200,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
           <Link to="/merkliste" onClick={() => setMenu(false)}>
-            Merkliste ({wishes})
+            Merkliste ({pieceCount(wishes)})
           </Link>
           <Link to="/ueber-uns" onClick={() => setMenu(false)}>
             Über uns

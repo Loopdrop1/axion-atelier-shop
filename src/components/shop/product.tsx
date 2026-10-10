@@ -25,6 +25,9 @@ export function ProductPage({
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const swipeStart = useRef(0);
+  const sizeSelector = useRef<HTMLDivElement>(null);
+  const zoomSurface = useRef<HTMLDivElement>(null);
+  const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [bottom, setBottom] = useState(false);
   const mainAdd = useRef<HTMLDivElement>(null);
@@ -43,12 +46,37 @@ export function ProductPage({
   useEffect(() => {
     const node = mainAdd.current;
     if (!node) return;
-    const o = new IntersectionObserver(([e]) =>
-      setBottom(Boolean(e && !e.isIntersecting && e.boundingClientRect.top < 0)),
-    );
-    o.observe(node);
-    return () => o.disconnect();
-  }, []);
+    const footer = document.querySelector(".site-footer");
+    let frame = 0;
+    const update = () => {
+      const mainRect = node.getBoundingClientRect();
+      const footerRect = footer?.getBoundingClientRect();
+      setBottom(mainRect.bottom <= 0 && (!footerRect || footerRect.top >= window.innerHeight));
+    };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); };
+    const observer = new IntersectionObserver(schedule);
+    observer.observe(node);
+    if (footer) observer.observe(footer);
+    const resize = new ResizeObserver(schedule);
+    resize.observe(document.body);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    window.addEventListener("hashchange", schedule);
+    window.addEventListener("pageshow", schedule);
+    schedule();
+    const settled = window.setTimeout(schedule, 300);
+    return () => {
+      observer.disconnect(); resize.disconnect(); cancelAnimationFrame(frame); clearTimeout(settled);
+      window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
+      window.removeEventListener("hashchange", schedule); window.removeEventListener("pageshow", schedule);
+    };
+  }, [product.handle]);
+  const chooseSize = () => {
+    const target = sizeSelector.current;
+    const first = target?.querySelector<HTMLButtonElement>("button:not(:disabled)");
+    first?.focus({ preventScroll: true });
+    target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+  };
   const addSelected = () => {
     const variant = product.variants.find((v) => v.title === size && v.availableForSale);
     if (!variant) return;
@@ -142,7 +170,7 @@ export function ProductPage({
                 Grössentabelle
               </Button>
             </div>
-            <div className="size-grid">
+            <div className="size-grid" ref={sizeSelector}>
               {product.variants.map((v) => (
                 <Button
                   variant="icon"
@@ -153,6 +181,7 @@ export function ProductPage({
                   onClick={() => setSize(v.title)}
                 >
                   {v.title}
+                  {!v.availableForSale && <span className="sr-only">, ausverkauft</span>}
                 </Button>
               ))}
             </div>
@@ -163,7 +192,7 @@ export function ProductPage({
               <Button
                 variant="tailored"
                 size="icon"
-                aria-label="Zur Merkliste hinzufügen"
+                aria-label={`${product.title}, ${product.color.name} ${handles.includes(product.handle) ? "aus Merkliste entfernen" : "merken"}`}
                 aria-pressed={handles.includes(product.handle)}
                 onClick={() => toggle(product.handle)}
               >
@@ -213,7 +242,8 @@ export function ProductPage({
               <div key={p.handle} className="outfit-row">
                 <input
                   type="checkbox"
-                  aria-label={`${p.title} auswählen`}
+                  id={`outfit-check-${p.handle}`}
+                  aria-label={`${p.title}, ${p.color.name} auswählen`}
                   checked={checked.includes(p.handle)}
                   onChange={() =>
                     setChecked((s) =>
@@ -230,7 +260,8 @@ export function ProductPage({
                 </div>
                 <select
                   className="form-select"
-                  aria-label={`Grösse für ${p.title}`}
+                  id={`outfit-size-${p.handle}`}
+                  aria-label={`Grösse für ${p.title}, ${p.color.name}`}
                   value={chosen[p.handle] || ""}
                   onChange={(e) => setChosen((s) => ({ ...s, [p.handle]: e.target.value }))}
                 >
@@ -238,6 +269,7 @@ export function ProductPage({
                   {p.variants.map((v) => (
                     <option key={v.id} value={v.id} disabled={!v.availableForSale}>
                       {v.title}
+                  {!v.availableForSale && <span className="sr-only">, ausverkauft</span>}
                       {!v.availableForSale ? " – ausverkauft" : ""}
                     </option>
                   ))}
@@ -294,10 +326,27 @@ export function ProductPage({
         {zoom !== null && (
           <>
             <div
+              ref={zoomSurface}
+              className={`zoom-surface ${zoomed ? "is-zoomed" : ""}`}
+              onPointerDown={(e) => {
+                if (!zoomed) return;
+                e.preventDefault();
+                e.currentTarget.setPointerCapture(e.pointerId);
+                pan.current = { x: e.clientX, y: e.clientY, left: e.currentTarget.scrollLeft, top: e.currentTarget.scrollTop };
+              }}
+              onPointerMove={(e) => {
+                if (!pan.current || !zoomed) return;
+                e.currentTarget.scrollLeft = pan.current.left - (e.clientX - pan.current.x);
+                e.currentTarget.scrollTop = pan.current.top - (e.clientY - pan.current.y);
+              }}
+              onPointerUp={() => { pan.current = null; }}
+              onPointerCancel={() => { pan.current = null; }}
               onTouchStart={(e) => {
+                if (zoomed) return;
                 swipeStart.current = e.touches[0]?.clientX || 0;
               }}
               onTouchEnd={(e) => {
+                if (zoomed) return;
                 const end = e.changedTouches[0]?.clientX;
                 if (end === undefined) return;
                 const delta = end - swipeStart.current;
@@ -332,7 +381,13 @@ export function ProductPage({
               >
                 <ArrowLeft />
               </Button>
-              <Button variant="icon" onClick={() => setZoomed(!zoomed)}>
+              <Button variant="icon" onClick={() => {
+                setZoomed(!zoomed);
+                requestAnimationFrame(() => {
+                  const surface = zoomSurface.current;
+                  if (surface) { surface.scrollLeft = (surface.scrollWidth - surface.clientWidth) / 2; surface.scrollTop = (surface.scrollHeight - surface.clientHeight) / 2; }
+                });
+              }}>
                 {zoomed ? "Verkleinern" : "Vergrössern"}
               </Button>
               <Button
@@ -353,7 +408,7 @@ export function ProductPage({
       {bottom && (
         <div className="mobile-add-bar">
           <span className="price">{formatPrice(product.priceRange.min)}</span>
-          <Button disabled={!size} onClick={addSelected}>
+          <Button onClick={size ? addSelected : chooseSize}>
             {size ? "In den Warenkorb" : "Grösse wählen"}
           </Button>
         </div>

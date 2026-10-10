@@ -25,6 +25,7 @@ export function HomePage({
     const p = products.find((p) => p.handle === h.handle);
     return p ? [p] : [];
   });
+  const newProducts = products.filter(p => p.tags.includes("neu")).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
   const active = lookProducts.find((p) => p.handle === hotspot);
   return (
     <>
@@ -70,7 +71,7 @@ export function HomePage({
         </Reveal>
         <div className="carousel-viewport" ref={embla}>
           <div className="carousel-track">
-            {products.map((p) => (
+            {newProducts.map((p) => (
               <ProductCard key={p.handle} product={p} />
             ))}
           </div>
@@ -103,7 +104,7 @@ export function HomePage({
                 <Button
                   key={h.handle}
                   variant="icon"
-                  className={`hotspot hotspot-${h.label.toLowerCase()}`}
+                  className={`hotspot hotspot-${h.label.toLowerCase()} ${hotspot === h.handle ? "active" : ""}`}
                   aria-label={`${h.label} ansehen`}
                   aria-expanded={hotspot === h.handle}
                   onClick={() => setHotspot(hotspot === h.handle ? null : h.handle)}
@@ -112,7 +113,7 @@ export function HomePage({
                 </Button>
               ))}
               {active && (
-                <div className="hotspot-card">
+                <div className={`hotspot-card hotspot-card-${editorial.look.hotspots.find(h => h.handle === active.handle)?.label.toLowerCase()}`}>
                   <Photo image={active.images[0]} />
                   <div>
                     <h3>{active.title}</h3>
@@ -211,7 +212,7 @@ export function HomePage({
           <Photo image={editorial.fabric} />
         </Reveal>
         <Reveal>
-          <p className="eyebrow">AXION</p>
+          <p className="eyebrow">Axion</p>
           <h2>
             Das Ganze beginnt
             <br />
