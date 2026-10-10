@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KollektionHandleRouteImport } from './routes/kollektion.$handle'
+import { Route as ProduktHandleRouteImport } from './routes/produkt.$handle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KollektionHandleRoute = KollektionHandleRouteImport.update({
+  id: '/kollektion/$handle',
+  path: '/kollektion/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProduktHandleRoute = ProduktHandleRouteImport.update({
+  id: '/produkt/$handle',
+  path: '/produkt/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/kollektion/$handle': typeof KollektionHandleRoute
+  '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/kollektion/$handle': typeof KollektionHandleRoute
+  '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/kollektion/$handle': typeof KollektionHandleRoute
+  '/produkt/$handle': typeof ProduktHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/kollektion/$handle' | '/produkt/$handle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/kollektion/$handle' | '/produkt/$handle'
+  id: '__root__' | '/' | '/kollektion/$handle' | '/produkt/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KollektionHandleRoute: typeof KollektionHandleRoute
+  ProduktHandleRoute: typeof ProduktHandleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kollektion/$handle': {
+      id: '/kollektion/$handle'
+      path: '/kollektion/$handle'
+      fullPath: '/kollektion/$handle'
+      preLoaderRoute: typeof KollektionHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produkt/$handle': {
+      id: '/produkt/$handle'
+      path: '/produkt/$handle'
+      fullPath: '/produkt/$handle'
+      preLoaderRoute: typeof ProduktHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KollektionHandleRoute: KollektionHandleRoute,
+  ProduktHandleRoute: ProduktHandleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
