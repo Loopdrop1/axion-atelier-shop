@@ -14,7 +14,7 @@ function structure(title: string, text: string, mode?: "questions" | "definition
   for (const line of text.trim().split("\n")) {
     if (!line.trim()) { section.blocks.push({ type: "paragraph", text: "" }); continue; }
     const heading = line.match(/^### (.+)$/) || (mode === "impressum" ? line.match(/^\*\*(.+)\*\*$/) : null);
-    if (heading?.[1]) { section = { heading: heading[1], blocks: [] }; sections.push(section); continue; }
+    if (heading?.[1]) { section = { heading: mode === "impressum" ? `**${heading[1]}**` : heading[1], blocks: [] }; sections.push(section); continue; }
     const last = section.blocks.at(-1);
     const question = mode === "questions" ? line.match(/^\*\*(.+)\*\*$/) : null;
     if (question?.[1]) {
