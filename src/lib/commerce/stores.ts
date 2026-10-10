@@ -1,0 +1,61 @@
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+interface CartStore {
+  lines: { variantId: string; quantity: number }[];
+  add: (id: string, quantity?: number) => void;
+  quantity: (id: string, quantity: number) => void;
+  remove: (id: string) => void;
+}
+export const useCart = create<CartStore>()(
+  persist(
+    (set) => ({
+      lines: [],
+      add: (id, quantity = 1) =>
+        set((s) => ({
+          lines: s.lines.some((l) => l.variantId === id)
+            ? s.lines.map((l) =>
+                l.variantId === id ? { ...l, quantity: l.quantity + quantity } : l,
+              )
+            : [...s.lines, { variantId: id, quantity }],
+        })),
+      quantity: (id, quantity) =>
+        set((s) => ({
+          lines:
+            quantity <= 0
+              ? s.lines.filter((l) => l.variantId !== id)
+              : s.lines.map((l) => (l.variantId === id ? { ...l, quantity } : l)),
+        })),
+      remove: (id) => set((s) => ({ lines: s.lines.filter((l) => l.variantId !== id) })),
+    }),
+    { name: "axion-cart", storage: createJSONStorage(() => localStorage), skipHydration: true },
+  ),
+);
+export const useWishlist = create<{ handles: string[]; toggle: (handle: string) => void }>()(
+  persist(
+    (set) => ({
+      handles: [],
+      toggle: (handle) =>
+        set((s) => ({
+          handles: s.handles.includes(handle)
+            ? s.handles.filter((h) => h !== handle)
+            : [...s.handles, handle],
+        })),
+    }),
+    { name: "axion-wishlist", storage: createJSONStorage(() => localStorage), skipHydration: true },
+  ),
+);
+export const useShopUI = create<{
+  cartOpen: boolean;
+  searchOpen: boolean;
+  menuOpen: boolean;
+  setCart: (v: boolean) => void;
+  setSearch: (v: boolean) => void;
+  setMenu: (v: boolean) => void;
+}>((set) => ({
+  cartOpen: false,
+  searchOpen: false,
+  menuOpen: false,
+  setCart: (cartOpen) => set({ cartOpen }),
+  setSearch: (searchOpen) => set({ searchOpen }),
+  setMenu: (menuOpen) => set({ menuOpen }),
+}));
