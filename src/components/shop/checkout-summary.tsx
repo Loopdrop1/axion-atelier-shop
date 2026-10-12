@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Cart } from "@/lib/commerce";
 import {

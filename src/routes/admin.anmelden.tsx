@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AdminBare } from "@/components/admin/shell";
 import { TextField } from "@/components/admin/ui";
 import { safeNext } from "@/components/account/form";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { isAdmin } from "@/lib/admin/api";
 import { signIn, signOut, type AuthProblem } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";

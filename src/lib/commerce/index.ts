@@ -16,7 +16,7 @@ import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters 
 
 export type * from "./types";
 export type { SizeGuideTable } from "./mapping";
-export { backendConfigured } from "@/integrations/supabase/client";
+export { backendConfigured } from "@/lib/backend";
 
 interface Catalog {
   products: Product[];

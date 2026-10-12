@@ -1,7 +1,7 @@
 // Wandelt Datenbankzeilen in die Typen des Shops um, in der gewünschten Sprache.
 // Fehlt eine englische Angabe, gilt die deutsche.
 import type { Json } from "@/integrations/supabase/types";
-import { supabaseUrl } from "@/integrations/supabase/client";
+import { supabaseUrl } from "@/lib/backend";
 import type { Locale } from "@/i18n/locale";
 import { messages } from "@/i18n/messages";
 import { media, type MediaKey } from "./media";
