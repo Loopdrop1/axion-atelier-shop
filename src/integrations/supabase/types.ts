@@ -917,6 +917,10 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: undefined
       }
+      get_gift_card_for_email: {
+        Args: { p_gift_card_id: string }
+        Returns: Json
+      }
       get_order_for_email: {
         Args: { p_order_id: string }
         Returns: Json
@@ -951,6 +955,10 @@ export type Database = {
       }
       newsletter_unsubscribe: {
         Args: { p_token: string }
+        Returns: Json
+      }
+      prepare_account_deletion: {
+        Args: { p_user_id: string }
         Returns: Json
       }
       record_refund: {

@@ -1155,8 +1155,10 @@ begin
   if nullif(btrim(coalesce(p_consent, '')), '') is null then
     raise exception 'CONSENT_REQUIRED' using errcode = '22023';
   end if;
+  -- Pro Adresse, pro IP und gesamt begrenzt, damit niemand über das Formular Mails an fremde Adressen streut.
   if not private.hit_rate_limit('newsletter:' || v_email, 3, interval '1 hour')
-     or not private.hit_rate_limit('newsletter-ip:' || coalesce(p_ip, private.request_ip()), 10, interval '1 hour') then
+     or not private.hit_rate_limit('newsletter-ip:' || coalesce(p_ip, private.request_ip()), 10, interval '1 hour')
+     or not private.hit_rate_limit('newsletter-global', 200, interval '1 hour') then
     return jsonb_build_object('status', 'rate_limited');
   end if;
   select * into v_sub from public.newsletter_subscribers where lower(email::text) = v_email for update;
