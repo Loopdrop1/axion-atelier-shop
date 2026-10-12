@@ -1,93 +1,85 @@
 # Axion-Shop: Inbetriebnahme
 
 Anleitung für Ben (Flowrenix). Reihenfolge einhalten: zuerst alles im **Testmodus**, erst am Schluss live.
-Stand 12.10.2026.
+Stand 12.10.2026. Datenbank: **Lovable Cloud** (Entscheid Ben), Code-Übertragung über **GitHub**.
 
-**Grundregel:** Passwörter, geheime Schlüssel (Stripe `sk_`/`rk_`, Supabase Secret Key, Resend) und die IBAN gehören
-nie in einen Chat, eine E-Mail oder ins Git. Sie kommen nur in die Secrets von Supabase. Öffentlich und damit
-unkritisch sind nur die Supabase-URL und der Publishable Key (`sb_publishable_…`).
+**Grundregel:** Passwörter, geheime Schlüssel (Stripe `rk_`/`sk_`, Webhook-Geheimnisse, Resend) und die IBAN gehören
+nie in einen Chat, eine E-Mail oder ins Git. Sie kommen nur in die Secrets von Lovable Cloud (Cloud → Secrets).
 
 ## Überblick
 
-| Teil                                 | Wo                                                                      | Wem gehört das Konto            |
-| ------------------------------------ | ----------------------------------------------------------------------- | ------------------------------- |
-| Shop und Admin (TanStack Start)      | Lovable-Projekt `81384fd7-77a8-4809-b8c3-48b5a9ee05e8`, Code auf GitHub | Flowrenix                       |
-| Datenbank, Login, Bilder, Funktionen | eigenes Supabase-Projekt, Region Zürich                                 | Flowrenix (Betreuung)           |
-| Zahlung                              | Stripe Checkout im Konto von Axion                                      | Axion, Ben als Teammitglied     |
-| E-Mails                              | Resend mit der Domain von Axion                                         | Flowrenix oder Axion            |
-| Domain                               | Registrar nach Wahl, auf Axion                                          | Axion (Kosten in der Betreuung) |
+| Teil                                  | Wo                                                                      | Wem gehört das Konto            |
+| ------------------------------------- | ----------------------------------------------------------------------- | ------------------------------- |
+| Shop und Admin (TanStack Start)       | Lovable-Projekt `81384fd7-77a8-4809-b8c3-48b5a9ee05e8`, Code auf GitHub | Flowrenix                       |
+| Datenbank, Login, Bilder, Funktionen  | Lovable Cloud im selben Projekt, Region Europa                          | Flowrenix (Lovable-Workspace)   |
+| Zahlung                               | Stripe Checkout im Konto von Axion                                      | Axion, Ben als Teammitglied     |
+| Bestell-E-Mails                       | Resend mit der Domain von Axion                                         | Flowrenix oder Axion            |
+| Konto-E-Mails (Bestätigung, Passwort) | Lovable Cloud (eigene Vorlagen, Absender-Domain per DNS)                | Flowrenix                       |
+| Domain                                | Registrar nach Wahl, auf Axion                                          | Axion (Kosten in der Betreuung) |
 
-## 1. Code nach Lovable bringen
+**Wichtig zu Lovable Cloud:** Die Nutzung läuft über die Credits des Workspaces. Ist das Guthaben leer, pausieren
+Datenbank, Speicher und Login (die Seiten bleiben erreichbar, aber niemand kann bestellen). Deshalb immer genug
+Guthaben halten und, wo möglich, automatisches Nachladen einschalten.
 
-1. In Lovable das Projekt mit GitHub verbinden. Lovable legt ein Repository mit dem aktuellen Stand an.
-2. Repository lokal klonen und das Lieferpaket einspielen (siehe Abschnitt 9):
+## 1. Code nach Lovable bringen (GitHub, ohne Credits)
+
+1. In Lovable: Projekt-Einstellungen → Git → **Connect GitHub**. Lovable legt ein neues Repository mit dem aktuellen
+   Stand an (Commit `e3800b2`, genau die Basis des Lieferpakets).
+2. Im Terminal auf deinem Computer (Ordner frei wählbar, Pfad zum Patch anpassen):
    ```bash
-   git checkout -b eigenbau
-   git am --3way /pfad/zu/axion.patch     # alle Commits seit dem Lovable-Stand
+   git clone https://github.com/<dein-konto>/<repository>.git axion-shop
+   cd axion-shop
+   git am --3way /pfad/zu/axion.patch
+   git push
    ```
-   Klappt `git am` nicht (Lovable hat inzwischen etwas geändert), die Dateien aus `dateien/` darüberkopieren und
-   die Dateien aus `LOESCHEN.txt` entfernen, dann einen Commit machen.
-3. Datei `.env` anlegen (darf ins Git, enthält nur öffentliche Werte):
-   ```
-   VITE_SUPABASE_URL=https://<projekt-ref>.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
-   ```
-4. Branch auf `main` zusammenführen und pushen. **Nie force-pushen** (Lovable verliert sonst den Verlauf).
-   Lovable übernimmt die Änderung ohne Credits und baut die Vorschau neu.
-5. Lokal prüfen, bevor gepusht wird: `bun install`, `bun run lint`, `bunx tsc --noEmit`, `bun run test`, `bun run build`.
+   `git am` übernimmt alle Commits mit ihren Beschreibungen. Lovable zeigt die Änderung danach im Editor und baut die
+   Vorschau neu. **Nie force-pushen** (Lovable verliert sonst den Verlauf).
+3. Erst jetzt Lovable Cloud aktivieren (Abschnitt 2). Umgekehrt gäbe es Konflikte beim Einspielen.
 
-## 2. Supabase-Projekt
+## 2. Lovable Cloud
 
-1. Neues Projekt in der Region **Zürich**. Plan **Pro** (ab USD 25 pro Monat): Gratisprojekte werden nach einer
-   Woche ohne Aktivität pausiert und haben keine automatischen Sicherungen; Pro sichert täglich und bewahrt 7 Tage
-   auf (supabase.com/pricing, 12.10.2026).
-2. Datenbank einrichten mit der Supabase CLI (verlangt das Datenbank-Passwort, das gibst nur du ein):
-   ```bash
-   supabase link --project-ref <projekt-ref>
-   supabase db push          # spielt supabase/migrations/ ein
-   ```
-3. Funktionen veröffentlichen (Einstellungen kommen aus `supabase/config.toml`, alle mit `verify_jwt = false`,
-   sie prüfen den Aufrufer selbst):
-   ```bash
-   supabase functions deploy checkout stripe-webhook newsletter admin-actions account-delete auth-email-hook
-   ```
-4. Secrets setzen (Dashboard → Edge Functions → Secrets oder `supabase secrets set`). Liste und Bedeutung:
-   `supabase/functions/README.md`, Abschnitt «Secrets». Zum Start: `SITE_URL` (Testadresse von Lovable),
-   `STRIPE_SECRET_KEY` (Test-Schlüssel), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
-   `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`, `SHOP_ADDRESS`, `SEND_EMAIL_HOOK_SECRET`. Optional
-   `ALLOWED_ORIGINS` (weitere Domains, Komma-getrennt), `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES`
-   (Standard `CH`; `CH,LI` erst, wenn Axion Liechtenstein beliefern will und die Liechtenstein-Klauseln in den
-   Rechtstexten stehen). `ALLOW_PREVIEW_ORIGINS=1` nur in der Testphase, damit die Lovable-Vorschau die Kasse und
-   Konto-Links nutzen kann; **vor dem Livegang entfernen** (sonst dürfte jede `*.lovable.app`-Seite das auch).
-5. Authentication einstellen:
-   - **«Confirm email» eingeschaltet lassen, «Secure email change» einschalten.** Gastbestellungen werden einem
-     Konto über die E-Mail-Adresse zugeordnet; ohne Bestätigung könnte jemand mit einer fremden Adresse ein Konto
-     eröffnen und deren Bestellungen sehen.
+1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern.
+   Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Dateien in `supabase/migrations/` werden der Reihe
+   nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud). Danach prüfen:
+   16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`.
+3. Funktionen veröffentlichen: im Lovable-Chat «Deploy the edge functions checkout, stripe-webhook, newsletter,
+   admin-actions and account-delete. Do not change their code.» (kostet wenige Credits). Kontrolle unter
+   Cloud → Edge functions. `auth-email-hook` wird nicht gebraucht: Konto-E-Mails verschickt Lovable Cloud selbst.
+4. Secrets (Cloud → Secrets), Bedeutung in `supabase/functions/README.md`, Abschnitt «Secrets»:
+   - Testphase: `SITE_URL` = `https://id-preview--81384fd7-77a8-4809-b8c3-48b5a9ee05e8.lovable.app`,
+     `ALLOWED_ORIGINS` = dieselbe Adresse (genau diese, kein `ALLOW_PREVIEW_ORIGINS`).
+   - `STRIPE_SECRET_KEY` (Test-Schlüssel `rk_test_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
+     `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`, `SHOP_ADDRESS`. Optional `STRIPE_REQUIRE_TERMS=1`,
+     `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion Liechtenstein beliefern will und die
+     Liechtenstein-Klauseln in den Rechtstexten stehen).
+5. Authentifizierung (Cloud → Users → Einstellungen):
+   - **«Auto-confirm email» aus**, **«Secure email change» ein.** Gastbestellungen werden einem Konto über die
+     E-Mail-Adresse zugeordnet; ohne Bestätigung könnte jemand mit einer fremden Adresse ein Konto eröffnen und deren
+     Bestellungen sehen.
+   - Email OTP expiration: **3600** Sekunden. Password HIBP check: ein.
    - Site URL: die Shop-Adresse. Redirect URLs: `<shop>/konto`, `<shop>/konto/passwort-neu`, `<shop>/konto/daten`
-     und dieselben mit `/en` davor (z. B. `<shop>/en/konto`). Vor dem Livegang auch für die echte Domain.
-   - Ablauf der E-Mail-Codes (Email OTP Expiration): **3600 Sekunden** (1 Stunde).
-   - Hook «Send Email» (HTTPS): URL `https://<projekt-ref>.supabase.co/functions/v1/auth-email-hook`. Das dort
-     erzeugte Geheimnis als `SEND_EMAIL_HOOK_SECRET` speichern. Danach kommen alle Konto-E-Mails in Axion-Optik.
-6. Speicher: Die Buckets `product-images` und `site-media` legt die Migration an (öffentlich lesbar, schreiben nur
-   Admins). Nichts weiter zu tun.
-7. Sicherheit prüfen: Dashboard → Advisors (Security und Performance) ohne Warnungen der Stufe «Error».
+     und dieselben mit `/en` davor. In der Testphase mit der Vorschau-Adresse, vor dem Livegang mit der Domain.
+6. Konto-E-Mails (Cloud → Emails): Vorlagen in Axion-Optik erstellen lassen und die Absender-Domain per DNS
+   bestätigen (Lovable setzt SPF, DKIM und DMARC). Bis dahin kommen die Standard-E-Mails von Lovable.
+7. Sicherheit: den Sicherheits-Check von Lovable ausführen; keine Warnungen der Stufe «Error».
 
 ## 3. Stripe (Konto von Axion)
 
 1. Axion eröffnet das Konto und lädt Ben als Teammitglied ein (Rolle Administrator oder Entwickler).
    Zwei-Faktor-Anmeldung einschalten.
 2. Eingeschränkten Schlüssel (`rk_…`) erstellen, nur mit diesen Rechten: Checkout Sessions **Schreiben**,
-   Coupons **Schreiben**, PaymentIntents **Lesen**. Der Schlüssel kommt nur in die Supabase-Secrets.
+   Coupons **Schreiben**, PaymentIntents **Lesen**. Der Schlüssel kommt nur in die Secrets von Lovable Cloud.
 3. Zahlungsarten im Dashboard einschalten (die Kasse zeigt sie automatisch): Karten, Apple Pay, Google Pay,
    Klarna, TWINT (TWINT erst nach Prüfung durch Stripe, Shop muss öffentlich erreichbar sein, Impressum vollständig).
-4. Webhook: Endpunkt `https://<projekt-ref>.supabase.co/functions/v1/stripe-webhook`, Ereignisse
+4. Webhook: Endpunkt `<VITE_SUPABASE_URL>/functions/v1/stripe-webhook` (Adresse aus der `.env`), Ereignisse
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
    `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`.
    Das Signatur-Geheimnis (`whsec_…`) als `STRIPE_WEBHOOK_SECRET` speichern.
 5. Öffentliche Angaben: Name auf der Kartenabrechnung (z. B. AXION), Support-E-Mail. Mit
    `STRIPE_REQUIRE_TERMS=1` verlangt die Kasse das AGB-Häkchen; dafür in Stripe die Adresse der AGB hinterlegen.
 
-## 4. Resend (E-Mails)
+## 4. Resend (Bestell-E-Mails)
 
 1. Domain von Axion hinzufügen und die DNS-Einträge (SPF, DKIM) beim Registrar setzen, warten bis «verified».
 2. `EMAIL_FROM` z. B. `Axion <bestellung@<domain>>`. Antworten gehen an `SHOP_CONTACT_EMAIL`.
@@ -97,10 +89,10 @@ unkritisch sind nur die Supabase-URL und der Publishable Key (`sb_publishable_�
 ## 5. Erster Admin
 
 1. Im Shop ein Konto registrieren (`/konto/registrieren`) und die E-Mail bestätigen.
-2. Im SQL-Editor von Supabase einmalig:
+2. Einmalig in der Datenbank (macht Claude, sonst SQL-Editor von Cloud):
    ```sql
    insert into public.user_roles (user_id, role)
-   select id, 'admin' from auth.users where email = 'adresse@example.ch';
+   select id, 'admin' from auth.users where email = 'adresse@example.ch' and email_confirmed_at is not null;
    ```
 3. Weitere Personen danach im Admin unter «Zugänge». Der letzte Admin kann sich nicht selbst löschen.
 
@@ -111,22 +103,25 @@ unkritisch sind nur die Supabase-URL und der Publishable Key (`sb_publishable_�
   Willkommens-Rabatt für den Newsletter, Adresse für Bestellmeldungen.
 - Admin → Kategorien, Produkte, Inhalte (Startseite, Laufband).
 - Rechtstexte in `src/content/pages.ts`: Platzhalter in eckigen Klammern ersetzen, sobald Axion die Prüfung per
-  E-Mail bestätigt hat. Solange Platzhalter drin sind, markiert der Shop die Seite als Entwurf. Englische
-  Rechtstexte liefert Axion; bis dahin zeigt `/en` die deutsche Fassung mit Hinweis.
+  E-Mail bestätigt hat (auch den Ort des Rechenzentrums von Lovable Cloud). Solange Platzhalter drin sind, markiert der
+  Shop die Seite als Entwurf. Englische Rechtstexte liefert Axion; bis dahin zeigt `/en` die deutsche Fassung mit
+  Hinweis.
 
 ## 7. Testkauf (Testmodus)
 
 1. Karte `4242 4242 4242 4242`, beliebiges künftiges Datum, beliebige Prüfziffer.
 2. Prüfen: Bestellbestätigung an die Kundschaft, Bestellmeldung an `SHOP_NOTIFY_EMAIL`, Bestellung im Admin,
    Bestand reduziert, Versand melden mit Sendungsnummer (E-Mail kommt), Rückerstattung in Stripe (Admin zeigt sie).
-3. Gutschein kaufen und einlösen, Rabattcode einlösen, Newsletter anmelden und bestätigen, Konto anlegen und löschen.
+3. Gutschein kaufen und einlösen, Rabattcode einlösen, Newsletter anmelden und bestätigen, Konto anlegen und löschen,
+   Passwort zurücksetzen.
 4. Abgebrochene Zahlung: Artikel sind sofort wieder verfügbar.
 
 ## 8. Livegang
 
 1. Stripe live: Live-Schlüssel (`rk_live_…`) und Live-Webhook mit eigenem `whsec_…` in die Secrets.
-2. Domain in Lovable verbinden. `SITE_URL`, Redirect URLs in Supabase und `siteUrl` in `src/config/shop.ts` auf die
-   Domain umstellen.
+2. Domain in Lovable verbinden. `SITE_URL` und `ALLOWED_ORIGINS` (Secrets), Site URL und Redirect URLs (Cloud → Users)
+   sowie `siteUrl` in `src/config/shop.ts` auf die Domain umstellen. Die Vorschau-Adresse aus `ALLOWED_ORIGINS`
+   entfernen.
 3. `launched: true` in `src/config/shop.ts`, dann `bun scripts/sync-robots.ts` (robots.txt erlaubt Suchmaschinen und
    nennt `/sitemap.xml`). Commit, push, in Lovable veröffentlichen.
 4. Echter Kauf mit kleinem Betrag und Rückerstattung. TWINT nach der Freischaltung durch Stripe testen.
@@ -142,8 +137,11 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 
 ## 10. Betrieb (Betreuung)
 
-- Sicherung: Supabase Pro täglich (7 Tage). Zusätzlich monatlich `supabase db dump` verschlüsselt ablegen.
-- Überwachen: Supabase Logs der Funktionen, Stripe → Webhooks (fehlgeschlagene Zustellungen), Resend (Bounces).
+- Sicherung: Lovable Cloud (Database → Backups wiederherstellen). Zusätzlich monatlich die Daten exportieren
+  (Cloud → erweiterte Einstellungen → Export) und verschlüsselt ablegen.
+- Guthaben im Lovable-Workspace im Auge behalten (bei 0 pausieren Datenbank und Login).
+- Überwachen: Logs der Funktionen (Cloud → Edge functions), Stripe → Webhooks (fehlgeschlagene Zustellungen),
+  Resend (Bounces).
 - Admin → Bestellungen, Ansicht «Prüfen»: Zahlungen nach Ablauf der Reservierung, die von Hand geprüft werden müssen,
   und zurückerstattete Gutscheinkäufe, deren Gutschein schon benutzt war.
 - Streitfälle (Disputes) bearbeitest du im Stripe-Dashboard. Betrifft es einen Gutscheinkauf, den Gutschein im Admin

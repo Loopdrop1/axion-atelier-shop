@@ -42,6 +42,9 @@ Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
 
 ## auth-email-hook
 
+Mit Lovable Cloud nicht im Einsatz: Dort verschickt Lovable Cloud die Konto-E-Mails selbst (Cloud → Emails). Nur bei einem eigenen
+Supabase-Projekt als «Send Email Hook» eintragen.
+
 Supabase ruft die Funktion statt eigener E-Mails auf. Links führen auf `/konto/bestaetigen?token_hash=…&type=…&next=…`
 (mit `/en` davor auf Englisch); die Seite bestätigt per Klick mit `supabase.auth.verifyOtp({ token_hash, type })`
 und leitet danach weiter (`recovery` → Passwort neu setzen). `next` ist ein Pfad ohne Sprachpräfix und muss auf der Seite

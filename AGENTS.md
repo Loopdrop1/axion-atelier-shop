@@ -22,6 +22,8 @@
 - Checkout always goes through the `checkout` Edge Function (stock reservation, Stripe Checkout); never hardcode payment links in the UI.
 - Admin lives under `/admin` (role `admin` in `user_roles`); stock changes only via the `admin_adjust_stock` RPC, never by updating `product_variants.stock`.
 - Edge Functions are documented in `supabase/functions/README.md`, deployment in `docs/DEPLOYMENT.md`. Secrets never go into the repo.
+- Backend is Lovable Cloud (region Europe). Migrations in `supabase/migrations/` are applied manually in order (Lovable does not run migration files from Git); never edit an applied migration, add a new one instead.
+- Keep `src/integrations/supabase/client.ts` as is: it is SSR-safe, exports `backendConfigured` and works without env (preview); do not replace it with a generated client.
 - The delivery area is the `SHIPPING_COUNTRIES` secret (default `CH`); adding `LI` requires the Liechtenstein clauses in the legal texts.
 
 - Search serialization uses plain string query values, with optional defaults resolved by consumers, to avoid redirecting clean URLs.
