@@ -152,7 +152,15 @@ export function HomePage({
                   ))}
                 </div>
                 {active && (
-                  <div className={`hotspot-card hotspot-card-${activeSpot?.key ?? ""}`}>
+                  <div
+                    className={`hotspot-card ${(activeSpot?.x ?? 0) > 55 ? "side-left" : "side-right"}`}
+                    style={
+                      {
+                        "--spot-x": activeSpot?.x ?? 50,
+                        "--spot-y": activeSpot?.y ?? 50,
+                      } as CSSProperties
+                    }
+                  >
                     <Photo image={active.images[0]} />
                     <div>
                       <h3>{active.title}</h3>

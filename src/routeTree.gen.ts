@@ -9,7 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$locale}/route'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAnmeldenRouteImport } from './routes/admin.anmelden'
+import { Route as AdminEinstellungenRouteImport } from './routes/admin.einstellungen'
+import { Route as AdminGutscheineRouteImport } from './routes/admin.gutscheine'
+import { Route as AdminInhalteRouteImport } from './routes/admin.inhalte'
+import { Route as AdminKategorienRouteImport } from './routes/admin.kategorien'
+import { Route as AdminLagerRouteImport } from './routes/admin.lager'
+import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
+import { Route as AdminRabattcodesRouteImport } from './routes/admin.rabattcodes'
+import { Route as AdminZugaengeRouteImport } from './routes/admin.zugaenge'
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as Char123LocaleChar125SplatRouteImport } from './routes/{-$locale}/$'
 import { Route as Char123LocaleChar125AgbRouteImport } from './routes/{-$locale}/agb'
@@ -25,6 +36,10 @@ import { Route as Char123LocaleChar125SucheRouteImport } from './routes/{-$local
 import { Route as Char123LocaleChar125UeberUnsRouteImport } from './routes/{-$locale}/ueber-uns'
 import { Route as Char123LocaleChar125VersandUndRueckgabeRouteImport } from './routes/{-$locale}/versand-und-rueckgabe'
 import { Route as Char123LocaleChar125WarenkorbRouteImport } from './routes/{-$locale}/warenkorb'
+import { Route as AdminBestellungenIndexRouteImport } from './routes/admin.bestellungen.index'
+import { Route as AdminBestellungenIdRouteImport } from './routes/admin.bestellungen.$id'
+import { Route as AdminProdukteIndexRouteImport } from './routes/admin.produkte.index'
+import { Route as AdminProdukteIdRouteImport } from './routes/admin.produkte.$id'
 import { Route as Char123LocaleChar125BestellungTokenRouteImport } from './routes/{-$locale}/bestellung.$token'
 import { Route as Char123LocaleChar125KollektionHandleRouteImport } from './routes/{-$locale}/kollektion.$handle'
 import { Route as Char123LocaleChar125KontoIndexRouteImport } from './routes/{-$locale}/konto.index'
@@ -39,12 +54,67 @@ import { Route as Char123LocaleChar125NewsletterBestaetigenRouteImport } from '.
 import { Route as Char123LocaleChar125ProduktHandleRouteImport } from './routes/{-$locale}/produkt.$handle'
 import { Route as Char123LocaleChar125KontoBestellungenNumberRouteImport } from './routes/{-$locale}/konto.bestellungen.$number'
 
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char123LocaleChar125RouteRoute =
   Char123LocaleChar125RouteRouteImport.update({
     id: '/{-$locale}',
     path: '/{-$locale}',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnmeldenRoute = AdminAnmeldenRouteImport.update({
+  id: '/anmelden',
+  path: '/anmelden',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEinstellungenRoute = AdminEinstellungenRouteImport.update({
+  id: '/einstellungen',
+  path: '/einstellungen',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminGutscheineRoute = AdminGutscheineRouteImport.update({
+  id: '/gutscheine',
+  path: '/gutscheine',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInhalteRoute = AdminInhalteRouteImport.update({
+  id: '/inhalte',
+  path: '/inhalte',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminKategorienRoute = AdminKategorienRouteImport.update({
+  id: '/kategorien',
+  path: '/kategorien',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLagerRoute = AdminLagerRouteImport.update({
+  id: '/lager',
+  path: '/lager',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNewsletterRoute = AdminNewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRabattcodesRoute = AdminRabattcodesRouteImport.update({
+  id: '/rabattcodes',
+  path: '/rabattcodes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminZugaengeRoute = AdminZugaengeRouteImport.update({
+  id: '/zugaenge',
+  path: '/zugaenge',
+  getParentRoute: () => AdminRoute,
+} as any)
 const Char123LocaleChar125IndexRoute =
   Char123LocaleChar125IndexRouteImport.update({
     id: '/',
@@ -134,6 +204,26 @@ const Char123LocaleChar125WarenkorbRoute =
     path: '/warenkorb',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
+const AdminBestellungenIndexRoute = AdminBestellungenIndexRouteImport.update({
+  id: '/bestellungen/',
+  path: '/bestellungen/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBestellungenIdRoute = AdminBestellungenIdRouteImport.update({
+  id: '/bestellungen/$id',
+  path: '/bestellungen/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProdukteIndexRoute = AdminProdukteIndexRouteImport.update({
+  id: '/produkte/',
+  path: '/produkte/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProdukteIdRoute = AdminProdukteIdRouteImport.update({
+  id: '/produkte/$id',
+  path: '/produkte/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const Char123LocaleChar125BestellungTokenRoute =
   Char123LocaleChar125BestellungTokenRouteImport.update({
     id: '/bestellung/$token',
@@ -215,6 +305,16 @@ const Char123LocaleChar125KontoBestellungenNumberRoute =
 
 export interface FileRoutesByFullPath {
   '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/inhalte': typeof AdminInhalteRoute
+  '/admin/kategorien': typeof AdminKategorienRoute
+  '/admin/lager': typeof AdminLagerRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/rabattcodes': typeof AdminRabattcodesRoute
+  '/admin/zugaenge': typeof AdminZugaengeRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -229,7 +329,10 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
   '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/admin/': typeof AdminIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
+  '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
+  '/admin/produkte/$id': typeof AdminProdukteIdRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -241,10 +344,21 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
+  '/admin/produkte/': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesByTo {
+  '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/inhalte': typeof AdminInhalteRoute
+  '/admin/kategorien': typeof AdminKategorienRoute
+  '/admin/lager': typeof AdminLagerRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/rabattcodes': typeof AdminRabattcodesRoute
+  '/admin/zugaenge': typeof AdminZugaengeRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -258,7 +372,10 @@ export interface FileRoutesByTo {
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
   '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/admin': typeof AdminIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
+  '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
+  '/admin/produkte/$id': typeof AdminProdukteIdRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -270,12 +387,24 @@ export interface FileRoutesByTo {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/admin/bestellungen': typeof AdminBestellungenIndexRoute
+  '/admin/produkte': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/inhalte': typeof AdminInhalteRoute
+  '/admin/kategorien': typeof AdminKategorienRoute
+  '/admin/lager': typeof AdminLagerRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/rabattcodes': typeof AdminRabattcodesRoute
+  '/admin/zugaenge': typeof AdminZugaengeRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -290,7 +419,10 @@ export interface FileRoutesById {
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
   '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/admin/': typeof AdminIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
+  '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
+  '/admin/produkte/$id': typeof AdminProdukteIdRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -302,6 +434,8 @@ export interface FileRoutesById {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
+  '/admin/produkte/': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
@@ -309,6 +443,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/{-$locale}'
+    | '/admin'
+    | '/admin/anmelden'
+    | '/admin/einstellungen'
+    | '/admin/gutscheine'
+    | '/admin/inhalte'
+    | '/admin/kategorien'
+    | '/admin/lager'
+    | '/admin/newsletter'
+    | '/admin/rabattcodes'
+    | '/admin/zugaenge'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -323,7 +467,10 @@ export interface FileRouteTypes {
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
     | '/{-$locale}/warenkorb'
+    | '/admin/'
     | '/{-$locale}/'
+    | '/admin/bestellungen/$id'
+    | '/admin/produkte/$id'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -335,10 +482,21 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/admin/bestellungen/'
+    | '/admin/produkte/'
     | '/{-$locale}/konto/'
     | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/admin/anmelden'
+    | '/admin/einstellungen'
+    | '/admin/gutscheine'
+    | '/admin/inhalte'
+    | '/admin/kategorien'
+    | '/admin/lager'
+    | '/admin/newsletter'
+    | '/admin/rabattcodes'
+    | '/admin/zugaenge'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -352,7 +510,10 @@ export interface FileRouteTypes {
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
     | '/{-$locale}/warenkorb'
+    | '/admin'
     | '/{-$locale}'
+    | '/admin/bestellungen/$id'
+    | '/admin/produkte/$id'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -364,11 +525,23 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/admin/bestellungen'
+    | '/admin/produkte'
     | '/{-$locale}/konto'
     | '/{-$locale}/konto/bestellungen/$number'
   id:
     | '__root__'
     | '/{-$locale}'
+    | '/admin'
+    | '/admin/anmelden'
+    | '/admin/einstellungen'
+    | '/admin/gutscheine'
+    | '/admin/inhalte'
+    | '/admin/kategorien'
+    | '/admin/lager'
+    | '/admin/newsletter'
+    | '/admin/rabattcodes'
+    | '/admin/zugaenge'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -383,7 +556,10 @@ export interface FileRouteTypes {
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
     | '/{-$locale}/warenkorb'
+    | '/admin/'
     | '/{-$locale}/'
+    | '/admin/bestellungen/$id'
+    | '/admin/produkte/$id'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -395,22 +571,102 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/admin/bestellungen/'
+    | '/admin/produkte/'
     | '/{-$locale}/konto/'
     | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   Char123LocaleChar125RouteRoute: typeof Char123LocaleChar125RouteRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/{-$locale}': {
       id: '/{-$locale}'
       path: '/{-$locale}'
       fullPath: '/{-$locale}'
       preLoaderRoute: typeof Char123LocaleChar125RouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/anmelden': {
+      id: '/admin/anmelden'
+      path: '/anmelden'
+      fullPath: '/admin/anmelden'
+      preLoaderRoute: typeof AdminAnmeldenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/einstellungen': {
+      id: '/admin/einstellungen'
+      path: '/einstellungen'
+      fullPath: '/admin/einstellungen'
+      preLoaderRoute: typeof AdminEinstellungenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/gutscheine': {
+      id: '/admin/gutscheine'
+      path: '/gutscheine'
+      fullPath: '/admin/gutscheine'
+      preLoaderRoute: typeof AdminGutscheineRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/inhalte': {
+      id: '/admin/inhalte'
+      path: '/inhalte'
+      fullPath: '/admin/inhalte'
+      preLoaderRoute: typeof AdminInhalteRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/kategorien': {
+      id: '/admin/kategorien'
+      path: '/kategorien'
+      fullPath: '/admin/kategorien'
+      preLoaderRoute: typeof AdminKategorienRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/lager': {
+      id: '/admin/lager'
+      path: '/lager'
+      fullPath: '/admin/lager'
+      preLoaderRoute: typeof AdminLagerRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/newsletter': {
+      id: '/admin/newsletter'
+      path: '/newsletter'
+      fullPath: '/admin/newsletter'
+      preLoaderRoute: typeof AdminNewsletterRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rabattcodes': {
+      id: '/admin/rabattcodes'
+      path: '/rabattcodes'
+      fullPath: '/admin/rabattcodes'
+      preLoaderRoute: typeof AdminRabattcodesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/zugaenge': {
+      id: '/admin/zugaenge'
+      path: '/zugaenge'
+      fullPath: '/admin/zugaenge'
+      preLoaderRoute: typeof AdminZugaengeRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/{-$locale}/': {
       id: '/{-$locale}/'
@@ -516,6 +772,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/{-$locale}/warenkorb'
       preLoaderRoute: typeof Char123LocaleChar125WarenkorbRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/admin/bestellungen/': {
+      id: '/admin/bestellungen/'
+      path: '/bestellungen'
+      fullPath: '/admin/bestellungen/'
+      preLoaderRoute: typeof AdminBestellungenIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bestellungen/$id': {
+      id: '/admin/bestellungen/$id'
+      path: '/bestellungen/$id'
+      fullPath: '/admin/bestellungen/$id'
+      preLoaderRoute: typeof AdminBestellungenIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/produkte/': {
+      id: '/admin/produkte/'
+      path: '/produkte'
+      fullPath: '/admin/produkte/'
+      preLoaderRoute: typeof AdminProdukteIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/produkte/$id': {
+      id: '/admin/produkte/$id'
+      path: '/produkte/$id'
+      fullPath: '/admin/produkte/$id'
+      preLoaderRoute: typeof AdminProdukteIdRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/{-$locale}/bestellung/$token': {
       id: '/{-$locale}/bestellung/$token'
@@ -706,8 +990,45 @@ const Char123LocaleChar125RouteRouteWithChildren =
     Char123LocaleChar125RouteRouteChildren,
   )
 
+interface AdminRouteChildren {
+  AdminAnmeldenRoute: typeof AdminAnmeldenRoute
+  AdminEinstellungenRoute: typeof AdminEinstellungenRoute
+  AdminGutscheineRoute: typeof AdminGutscheineRoute
+  AdminInhalteRoute: typeof AdminInhalteRoute
+  AdminKategorienRoute: typeof AdminKategorienRoute
+  AdminLagerRoute: typeof AdminLagerRoute
+  AdminNewsletterRoute: typeof AdminNewsletterRoute
+  AdminRabattcodesRoute: typeof AdminRabattcodesRoute
+  AdminZugaengeRoute: typeof AdminZugaengeRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminBestellungenIdRoute: typeof AdminBestellungenIdRoute
+  AdminProdukteIdRoute: typeof AdminProdukteIdRoute
+  AdminBestellungenIndexRoute: typeof AdminBestellungenIndexRoute
+  AdminProdukteIndexRoute: typeof AdminProdukteIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnmeldenRoute: AdminAnmeldenRoute,
+  AdminEinstellungenRoute: AdminEinstellungenRoute,
+  AdminGutscheineRoute: AdminGutscheineRoute,
+  AdminInhalteRoute: AdminInhalteRoute,
+  AdminKategorienRoute: AdminKategorienRoute,
+  AdminLagerRoute: AdminLagerRoute,
+  AdminNewsletterRoute: AdminNewsletterRoute,
+  AdminRabattcodesRoute: AdminRabattcodesRoute,
+  AdminZugaengeRoute: AdminZugaengeRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminBestellungenIdRoute: AdminBestellungenIdRoute,
+  AdminProdukteIdRoute: AdminProdukteIdRoute,
+  AdminBestellungenIndexRoute: AdminBestellungenIndexRoute,
+  AdminProdukteIndexRoute: AdminProdukteIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   Char123LocaleChar125RouteRoute: Char123LocaleChar125RouteRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

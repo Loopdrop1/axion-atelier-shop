@@ -114,7 +114,7 @@ describe("Katalog schreiben", () => {
     expect(check[0]?.price_cents).toBe(48900);
   });
 
-  it("Admin legt ein Produkt mit Variante an", async () => {
+  it("Admin legt ein Produkt mit Variante an; Anfangsbestand nur über admin_adjust_stock", async () => {
     const handle = uniq("neu");
     await q(
       "authenticated",
@@ -123,13 +123,58 @@ describe("Katalog schreiben", () => {
        select $1, id, 'test-modell', 'Test', 'Blau', '#0000ff', 9900 from public.categories where slug = 'westen'`,
       [handle],
     );
-    const rows = await q<{ id: string }>(
+    const rows = await q<{ id: string; stock: number }>(
       "authenticated",
       admin.claims,
-      `insert into public.product_variants (product_id, size, stock) select id, '48', 2 from public.products where handle = $1 returning id`,
-      [handle],
+      `insert into public.product_variants (product_id, size, sku) select id, '48', $2 from public.products where handle = $1
+       returning id, stock`,
+      [handle, uniq("SKU")],
     );
     expect(rows).toHaveLength(1);
+    expect(rows[0]?.stock).toBe(0);
+    const variantId = rows[0]!.id;
+    const stock = await q<{ stock: number }>(
+      "authenticated",
+      admin.claims,
+      "select public.admin_adjust_stock($1, 2, 'correction', 'Anfangsbestand') as stock",
+      [variantId],
+    );
+    expect(stock[0]?.stock).toBe(2);
+    const moves = await sql<{ delta: number; reason: string; note: string }>(
+      "select delta, reason::text, note from public.stock_movements where variant_id = $1",
+      [variantId],
+    );
+    expect(moves).toEqual([{ delta: 2, reason: "correction", note: "Anfangsbestand" }]);
+  });
+
+  it("Bestand lässt sich auch als Admin nicht direkt setzen (immer mit Lagerbewegung)", async () => {
+    const insert = await expectPgError(
+      q(
+        "authenticated",
+        admin.claims,
+        `insert into public.product_variants (product_id, size, stock) select id, '99', 5 from public.products where handle = $1`,
+        [draftHandle],
+      ),
+    );
+    expect(insert.message).toMatch(/permission denied/);
+    const update = await expectPgError(
+      q(
+        "authenticated",
+        admin.claims,
+        `update public.product_variants set stock = 50 where product_id = (select id from public.products where handle = $1)`,
+        [draftHandle],
+      ),
+    );
+    expect(update.message).toMatch(/permission denied/);
+    // Andere Felder bleiben änderbar
+    const ok = await q(
+      "authenticated",
+      admin.claims,
+      `update public.product_variants set active = active, price_cents = null
+       where product_id = (select id from public.products where handle = $1) returning id`,
+      [draftHandle],
+    );
+    expect(ok).toHaveLength(1);
   });
 
   it("Bestand kann nicht negativ werden", async () => {

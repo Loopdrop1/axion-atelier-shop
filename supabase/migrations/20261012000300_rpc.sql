@@ -312,6 +312,8 @@ as $$
     'phone', o.phone, 'payment_method', o.payment_method, 'tracking_number', o.tracking_number,
     'paid_at', o.paid_at, 'shipped_at', o.shipped_at, 'created_at', o.created_at,
     'needs_attention', o.needs_attention, 'admin_note', o.admin_note, 'gift_card_purchase', o.gift_card_purchase,
+    'cancelled_at', o.cancelled_at, 'cancel_reason', o.cancel_reason,
+    'stripe_session_id', o.stripe_session_id, 'stripe_payment_intent_id', o.stripe_payment_intent_id,
     'confirmation_sent_at', o.confirmation_sent_at, 'notification_sent_at', o.notification_sent_at,
     'gift_card_sent_at', o.gift_card_sent_at, 'shipping_sent_at', o.shipping_sent_at,
     'issued_gift_card', (select private.gift_card_json(g) from public.gift_cards g where g.id = o.issued_gift_card_id),

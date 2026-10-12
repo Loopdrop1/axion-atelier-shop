@@ -87,7 +87,7 @@ test("Startseite auf Deutsch und Englisch mit hreflang und Sprachwechsel", async
   const fr = await page.goto("/fr/produkt/anzug-limmat-marine");
   expect(fr?.status()).toBe(404);
   await expect(page.getByText("Dieses Stück fehlt.")).toBeVisible();
-  expect(errors).toEqual([]);
+  expect(errors, errors.join("\n")).toEqual([]);
 });
 
 test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer Warenkorb", async ({
@@ -145,7 +145,7 @@ test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer War
 
   await open(page, "/warenkorb");
   await expect(page.getByText("Dein Warenkorb ist noch leer")).toBeVisible();
-  expect(errors).toEqual([]);
+  expect(errors, errors.join("\n")).toEqual([]);
 });
 
 test("Ausverkauft beim Bezahlen: Warenkorb wird angepasst und erklärt", async ({ page }) => {
@@ -248,7 +248,7 @@ test("Konto: Anmeldung, Gastbestellung zugeordnet, Bestellung, Daten, Abmelden",
   await open(page, "/konto");
   await page.getByRole("button", { name: "Abmelden" }).click();
   await expect(page).toHaveURL(/\/konto\/anmelden/);
-  expect(errors).toEqual([]);
+  expect(errors, errors.join("\n")).toEqual([]);
 });
 
 test("Konto: Registrieren prüft Eingaben und zeigt den Bestätigungshinweis", async ({
@@ -377,7 +377,7 @@ test("Geschenkgutschein: Betrag, Empfänger, Vorschau, Weiterleitung und Guthabe
   await balance.getByRole("textbox").fill(FIXTURES.emptyGiftCard);
   await balance.getByRole("button", { name: "Prüfen" }).click();
   await expect(balance.getByText("Dieser Gutschein hat kein Guthaben mehr.")).toBeVisible();
-  expect(errors).toEqual([]);
+  expect(errors, errors.join("\n")).toEqual([]);
 });
 
 test("Newsletter: Anmeldung im Footer, Bestätigen und Abmelden erst per Klick", async ({

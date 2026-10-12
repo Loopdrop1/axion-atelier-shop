@@ -247,8 +247,12 @@ create policy "Bilder: Admin schreibt" on public.product_images
 
 grant select on public.categories, public.products, public.product_variants, public.product_images
   to anon, authenticated;
-grant insert, update, delete on public.categories, public.products, public.product_variants, public.product_images
-  to authenticated;
+grant insert, update, delete on public.categories, public.products, public.product_images to authenticated;
+-- Bestand nie direkt: nur über admin_adjust_stock / admin_restock_order (mit Lagerbewegung) und die Kasse.
+grant insert (product_id, size, sku, barcode, price_cents, compare_at_cents, sort, active),
+  update (size, sku, barcode, price_cents, compare_at_cents, sort, active),
+  delete
+  on public.product_variants to authenticated;
 grant all on public.categories, public.products, public.product_variants, public.product_images to service_role;
 
 -- Inhalte der Startseite ---------------------------------------------------------------------------
