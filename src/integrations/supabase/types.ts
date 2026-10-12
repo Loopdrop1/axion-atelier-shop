@@ -375,6 +375,10 @@ export type Database = {
           cancel_reason: string | null
           expires_at: string | null
           needs_attention: boolean
+          confirmation_sent_at: string | null
+          notification_sent_at: string | null
+          gift_card_sent_at: string | null
+          shipping_sent_at: string | null
           admin_note: string | null
           created_at: string
           updated_at: string
@@ -413,6 +417,10 @@ export type Database = {
           cancel_reason?: string | null
           expires_at?: string | null
           needs_attention?: boolean
+          confirmation_sent_at?: string | null
+          notification_sent_at?: string | null
+          gift_card_sent_at?: string | null
+          shipping_sent_at?: string | null
           admin_note?: string | null
           created_at?: string
           updated_at?: string
@@ -451,6 +459,10 @@ export type Database = {
           cancel_reason?: string | null
           expires_at?: string | null
           needs_attention?: boolean
+          confirmation_sent_at?: string | null
+          notification_sent_at?: string | null
+          gift_card_sent_at?: string | null
+          shipping_sent_at?: string | null
           admin_note?: string | null
           created_at?: string
           updated_at?: string
@@ -920,6 +932,10 @@ export type Database = {
       issue_gift_card: {
         Args: { p_amount_cents: number; p_locale: string; p_recipient_email: string; p_recipient_name?: string; p_sender_name?: string; p_message?: string; p_created_by?: string; p_note?: string }
         Returns: Json
+      }
+      mark_order_email_sent: {
+        Args: { p_order_id: string; p_kind: string }
+        Returns: undefined
       }
       mark_order_shipped: {
         Args: { p_order_id: string; p_tracking: string }

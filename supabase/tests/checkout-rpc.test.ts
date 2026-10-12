@@ -307,3 +307,24 @@ describe("Öffentliche Prüfungen und Status", () => {
     expect(mine.map((o) => o.id)).toEqual([r.order_id]);
   });
 });
+
+describe("Mindestbetrag und E-Mail-Status", () => {
+  it("lässt mindestens CHF 0.50 offen, wenn der Gutschein fast alles deckt", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [3] });
+    const card = await makeGiftCard(9980);
+    const r = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }], giftCard: card });
+    expect(r.total_cents).toBe(50);
+    expect(r.gift_card_cents).toBe(9950);
+  });
+
+  it("merkt sich versendete E-Mails und liefert sie im Bestell-JSON", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [3] });
+    const r = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }] });
+    await rpc("mark_order_email_sent", [r.order_id, "confirmation"]);
+    const order = await rpc<{ confirmation_sent_at: string | null; notification_sent_at: string | null }>("get_order_for_email", [r.order_id]);
+    expect(order.confirmation_sent_at).not.toBeNull();
+    expect(order.notification_sent_at).toBeNull();
+    const err = await expectPgError(rpc("mark_order_email_sent", [r.order_id, "falsch"]));
+    expect(err.message).toBe("INVALID_KIND");
+  });
+});

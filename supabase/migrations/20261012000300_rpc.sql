@@ -311,6 +311,9 @@ as $$
     'phone', o.phone, 'payment_method', o.payment_method, 'tracking_number', o.tracking_number,
     'paid_at', o.paid_at, 'shipped_at', o.shipped_at, 'created_at', o.created_at,
     'needs_attention', o.needs_attention, 'gift_card_purchase', o.gift_card_purchase,
+    'confirmation_sent_at', o.confirmation_sent_at, 'notification_sent_at', o.notification_sent_at,
+    'gift_card_sent_at', o.gift_card_sent_at, 'shipping_sent_at', o.shipping_sent_at,
+    'issued_gift_card', (select private.gift_card_json(g) from public.gift_cards g where g.id = o.issued_gift_card_id),
     'items', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', i.id, 'variant_id', i.variant_id, 'product_id', i.product_id, 'handle', i.handle, 'title', i.title,
@@ -512,6 +515,10 @@ begin
       raise exception 'GIFT_CARD_INVALID' using errcode = 'P0001', detail = v_gift_json::text;
     end if;
     v_gift := least((v_gift_json ->> 'balance_cents')::int, v_subtotal - v_discount + v_shipping);
+    -- Stripe verlangt mindestens CHF 0.50. Bleibt weniger offen, wird weniger Guthaben verwendet.
+    if v_subtotal - v_discount - v_gift + v_shipping between 1 and 49 then
+      v_gift := greatest(0, v_gift - (50 - (v_subtotal - v_discount - v_gift + v_shipping)));
+    end if;
   end if;
 
   insert into public.orders (kind, status, user_id, email, locale, subtotal_cents, discount_cents, discount_code,
@@ -690,7 +697,7 @@ begin
     stripe_session_id = coalesce(nullif(p_payment ->> 'session_id', ''), stripe_session_id),
     stripe_payment_intent_id = coalesce(nullif(p_payment ->> 'payment_intent_id', ''), stripe_payment_intent_id),
     payment_method = coalesce(nullif(p_payment ->> 'payment_method', ''), payment_method,
-      case when v_order.total_cents = 0 then 'gift_card' end),
+      case when v_order.total_cents = 0 then case when v_order.gift_card_cents > 0 then 'gift_card' else 'discount' end end),
     cancelled_at = null,
     cancel_reason = null,
     expires_at = null,
@@ -827,6 +834,25 @@ begin
   v_card := private.issue_gift_card(p_amount_cents, p_locale, null, v_email, p_recipient_name, p_sender_name,
     p_message, null, p_created_by, p_note);
   return private.gift_card_json(v_card);
+end
+$$;
+
+create or replace function public.mark_order_email_sent(p_order_id uuid, p_kind text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.orders set
+    confirmation_sent_at = case when p_kind = 'confirmation' then now() else confirmation_sent_at end,
+    notification_sent_at = case when p_kind = 'notification' then now() else notification_sent_at end,
+    gift_card_sent_at = case when p_kind = 'gift_card' then now() else gift_card_sent_at end,
+    shipping_sent_at = case when p_kind = 'shipping' then now() else shipping_sent_at end
+  where id = p_order_id;
+  if p_kind not in ('confirmation', 'notification', 'gift_card', 'shipping') then
+    raise exception 'INVALID_KIND' using errcode = '22023';
+  end if;
 end
 $$;
 
@@ -1235,6 +1261,7 @@ revoke all on function
   public.record_refund(text, int),
   public.mark_order_shipped(uuid, text),
   public.get_order_for_email(uuid),
+  public.mark_order_email_sent(uuid, text),
   public.get_shop_notify_email(),
   public.issue_gift_card(int, text, text, text, text, text, uuid, text),
   public.check_discount(text, int),
@@ -1265,6 +1292,7 @@ grant execute on function
   public.record_refund(text, int),
   public.mark_order_shipped(uuid, text),
   public.get_order_for_email(uuid),
+  public.mark_order_email_sent(uuid, text),
   public.get_shop_notify_email(),
   public.issue_gift_card(int, text, text, text, text, text, uuid, text),
   public.newsletter_subscribe(text, text, text, text, text),
