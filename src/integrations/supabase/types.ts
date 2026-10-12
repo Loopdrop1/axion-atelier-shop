@@ -914,6 +914,10 @@ export type Database = {
       }
       finish_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
       forget_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
+      get_gift_card_for_email: {
+        Args: { p_gift_card_id: string }
+        Returns: Json
+      }
       get_order_for_email: { Args: { p_order_id: string }; Returns: Json }
       get_order_status: { Args: { p_token: string }; Returns: Json }
       get_shop_notify_email: { Args: never; Returns: string }
@@ -950,6 +954,7 @@ export type Database = {
         Returns: Json
       }
       newsletter_unsubscribe: { Args: { p_token: string }; Returns: Json }
+      prepare_account_deletion: { Args: { p_user_id: string }; Returns: Json }
       record_refund: {
         Args: { p_payment_intent_id: string; p_refunded_cents: number }
         Returns: Json
