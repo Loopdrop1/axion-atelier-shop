@@ -47,11 +47,11 @@
 **Interfaces:**
 - Produces: `withRole(role: "anon"|"authenticated"|"service_role", claims: {sub?: string, email?: string} | null, fn: (c: PoolClient) => Promise<T>): Promise<T>`; `resetDb(): Promise<void>`; `createUser(email: string, opts?: {confirmed?: boolean, admin?: boolean}): Promise<string /* uuid */>`.
 
-- [ ] Commit «Basis = Lovable e3800b2» mit dem heutigen Stand (ohne `qa/`, `docs/`).
-- [ ] `supabase-compat.sql`: Rollen `anon`, `authenticated`, `service_role` (bypassrls), Schemas `auth`, `storage`, `extensions`; `auth.users` (id, email, email_confirmed_at, raw_user_meta_data, created_at), `auth.uid()`, `auth.email()`, `auth.jwt()` wie Supabase (aus `request.jwt.claims`); `storage.buckets`, `storage.objects` mit `storage.foldername()`.
-- [ ] `local-db.sh`: initdb nach `.local/pg`, Port 54329, Datenbank `axion`, wendet compat + `supabase/migrations/*.sql` + `supabase/seed.sql` an.
-- [ ] Test `supabase/tests/smoke.test.ts`: `select 1` als `anon` klappt; `auth.uid()` liefert die gesetzte `sub`.
-- [ ] Run: `bun run test:backend` → PASS.
+- [x] Commit «Basis = Lovable e3800b2» mit dem heutigen Stand (ohne `qa/`, `docs/`).
+- [x] `supabase-compat.sql`: Rollen `anon`, `authenticated`, `service_role` (bypassrls), Schemas `auth`, `storage`, `extensions`; `auth.users` (id, email, email_confirmed_at, raw_user_meta_data, created_at), `auth.uid()`, `auth.email()`, `auth.jwt()` wie Supabase (aus `request.jwt.claims`); `storage.buckets`, `storage.objects` mit `storage.foldername()`.
+- [x] `local-db.sh`: initdb nach `.local/pg`, Port 54329, Datenbank `axion`, wendet compat + `supabase/migrations/*.sql` + `supabase/seed.sql` an.
+- [x] Test `supabase/tests/smoke.test.ts`: `select 1` als `anon` klappt; `auth.uid()` liefert die gesetzte `sub`.
+- [x] Run: `bun run test:backend` → PASS.
 
 ### Task 2: Katalog, Rollen, Profile, Inhalte
 
@@ -63,9 +63,9 @@
 - Produces Funktionen: `public.has_role(_user_id uuid, _role public.app_role) returns boolean`; Trigger `handle_new_user` legt `profiles` an.
 - Seed: Kategorien `anzuege`, `westen`, `schuhe`; die 6 Beispielprodukte aus `sample-data.ts` mit Bildpfaden `asset:<schlüssel>` (Schlüssel wie in `media.ts`); `site_content` Schlüssel `announcements`, `home.hero`, `home.collections`, `home.new`, `home.look`, `home.occasions`, `home.story`.
 
-- [ ] Tests: `anon` sieht nur aktive Produkte/Varianten/Bilder/Kategorien; Entwurf unsichtbar; `authenticated` ohne Admin kann nicht schreiben; Admin kann alles schreiben; Profil nur eigenes lesbar und änderbar; neuer `auth.users`-Eintrag erzeugt Profil.
-- [ ] Migration und Seed schreiben, Tests grün.
-- [ ] Commit.
+- [x] Tests: `anon` sieht nur aktive Produkte/Varianten/Bilder/Kategorien; Entwurf unsichtbar; `authenticated` ohne Admin kann nicht schreiben; Admin kann alles schreiben; Profil nur eigenes lesbar und änderbar; neuer `auth.users`-Eintrag erzeugt Profil.
+- [x] Migration und Seed schreiben, Tests grün.
+- [x] Commit.
 
 ### Task 3: Bestellungen, Gutscheine, Rabatte, Newsletter, Ereignisse
 
@@ -76,8 +76,8 @@
 - Produces Tabellen: `orders(id, number bigint, status order_status, user_id, email, locale, subtotal_cents, discount_cents, discount_code, gift_card_cents, gift_card_id, shipping_cents, total_cents, refunded_cents, shipping_name, shipping_address jsonb, phone, stripe_session_id unique, stripe_payment_intent_id, payment_method, kind ('cart'|'gift_card'), gift_card_purchase jsonb, tracking_number, shipped_at, paid_at, cancelled_at, expires_at, needs_attention bool, admin_note, created_at, updated_at)`, `order_items(...)`, `stock_movements(id, variant_id, delta, reason stock_reason, order_id, note, created_by, created_at)`, `discount_codes(id, code citext unique, kind, value, min_subtotal_cents, starts_at, ends_at, max_redemptions, redemptions, active)`, `gift_cards(id, code unique, initial_cents, balance_cents check (balance_cents >= 0), status, expires_at, purchaser_email, recipient_email, recipient_name, sender_name, message, order_id, created_at)`, `gift_card_transactions(id, gift_card_id, order_id, delta_cents, kind, created_at)`, `newsletter_subscribers(id, email citext unique, locale, status, consent_text, consent_at, token_hash, confirmed_at, unsubscribed_at, source, welcome_code)`, `stripe_events(id text pk, type, received_at)`, `rate_limits(key, window_start, hits)`.
 - `order_number` Sequenz ab 10001.
 
-- [ ] Tests: Kundschaft sieht nur eigene Bestellungen und Positionen; `anon` sieht keine; nur Admin liest Rabattcodes, Gutscheine, Newsletter, Lagerbewegungen; niemand ausser `service_role` schreibt Bestellungen direkt.
-- [ ] Migration schreiben, Tests grün, Commit.
+- [x] Tests: Kundschaft sieht nur eigene Bestellungen und Positionen; `anon` sieht keine; nur Admin liest Rabattcodes, Gutscheine, Newsletter, Lagerbewegungen; niemand ausser `service_role` schreibt Bestellungen direkt.
+- [x] Migration schreiben, Tests grün, Commit.
 
 ### Task 4: Geschäftslogik als RPC
 
@@ -99,24 +99,24 @@
 - `mark_order_shipped(p_order_id uuid, p_tracking text) returns jsonb` (nur `service_role`, für die Edge Function).
 - `newsletter_subscribe(p_email text, p_locale text, p_consent text, p_source text) returns jsonb` → `{status, token}`; `newsletter_confirm(p_token text) returns jsonb`; `newsletter_unsubscribe(p_token text) returns jsonb` (nur `service_role`).
 
-- [ ] Tests mit exakten Werten: zwei Varianten à CHF 549.00 + CHF 189.00, Code `LAUNCH10` (10 %) → Rabatt 7380 Rappen; Gutschein 10000 Rappen auf Rest 66420 → Gutschein 10000, Total 56420; Gutschein deckt alles → `total_cents = 0`; letzter Bestand parallel reserviert (zwei Transaktionen) → eine `OUT_OF_STOCK`; `complete_order` zweimal → `newly_paid` nur einmal true; `cancel_order` nach `complete_order` → false; `complete_order` nach `cancel_order` mit fehlendem Bestand → `needs_attention = true`; Gutschein in zwei Reservierungen parallel → Summe der Abbuchungen ≤ Guthaben; abgelaufener oder deaktivierter Code → `valid=false` mit `reason`; Admin-RPC ohne Rolle → Fehler `FORBIDDEN`; letzter Admin kann sich nicht entfernen.
-- [ ] Funktionen schreiben, Tests grün, Commit.
+- [x] Tests mit exakten Werten: zwei Varianten à CHF 549.00 + CHF 189.00, Code `LAUNCH10` (10 %) → Rabatt 7380 Rappen; Gutschein 10000 Rappen auf Rest 66420 → Gutschein 10000, Total 56420; Gutschein deckt alles → `total_cents = 0`; letzter Bestand parallel reserviert (zwei Transaktionen) → eine `OUT_OF_STOCK`; `complete_order` zweimal → `newly_paid` nur einmal true; `cancel_order` nach `complete_order` → false; `complete_order` nach `cancel_order` mit fehlendem Bestand → `needs_attention = true`; Gutschein in zwei Reservierungen parallel → Summe der Abbuchungen ≤ Guthaben; abgelaufener oder deaktivierter Code → `valid=false` mit `reason`; Admin-RPC ohne Rolle → Fehler `FORBIDDEN`; letzter Admin kann sich nicht entfernen.
+- [x] Funktionen schreiben, Tests grün, Commit.
 
 ### Task 5: Speicher für Bilder
 
 **Files:**
 - Create: `supabase/migrations/20261012000400_storage.sql`, `supabase/tests/storage.test.ts`
 
-- [ ] Buckets `product-images` und `site-media` (öffentlich lesbar, 8 MB, nur Bildtypen); Schreiben, Ändern, Löschen nur Admin. Tests: `anon` darf nicht schreiben, Admin darf.
-- [ ] Commit.
+- [x] Buckets `product-images` und `site-media` (öffentlich lesbar, 8 MB, nur Bildtypen); Schreiben, Ändern, Löschen nur Admin. Tests: `anon` darf nicht schreiben, Admin darf.
+- [x] Commit.
 
 ### Task 6: TypeScript-Typen der Datenbank
 
 **Files:**
 - Create: `scripts/db/gen-types.ts`, `src/integrations/supabase/types.ts`
 
-- [ ] Generator liest Tabellen, Enums und RPC-Signaturen aus der lokalen DB und schreibt einen `Database`-Typ im Supabase-Format (`Tables.Row/Insert/Update`, `Functions.Args/Returns`, `Enums`). Später durch `supabase gen types` ersetzbar.
-- [ ] `tsc --noEmit` grün, Commit.
+- [x] Generator liest Tabellen, Enums und RPC-Signaturen aus der lokalen DB und schreibt einen `Database`-Typ im Supabase-Format (`Tables.Row/Insert/Update`, `Functions.Args/Returns`, `Enums`). Später durch `supabase gen types` ersetzbar.
+- [x] `tsc --noEmit` grün, Commit.
 
 ## Phase B: Edge Functions
 
@@ -133,9 +133,9 @@
 - Vorlagen `(data, locale) => {subject, html, text}`: `orderConfirmation`, `shopNotification`, `shippingConfirmation`, `giftCard`, `newsletterConfirm`, `newsletterWelcome`, `authEmail(kind: "signup"|"recovery"|"email_change"|"magiclink"|"invite")`.
 - `getUser(req: Request, env): Promise<{id: string, email: string} | null>`; `requireAdmin(req, env, rpc): Promise<{id: string, email: string}>`.
 
-- [ ] Tests: jede Vorlage DE und EN hat Betreff, HTML und Text; Beträge als «CHF 564.20»; HTML enthält keine ungefüllten `{{`; Sendungslink der Post enthält die Sendungsnummer.
-- [ ] Vorschau-Skript schreibt alle Vorlagen nach `.local/email-preview/*.html`, Sichtprüfung per Screenshot.
-- [ ] Commit.
+- [x] Tests: jede Vorlage DE und EN hat Betreff, HTML und Text; Beträge als «CHF 564.20»; HTML enthält keine ungefüllten `{{`; Sendungslink der Post enthält die Sendungsnummer.
+- [x] Vorschau-Skript schreibt alle Vorlagen nach `.local/email-preview/*.html`, Sichtprüfung per Screenshot.
+- [x] Commit.
 
 ### Task 8: Funktion `checkout`
 
@@ -147,29 +147,29 @@
 - Response `200 {url}` | `409 {error:"OUT_OF_STOCK", items:[{variantId, available}]}` | `422 {error:"DISCOUNT_INVALID"|"GIFT_CARD_INVALID"|"INVALID_LINES", reason}` | `400 {error:"BAD_REQUEST"}`.
 - `handleCheckout(req: Request, deps: {env, rpc, stripe, now?}): Promise<Response>`.
 
-- [ ] Tests (Fake-Stripe, RPC-Shim auf lokale DB): Session hat Positionen zu DB-Preisen, einen Coupon über Rabatt+Gutschein, `metadata.order_id`, Erfolgs-URL mit Locale; Total 0 → keine Stripe-Session, Bestellung bezahlt, URL zur Dankesseite; ausverkauft → 409 mit verfügbarer Menge; Stripe-Fehler → Reservierung wird storniert.
-- [ ] Commit.
+- [x] Tests (Fake-Stripe, RPC-Shim auf lokale DB): Session hat Positionen zu DB-Preisen, einen Coupon über Rabatt+Gutschein, `metadata.order_id`, Erfolgs-URL mit Locale; Total 0 → keine Stripe-Session, Bestellung bezahlt, URL zur Dankesseite; ausverkauft → 409 mit verfügbarer Menge; Stripe-Fehler → Reservierung wird storniert.
+- [x] Commit.
 
 ### Task 9: Funktion `stripe-webhook`
 
 **Files:**
 - Create: `supabase/functions/stripe-webhook/{index.ts,handler.ts,handler.test.ts}`
 
-- [ ] Tests: falsche Signatur → 400; `checkout.session.completed` (bezahlt) → Bestellung `paid`, Bestätigung an Kundschaft und Meldung an Shop genau einmal; dasselbe Ereignis doppelt → keine zweite E-Mail; `checkout.session.expired` → storniert, Bestand zurück; `async_payment_failed` → storniert; `charge.refunded` → `refunded_cents`; Gutscheinkauf → Gutschein-E-Mail mit Code.
-- [ ] Commit.
+- [x] Tests: falsche Signatur → 400; `checkout.session.completed` (bezahlt) → Bestellung `paid`, Bestätigung an Kundschaft und Meldung an Shop genau einmal; dasselbe Ereignis doppelt → keine zweite E-Mail; `checkout.session.expired` → storniert, Bestand zurück; `async_payment_failed` → storniert; `charge.refunded` → `refunded_cents`; Gutscheinkauf → Gutschein-E-Mail mit Code.
+- [x] Commit.
 
 ### Task 10: Funktionen `newsletter`, `admin-actions`, `account-delete`, `auth-email-hook`
 
 **Files:**
 - Create: je `index.ts`, `handler.ts`, `handler.test.ts` unter `supabase/functions/<name>/`, `supabase/config.toml`
 
-- [ ] Newsletter: Anmeldung → `pending` + Bestätigungs-E-Mail; Bestätigen → `confirmed` (+ Willkommensrabatt, falls eingestellt); Abmelden → `unsubscribed`; doppelte Anmeldung verrät nicht, ob die Adresse existiert.
-- [ ] Admin-Aktionen: `ship` (Versandmeldung), `resend_confirmation`, `issue_gift_card`; ohne Admin-Rolle 403.
-- [ ] Konto löschen: nur eigener Benutzer; Bestellungen bleiben ohne `user_id`.
-- [ ] Auth-Hook: Standard-Webhooks-Signatur geprüft; richtige Vorlage und Sprache aus `user_metadata.locale`.
-- [ ] `config.toml`: `verify_jwt = false` für `stripe-webhook`, `auth-email-hook`, `newsletter`, `checkout`.
-- [ ] `deno check` für alle `index.ts` grün; Deno-Smoke-Test: `checkout/index.ts` unter Deno gegen Shim und Fake-Stripe.
-- [ ] Commit.
+- [x] Newsletter: Anmeldung → `pending` + Bestätigungs-E-Mail; Bestätigen → `confirmed` (+ Willkommensrabatt, falls eingestellt); Abmelden → `unsubscribed`; doppelte Anmeldung verrät nicht, ob die Adresse existiert.
+- [x] Admin-Aktionen: `ship` (Versandmeldung), `resend_confirmation`, `issue_gift_card`; ohne Admin-Rolle 403.
+- [x] Konto löschen: nur eigener Benutzer; Bestellungen bleiben ohne `user_id`.
+- [x] Auth-Hook: Standard-Webhooks-Signatur geprüft; richtige Vorlage und Sprache aus `user_metadata.locale`.
+- [x] `config.toml`: `verify_jwt = false` für `stripe-webhook`, `auth-email-hook`, `newsletter`, `checkout`.
+- [x] `deno check` für alle `index.ts` grün; Deno-Smoke-Test: `checkout/index.ts` unter Deno gegen Shim und Fake-Stripe.
+- [x] Commit.
 
 ## Phase C: Frontend
 
@@ -213,7 +213,8 @@
 ### Task 14: Kundenkonto
 
 **Files:**
-- Create: `src/lib/account/{auth-store.ts,api.ts,api.test.ts}`, `src/routes/{-$locale}/konto.*.tsx` (anmelden, registrieren, passwort-vergessen, passwort-neu, index, bestellungen.$number, daten), `src/components/account/*`
+- Create: `src/lib/account/{auth-store.ts,api.ts,api.test.ts}`, `src/routes/{-$locale}/konto.*.tsx` (anmelden, registrieren, bestaetigen, passwort-vergessen, passwort-neu, index, bestellungen.$number, daten), `src/components/account/*`
+- Vertrag der Funktionen: `supabase/functions/README.md` (Links der Auth-E-Mails auf `/konto/bestaetigen?token_hash&type&next`, Bestätigung per Klick mit `verifyOtp`, `next` nur als interner Pfad)
 - Modify: `src/components/shop/shell.tsx` (Konto-Symbol)
 
 - [ ] Registrieren mit Locale in den Metadaten, Anmelden, Abmelden, Passwort vergessen/neu, Bestellliste und -detail, Daten und Adresse, Konto löschen; nach Anmeldung `claim_guest_orders`.
