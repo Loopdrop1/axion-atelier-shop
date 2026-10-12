@@ -1,16 +1,18 @@
+import { useT } from "@/i18n";
 export function SizeGuide() {
+  const t = useT().sizeGuide;
   return (
     <>
-      <p className="size-notice">Beispielwerte, werden ersetzt</p>
-      <h2>Anzüge und Westen</h2>
+      <p className="size-notice">{t.notice}</p>
+      <h2>{t.suits}</h2>
       <div className="table-scroll">
         <table className="size-table">
           <thead>
             <tr>
-              <th>Grösse</th>
-              <th>Brustumfang</th>
-              <th>Taillenumfang</th>
-              <th>Körpergrösse</th>
+              <th>{t.size}</th>
+              <th>{t.chest}</th>
+              <th>{t.waist}</th>
+              <th>{t.height}</th>
             </tr>
           </thead>
           <tbody>
@@ -27,12 +29,12 @@ export function SizeGuide() {
           </tbody>
         </table>
       </div>
-      <h2>Schuhe</h2>
+      <h2>{t.shoes}</h2>
       <table className="size-table">
         <thead>
           <tr>
-            <th>EU-Grösse</th>
-            <th>Fusslänge in cm</th>
+            <th>{t.euSize}</th>
+            <th>{t.footLength}</th>
           </tr>
         </thead>
         <tbody>
@@ -44,10 +46,7 @@ export function SizeGuide() {
           ))}
         </tbody>
       </table>
-      <p className="size-notice mt-6">
-        Miss den Brustumfang an der breitesten Stelle und die Taille an der schmalsten Stelle. Miss
-        deine Fusslänge von der Ferse bis zum längsten Zeh.
-      </p>
+      <p className="size-notice mt-6">{t.howTo}</p>
     </>
   );
 }

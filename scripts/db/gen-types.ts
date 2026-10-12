@@ -3,6 +3,7 @@
 // Sobald das echte Supabase-Projekt existiert, kann die Datei auch mit dem Supabase-CLI oder -MCP erzeugt werden.
 import pg from "pg";
 import { writeFileSync } from "node:fs";
+import * as prettier from "prettier";
 import path from "node:path";
 
 const DB_URL = process.env["AXION_DB_URL"] ?? "postgres://postgres@127.0.0.1:54329/axion";
@@ -245,7 +246,11 @@ ${enums.map((e) => `      ${e.name}: [${e.values.map((v) => `"${v}"`).join(", ")
   },
 } as const
 `;
-writeFileSync(OUT, out);
+// Gleich formatieren wie der restliche Code (eslint prüft prettier).
+writeFileSync(
+  OUT,
+  await prettier.format(out, { ...(await prettier.resolveConfig(OUT)), parser: "typescript" }),
+);
 await client.end();
 console.log(
   `Typen geschrieben: ${path.relative(process.cwd(), OUT)} (${tables.length} Tabellen, ${fns.length} Funktionen, ${enums.length} Enums)`,

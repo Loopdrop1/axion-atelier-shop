@@ -26,6 +26,7 @@ export const de = {
     required: "Pflichtfeld",
     invalidEmail: "Bitte gib eine gültige E-Mail-Adresse ein.",
     and: "und",
+    continue: "Weiter",
   },
   language: {
     label: "Sprache",
@@ -123,6 +124,11 @@ export const de = {
       intro: "Hast du eine Frage zu einem Stück oder deiner Bestellung?",
       title: "Schreib uns oder ruf an",
     },
+  },
+  seo: {
+    homeTitle: "Anzüge, Westen und Schuhe",
+    homeDescription:
+      "Entdecke Axion: Anzüge, Westen und Schuhe für Hochzeit, Business und besondere Momente. Gratisversand in der Schweiz.",
   },
   home: {
     hero: {
@@ -295,6 +301,10 @@ export const de = {
     description:
       "Bewahre deine liebsten Anzüge, Westen und Schuhe von Axion in deiner Merkliste auf.",
   },
+  errorPage: {
+    title: "Diese Seite konnte nicht geladen werden",
+    text: "Bitte versuche es erneut oder kehre zur Startseite zurück.",
+  },
   notFound: {
     title: "Dieses Stück fehlt.",
     text: "Diese Seite wurde nicht gefunden. Entdecke stattdessen unsere Kollektion.",
@@ -315,6 +325,8 @@ export const de = {
     view: "Warenkorb ansehen",
     maxPerLine: "Höchstens 10 Stück pro Grösse.",
     removedItems: "Einige Stücke sind nicht mehr verfügbar und wurden entfernt.",
+    lineSoldOut: "Diese Grösse ist nicht mehr verfügbar.",
+    loadError: "Der Warenkorb konnte nicht geladen werden.",
   },
   checkout: {
     subtotal: "Zwischensumme",
@@ -331,11 +343,17 @@ export const de = {
     emailHint: "Wir schicken dir die Bestellbestätigung und die Versandmeldung an diese Adresse.",
     signedInAs: (email: string) => `Angemeldet als ${email}`,
     toCheckout: "Zur Kasse",
+    pay: "Weiter zur Zahlung",
+    placeOrder: "Bestellung abschliessen",
+    estimateNote: "Der Endbetrag wird in der Kasse bestätigt.",
+    paymentError:
+      "Die Kasse ist gerade nicht erreichbar. Bitte versuche es in ein paar Minuten erneut.",
     redirecting: "Weiter zur Zahlung …",
     notConnected: "Die Kasse wird beim Livegang verbunden.",
     terms: "Mit der Bestellung akzeptierst du unsere",
     termsLink: "AGB",
     privacyLink: "Datenschutzerklärung",
+    privacyNote: "Wie wir deine Daten bearbeiten, steht in der",
     secure: "Sichere Zahlung über Stripe: TWINT, Karte, Apple Pay, Google Pay oder Klarna.",
     cancelled: "Die Zahlung wurde abgebrochen. Deine Stücke sind noch im Warenkorb.",
     outOfStock: "Nicht mehr alles ist verfügbar. Wir haben deinen Warenkorb angepasst.",
@@ -479,14 +497,38 @@ export const de = {
       n === 1
         ? "1 frühere Bestellung wurde deinem Konto zugeordnet."
         : `${n} frühere Bestellungen wurden deinem Konto zugeordnet.`,
+    orderNumber: "Bestellung",
+    orderNotFound: "Diese Bestellung haben wir in deinem Konto nicht gefunden.",
+    quantity: (n: number) => `Menge ${n}`,
+    refundedAmount: "Zurückerstattet",
+    giftCardFor: (name: string) => `Für ${name}`,
+    trackingNumber: "Sendungsnummer",
+    profile: "Persönliche Angaben",
+    emailLanguage: "Sprache für E-Mails",
+    languages: { de: "Deutsch", en: "English" } as Record<string, string>,
+    paymentMethods: {
+      card: "Karte",
+      twint: "TWINT",
+      klarna: "Klarna",
+      apple_pay: "Apple Pay",
+      google_pay: "Google Pay",
+      gift_card: "Geschenkgutschein",
+      discount: "Rabatt",
+      link: "Link",
+    } as Record<string, string>,
+    deleteConfirmMismatch: "Bitte tippe das Wort genau so ab, wie es dasteht.",
+    reauthNeeded: "Bitte melde dich zur Sicherheit neu an und versuche es dann noch einmal.",
+    samePassword: "Das neue Passwort muss sich vom bisherigen unterscheiden.",
+    emailExists: "Diese E-Mail-Adresse wird bereits verwendet.",
+    invalidPostalCode: "Bitte gib eine vierstellige PLZ ein.",
   },
   giftCard: {
     title: "Geschenkgutschein",
     metaDescription:
-      "Verschenke einen Axion-Gutschein: online einlösbar, 5 Jahre gültig, per E-Mail in wenigen Minuten.",
+      "Verschenke einen Axion-Gutschein: online einlösbar und in wenigen Minuten per E-Mail da.",
     eyebrow: "Schenken",
-    intro:
-      "Der Gutschein kommt per E-Mail, ist online einlösbar und 5 Jahre gültig. Ein Restbetrag bleibt auf dem Gutschein.",
+    intro: (years: number) =>
+      `Der Gutschein kommt per E-Mail, ist online einlösbar und ${years === 1 ? "1 Jahr" : `${years} Jahre`} gültig. Ein Restbetrag bleibt auf dem Gutschein.`,
     amount: "Betrag",
     customAmount: "Anderer Betrag",
     amountRange: (min: string, max: string) => `Zwischen ${min} und ${max}.`,
@@ -495,7 +537,8 @@ export const de = {
     forSomeone: "Für jemand anderen",
     recipientName: "Name der beschenkten Person",
     recipientEmail: "E-Mail der beschenkten Person",
-    recipientEmailHint: "Der Gutschein geht direkt nach der Zahlung an diese Adresse.",
+    recipientEmailHint:
+      "Der Gutschein geht direkt nach der Zahlung an diese Adresse. Lässt du das Feld leer, kommt er zu dir und du überreichst ihn selbst.",
     senderName: "Dein Name",
     message: "Persönliche Nachricht (freiwillig)",
     messageCount: (n: number) => `${n}/500`,
@@ -508,6 +551,12 @@ export const de = {
     balanceResult: (amount: string, date: string) => `Guthaben ${amount}, gültig bis ${date}.`,
     terms: "Gutscheine sind nicht in bar auszahlbar und gelten nur im Online-Shop.",
     invalidAmount: "Bitte wähle einen Betrag im erlaubten Bereich.",
+    customAmountLabel: "Betrag in CHF",
+    previewLabel: "Geschenkgutschein",
+    previewFor: (name: string) => `Für ${name}`,
+    previewFrom: (name: string) => `Von ${name}`,
+    cancelled: "Die Zahlung wurde abgebrochen. Es wurde nichts belastet.",
+    notConfigured: "Geschenkgutscheine werden beim Livegang aktiviert.",
   },
   newsletter: {
     label: "E-Mail-Adresse für den Newsletter",

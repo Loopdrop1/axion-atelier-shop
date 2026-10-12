@@ -95,3 +95,10 @@ export async function getOrderStatus(token: string): Promise<OrderStatus | null>
   if (error) throw error;
   return (data as unknown as OrderStatus | null) ?? null;
 }
+
+/** Nach Abbruch in der Stripe-Kasse: Reservierung über das Token aus der cancel_url freigeben. */
+export async function releaseCheckout(token: string): Promise<boolean> {
+  if (!/^[0-9a-f-]{36}$/i.test(token)) return false;
+  const result = await callFunction<{ released: boolean }>("checkout", { kind: "release", token });
+  return result.ok && result.data.released;
+}

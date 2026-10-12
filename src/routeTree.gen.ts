@@ -9,348 +9,705 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SplatRouteImport } from './routes/$'
-import { Route as AgbRouteImport } from './routes/agb'
-import { Route as DatenschutzRouteImport } from './routes/datenschutz'
-import { Route as GroessenberatungRouteImport } from './routes/groessenberatung'
-import { Route as HaeufigeFragenRouteImport } from './routes/haeufige-fragen'
-import { Route as ImpressumRouteImport } from './routes/impressum'
-import { Route as KontaktRouteImport } from './routes/kontakt'
-import { Route as MerklisteRouteImport } from './routes/merkliste'
-import { Route as SucheRouteImport } from './routes/suche'
-import { Route as UeberUnsRouteImport } from './routes/ueber-uns'
-import { Route as VersandUndRueckgabeRouteImport } from './routes/versand-und-rueckgabe'
-import { Route as WarenkorbRouteImport } from './routes/warenkorb'
-import { Route as KollektionHandleRouteImport } from './routes/kollektion.$handle'
-import { Route as ProduktHandleRouteImport } from './routes/produkt.$handle'
+import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$locale}/route'
+import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
+import { Route as Char123LocaleChar125SplatRouteImport } from './routes/{-$locale}/$'
+import { Route as Char123LocaleChar125AgbRouteImport } from './routes/{-$locale}/agb'
+import { Route as Char123LocaleChar125DatenschutzRouteImport } from './routes/{-$locale}/datenschutz'
+import { Route as Char123LocaleChar125GeschenkgutscheinRouteImport } from './routes/{-$locale}/geschenkgutschein'
+import { Route as Char123LocaleChar125GroessenberatungRouteImport } from './routes/{-$locale}/groessenberatung'
+import { Route as Char123LocaleChar125HaeufigeFragenRouteImport } from './routes/{-$locale}/haeufige-fragen'
+import { Route as Char123LocaleChar125ImpressumRouteImport } from './routes/{-$locale}/impressum'
+import { Route as Char123LocaleChar125KontaktRouteImport } from './routes/{-$locale}/kontakt'
+import { Route as Char123LocaleChar125KontoRouteImport } from './routes/{-$locale}/konto'
+import { Route as Char123LocaleChar125MerklisteRouteImport } from './routes/{-$locale}/merkliste'
+import { Route as Char123LocaleChar125SucheRouteImport } from './routes/{-$locale}/suche'
+import { Route as Char123LocaleChar125UeberUnsRouteImport } from './routes/{-$locale}/ueber-uns'
+import { Route as Char123LocaleChar125VersandUndRueckgabeRouteImport } from './routes/{-$locale}/versand-und-rueckgabe'
+import { Route as Char123LocaleChar125WarenkorbRouteImport } from './routes/{-$locale}/warenkorb'
+import { Route as Char123LocaleChar125BestellungTokenRouteImport } from './routes/{-$locale}/bestellung.$token'
+import { Route as Char123LocaleChar125KollektionHandleRouteImport } from './routes/{-$locale}/kollektion.$handle'
+import { Route as Char123LocaleChar125KontoIndexRouteImport } from './routes/{-$locale}/konto.index'
+import { Route as Char123LocaleChar125KontoAnmeldenRouteImport } from './routes/{-$locale}/konto.anmelden'
+import { Route as Char123LocaleChar125KontoBestaetigenRouteImport } from './routes/{-$locale}/konto.bestaetigen'
+import { Route as Char123LocaleChar125KontoDatenRouteImport } from './routes/{-$locale}/konto.daten'
+import { Route as Char123LocaleChar125KontoPasswortNeuRouteImport } from './routes/{-$locale}/konto.passwort-neu'
+import { Route as Char123LocaleChar125KontoPasswortVergessenRouteImport } from './routes/{-$locale}/konto.passwort-vergessen'
+import { Route as Char123LocaleChar125KontoRegistrierenRouteImport } from './routes/{-$locale}/konto.registrieren'
+import { Route as Char123LocaleChar125NewsletterAbmeldenRouteImport } from './routes/{-$locale}/newsletter.abmelden'
+import { Route as Char123LocaleChar125NewsletterBestaetigenRouteImport } from './routes/{-$locale}/newsletter.bestaetigen'
+import { Route as Char123LocaleChar125ProduktHandleRouteImport } from './routes/{-$locale}/produkt.$handle'
+import { Route as Char123LocaleChar125KontoBestellungenNumberRouteImport } from './routes/{-$locale}/konto.bestellungen.$number'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SplatRoute = SplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgbRoute = AgbRouteImport.update({
+const Char123LocaleChar125RouteRoute =
+  Char123LocaleChar125RouteRouteImport.update({
+    id: '/{-$locale}',
+    path: '/{-$locale}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char123LocaleChar125IndexRoute =
+  Char123LocaleChar125IndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125SplatRoute =
+  Char123LocaleChar125SplatRouteImport.update({
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125AgbRoute = Char123LocaleChar125AgbRouteImport.update({
   id: '/agb',
   path: '/agb',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => Char123LocaleChar125RouteRoute,
 } as any)
-const DatenschutzRoute = DatenschutzRouteImport.update({
-  id: '/datenschutz',
-  path: '/datenschutz',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GroessenberatungRoute = GroessenberatungRouteImport.update({
-  id: '/groessenberatung',
-  path: '/groessenberatung',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HaeufigeFragenRoute = HaeufigeFragenRouteImport.update({
-  id: '/haeufige-fragen',
-  path: '/haeufige-fragen',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImpressumRoute = ImpressumRouteImport.update({
-  id: '/impressum',
-  path: '/impressum',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KontaktRoute = KontaktRouteImport.update({
-  id: '/kontakt',
-  path: '/kontakt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MerklisteRoute = MerklisteRouteImport.update({
-  id: '/merkliste',
-  path: '/merkliste',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SucheRoute = SucheRouteImport.update({
-  id: '/suche',
-  path: '/suche',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UeberUnsRoute = UeberUnsRouteImport.update({
-  id: '/ueber-uns',
-  path: '/ueber-uns',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VersandUndRueckgabeRoute = VersandUndRueckgabeRouteImport.update({
-  id: '/versand-und-rueckgabe',
-  path: '/versand-und-rueckgabe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WarenkorbRoute = WarenkorbRouteImport.update({
-  id: '/warenkorb',
-  path: '/warenkorb',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KollektionHandleRoute = KollektionHandleRouteImport.update({
-  id: '/kollektion/$handle',
-  path: '/kollektion/$handle',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProduktHandleRoute = ProduktHandleRouteImport.update({
-  id: '/produkt/$handle',
-  path: '/produkt/$handle',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const Char123LocaleChar125DatenschutzRoute =
+  Char123LocaleChar125DatenschutzRouteImport.update({
+    id: '/datenschutz',
+    path: '/datenschutz',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125GeschenkgutscheinRoute =
+  Char123LocaleChar125GeschenkgutscheinRouteImport.update({
+    id: '/geschenkgutschein',
+    path: '/geschenkgutschein',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125GroessenberatungRoute =
+  Char123LocaleChar125GroessenberatungRouteImport.update({
+    id: '/groessenberatung',
+    path: '/groessenberatung',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125HaeufigeFragenRoute =
+  Char123LocaleChar125HaeufigeFragenRouteImport.update({
+    id: '/haeufige-fragen',
+    path: '/haeufige-fragen',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125ImpressumRoute =
+  Char123LocaleChar125ImpressumRouteImport.update({
+    id: '/impressum',
+    path: '/impressum',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125KontaktRoute =
+  Char123LocaleChar125KontaktRouteImport.update({
+    id: '/kontakt',
+    path: '/kontakt',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125KontoRoute =
+  Char123LocaleChar125KontoRouteImport.update({
+    id: '/konto',
+    path: '/konto',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125MerklisteRoute =
+  Char123LocaleChar125MerklisteRouteImport.update({
+    id: '/merkliste',
+    path: '/merkliste',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125SucheRoute =
+  Char123LocaleChar125SucheRouteImport.update({
+    id: '/suche',
+    path: '/suche',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125UeberUnsRoute =
+  Char123LocaleChar125UeberUnsRouteImport.update({
+    id: '/ueber-uns',
+    path: '/ueber-uns',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125VersandUndRueckgabeRoute =
+  Char123LocaleChar125VersandUndRueckgabeRouteImport.update({
+    id: '/versand-und-rueckgabe',
+    path: '/versand-und-rueckgabe',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125WarenkorbRoute =
+  Char123LocaleChar125WarenkorbRouteImport.update({
+    id: '/warenkorb',
+    path: '/warenkorb',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125BestellungTokenRoute =
+  Char123LocaleChar125BestellungTokenRouteImport.update({
+    id: '/bestellung/$token',
+    path: '/bestellung/$token',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125KollektionHandleRoute =
+  Char123LocaleChar125KollektionHandleRouteImport.update({
+    id: '/kollektion/$handle',
+    path: '/kollektion/$handle',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125KontoIndexRoute =
+  Char123LocaleChar125KontoIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoAnmeldenRoute =
+  Char123LocaleChar125KontoAnmeldenRouteImport.update({
+    id: '/anmelden',
+    path: '/anmelden',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoBestaetigenRoute =
+  Char123LocaleChar125KontoBestaetigenRouteImport.update({
+    id: '/bestaetigen',
+    path: '/bestaetigen',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoDatenRoute =
+  Char123LocaleChar125KontoDatenRouteImport.update({
+    id: '/daten',
+    path: '/daten',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoPasswortNeuRoute =
+  Char123LocaleChar125KontoPasswortNeuRouteImport.update({
+    id: '/passwort-neu',
+    path: '/passwort-neu',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoPasswortVergessenRoute =
+  Char123LocaleChar125KontoPasswortVergessenRouteImport.update({
+    id: '/passwort-vergessen',
+    path: '/passwort-vergessen',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125KontoRegistrierenRoute =
+  Char123LocaleChar125KontoRegistrierenRouteImport.update({
+    id: '/registrieren',
+    path: '/registrieren',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
+const Char123LocaleChar125NewsletterAbmeldenRoute =
+  Char123LocaleChar125NewsletterAbmeldenRouteImport.update({
+    id: '/newsletter/abmelden',
+    path: '/newsletter/abmelden',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125NewsletterBestaetigenRoute =
+  Char123LocaleChar125NewsletterBestaetigenRouteImport.update({
+    id: '/newsletter/bestaetigen',
+    path: '/newsletter/bestaetigen',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125ProduktHandleRoute =
+  Char123LocaleChar125ProduktHandleRouteImport.update({
+    id: '/produkt/$handle',
+    path: '/produkt/$handle',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125KontoBestellungenNumberRoute =
+  Char123LocaleChar125KontoBestellungenNumberRouteImport.update({
+    id: '/bestellungen/$number',
+    path: '/bestellungen/$number',
+    getParentRoute: () => Char123LocaleChar125KontoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$': typeof SplatRoute
-  '/agb': typeof AgbRoute
-  '/datenschutz': typeof DatenschutzRoute
-  '/groessenberatung': typeof GroessenberatungRoute
-  '/haeufige-fragen': typeof HaeufigeFragenRoute
-  '/impressum': typeof ImpressumRoute
-  '/kontakt': typeof KontaktRoute
-  '/merkliste': typeof MerklisteRoute
-  '/suche': typeof SucheRoute
-  '/ueber-uns': typeof UeberUnsRoute
-  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
-  '/warenkorb': typeof WarenkorbRoute
-  '/kollektion/$handle': typeof KollektionHandleRoute
-  '/produkt/$handle': typeof ProduktHandleRoute
+  '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
+  '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
+  '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
+  '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
+  '/{-$locale}/geschenkgutschein': typeof Char123LocaleChar125GeschenkgutscheinRoute
+  '/{-$locale}/groessenberatung': typeof Char123LocaleChar125GroessenberatungRoute
+  '/{-$locale}/haeufige-fragen': typeof Char123LocaleChar125HaeufigeFragenRoute
+  '/{-$locale}/impressum': typeof Char123LocaleChar125ImpressumRoute
+  '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
+  '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
+  '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
+  '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
+  '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
+  '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
+  '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
+  '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
+  '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
+  '/{-$locale}/konto/daten': typeof Char123LocaleChar125KontoDatenRoute
+  '/{-$locale}/konto/passwort-neu': typeof Char123LocaleChar125KontoPasswortNeuRoute
+  '/{-$locale}/konto/passwort-vergessen': typeof Char123LocaleChar125KontoPasswortVergessenRoute
+  '/{-$locale}/konto/registrieren': typeof Char123LocaleChar125KontoRegistrierenRoute
+  '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
+  '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
+  '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$': typeof SplatRoute
-  '/agb': typeof AgbRoute
-  '/datenschutz': typeof DatenschutzRoute
-  '/groessenberatung': typeof GroessenberatungRoute
-  '/haeufige-fragen': typeof HaeufigeFragenRoute
-  '/impressum': typeof ImpressumRoute
-  '/kontakt': typeof KontaktRoute
-  '/merkliste': typeof MerklisteRoute
-  '/suche': typeof SucheRoute
-  '/ueber-uns': typeof UeberUnsRoute
-  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
-  '/warenkorb': typeof WarenkorbRoute
-  '/kollektion/$handle': typeof KollektionHandleRoute
-  '/produkt/$handle': typeof ProduktHandleRoute
+  '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
+  '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
+  '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
+  '/{-$locale}/geschenkgutschein': typeof Char123LocaleChar125GeschenkgutscheinRoute
+  '/{-$locale}/groessenberatung': typeof Char123LocaleChar125GroessenberatungRoute
+  '/{-$locale}/haeufige-fragen': typeof Char123LocaleChar125HaeufigeFragenRoute
+  '/{-$locale}/impressum': typeof Char123LocaleChar125ImpressumRoute
+  '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
+  '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
+  '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
+  '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
+  '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/{-$locale}': typeof Char123LocaleChar125IndexRoute
+  '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
+  '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
+  '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
+  '/{-$locale}/konto/daten': typeof Char123LocaleChar125KontoDatenRoute
+  '/{-$locale}/konto/passwort-neu': typeof Char123LocaleChar125KontoPasswortNeuRoute
+  '/{-$locale}/konto/passwort-vergessen': typeof Char123LocaleChar125KontoPasswortVergessenRoute
+  '/{-$locale}/konto/registrieren': typeof Char123LocaleChar125KontoRegistrierenRoute
+  '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
+  '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
+  '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/konto': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/$': typeof SplatRoute
-  '/agb': typeof AgbRoute
-  '/datenschutz': typeof DatenschutzRoute
-  '/groessenberatung': typeof GroessenberatungRoute
-  '/haeufige-fragen': typeof HaeufigeFragenRoute
-  '/impressum': typeof ImpressumRoute
-  '/kontakt': typeof KontaktRoute
-  '/merkliste': typeof MerklisteRoute
-  '/suche': typeof SucheRoute
-  '/ueber-uns': typeof UeberUnsRoute
-  '/versand-und-rueckgabe': typeof VersandUndRueckgabeRoute
-  '/warenkorb': typeof WarenkorbRoute
-  '/kollektion/$handle': typeof KollektionHandleRoute
-  '/produkt/$handle': typeof ProduktHandleRoute
+  '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
+  '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
+  '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
+  '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
+  '/{-$locale}/geschenkgutschein': typeof Char123LocaleChar125GeschenkgutscheinRoute
+  '/{-$locale}/groessenberatung': typeof Char123LocaleChar125GroessenberatungRoute
+  '/{-$locale}/haeufige-fragen': typeof Char123LocaleChar125HaeufigeFragenRoute
+  '/{-$locale}/impressum': typeof Char123LocaleChar125ImpressumRoute
+  '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
+  '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
+  '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
+  '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
+  '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
+  '/{-$locale}/warenkorb': typeof Char123LocaleChar125WarenkorbRoute
+  '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
+  '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
+  '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
+  '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
+  '/{-$locale}/konto/daten': typeof Char123LocaleChar125KontoDatenRoute
+  '/{-$locale}/konto/passwort-neu': typeof Char123LocaleChar125KontoPasswortNeuRoute
+  '/{-$locale}/konto/passwort-vergessen': typeof Char123LocaleChar125KontoPasswortVergessenRoute
+  '/{-$locale}/konto/registrieren': typeof Char123LocaleChar125KontoRegistrierenRoute
+  '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
+  '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
+  '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/$'
-    | '/agb'
-    | '/datenschutz'
-    | '/groessenberatung'
-    | '/haeufige-fragen'
-    | '/impressum'
-    | '/kontakt'
-    | '/merkliste'
-    | '/suche'
-    | '/ueber-uns'
-    | '/versand-und-rueckgabe'
-    | '/warenkorb'
-    | '/kollektion/$handle'
-    | '/produkt/$handle'
+    | '/{-$locale}'
+    | '/{-$locale}/$'
+    | '/{-$locale}/agb'
+    | '/{-$locale}/datenschutz'
+    | '/{-$locale}/geschenkgutschein'
+    | '/{-$locale}/groessenberatung'
+    | '/{-$locale}/haeufige-fragen'
+    | '/{-$locale}/impressum'
+    | '/{-$locale}/kontakt'
+    | '/{-$locale}/konto'
+    | '/{-$locale}/merkliste'
+    | '/{-$locale}/suche'
+    | '/{-$locale}/ueber-uns'
+    | '/{-$locale}/versand-und-rueckgabe'
+    | '/{-$locale}/warenkorb'
+    | '/{-$locale}/'
+    | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/kollektion/$handle'
+    | '/{-$locale}/konto/anmelden'
+    | '/{-$locale}/konto/bestaetigen'
+    | '/{-$locale}/konto/daten'
+    | '/{-$locale}/konto/passwort-neu'
+    | '/{-$locale}/konto/passwort-vergessen'
+    | '/{-$locale}/konto/registrieren'
+    | '/{-$locale}/newsletter/abmelden'
+    | '/{-$locale}/newsletter/bestaetigen'
+    | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/konto/'
+    | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/$'
-    | '/agb'
-    | '/datenschutz'
-    | '/groessenberatung'
-    | '/haeufige-fragen'
-    | '/impressum'
-    | '/kontakt'
-    | '/merkliste'
-    | '/suche'
-    | '/ueber-uns'
-    | '/versand-und-rueckgabe'
-    | '/warenkorb'
-    | '/kollektion/$handle'
-    | '/produkt/$handle'
+    | '/{-$locale}/$'
+    | '/{-$locale}/agb'
+    | '/{-$locale}/datenschutz'
+    | '/{-$locale}/geschenkgutschein'
+    | '/{-$locale}/groessenberatung'
+    | '/{-$locale}/haeufige-fragen'
+    | '/{-$locale}/impressum'
+    | '/{-$locale}/kontakt'
+    | '/{-$locale}/merkliste'
+    | '/{-$locale}/suche'
+    | '/{-$locale}/ueber-uns'
+    | '/{-$locale}/versand-und-rueckgabe'
+    | '/{-$locale}/warenkorb'
+    | '/{-$locale}'
+    | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/kollektion/$handle'
+    | '/{-$locale}/konto/anmelden'
+    | '/{-$locale}/konto/bestaetigen'
+    | '/{-$locale}/konto/daten'
+    | '/{-$locale}/konto/passwort-neu'
+    | '/{-$locale}/konto/passwort-vergessen'
+    | '/{-$locale}/konto/registrieren'
+    | '/{-$locale}/newsletter/abmelden'
+    | '/{-$locale}/newsletter/bestaetigen'
+    | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/konto'
+    | '/{-$locale}/konto/bestellungen/$number'
   id:
     | '__root__'
-    | '/'
-    | '/$'
-    | '/agb'
-    | '/datenschutz'
-    | '/groessenberatung'
-    | '/haeufige-fragen'
-    | '/impressum'
-    | '/kontakt'
-    | '/merkliste'
-    | '/suche'
-    | '/ueber-uns'
-    | '/versand-und-rueckgabe'
-    | '/warenkorb'
-    | '/kollektion/$handle'
-    | '/produkt/$handle'
+    | '/{-$locale}'
+    | '/{-$locale}/$'
+    | '/{-$locale}/agb'
+    | '/{-$locale}/datenschutz'
+    | '/{-$locale}/geschenkgutschein'
+    | '/{-$locale}/groessenberatung'
+    | '/{-$locale}/haeufige-fragen'
+    | '/{-$locale}/impressum'
+    | '/{-$locale}/kontakt'
+    | '/{-$locale}/konto'
+    | '/{-$locale}/merkliste'
+    | '/{-$locale}/suche'
+    | '/{-$locale}/ueber-uns'
+    | '/{-$locale}/versand-und-rueckgabe'
+    | '/{-$locale}/warenkorb'
+    | '/{-$locale}/'
+    | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/kollektion/$handle'
+    | '/{-$locale}/konto/anmelden'
+    | '/{-$locale}/konto/bestaetigen'
+    | '/{-$locale}/konto/daten'
+    | '/{-$locale}/konto/passwort-neu'
+    | '/{-$locale}/konto/passwort-vergessen'
+    | '/{-$locale}/konto/registrieren'
+    | '/{-$locale}/newsletter/abmelden'
+    | '/{-$locale}/newsletter/bestaetigen'
+    | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/konto/'
+    | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  SplatRoute: typeof SplatRoute
-  AgbRoute: typeof AgbRoute
-  DatenschutzRoute: typeof DatenschutzRoute
-  GroessenberatungRoute: typeof GroessenberatungRoute
-  HaeufigeFragenRoute: typeof HaeufigeFragenRoute
-  ImpressumRoute: typeof ImpressumRoute
-  KontaktRoute: typeof KontaktRoute
-  MerklisteRoute: typeof MerklisteRoute
-  SucheRoute: typeof SucheRoute
-  UeberUnsRoute: typeof UeberUnsRoute
-  VersandUndRueckgabeRoute: typeof VersandUndRueckgabeRoute
-  WarenkorbRoute: typeof WarenkorbRoute
-  KollektionHandleRoute: typeof KollektionHandleRoute
-  ProduktHandleRoute: typeof ProduktHandleRoute
+  Char123LocaleChar125RouteRoute: typeof Char123LocaleChar125RouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/{-$locale}': {
+      id: '/{-$locale}'
+      path: '/{-$locale}'
+      fullPath: '/{-$locale}'
+      preLoaderRoute: typeof Char123LocaleChar125RouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/{-$locale}/': {
+      id: '/{-$locale}/'
       path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/'
+      preLoaderRoute: typeof Char123LocaleChar125IndexRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/$': {
-      id: '/$'
+    '/{-$locale}/$': {
+      id: '/{-$locale}/$'
       path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof SplatRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/$'
+      preLoaderRoute: typeof Char123LocaleChar125SplatRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/agb': {
-      id: '/agb'
+    '/{-$locale}/agb': {
+      id: '/{-$locale}/agb'
       path: '/agb'
-      fullPath: '/agb'
-      preLoaderRoute: typeof AgbRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/agb'
+      preLoaderRoute: typeof Char123LocaleChar125AgbRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/datenschutz': {
-      id: '/datenschutz'
+    '/{-$locale}/datenschutz': {
+      id: '/{-$locale}/datenschutz'
       path: '/datenschutz'
-      fullPath: '/datenschutz'
-      preLoaderRoute: typeof DatenschutzRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/datenschutz'
+      preLoaderRoute: typeof Char123LocaleChar125DatenschutzRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/groessenberatung': {
-      id: '/groessenberatung'
+    '/{-$locale}/geschenkgutschein': {
+      id: '/{-$locale}/geschenkgutschein'
+      path: '/geschenkgutschein'
+      fullPath: '/{-$locale}/geschenkgutschein'
+      preLoaderRoute: typeof Char123LocaleChar125GeschenkgutscheinRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/groessenberatung': {
+      id: '/{-$locale}/groessenberatung'
       path: '/groessenberatung'
-      fullPath: '/groessenberatung'
-      preLoaderRoute: typeof GroessenberatungRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/groessenberatung'
+      preLoaderRoute: typeof Char123LocaleChar125GroessenberatungRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/haeufige-fragen': {
-      id: '/haeufige-fragen'
+    '/{-$locale}/haeufige-fragen': {
+      id: '/{-$locale}/haeufige-fragen'
       path: '/haeufige-fragen'
-      fullPath: '/haeufige-fragen'
-      preLoaderRoute: typeof HaeufigeFragenRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/haeufige-fragen'
+      preLoaderRoute: typeof Char123LocaleChar125HaeufigeFragenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/impressum': {
-      id: '/impressum'
+    '/{-$locale}/impressum': {
+      id: '/{-$locale}/impressum'
       path: '/impressum'
-      fullPath: '/impressum'
-      preLoaderRoute: typeof ImpressumRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/impressum'
+      preLoaderRoute: typeof Char123LocaleChar125ImpressumRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/kontakt': {
-      id: '/kontakt'
+    '/{-$locale}/kontakt': {
+      id: '/{-$locale}/kontakt'
       path: '/kontakt'
-      fullPath: '/kontakt'
-      preLoaderRoute: typeof KontaktRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/kontakt'
+      preLoaderRoute: typeof Char123LocaleChar125KontaktRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/merkliste': {
-      id: '/merkliste'
+    '/{-$locale}/konto': {
+      id: '/{-$locale}/konto'
+      path: '/konto'
+      fullPath: '/{-$locale}/konto'
+      preLoaderRoute: typeof Char123LocaleChar125KontoRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/merkliste': {
+      id: '/{-$locale}/merkliste'
       path: '/merkliste'
-      fullPath: '/merkliste'
-      preLoaderRoute: typeof MerklisteRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/merkliste'
+      preLoaderRoute: typeof Char123LocaleChar125MerklisteRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/suche': {
-      id: '/suche'
+    '/{-$locale}/suche': {
+      id: '/{-$locale}/suche'
       path: '/suche'
-      fullPath: '/suche'
-      preLoaderRoute: typeof SucheRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/suche'
+      preLoaderRoute: typeof Char123LocaleChar125SucheRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/ueber-uns': {
-      id: '/ueber-uns'
+    '/{-$locale}/ueber-uns': {
+      id: '/{-$locale}/ueber-uns'
       path: '/ueber-uns'
-      fullPath: '/ueber-uns'
-      preLoaderRoute: typeof UeberUnsRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/ueber-uns'
+      preLoaderRoute: typeof Char123LocaleChar125UeberUnsRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/versand-und-rueckgabe': {
-      id: '/versand-und-rueckgabe'
+    '/{-$locale}/versand-und-rueckgabe': {
+      id: '/{-$locale}/versand-und-rueckgabe'
       path: '/versand-und-rueckgabe'
-      fullPath: '/versand-und-rueckgabe'
-      preLoaderRoute: typeof VersandUndRueckgabeRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/versand-und-rueckgabe'
+      preLoaderRoute: typeof Char123LocaleChar125VersandUndRueckgabeRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/warenkorb': {
-      id: '/warenkorb'
+    '/{-$locale}/warenkorb': {
+      id: '/{-$locale}/warenkorb'
       path: '/warenkorb'
-      fullPath: '/warenkorb'
-      preLoaderRoute: typeof WarenkorbRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/warenkorb'
+      preLoaderRoute: typeof Char123LocaleChar125WarenkorbRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/kollektion/$handle': {
-      id: '/kollektion/$handle'
+    '/{-$locale}/bestellung/$token': {
+      id: '/{-$locale}/bestellung/$token'
+      path: '/bestellung/$token'
+      fullPath: '/{-$locale}/bestellung/$token'
+      preLoaderRoute: typeof Char123LocaleChar125BestellungTokenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/kollektion/$handle': {
+      id: '/{-$locale}/kollektion/$handle'
       path: '/kollektion/$handle'
-      fullPath: '/kollektion/$handle'
-      preLoaderRoute: typeof KollektionHandleRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/kollektion/$handle'
+      preLoaderRoute: typeof Char123LocaleChar125KollektionHandleRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
     }
-    '/produkt/$handle': {
-      id: '/produkt/$handle'
+    '/{-$locale}/konto/': {
+      id: '/{-$locale}/konto/'
+      path: '/'
+      fullPath: '/{-$locale}/konto/'
+      preLoaderRoute: typeof Char123LocaleChar125KontoIndexRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/anmelden': {
+      id: '/{-$locale}/konto/anmelden'
+      path: '/anmelden'
+      fullPath: '/{-$locale}/konto/anmelden'
+      preLoaderRoute: typeof Char123LocaleChar125KontoAnmeldenRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/bestaetigen': {
+      id: '/{-$locale}/konto/bestaetigen'
+      path: '/bestaetigen'
+      fullPath: '/{-$locale}/konto/bestaetigen'
+      preLoaderRoute: typeof Char123LocaleChar125KontoBestaetigenRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/daten': {
+      id: '/{-$locale}/konto/daten'
+      path: '/daten'
+      fullPath: '/{-$locale}/konto/daten'
+      preLoaderRoute: typeof Char123LocaleChar125KontoDatenRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/passwort-neu': {
+      id: '/{-$locale}/konto/passwort-neu'
+      path: '/passwort-neu'
+      fullPath: '/{-$locale}/konto/passwort-neu'
+      preLoaderRoute: typeof Char123LocaleChar125KontoPasswortNeuRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/passwort-vergessen': {
+      id: '/{-$locale}/konto/passwort-vergessen'
+      path: '/passwort-vergessen'
+      fullPath: '/{-$locale}/konto/passwort-vergessen'
+      preLoaderRoute: typeof Char123LocaleChar125KontoPasswortVergessenRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/konto/registrieren': {
+      id: '/{-$locale}/konto/registrieren'
+      path: '/registrieren'
+      fullPath: '/{-$locale}/konto/registrieren'
+      preLoaderRoute: typeof Char123LocaleChar125KontoRegistrierenRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
+    }
+    '/{-$locale}/newsletter/abmelden': {
+      id: '/{-$locale}/newsletter/abmelden'
+      path: '/newsletter/abmelden'
+      fullPath: '/{-$locale}/newsletter/abmelden'
+      preLoaderRoute: typeof Char123LocaleChar125NewsletterAbmeldenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/newsletter/bestaetigen': {
+      id: '/{-$locale}/newsletter/bestaetigen'
+      path: '/newsletter/bestaetigen'
+      fullPath: '/{-$locale}/newsletter/bestaetigen'
+      preLoaderRoute: typeof Char123LocaleChar125NewsletterBestaetigenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/produkt/$handle': {
+      id: '/{-$locale}/produkt/$handle'
       path: '/produkt/$handle'
-      fullPath: '/produkt/$handle'
-      preLoaderRoute: typeof ProduktHandleRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/produkt/$handle'
+      preLoaderRoute: typeof Char123LocaleChar125ProduktHandleRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/konto/bestellungen/$number': {
+      id: '/{-$locale}/konto/bestellungen/$number'
+      path: '/bestellungen/$number'
+      fullPath: '/{-$locale}/konto/bestellungen/$number'
+      preLoaderRoute: typeof Char123LocaleChar125KontoBestellungenNumberRouteImport
+      parentRoute: typeof Char123LocaleChar125KontoRoute
     }
   }
 }
 
+interface Char123LocaleChar125KontoRouteChildren {
+  Char123LocaleChar125KontoAnmeldenRoute: typeof Char123LocaleChar125KontoAnmeldenRoute
+  Char123LocaleChar125KontoBestaetigenRoute: typeof Char123LocaleChar125KontoBestaetigenRoute
+  Char123LocaleChar125KontoDatenRoute: typeof Char123LocaleChar125KontoDatenRoute
+  Char123LocaleChar125KontoPasswortNeuRoute: typeof Char123LocaleChar125KontoPasswortNeuRoute
+  Char123LocaleChar125KontoPasswortVergessenRoute: typeof Char123LocaleChar125KontoPasswortVergessenRoute
+  Char123LocaleChar125KontoRegistrierenRoute: typeof Char123LocaleChar125KontoRegistrierenRoute
+  Char123LocaleChar125KontoIndexRoute: typeof Char123LocaleChar125KontoIndexRoute
+  Char123LocaleChar125KontoBestellungenNumberRoute: typeof Char123LocaleChar125KontoBestellungenNumberRoute
+}
+
+const Char123LocaleChar125KontoRouteChildren: Char123LocaleChar125KontoRouteChildren =
+  {
+    Char123LocaleChar125KontoAnmeldenRoute:
+      Char123LocaleChar125KontoAnmeldenRoute,
+    Char123LocaleChar125KontoBestaetigenRoute:
+      Char123LocaleChar125KontoBestaetigenRoute,
+    Char123LocaleChar125KontoDatenRoute: Char123LocaleChar125KontoDatenRoute,
+    Char123LocaleChar125KontoPasswortNeuRoute:
+      Char123LocaleChar125KontoPasswortNeuRoute,
+    Char123LocaleChar125KontoPasswortVergessenRoute:
+      Char123LocaleChar125KontoPasswortVergessenRoute,
+    Char123LocaleChar125KontoRegistrierenRoute:
+      Char123LocaleChar125KontoRegistrierenRoute,
+    Char123LocaleChar125KontoIndexRoute: Char123LocaleChar125KontoIndexRoute,
+    Char123LocaleChar125KontoBestellungenNumberRoute:
+      Char123LocaleChar125KontoBestellungenNumberRoute,
+  }
+
+const Char123LocaleChar125KontoRouteWithChildren =
+  Char123LocaleChar125KontoRoute._addFileChildren(
+    Char123LocaleChar125KontoRouteChildren,
+  )
+
+interface Char123LocaleChar125RouteRouteChildren {
+  Char123LocaleChar125SplatRoute: typeof Char123LocaleChar125SplatRoute
+  Char123LocaleChar125AgbRoute: typeof Char123LocaleChar125AgbRoute
+  Char123LocaleChar125DatenschutzRoute: typeof Char123LocaleChar125DatenschutzRoute
+  Char123LocaleChar125GeschenkgutscheinRoute: typeof Char123LocaleChar125GeschenkgutscheinRoute
+  Char123LocaleChar125GroessenberatungRoute: typeof Char123LocaleChar125GroessenberatungRoute
+  Char123LocaleChar125HaeufigeFragenRoute: typeof Char123LocaleChar125HaeufigeFragenRoute
+  Char123LocaleChar125ImpressumRoute: typeof Char123LocaleChar125ImpressumRoute
+  Char123LocaleChar125KontaktRoute: typeof Char123LocaleChar125KontaktRoute
+  Char123LocaleChar125KontoRoute: typeof Char123LocaleChar125KontoRouteWithChildren
+  Char123LocaleChar125MerklisteRoute: typeof Char123LocaleChar125MerklisteRoute
+  Char123LocaleChar125SucheRoute: typeof Char123LocaleChar125SucheRoute
+  Char123LocaleChar125UeberUnsRoute: typeof Char123LocaleChar125UeberUnsRoute
+  Char123LocaleChar125VersandUndRueckgabeRoute: typeof Char123LocaleChar125VersandUndRueckgabeRoute
+  Char123LocaleChar125WarenkorbRoute: typeof Char123LocaleChar125WarenkorbRoute
+  Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
+  Char123LocaleChar125BestellungTokenRoute: typeof Char123LocaleChar125BestellungTokenRoute
+  Char123LocaleChar125KollektionHandleRoute: typeof Char123LocaleChar125KollektionHandleRoute
+  Char123LocaleChar125NewsletterAbmeldenRoute: typeof Char123LocaleChar125NewsletterAbmeldenRoute
+  Char123LocaleChar125NewsletterBestaetigenRoute: typeof Char123LocaleChar125NewsletterBestaetigenRoute
+  Char123LocaleChar125ProduktHandleRoute: typeof Char123LocaleChar125ProduktHandleRoute
+}
+
+const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChildren =
+  {
+    Char123LocaleChar125SplatRoute: Char123LocaleChar125SplatRoute,
+    Char123LocaleChar125AgbRoute: Char123LocaleChar125AgbRoute,
+    Char123LocaleChar125DatenschutzRoute: Char123LocaleChar125DatenschutzRoute,
+    Char123LocaleChar125GeschenkgutscheinRoute:
+      Char123LocaleChar125GeschenkgutscheinRoute,
+    Char123LocaleChar125GroessenberatungRoute:
+      Char123LocaleChar125GroessenberatungRoute,
+    Char123LocaleChar125HaeufigeFragenRoute:
+      Char123LocaleChar125HaeufigeFragenRoute,
+    Char123LocaleChar125ImpressumRoute: Char123LocaleChar125ImpressumRoute,
+    Char123LocaleChar125KontaktRoute: Char123LocaleChar125KontaktRoute,
+    Char123LocaleChar125KontoRoute: Char123LocaleChar125KontoRouteWithChildren,
+    Char123LocaleChar125MerklisteRoute: Char123LocaleChar125MerklisteRoute,
+    Char123LocaleChar125SucheRoute: Char123LocaleChar125SucheRoute,
+    Char123LocaleChar125UeberUnsRoute: Char123LocaleChar125UeberUnsRoute,
+    Char123LocaleChar125VersandUndRueckgabeRoute:
+      Char123LocaleChar125VersandUndRueckgabeRoute,
+    Char123LocaleChar125WarenkorbRoute: Char123LocaleChar125WarenkorbRoute,
+    Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
+    Char123LocaleChar125BestellungTokenRoute:
+      Char123LocaleChar125BestellungTokenRoute,
+    Char123LocaleChar125KollektionHandleRoute:
+      Char123LocaleChar125KollektionHandleRoute,
+    Char123LocaleChar125NewsletterAbmeldenRoute:
+      Char123LocaleChar125NewsletterAbmeldenRoute,
+    Char123LocaleChar125NewsletterBestaetigenRoute:
+      Char123LocaleChar125NewsletterBestaetigenRoute,
+    Char123LocaleChar125ProduktHandleRoute:
+      Char123LocaleChar125ProduktHandleRoute,
+  }
+
+const Char123LocaleChar125RouteRouteWithChildren =
+  Char123LocaleChar125RouteRoute._addFileChildren(
+    Char123LocaleChar125RouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  SplatRoute: SplatRoute,
-  AgbRoute: AgbRoute,
-  DatenschutzRoute: DatenschutzRoute,
-  GroessenberatungRoute: GroessenberatungRoute,
-  HaeufigeFragenRoute: HaeufigeFragenRoute,
-  ImpressumRoute: ImpressumRoute,
-  KontaktRoute: KontaktRoute,
-  MerklisteRoute: MerklisteRoute,
-  SucheRoute: SucheRoute,
-  UeberUnsRoute: UeberUnsRoute,
-  VersandUndRueckgabeRoute: VersandUndRueckgabeRoute,
-  WarenkorbRoute: WarenkorbRoute,
-  KollektionHandleRoute: KollektionHandleRoute,
-  ProduktHandleRoute: ProduktHandleRoute,
+  Char123LocaleChar125RouteRoute: Char123LocaleChar125RouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

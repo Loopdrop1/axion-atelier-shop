@@ -1,72 +1,73 @@
 import { Link } from "@tanstack/react-router";
-import { pages } from "@/content/pages";
+import { pages, type WrittenPageHandle } from "@/content/pages";
+import { pagesEn } from "@/content/pages-en";
 import { WrittenContent } from "./written-content";
 import { shopConfig } from "@/config/shop";
 import { SizeGuide } from "./size-guide";
 import { Photo } from "./primitives";
 import type { ShopImage } from "@/lib/commerce";
-export const contentPages = {
-  "ueber-uns": {
-    title: "Über uns",
-    description: "Klare Schnitte und Stücke, die zusammenpassen. Entdecke Axion.",
-  },
-  "haeufige-fragen": {
-    title: "Häufige Fragen",
-    description: "Antworten zu Grössen, Lieferung, Rückgabe, Zahlung und Pflege bei Axion.",
-  },
-  kontakt: {
-    title: "Kontakt",
-    description: "So erreichst du Axion für deine Fragen zur Kollektion und Bestellung.",
-  },
-  groessenberatung: {
-    title: "Grössenberatung",
-    description: "Finde deine Grösse für Anzüge, Westen und Schuhe mit der Axion Grössentabelle.",
-  },
-  "versand-und-rueckgabe": {
-    title: "Versand und Rückgabe",
-    description: "Informationen zu Gratisversand in der Schweiz, Lieferung und Rückgabe bei Axion.",
-  },
-  impressum: {
-    title: "Impressum",
-    description: "Unternehmensangaben und Kontaktinformationen von Axion.",
-  },
-  datenschutz: {
-    title: "Datenschutz",
-    description: "Informationen zum Umgang mit deinen Daten im Axion Onlineshop.",
-  },
-  agb: {
-    title: "Allgemeine Geschäftsbedingungen",
-    description: "Die Geschäftsbedingungen für Bestellungen bei Axion.",
-  },
-} as const;
-export type ContentHandle = keyof typeof contentPages;
-const placeholder = <div className="placeholder-box">Inhalt folgt vor dem Livegang</div>;
+import { messages, useLocale, useLocaleParam, useT, type Locale } from "@/i18n";
+
+export const contentHandles = [
+  "ueber-uns",
+  "haeufige-fragen",
+  "kontakt",
+  "groessenberatung",
+  "versand-und-rueckgabe",
+  "impressum",
+  "datenschutz",
+  "agb",
+] as const;
+export type ContentHandle = (typeof contentHandles)[number];
+
+/** Titel und Beschreibung einer Inhaltsseite in der gewünschten Sprache (für head). */
+export function contentMeta(handle: ContentHandle, locale: Locale) {
+  return messages[locale].pages[handle];
+}
+
 export function ContentPage({ handle, image }: { handle: ContentHandle; image?: ShopImage }) {
-  const data = contentPages[handle];
-  const written = handle in pages ? pages[handle as keyof typeof pages] : undefined;
+  const t = useT();
+  const locale = useLocale();
+  const lp = useLocaleParam();
+  const meta = t.pages[handle];
+  const writtenHandle = handle in pages ? (handle as WrittenPageHandle) : undefined;
+  const translated = writtenHandle && locale === "en" ? pagesEn[writtenHandle] : undefined;
+  const written = writtenHandle ? (translated ?? pages[writtenHandle]) : undefined;
+  const germanFallback = Boolean(writtenHandle && locale === "en" && !translated);
+  const placeholder = <div className="placeholder-box">{t.content.placeholder}</div>;
   return (
     <article className="container page-body content-page">
-      <p className="eyebrow">Axion</p>
-      <h1>{written?.title || data.title}</h1>
-      {written ? <WrittenContent page={written} /> : handle === "ueber-uns" ? (
+      <p className="eyebrow">{t.content.eyebrow}</p>
+      <h1>{germanFallback ? meta.title : written?.title || meta.title}</h1>
+      {germanFallback && (
+        <p className="language-note" lang="en">
+          {t.language.englishLegalNote}
+        </p>
+      )}
+      {written ? (
+        <div lang={germanFallback ? "de-CH" : undefined}>
+          <WrittenContent page={written} />
+        </div>
+      ) : handle === "ueber-uns" ? (
         <>
           {image && <Photo image={image} />}
-          <h2>Klare Schnitte. Dein Auftritt.</h2>
-          <p>
-            Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste
-            und Schuhe zu deinem Auftritt.
-          </p>
+          <h2>{t.content.about.title}</h2>
+          <p>{t.content.about.text}</p>
           {placeholder}
-          <Link className="text-link" to="/kollektion/$handle" params={{ handle: "alle" }}>
-            Kollektion entdecken
+          <Link
+            className="text-link"
+            to="/{-$locale}/kollektion/$handle"
+            params={{ locale: lp, handle: "alle" }}
+          >
+            {t.common.discoverCollection}
           </Link>
         </>
       ) : handle === "groessenberatung" ? (
         <SizeGuide />
       ) : handle === "kontakt" ? (
         <>
-          <p>Hast du eine Frage zu einem Stück oder deiner Bestellung?</p>
-          <h2>Schreib uns oder ruf an</h2>
+          <p>{t.content.contact.intro}</p>
+          <h2>{t.content.contact.title}</h2>
           <p>
             <a href={`mailto:${shopConfig.contact.email}`}>{shopConfig.contact.email}</a>
             <br />

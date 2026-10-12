@@ -25,6 +25,7 @@ export const en: Messages = {
     required: "Required",
     invalidEmail: "Please enter a valid email address.",
     and: "and",
+    continue: "Continue",
   },
   language: {
     label: "Language",
@@ -121,6 +122,11 @@ export const en: Messages = {
       intro: "Do you have a question about a piece or your order?",
       title: "Write to us or call",
     },
+  },
+  seo: {
+    homeTitle: "Suits, waistcoats and shoes",
+    homeDescription:
+      "Discover Axion: suits, waistcoats and shoes for weddings, business and special moments. Free shipping in Switzerland.",
   },
   home: {
     hero: {
@@ -289,6 +295,10 @@ export const en: Messages = {
     emptyText: "Keep what you like here.",
     description: "Keep your favourite suits, waistcoats and shoes from Axion in your wishlist.",
   },
+  errorPage: {
+    title: "This page could not be loaded",
+    text: "Please try again or go back to the home page.",
+  },
   notFound: {
     title: "This piece is missing.",
     text: "This page was not found. Discover our collection instead.",
@@ -309,6 +319,8 @@ export const en: Messages = {
     view: "View cart",
     maxPerLine: "At most 10 per size.",
     removedItems: "Some pieces are no longer available and were removed.",
+    lineSoldOut: "This size is no longer available.",
+    loadError: "The cart could not be loaded.",
   },
   checkout: {
     subtotal: "Subtotal",
@@ -325,11 +337,16 @@ export const en: Messages = {
     emailHint: "We send your order confirmation and shipping notice to this address.",
     signedInAs: (email: string) => `Signed in as ${email}`,
     toCheckout: "Checkout",
+    pay: "Continue to payment",
+    placeOrder: "Place order",
+    estimateNote: "The final amount is confirmed at checkout.",
+    paymentError: "Checkout is not available right now. Please try again in a few minutes.",
     redirecting: "Continuing to payment …",
     notConnected: "Checkout will be connected at launch.",
     terms: "By ordering you accept our",
     termsLink: "terms and conditions",
     privacyLink: "privacy policy",
+    privacyNote: "How we handle your data is described in our",
     secure: "Secure payment via Stripe: TWINT, card, Apple Pay, Google Pay or Klarna.",
     cancelled: "Payment was cancelled. Your pieces are still in your cart.",
     outOfStock: "Not everything is still available. We have updated your cart.",
@@ -471,14 +488,38 @@ export const en: Messages = {
       n === 1
         ? "1 earlier order has been added to your account."
         : `${n} earlier orders have been added to your account.`,
+    orderNumber: "Order",
+    orderNotFound: "We could not find this order in your account.",
+    quantity: (n: number) => `Quantity ${n}`,
+    refundedAmount: "Refunded",
+    giftCardFor: (name: string) => `For ${name}`,
+    trackingNumber: "Tracking number",
+    profile: "Personal details",
+    emailLanguage: "Language for emails",
+    languages: { de: "Deutsch", en: "English" },
+    paymentMethods: {
+      card: "Card",
+      twint: "TWINT",
+      klarna: "Klarna",
+      apple_pay: "Apple Pay",
+      google_pay: "Google Pay",
+      gift_card: "Gift card",
+      discount: "Discount",
+      link: "Link",
+    },
+    deleteConfirmMismatch: "Please type the word exactly as shown.",
+    reauthNeeded: "For your security, please sign in again and then try once more.",
+    samePassword: "The new password must be different from your current one.",
+    emailExists: "This email address is already in use.",
+    invalidPostalCode: "Please enter a four-digit postcode.",
   },
   giftCard: {
     title: "Gift card",
     metaDescription:
-      "Give an Axion gift card: redeemable online, valid for 5 years, delivered by email within minutes.",
+      "Give an Axion gift card: redeemable online and delivered by email within minutes.",
     eyebrow: "Give a gift",
-    intro:
-      "The gift card arrives by email, can be redeemed online and is valid for 5 years. Any remaining balance stays on the card.",
+    intro: (years: number) =>
+      `The gift card arrives by email, can be redeemed online and is valid for ${years === 1 ? "1 year" : `${years} years`}. Any remaining balance stays on the card.`,
     amount: "Amount",
     customAmount: "Other amount",
     amountRange: (min: string, max: string) => `Between ${min} and ${max}.`,
@@ -487,7 +528,8 @@ export const en: Messages = {
     forSomeone: "For someone else",
     recipientName: "Recipient's name",
     recipientEmail: "Recipient's email",
-    recipientEmailHint: "The gift card is sent to this address right after payment.",
+    recipientEmailHint:
+      "The gift card is sent to this address right after payment. If you leave it empty, it comes to you and you can hand it over yourself.",
     senderName: "Your name",
     message: "Personal message (optional)",
     messageCount: (n: number) => `${n}/500`,
@@ -500,6 +542,12 @@ export const en: Messages = {
     balanceResult: (amount: string, date: string) => `Balance ${amount}, valid until ${date}.`,
     terms: "Gift cards cannot be exchanged for cash and are only valid in the online shop.",
     invalidAmount: "Please choose an amount within the permitted range.",
+    customAmountLabel: "Amount in CHF",
+    previewLabel: "Gift card",
+    previewFor: (name: string) => `For ${name}`,
+    previewFrom: (name: string) => `From ${name}`,
+    cancelled: "The payment was cancelled. Nothing has been charged.",
+    notConfigured: "Gift cards will be activated at launch.",
   },
   newsletter: {
     label: "Email address for the newsletter",

@@ -3,23 +3,42 @@ export type PageBlock =
   | { type: "bullets" | "steps"; items: string[] }
   | { type: "definitions"; items: { label: string; value: string }[] }
   | { type: "questions"; items: { question: string; answer: string }[] };
-export interface PageSection { heading?: string; blocks: PageBlock[] }
-export interface WrittenPage { title: string; sections: PageSection[] }
+export interface PageSection {
+  heading?: string;
+  blocks: PageBlock[];
+}
+export interface WrittenPage {
+  title: string;
+  sections: PageSection[];
+}
 
 // Kundentexte: wortgetreu; nur {{Variablen}} werden bei der Darstellung ersetzt.
-function structure(title: string, text: string, mode?: "questions" | "definitions" | "impressum"): WrittenPage {
+function structure(
+  title: string,
+  text: string,
+  mode?: "questions" | "definitions" | "impressum",
+): WrittenPage {
   const sections: PageSection[] = [];
   let section: PageSection = { blocks: [] };
   sections.push(section);
   for (const line of text.trim().split("\n")) {
-    if (!line.trim()) { section.blocks.push({ type: "paragraph", text: "" }); continue; }
-    const heading = line.match(/^### (.+)$/) || (mode === "impressum" ? line.match(/^\*\*(.+)\*\*$/) : null);
-    if (heading?.[1]) { section = { heading: heading[1], blocks: [] }; sections.push(section); continue; }
+    if (!line.trim()) {
+      section.blocks.push({ type: "paragraph", text: "" });
+      continue;
+    }
+    const heading =
+      line.match(/^### (.+)$/) || (mode === "impressum" ? line.match(/^\*\*(.+)\*\*$/) : null);
+    if (heading?.[1]) {
+      section = { heading: heading[1], blocks: [] };
+      sections.push(section);
+      continue;
+    }
     const last = section.blocks.at(-1);
     const question = mode === "questions" ? line.match(/^\*\*(.+)\*\*$/) : null;
     if (question?.[1]) {
       if (last?.type === "questions") last.items.push({ question: question[1], answer: "" });
-      else section.blocks.push({ type: "questions", items: [{ question: question[1], answer: "" }] });
+      else
+        section.blocks.push({ type: "questions", items: [{ question: question[1], answer: "" }] });
       continue;
     }
     if (mode === "questions" && last?.type === "questions") {
@@ -50,11 +69,21 @@ function structure(title: string, text: string, mode?: "questions" | "definition
       last.text = line;
     } else section.blocks.push({ type: "paragraph", text: line });
   }
-  return { title, sections: sections.map(s => ({ ...s, blocks: s.blocks.filter(b => b.type !== "paragraph" || Boolean(b.text)) })).filter(s => s.heading || s.blocks.length) };
+  return {
+    title,
+    sections: sections
+      .map((s) => ({
+        ...s,
+        blocks: s.blocks.filter((b) => b.type !== "paragraph" || Boolean(b.text)),
+      }))
+      .filter((s) => s.heading || s.blocks.length),
+  };
 }
 
 export const pages = {
-  impressum: structure("Impressum", `
+  impressum: structure(
+    "Impressum",
+    `
 **Anbieterin dieses Online-Shops**
 {{company}}
 [Rechtsform]
@@ -82,8 +111,12 @@ Texte, Bilder, Logo und Gestaltung dieser Website gehören {{company}} oder den 
 
 **Gestaltung und Umsetzung**
 Flowrenix, flowrenix.com
-`, "impressum"),
-  datenschutz: structure("Datenschutzerklärung", `
+`,
+    "impressum",
+  ),
+  datenschutz: structure(
+    "Datenschutzerklärung",
+    `
 Stand: [Datum]
 
 ### 1. Wer für die Datenbearbeitung verantwortlich ist
@@ -148,8 +181,11 @@ Schreib uns dafür an {{email}}. Wir können einen Identitätsnachweis verlangen
 
 ### 10. Änderungen
 Wir können diese Datenschutzerklärung anpassen. Es gilt die Version, die auf dieser Website veröffentlicht ist.
-`),
-  agb: structure("Allgemeine Geschäftsbedingungen (AGB)", `
+`,
+  ),
+  agb: structure(
+    "Allgemeine Geschäftsbedingungen (AGB)",
+    `
 Stand: [Datum]
 
 ### 1. Geltungsbereich
@@ -199,8 +235,11 @@ Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Stre
 
 ### 11. Änderungen
 Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version, die zum Zeitpunkt der Bestellung veröffentlicht war.
-`),
-  "versand-und-rueckgabe": structure("Versand und Rückgabe", `
+`,
+  ),
+  "versand-und-rueckgabe": structure(
+    "Versand und Rückgabe",
+    `
 - **Liefergebiet:** [nur Schweiz]
 - **Versand:** gratis, mit der Schweizerischen Post
 - **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang
@@ -210,8 +249,12 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
 - **Umtausch:** andere Grösse [gratis], solange verfügbar
 - **Mängel:** zwei Jahre Gewährleistung nach Gesetz, Meldung per E-Mail an {{email}}
 Die verbindlichen Regeln stehen in den AGB.
-`, "definitions"),
-  "haeufige-fragen": structure("Häufige Fragen", `
+`,
+    "definitions",
+  ),
+  "haeufige-fragen": structure(
+    "Häufige Fragen",
+    `
 ### Grössen
 **Welche Grösse passt mir?**
 Miss Brust- und Taillenumfang und vergleiche die Werte mit unserer Grössentabelle. Bei Fragen helfen wir dir gerne per E-Mail an {{email}}.
@@ -245,6 +288,8 @@ Mit Klarna kannst du je nach Prüfung durch Klarna später oder in Raten bezahle
 Häng den Anzug nach dem Tragen auf einen breiten Bügel und lass ihn auslüften. Reinige ihn nur, wenn nötig, und beachte immer das Pflegeetikett.
 **Wie pflege ich Lederschuhe?**
 Schuhspanner einsetzen, Schuhe nach dem Tragen einen Tag ruhen lassen und regelmässig mit passender Schuhcreme pflegen.
-`, "questions"),
+`,
+    "questions",
+  ),
 } satisfies Record<string, WrittenPage>;
 export type WrittenPageHandle = keyof typeof pages;

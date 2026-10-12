@@ -88,7 +88,11 @@ describe("Admin-Funktionen", () => {
         q("authenticated", customer.claims, "select notify_email from public.shop_settings"),
       );
       expect(err.code).toBe("42501");
-      const pub = await q<{ shipping_cents: number }>("anon", null, "select shipping_cents from public.shop_settings");
+      const pub = await q<{ shipping_cents: number }>(
+        "anon",
+        null,
+        "select shipping_cents from public.shop_settings",
+      );
       expect(pub).toHaveLength(1);
       const settings = await rpc<{ notify_email: string; gift_card_min_cents: number }>(
         "admin_get_settings",
@@ -96,8 +100,13 @@ describe("Admin-Funktionen", () => {
         "authenticated",
         admin.claims,
       );
-      expect(settings).toMatchObject({ notify_email: "intern@shop.test", gift_card_min_cents: 2500 });
-      const forbidden = await expectPgError(rpc("admin_get_settings", [], "authenticated", customer.claims));
+      expect(settings).toMatchObject({
+        notify_email: "intern@shop.test",
+        gift_card_min_cents: 2500,
+      });
+      const forbidden = await expectPgError(
+        rpc("admin_get_settings", [], "authenticated", customer.claims),
+      );
       expect(forbidden.message).toBe("FORBIDDEN");
     } finally {
       await sql("update public.shop_settings set notify_email = null");

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import { Heart, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,9 @@ import { shopConfig } from "@/config/shop";
 import { formatPrice } from "@/lib/commerce/format";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import type { Product } from "@/lib/commerce";
+import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
-import { ProductCard } from "./product-card";
+import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
 export function ProductPage({
   product,
@@ -20,6 +21,10 @@ export function ProductPage({
   outfit: Product[];
   recommendations: Product[];
 }) {
+  const t = useT();
+  const locale = useLocale();
+  const lp = useLocaleParam();
+  const fitLabel = useFitLabel();
   const [size, setSize] = useState("");
   const [guide, setGuide] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
@@ -53,7 +58,10 @@ export function ProductPage({
       const footerRect = footer?.getBoundingClientRect();
       setBottom(mainRect.bottom <= 0 && (!footerRect || footerRect.top >= window.innerHeight));
     };
-    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
     const observer = new IntersectionObserver(schedule);
     observer.observe(node);
     if (footer) observer.observe(footer);
@@ -66,16 +74,24 @@ export function ProductPage({
     schedule();
     const settled = window.setTimeout(schedule, 300);
     return () => {
-      observer.disconnect(); resize.disconnect(); cancelAnimationFrame(frame); clearTimeout(settled);
-      window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
-      window.removeEventListener("hashchange", schedule); window.removeEventListener("pageshow", schedule);
+      observer.disconnect();
+      resize.disconnect();
+      cancelAnimationFrame(frame);
+      clearTimeout(settled);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("hashchange", schedule);
+      window.removeEventListener("pageshow", schedule);
     };
   }, [product.handle]);
   const chooseSize = () => {
     const target = sizeSelector.current;
     const first = target?.querySelector<HTMLButtonElement>("button:not(:disabled)");
     first?.focus({ preventScroll: true });
-    target?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    target?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "center",
+    });
   };
   const addSelected = () => {
     const variant = product.variants.find((v) => v.title === size && v.availableForSale);
@@ -105,7 +121,7 @@ export function ProductPage({
                   setZoom(i);
                   setZoomed(false);
                 }}
-                aria-label={`Bild ${i + 1} vergrössern`}
+                aria-label={t.product.zoomImage(i + 1)}
               >
                 <Photo image={image} eager={i === 0} />
               </Button>
@@ -117,7 +133,7 @@ export function ProductPage({
                 variant="icon"
                 key={i}
                 className={galleryIndex === i ? "active" : ""}
-                aria-label={`Bild ${i + 1}`}
+                aria-label={t.product.image(i + 1)}
                 onClick={() =>
                   gallery.current?.scrollTo({
                     left: i * gallery.current.clientWidth,
@@ -128,46 +144,51 @@ export function ProductPage({
             ))}
           </div>
           <div className="product-info">
-            <nav className="breadcrumb" aria-label="Brotkrümelnavigation">
-              <Link to="/">Startseite</Link>
+            <nav className="breadcrumb" aria-label={t.product.breadcrumb}>
+              <Link to="/{-$locale}" params={{ locale: lp }}>
+                {t.product.home}
+              </Link>
               <span>/</span>
-              <Link to="/kollektion/$handle" params={{ handle: product.category }}>
-                {product.category === "anzuege"
-                  ? "Anzüge"
-                  : product.category === "westen"
-                    ? "Westen"
-                    : "Schuhe"}
+              <Link
+                to="/{-$locale}/kollektion/$handle"
+                params={{ locale: lp, handle: product.category }}
+              >
+                {product.categoryTitle}
               </Link>
             </nav>
             <h1>{product.title}</h1>
             <p className="text-muted text-sm">
               {product.color.name}
-              {product.fit
-                ? ` · ${product.fit === "Slim Fit" ? "Schmale Passform" : "Gerade Passform"}`
-                : ""}
+              {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
             </p>
             <div className="price">
-              {formatPrice(product.priceRange.min)}
-              {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice)}</del>}
+              {formatPrice(product.priceRange.min, locale)}
+              {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
             </div>
-            {shopConfig.vatRegistered && <p className="text-xs text-muted">inkl. MWST</p>}
-            <p className="text-xs mb-2">Farbe: {product.color.name}</p>
+            {shopConfig.vatRegistered && (
+              <p className="text-xs text-muted">{t.product.vatIncluded}</p>
+            )}
+            <p className="text-xs mb-2">{t.product.colorLabel(product.color.name)}</p>
             <div className="swatches">
               {siblings.map((p) => (
                 <Link
                   key={p.handle}
-                  to="/produkt/$handle"
-                  params={{ handle: p.handle }}
+                  to="/{-$locale}/produkt/$handle"
+                  params={{ locale: lp, handle: p.handle }}
                   aria-label={p.color.name}
                   title={p.color.name}
-                  className={`swatch swatch-${p.color.name.toLowerCase().replace("ü", "ue")} ${p.handle === product.handle ? "active" : ""}`}
+                  className={`swatch ${p.handle === product.handle ? "active" : ""}`}
+                  style={{ "--swatch": p.color.hex } as CSSProperties}
                 />
               ))}
             </div>
             <div className="size-label">
-              <span>Grösse wählen{product.category === "schuhe" ? " · EU" : ""}</span>
+              <span>
+                {t.product.chooseSize}
+                {product.category === "schuhe" ? t.product.euSizes : ""}
+              </span>
               <Button variant="icon" onClick={() => setGuide(true)}>
-                Grössentabelle
+                {t.product.sizeGuide}
               </Button>
             </div>
             <div className="size-grid" ref={sizeSelector}>
@@ -181,46 +202,48 @@ export function ProductPage({
                   onClick={() => setSize(v.title)}
                 >
                   {v.title}
-                  {!v.availableForSale && <span className="sr-only">, ausverkauft</span>}
+                  {!v.availableForSale && <span className="sr-only">, {t.product.soldOut}</span>}
                 </Button>
               ))}
             </div>
             <div ref={mainAdd} className="add-row">
               <Button disabled={!size} onClick={addSelected}>
-                In den Warenkorb
+                {t.product.addToCart}
               </Button>
               <Button
                 variant="tailored"
                 size="icon"
-                aria-label={`${product.title}, ${product.color.name} ${handles.includes(product.handle) ? "aus Merkliste entfernen" : "merken"}`}
+                aria-label={`${product.title}, ${product.color.name} ${handles.includes(product.handle) ? t.product.forget : t.product.remember}`}
                 aria-pressed={handles.includes(product.handle)}
                 onClick={() => toggle(product.handle)}
               >
                 <Heart fill={handles.includes(product.handle) ? "currentColor" : "none"} />
               </Button>
             </div>
-            {!size && <p className="size-hint">Bitte Grösse wählen</p>}
-            <p className="delivery-note">
-              Gratisversand in der Schweiz · Lieferung in 2 bis 5 Arbeitstagen
-            </p>
+            {!size && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
+            <p className="delivery-note">{t.product.deliveryNote}</p>
             <div className="accordion">
               {[
-                { title: "Beschreibung", text: product.description },
+                { title: t.product.description, text: product.description },
                 {
-                  title: "Material und Pflege",
-                  text: `Material: ${product.details.material}. Pflege: ${product.details.care}.`,
+                  title: t.product.materialAndCare,
+                  text: t.product.materialCare(
+                    product.details.material || t.product.detailsFollow,
+                    product.details.care || t.product.detailsFollow,
+                  ),
                 },
                 {
-                  title: "Passform",
-                  text: product.fit
-                    ? product.fit === "Slim Fit"
-                      ? "Schmale Passform."
-                      : "Gerade Passform."
-                    : "Angaben folgen.",
+                  title: t.product.fit,
+                  text:
+                    product.details.fit && product.details.fit !== product.fit
+                      ? product.details.fit
+                      : product.fit
+                        ? `${fitLabel(product.fit)}.`
+                        : `${t.product.detailsFollow}.`,
                 },
                 {
-                  title: "Versand und Rückgabe",
-                  text: `Gratisversand in der Schweiz. Lieferung in 2 bis 5 Arbeitstagen. Rückgabe innert ${shopConfig.returnDays} Tagen; die Bedingungen werden vor dem Livegang bestätigt.`,
+                  title: t.product.shippingAndReturns,
+                  text: t.product.shippingText(shopConfig.returnDays),
                 },
               ].map((a) => (
                 <details key={a.title}>
@@ -236,14 +259,14 @@ export function ProductPage({
         </div>
         {outfit.length > 0 && (
           <section className="outfit-builder" id="outfit">
-            <p className="eyebrow">Zusammen getragen</p>
-            <h2>Komplettes Outfit</h2>
+            <p className="eyebrow">{t.product.outfitEyebrow}</p>
+            <h2>{t.product.outfitTitle}</h2>
             {outfit.map((p) => (
               <div key={p.handle} className="outfit-row">
                 <input
                   type="checkbox"
                   id={`outfit-check-${p.handle}`}
-                  aria-label={`${p.title}, ${p.color.name} auswählen`}
+                  aria-label={t.product.outfitSelect(`${p.title}, ${p.color.name}`)}
                   checked={checked.includes(p.handle)}
                   onChange={() =>
                     setChecked((s) =>
@@ -251,31 +274,33 @@ export function ProductPage({
                     )
                   }
                 />
-                <Link to="/produkt/$handle" params={{ handle: p.handle }}>
+                <Link to="/{-$locale}/produkt/$handle" params={{ locale: lp, handle: p.handle }}>
                   <Photo image={p.images[0]} />
                 </Link>
                 <div>
                   <h3>{p.title}</h3>
-                  <p className="price m-0">{formatPrice(p.priceRange.min)}</p>
+                  <p className="price m-0">{formatPrice(p.priceRange.min, locale)}</p>
                 </div>
                 <select
                   className="form-select"
                   id={`outfit-size-${p.handle}`}
-                  aria-label={`Grösse für ${p.title}, ${p.color.name}`}
+                  aria-label={t.product.outfitSize(`${p.title}, ${p.color.name}`)}
                   value={chosen[p.handle] || ""}
                   onChange={(e) => setChosen((s) => ({ ...s, [p.handle]: e.target.value }))}
                 >
-                  <option value="">Grösse wählen</option>
+                  <option value="">{t.product.chooseSize}</option>
                   {p.variants.map((v) => (
                     <option key={v.id} value={v.id} disabled={!v.availableForSale}>
                       {v.title}
-                      {!v.availableForSale ? " – ausverkauft" : ""}
+                      {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
                     </option>
                   ))}
                 </select>
               </div>
             ))}
-            <p className="price mt-6">Auswahl: {formatPrice(outfitTotal)}</p>
+            <p className="price mt-6">
+              {t.product.outfitSelection(formatPrice(outfitTotal, locale))}
+            </p>
             {outfitError && (
               <p role="alert" className="size-hint">
                 {outfitError}
@@ -285,7 +310,7 @@ export function ProductPage({
               disabled={!checked.length}
               onClick={() => {
                 if (checked.some((h) => !chosen[h])) {
-                  setOutfitError("Bitte wähle eine Grösse für jedes ausgewählte Stück.");
+                  setOutfitError(t.product.outfitError);
                   return;
                 }
                 checked.forEach((h) => {
@@ -296,13 +321,13 @@ export function ProductPage({
                 setCart(true);
               }}
             >
-              Auswahl in den Warenkorb
+              {t.product.outfitAdd}
             </Button>
           </section>
         )}
         <section className="section pb-0">
           <div className="section-head">
-            <h2>Das könnte dir auch gefallen</h2>
+            <h2>{t.product.recommendations}</h2>
           </div>
           <div className="product-grid">
             {recommendations.map((p) => (
@@ -311,7 +336,7 @@ export function ProductPage({
           </div>
         </section>
       </div>
-      <Panel open={guide} onOpenChange={setGuide} title="Grössentabelle">
+      <Panel open={guide} onOpenChange={setGuide} title={t.product.sizeGuide}>
         <SizeGuide />
       </Panel>
       <Panel
@@ -331,15 +356,24 @@ export function ProductPage({
                 if (!zoomed) return;
                 e.preventDefault();
                 e.currentTarget.setPointerCapture(e.pointerId);
-                pan.current = { x: e.clientX, y: e.clientY, left: e.currentTarget.scrollLeft, top: e.currentTarget.scrollTop };
+                pan.current = {
+                  x: e.clientX,
+                  y: e.clientY,
+                  left: e.currentTarget.scrollLeft,
+                  top: e.currentTarget.scrollTop,
+                };
               }}
               onPointerMove={(e) => {
                 if (!pan.current || !zoomed) return;
                 e.currentTarget.scrollLeft = pan.current.left - (e.clientX - pan.current.x);
                 e.currentTarget.scrollTop = pan.current.top - (e.clientY - pan.current.y);
               }}
-              onPointerUp={() => { pan.current = null; }}
-              onPointerCancel={() => { pan.current = null; }}
+              onPointerUp={() => {
+                pan.current = null;
+              }}
+              onPointerCancel={() => {
+                pan.current = null;
+              }}
               onTouchStart={(e) => {
                 if (zoomed) return;
                 swipeStart.current = e.touches[0]?.clientX || 0;
@@ -372,7 +406,7 @@ export function ProductPage({
               <Button
                 variant="icon"
                 size="icon"
-                aria-label="Vorheriges Bild"
+                aria-label={t.product.previousImage}
                 onClick={() => {
                   setZoom((zoom - 1 + product.images.length) % product.images.length);
                   setZoomed(false);
@@ -380,19 +414,25 @@ export function ProductPage({
               >
                 <ArrowLeft />
               </Button>
-              <Button variant="icon" onClick={() => {
-                setZoomed(!zoomed);
-                requestAnimationFrame(() => {
-                  const surface = zoomSurface.current;
-                  if (surface) { surface.scrollLeft = (surface.scrollWidth - surface.clientWidth) / 2; surface.scrollTop = (surface.scrollHeight - surface.clientHeight) / 2; }
-                });
-              }}>
-                {zoomed ? "Verkleinern" : "Vergrössern"}
+              <Button
+                variant="icon"
+                onClick={() => {
+                  setZoomed(!zoomed);
+                  requestAnimationFrame(() => {
+                    const surface = zoomSurface.current;
+                    if (surface) {
+                      surface.scrollLeft = (surface.scrollWidth - surface.clientWidth) / 2;
+                      surface.scrollTop = (surface.scrollHeight - surface.clientHeight) / 2;
+                    }
+                  });
+                }}
+              >
+                {zoomed ? t.product.zoomOut : t.product.zoomIn}
               </Button>
               <Button
                 variant="icon"
                 size="icon"
-                aria-label="Nächstes Bild"
+                aria-label={t.product.nextImage}
                 onClick={() => {
                   setZoom((zoom + 1) % product.images.length);
                   setZoomed(false);
@@ -406,9 +446,9 @@ export function ProductPage({
       </Panel>
       {bottom && (
         <div className="mobile-add-bar">
-          <span className="price">{formatPrice(product.priceRange.min)}</span>
+          <span className="price">{formatPrice(product.priceRange.min, locale)}</span>
           <Button onClick={size ? addSelected : chooseSize}>
-            {size ? "In den Warenkorb" : "Grösse wählen"}
+            {size ? t.product.addToCart : t.product.chooseSize}
           </Button>
         </div>
       )}

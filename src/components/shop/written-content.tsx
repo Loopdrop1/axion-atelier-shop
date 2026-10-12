@@ -1,8 +1,15 @@
 import { Fragment, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { shopConfig } from "@/config/shop";
 import { pages, type PageBlock, type WrittenPage } from "@/content/pages";
+import { pagesEn } from "@/content/pages-en";
+import { useLocaleParam, useT } from "@/i18n";
 
 const variables = {
   brand: shopConfig.brand,
@@ -14,7 +21,9 @@ const variables = {
   returnDays: String(shopConfig.returnDays),
 };
 export function resolvePageVariables(text: string) {
-  return text.replace(/\{\{(\w+)\}\}/g, (token, key: string) => key in variables ? String(variables[key as keyof typeof variables]) : token);
+  return text.replace(/\{\{(\w+)\}\}/g, (token, key: string) =>
+    key in variables ? String(variables[key as keyof typeof variables]) : token,
+  );
 }
 export function pageHasPlaceholder(page: WrittenPage) {
   const strings: string[] = [page.title];
@@ -23,17 +32,28 @@ export function pageHasPlaceholder(page: WrittenPage) {
     for (const block of section.blocks) {
       if (block.type === "paragraph") strings.push(block.text);
       else if (block.type === "bullets" || block.type === "steps") strings.push(...block.items);
-      else if (block.type === "definitions") block.items.forEach(item => strings.push(item.label, item.value));
-      else if (block.type === "questions") block.items.forEach(item => strings.push(item.question, item.answer));
+      else if (block.type === "definitions")
+        block.items.forEach((item) => strings.push(item.label, item.value));
+      else if (block.type === "questions")
+        block.items.forEach((item) => strings.push(item.question, item.answer));
     }
   }
-  return strings.some(text => /\[/.test(resolvePageVariables(text)));
+  return strings.some((text) => /\[/.test(resolvePageVariables(text)));
 }
 
-export function InlineText({ text, marked = false, variablesEnabled = true }: { text: string; marked?: boolean; variablesEnabled?: boolean }) {
+export function InlineText({
+  text,
+  marked = false,
+  variablesEnabled = true,
+}: {
+  text: string;
+  marked?: boolean;
+  variablesEnabled?: boolean;
+}) {
   const nodes: ReactNode[] = [];
   let position = 0;
-  const token = /\{\{\w+\}\}|\*\*[^*]+\*\*|`[^`]+`|\[|https?:\/\/[^\s<>]+|www\.[^\s<>]+|flowrenix\.com|\n/g;
+  const token =
+    /\{\{\w+\}\}|\*\*[^*]+\*\*|`[^`]+`|\[|https?:\/\/[^\s<>]+|www\.[^\s<>]+|flowrenix\.com|\n/g;
   let match: RegExpExecArray | null;
   while ((match = token.exec(text))) {
     if (match.index < position) continue;
@@ -49,7 +69,17 @@ export function InlineText({ text, marked = false, variablesEnabled = true }: { 
         end++;
       }
       value = text.slice(match.index, end);
-      const content = <>[<InlineText text={value.slice(1, depth ? undefined : -1)} marked variablesEnabled={variablesEnabled} />{depth ? "" : "]"}</>;
+      const content = (
+        <>
+          [
+          <InlineText
+            text={value.slice(1, depth ? undefined : -1)}
+            marked
+            variablesEnabled={variablesEnabled}
+          />
+          {depth ? "" : "]"}
+        </>
+      );
       node = marked ? content : <mark className="placeholder">{content}</mark>;
     } else if (value.startsWith("{{") && variablesEnabled) {
       const key = value.slice(2, -2) as keyof typeof variables;
@@ -57,14 +87,30 @@ export function InlineText({ text, marked = false, variablesEnabled = true }: { 
       const content = <InlineText text={resolved} marked={marked} variablesEnabled={false} />;
       node = key === "email" ? <a href={`mailto:${resolved}`}>{content}</a> : content;
     } else if (value.startsWith("**")) {
-      node = <strong><InlineText text={value.slice(2, -2)} marked={marked} variablesEnabled={variablesEnabled} /></strong>;
+      node = (
+        <strong>
+          <InlineText
+            text={value.slice(2, -2)}
+            marked={marked}
+            variablesEnabled={variablesEnabled}
+          />
+        </strong>
+      );
     } else if (value.startsWith("`")) {
       node = <span className="inline-code">{value.slice(1, -1)}</span>;
     } else if (value === "\n") node = <br />;
     else if (/^(https?:\/\/|www\.|flowrenix\.com)/.test(value)) {
       value = value.replace(/[.,;:!?)]*$/, "");
       end = match.index + value.length;
-      node = <a href={value.startsWith("http") ? value : `https://${value}`} target="_blank" rel="noopener">{value}</a>;
+      node = (
+        <a
+          href={value.startsWith("http") ? value : `https://${value}`}
+          target="_blank"
+          rel="noopener"
+        >
+          {value}
+        </a>
+      );
     }
     nodes.push(<Fragment key={match.index}>{node}</Fragment>);
     position = end;
@@ -73,28 +119,101 @@ export function InlineText({ text, marked = false, variablesEnabled = true }: { 
   nodes.push(text.slice(position));
   return <>{nodes}</>;
 }
+const TERMS_SENTENCES = [
+  "Die verbindlichen Regeln stehen in den AGB.",
+  "The binding rules are set out in the terms and conditions.",
+];
 function Block({ block, shipping }: { block: PageBlock; shipping: boolean }) {
+  const t = useT();
+  const lp = useLocaleParam();
   if (block.type === "paragraph") {
-    return <p>{shipping && block.text === "Die verbindlichen Regeln stehen in den AGB." ? <>Die verbindlichen Regeln stehen in den <Link to="/agb">AGB</Link>.</> : <InlineText text={block.text} />}</p>;
+    return (
+      <p>
+        {shipping && TERMS_SENTENCES.includes(block.text) ? (
+          <>
+            {t.content.termsLinkSentence}{" "}
+            <Link to="/{-$locale}/agb" params={{ locale: lp }}>
+              {t.checkout.termsLink}
+            </Link>
+            .
+          </>
+        ) : (
+          <InlineText text={block.text} />
+        )}
+      </p>
+    );
   }
   if (block.type === "bullets" || block.type === "steps") {
     const List = block.type === "steps" ? "ol" : "ul";
-    return <List>{block.items.map((text, i) => <li key={i}><InlineText text={text} /></li>)}</List>;
+    return (
+      <List>
+        {block.items.map((text, i) => (
+          <li key={i}>
+            <InlineText text={text} />
+          </li>
+        ))}
+      </List>
+    );
   }
   if (block.type === "definitions") {
-    return <dl className="shipping-definitions">{block.items.map((item, i) => <div key={i}><dt><strong><InlineText text={item.label} /></strong></dt><dd><InlineText text={item.value} /></dd></div>)}</dl>;
+    return (
+      <dl className="shipping-definitions">
+        {block.items.map((item, i) => (
+          <div key={i}>
+            <dt>
+              <strong>
+                <InlineText text={item.label} />
+              </strong>
+            </dt>
+            <dd>
+              <InlineText text={item.value} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
   }
   if (block.type === "questions") {
-    return <Accordion type="multiple" className="written-questions">{block.items.map((item, i) => <AccordionItem value={String(i)} key={i}><AccordionTrigger><strong><InlineText text={item.question} /></strong></AccordionTrigger><AccordionContent><p><InlineText text={item.answer} /></p></AccordionContent></AccordionItem>)}</Accordion>;
+    return (
+      <Accordion type="multiple" className="written-questions">
+        {block.items.map((item, i) => (
+          <AccordionItem value={String(i)} key={i}>
+            <AccordionTrigger>
+              <strong>
+                <InlineText text={item.question} />
+              </strong>
+            </AccordionTrigger>
+            <AccordionContent>
+              <p>
+                <InlineText text={item.answer} />
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    );
   }
   return null;
 }
 export function WrittenContent({ page }: { page: WrittenPage }) {
-  return <div className="written-content">
-    {pageHasPlaceholder(page) && <div className="draft-notice">Entwurf: Angaben in eckigen Klammern werden vor dem Livegang ergänzt.</div>}
-    {page.sections.map((section, i) => <section key={i}>
-      {section.heading && <h2><InlineText text={section.heading} /></h2>}
-      {section.blocks.map((block, j) => <Block key={j} block={block} shipping={page === pages["versand-und-rueckgabe"]} />)}
-    </section>)}
-  </div>;
+  const t = useT();
+  const shipping =
+    page === pages["versand-und-rueckgabe"] || page === pagesEn["versand-und-rueckgabe"];
+  return (
+    <div className="written-content">
+      {pageHasPlaceholder(page) && <div className="draft-notice">{t.content.draftNotice}</div>}
+      {page.sections.map((section, i) => (
+        <section key={i}>
+          {section.heading && (
+            <h2>
+              <InlineText text={section.heading} />
+            </h2>
+          )}
+          {section.blocks.map((block, j) => (
+            <Block key={j} block={block} shipping={shipping} />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
 }

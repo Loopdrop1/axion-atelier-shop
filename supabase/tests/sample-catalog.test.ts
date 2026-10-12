@@ -17,7 +17,10 @@ describe("Beispielkatalog", () => {
       await client.query("delete from public.products where handle like 'test-%'");
       const expected = await renderSampleCatalog(client);
       await client.query("rollback");
-      const file = readFileSync(path.resolve(import.meta.dirname, "../../src/lib/commerce/sample-catalog.ts"), "utf8");
+      const file = readFileSync(
+        path.resolve(import.meta.dirname, "../../src/lib/commerce/sample-catalog.ts"),
+        "utf8",
+      );
       expect(file).toBe(expected);
     } finally {
       client.release();

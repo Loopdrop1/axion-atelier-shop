@@ -26,12 +26,13 @@ export const shopConfig = {
     "Google Pay",
     "Klarna",
   ],
+  // Schalter für Bereiche, die das Backend (Supabase) brauchen. Ohne Backend zeigen die Seiten «wird beim Livegang aktiviert».
   features: {
-    newsletter: false,
+    newsletter: true,
     pickup: false,
     reviews: false,
-    customerAccounts: false,
-    giftCards: false,
+    customerAccounts: true,
+    giftCards: true,
     backInStock: false,
   },
 } as const;

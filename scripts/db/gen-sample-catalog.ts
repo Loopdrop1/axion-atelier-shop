@@ -37,10 +37,9 @@ export async function renderSampleCatalog(client: pg.Client | pg.PoolClient): Pr
     )
   ).rows;
   const content = Object.fromEntries(
-    (await client.query("select key, value from public.site_content order by key")).rows.map((r) => [
-      r.key,
-      r.value,
-    ]),
+    (await client.query("select key, value from public.site_content order by key")).rows.map(
+      (r) => [r.key, r.value],
+    ),
   );
   const data = JSON.stringify({ categories, products, content }, null, 2);
   const raw = `// Automatisch erzeugt aus supabase/seed.sql mit scripts/db/gen-sample-catalog.ts – nicht von Hand ändern.
@@ -60,7 +59,9 @@ if (import.meta.main) {
   if (process.argv.includes("--check")) {
     const current = readFileSync(OUT, "utf8");
     if (current !== text) {
-      console.error("sample-catalog.ts ist veraltet: bun scripts/db/gen-sample-catalog.ts ausführen.");
+      console.error(
+        "sample-catalog.ts ist veraltet: bun scripts/db/gen-sample-catalog.ts ausführen.",
+      );
       process.exit(1);
     }
     console.log("sample-catalog.ts ist aktuell.");
