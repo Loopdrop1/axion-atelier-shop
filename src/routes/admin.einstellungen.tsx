@@ -95,10 +95,7 @@ function SettingsPage() {
   return (
     <>
       <PageHeader title="Einstellungen" />
-      <Panel
-        title="Versand"
-        description="Gilt für alle Bestellungen in die Schweiz und nach Liechtenstein."
-      >
+      <Panel title="Versand" description="Gilt für alle Bestellungen im Liefergebiet.">
         <div className="admin-form admin-grid-2">
           <TextField
             label="Versandkosten (CHF)"

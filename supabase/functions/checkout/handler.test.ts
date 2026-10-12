@@ -99,7 +99,8 @@ describe("checkout: Warenkorb", () => {
       },
     });
     expect(session["discounts"][0].coupon).toMatch(/^co_/);
-    expect(session["shipping_address_collection"]).toEqual({ allowed_countries: ["CH", "LI"] });
+    // Ohne SHIPPING_COUNTRIES nur Schweiz (Liechtenstein erst nach Entscheid des Kunden, eigenes Konsumentenrecht)
+    expect(session["shipping_address_collection"]).toEqual({ allowed_countries: ["CH"] });
     expect(session["shipping_options"][0].shipping_rate_data.fixed_amount).toEqual({
       amount: "0",
       currency: "chf",

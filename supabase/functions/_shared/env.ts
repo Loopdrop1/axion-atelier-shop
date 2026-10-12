@@ -23,6 +23,19 @@ export interface FunctionEnv {
   shopNotifyEmail: string;
   sendEmailHookSecret: string;
   allowedOrigins: string[];
+  /** Liefergebiet in der Kasse. SHIPPING_COUNTRIES, z. B. "CH,LI"; Standard nur CH. */
+  shippingCountries: ShippingCountry[];
+}
+
+/** Länder, für die Versand, Preise und Rechtstexte vorbereitet sind. Liechtenstein bringt eigenes
+ *  Konsumentenrecht mit (Rücktrittsrecht im Fernabsatz) und kommt nur nach Entscheid des Kunden dazu. */
+export const SHIPPING_COUNTRIES = ["CH", "LI"] as const;
+export type ShippingCountry = (typeof SHIPPING_COUNTRIES)[number];
+
+function shippingCountries(value: string | undefined): ShippingCountry[] {
+  const wanted = (value ?? "").split(",").map((s) => s.trim().toUpperCase());
+  const list = SHIPPING_COUNTRIES.filter((c) => wanted.includes(c));
+  return list.length ? [...list] : ["CH"];
 }
 
 export type EnvSource = (key: string) => string | undefined;
@@ -63,6 +76,7 @@ export function readEnv(get: EnvSource): FunctionEnv {
         .map((s) => s.trim())
         .filter(Boolean),
     ],
+    shippingCountries: shippingCountries(get("SHIPPING_COUNTRIES")),
   };
 }
 

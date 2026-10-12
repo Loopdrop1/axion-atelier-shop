@@ -4,14 +4,14 @@ Alle Funktionen laufen mit `verify_jwt = false` (siehe `supabase/config.toml`) u
 Aufruf aus dem Shop mit `supabase.functions.invoke(name, { body })`; eingeloggte Aufrufe schicken das Anmelde-Token automatisch mit.
 Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
 
-| Funktion | Aufrufer | Zweck |
-|---|---|---|
-| `checkout` | Shop (Gast oder eingeloggt) | Bestand reservieren, Stripe-Checkout starten |
-| `stripe-webhook` | Stripe | Zahlung verbuchen, Ablauf/Fehlzahlung stornieren, Rückerstattung übernehmen, E-Mails |
-| `newsletter` | Shop | Anmelden (Double Opt-in), bestätigen, abmelden |
-| `admin-actions` | Admin (Rolle `admin`) | Versand melden, E-Mails erneut senden, Gutscheine ausstellen |
-| `account-delete` | eingeloggte Kundschaft | eigenes Konto löschen |
-| `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN |
+| Funktion          | Aufrufer                        | Zweck                                                                                |
+| ----------------- | ------------------------------- | ------------------------------------------------------------------------------------ |
+| `checkout`        | Shop (Gast oder eingeloggt)     | Bestand reservieren, Stripe-Checkout starten                                         |
+| `stripe-webhook`  | Stripe                          | Zahlung verbuchen, Ablauf/Fehlzahlung stornieren, Rückerstattung übernehmen, E-Mails |
+| `newsletter`      | Shop                            | Anmelden (Double Opt-in), bestätigen, abmelden                                       |
+| `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen                         |
+| `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                |
+| `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                  |
 
 ## checkout
 
@@ -51,7 +51,9 @@ als interner Pfad geprüft werden (beginnt mit `/`, nicht mit `//`). Sprache: au
 
 `SITE_URL`, `STRIPE_SECRET_KEY` (eingeschränkter Schlüssel `rk_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
 `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`, `SHOP_ADDRESS`, `SEND_EMAIL_HOOK_SECRET`; optional `ALLOWED_ORIGINS`
-(weitere Domains, Komma-getrennt) und `STRIPE_REQUIRE_TERMS=1` (AGB-Häkchen in der Stripe-Kasse).
+(weitere Domains, Komma-getrennt), `STRIPE_REQUIRE_TERMS=1` (AGB-Häkchen in der Stripe-Kasse) und
+`SHIPPING_COUNTRIES` (Liefergebiet, Standard `CH`; `CH,LI` erst nach Entscheid des Kunden, weil für Kundschaft in
+Liechtenstein deren Konsumentenrecht mit Rücktrittsrecht gilt, Rechtstexte anpassen).
 `SUPABASE_URL` und die Schlüssel stellt Supabase selbst bereit.
 
 ## Prüfen

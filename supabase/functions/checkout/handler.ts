@@ -227,7 +227,7 @@ async function cartCheckout(
         },
       })),
       ...(couponId ? { discounts: [{ coupon: couponId }] } : {}),
-      shipping_address_collection: { allowed_countries: ["CH", "LI"] },
+      shipping_address_collection: { allowed_countries: deps.env.shippingCountries },
       shipping_options: [
         {
           shipping_rate_data: {
