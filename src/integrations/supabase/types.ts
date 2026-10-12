@@ -720,6 +720,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_settings: {
+        Row: {
+          free_shipping_from_cents: number | null
+          gift_card_max_cents: number
+          gift_card_min_cents: number
+          gift_card_valid_years: number
+          id: number
+          newsletter_welcome_percent: number | null
+          notify_email: string | null
+          shipping_cents: number
+          updated_at: string
+        }
+        Insert: {
+          free_shipping_from_cents?: number | null
+          gift_card_max_cents?: number
+          gift_card_min_cents?: number
+          gift_card_valid_years?: number
+          id?: number
+          newsletter_welcome_percent?: number | null
+          notify_email?: string | null
+          shipping_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          free_shipping_from_cents?: number | null
+          gift_card_max_cents?: number
+          gift_card_min_cents?: number
+          gift_card_valid_years?: number
+          id?: number
+          newsletter_welcome_percent?: number | null
+          notify_email?: string | null
+          shipping_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           key: string
@@ -833,7 +869,118 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_adjust_stock: {
+        Args: {
+          p_delta: number
+          p_note?: string
+          p_reason: Database["public"]["Enums"]["stock_reason"]
+          p_variant_id: string
+        }
+        Returns: number
+      }
+      admin_dashboard: { Args: { p_from: string; p_to: string }; Returns: Json }
+      admin_get_settings: { Args: never; Returns: Json }
+      admin_grant_admin: { Args: { p_email: string }; Returns: Json }
+      admin_list_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          user_id: string
+        }[]
+      }
+      admin_restock_order: {
+        Args: { p_items: Json; p_order_id: string }
+        Returns: Json
+      }
+      admin_revoke_admin: { Args: { p_user_id: string }; Returns: undefined }
+      attach_checkout_session: {
+        Args: { p_expires_at: string; p_order_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      cancel_order: {
+        Args: { p_order_id: string; p_reason?: string }
+        Returns: boolean
+      }
+      check_discount: {
+        Args: { p_code: string; p_subtotal_cents: number }
+        Returns: Json
+      }
+      check_gift_card: { Args: { p_code: string }; Returns: Json }
+      claim_guest_orders: { Args: never; Returns: number }
+      complete_order: {
+        Args: { p_order_id: string; p_payment?: Json }
+        Returns: Json
+      }
+      finish_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
+      forget_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
+      get_order_for_email: { Args: { p_order_id: string }; Returns: Json }
+      get_order_status: { Args: { p_token: string }; Returns: Json }
+      get_shop_notify_email: { Args: never; Returns: string }
+      issue_gift_card: {
+        Args: {
+          p_amount_cents: number
+          p_created_by?: string
+          p_locale: string
+          p_message?: string
+          p_note?: string
+          p_recipient_email: string
+          p_recipient_name?: string
+          p_sender_name?: string
+        }
+        Returns: Json
+      }
+      mark_order_email_sent: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: undefined
+      }
+      mark_order_shipped: {
+        Args: { p_order_id: string; p_tracking: string }
+        Returns: Json
+      }
+      newsletter_confirm: { Args: { p_token: string }; Returns: Json }
+      newsletter_subscribe: {
+        Args: {
+          p_consent: string
+          p_email: string
+          p_ip?: string
+          p_locale: string
+          p_source?: string
+        }
+        Returns: Json
+      }
+      newsletter_unsubscribe: { Args: { p_token: string }; Returns: Json }
+      record_refund: {
+        Args: { p_payment_intent_id: string; p_refunded_cents: number }
+        Returns: Json
+      }
+      register_stripe_event: {
+        Args: { p_event_id: string; p_type: string }
+        Returns: string
+      }
+      release_expired_orders: { Args: { p_grace?: string }; Returns: number }
+      reserve_checkout: {
+        Args: {
+          p_discount_code?: string
+          p_email: string
+          p_gift_card_code?: string
+          p_lines: Json
+          p_locale?: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
+      reserve_gift_card_purchase: {
+        Args: {
+          p_amount_cents: number
+          p_email: string
+          p_locale?: string
+          p_purchase?: Json
+          p_user_id?: string
+        }
+        Returns: Json
+      }
+      user_is_admin: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin"

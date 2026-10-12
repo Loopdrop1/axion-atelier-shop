@@ -15,6 +15,13 @@
       "when": 1791845546591,
       "tag": "0001_axion_commerce",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791845666102,
+      "tag": "0002_axion_rpc",
+      "breakpoints": true
     }
   ]
 }
