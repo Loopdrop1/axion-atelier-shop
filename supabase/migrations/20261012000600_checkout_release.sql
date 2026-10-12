@@ -23,3 +23,20 @@ $$;
 
 revoke all on function public.cancel_checkout_by_token(uuid) from public, anon, authenticated;
 grant execute on function public.cancel_checkout_by_token(uuid) to service_role;
+
+-- Bestellung mit interner Notiz fürs Admin (die Spalte admin_note ist für «authenticated» nicht lesbar).
+create or replace function public.admin_get_order(p_order_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.require_admin();
+  return private.order_json(p_order_id);
+end
+$$;
+
+revoke all on function public.admin_get_order(uuid) from public, anon, authenticated;
+grant execute on function public.admin_get_order(uuid) to authenticated;

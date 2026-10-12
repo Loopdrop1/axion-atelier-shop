@@ -257,7 +257,14 @@ create policy "Newsletter: Admin liest" on public.newsletter_subscribers
 create policy "Newsletter: Admin löscht" on public.newsletter_subscribers
   for delete to authenticated using ((select private.is_admin()));
 
-grant select on public.orders, public.order_items to authenticated;
+-- admin_note ist intern: nicht für Kundschaft lesbar (das Admin liest sie über admin_get_order).
+grant select (id, number, status_token, kind, status, user_id, email, locale, currency, subtotal_cents,
+  discount_cents, discount_code, discount_code_id, gift_card_cents, gift_card_id, shipping_cents, total_cents,
+  refunded_cents, shipping_name, shipping_address, phone, stripe_session_id, stripe_payment_intent_id,
+  payment_method, gift_card_purchase, issued_gift_card_id, tracking_number, shipped_at, paid_at, cancelled_at,
+  cancel_reason, expires_at, needs_attention, confirmation_sent_at, notification_sent_at, gift_card_sent_at,
+  shipping_sent_at, created_at, updated_at) on public.orders to authenticated;
+grant select on public.order_items to authenticated;
 grant update (admin_note, needs_attention) on public.orders to authenticated;
 grant select on public.stock_movements, public.gift_card_transactions, public.newsletter_subscribers to authenticated;
 grant delete on public.newsletter_subscribers to authenticated;

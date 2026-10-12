@@ -111,6 +111,36 @@ describe("Bestellungen", () => {
     expect(status.message).toMatch(/permission denied/);
   });
 
+  it("interne Notizen: Kundschaft kann admin_note nicht lesen, das Admin über admin_get_order", async () => {
+    await sql("update public.orders set admin_note = 'Intern: Kunde ruft zurück' where id = $1", [
+      aliceOrder,
+    ]);
+    const own = await q<{ number: number }>(
+      "authenticated",
+      alice.claims,
+      "select number, status, total_cents from public.orders where id = $1",
+      [aliceOrder],
+    );
+    expect(own).toHaveLength(1);
+    const err = await expectPgError(
+      q("authenticated", alice.claims, "select admin_note from public.orders where id = $1", [
+        aliceOrder,
+      ]),
+    );
+    expect(err.message).toMatch(/permission denied/);
+    const viaRpc = await q<{ r: { admin_note: string } }>(
+      "authenticated",
+      admin.claims,
+      "select public.admin_get_order($1) as r",
+      [aliceOrder],
+    );
+    expect(viaRpc[0]!.r.admin_note).toBe("Intern: Kunde ruft zurück");
+    const forbidden = await expectPgError(
+      q("authenticated", alice.claims, "select public.admin_get_order($1)", [aliceOrder]),
+    );
+    expect(forbidden.message).toBe("FORBIDDEN");
+  });
+
   it("die Summenprüfung verhindert falsche Totale", async () => {
     const err = await expectPgError(
       sql(
