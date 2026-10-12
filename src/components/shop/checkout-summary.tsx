@@ -122,7 +122,9 @@ export function CheckoutSummary({
   const setStoredEmail = useCart((s) => s.setEmail);
   const { data: settings = DEFAULT_SETTINGS } = useQuery(settingsQuery());
   const subtotalCents = Math.round(cart.subtotal.amount * 100);
-  const [discount, setDiscount] = useState<{ cents: number; code: string } | null>(null);
+  const [discount, setDiscount] = useState<{ cents: number; code: string; label: string } | null>(
+    null,
+  );
   const [discountError, setDiscountError] = useState("");
   const [gift, setGift] = useState<{ balance: number } | null>(null);
   const [giftError, setGiftError] = useState("");
@@ -153,7 +155,17 @@ export function CheckoutSummary({
       .then((r) => {
         if (!live) return;
         if (r.valid) {
-          setDiscount({ cents: r.discount_cents ?? 0, code: r.code ?? discountCode.toUpperCase() });
+          setDiscount({
+            cents: r.discount_cents ?? 0,
+            code: r.code ?? discountCode.toUpperCase(),
+            // «−10 %» oder «−CHF 20.00» unter dem Code
+            label:
+              r.kind === "percent"
+                ? `−${r.value ?? 0} %`
+                : r.kind === "amount"
+                  ? `−${formatCents(r.value ?? 0, locale)}`
+                  : "",
+          });
           setDiscountError("");
         } else {
           setDiscount(null);
@@ -273,6 +285,7 @@ export function CheckoutSummary({
             <CodeField
               label={t.checkout.discountCode}
               applied={discount?.code ?? null}
+              detail={discount?.label || undefined}
               error={discountError}
               busy={checking}
               onApply={(code) => {
@@ -336,7 +349,10 @@ export function CheckoutSummary({
                 inputMode="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError("");
+                }}
                 aria-invalid={Boolean(emailError)}
                 aria-describedby={`${id}-email-hint`}
               />

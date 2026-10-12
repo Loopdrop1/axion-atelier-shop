@@ -182,7 +182,7 @@ button.text-link{background:none;border:0;border-bottom:1px solid currentColor;p
 .account-section{margin-top:56px;padding-top:36px;border-top:1px solid var(--line);max-width:860px}
 .account-section>h2{font-size:1.8rem;margin-bottom:12px}
 .account-section>.text-muted{max-width:560px}
-.account-page>.shop-button,.account-page>.notice{margin-top:12px}
+.account-page>.notice{max-width:860px}
 .account-page>.shop-button{margin-top:56px}
 .account-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
 .account-table th{font-family:var(--font-display);font-weight:400;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 16px 10px 0;border-bottom:1px solid var(--line)}
@@ -270,11 +270,23 @@ button.text-link{background:none;border:0;border-bottom:1px solid currentColor;p
  .account-section{margin-top:44px;padding-top:28px}
  .order-layout,.gift-layout{grid-template-columns:1fr;gap:36px}
  .order-summary,.gift-preview,.checkout-summary{position:static}
+ .gift-preview{order:-1}
  .checkout-summary,.order-summary{padding:22px}
  .gift-card{padding:24px}
  .gift-card-amount{font-size:34px}
  .footer-newsletter{grid-template-columns:1fr;gap:20px;margin-top:40px}
  .newsletter-row{flex-direction:column}
+ .newsletter-row input{flex:none}
  .newsletter-row .shop-button{width:100%}
+ /* Bestellungen im Konto als Liste statt Tabelle */
+ .account-table thead{display:none}
+ .account-table,.account-table tbody{display:block}
+ .account-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:16px 0;border-bottom:1px solid var(--line)}
+ .account-table td{padding:0;border:0;white-space:normal}
+ .account-table td:nth-child(1){font-family:var(--font-display);font-size:16px}
+ .account-table td:nth-child(2){grid-column:1;color:var(--muted);font-size:13px}
+ .account-table td:nth-child(3){grid-column:2;grid-row:1;text-align:right;font-size:13px}
+ .account-table td:nth-child(4){grid-column:2;grid-row:2}
+ .account-table td:nth-child(5){grid-column:1/-1;margin-top:8px}
  .code-row .shop-button{padding:0 14px!important}
 }

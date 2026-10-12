@@ -7,7 +7,7 @@ import { shopConfig } from "@/config/shop";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
 import { backendConfigured } from "@/integrations/supabase/client";
 import { checkGiftCard, releaseCheckout, startCheckout } from "@/lib/commerce/checkout";
-import { formatCents, formatDate } from "@/lib/commerce/format";
+import { formatCents, formatDate, formatFrancs } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";
 import { pageHead } from "@/lib/commerce/seo";
 import { DEFAULT_SETTINGS } from "@/lib/commerce/source";
@@ -154,9 +154,12 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
                   type="radio"
                   name={`${id}-amount`}
                   checked={choice === francs}
-                  onChange={() => setChoice(francs)}
+                  onChange={() => {
+                    setChoice(francs);
+                    setErrors(({ amount: _, ...rest }) => rest);
+                  }}
                 />
-                {formatCents(francs * 100, locale)}
+                {formatFrancs(francs * 100, locale)}
               </label>
             ))}
             <label className={`choice-chip ${choice === "custom" ? "selected" : ""}`}>
@@ -175,7 +178,10 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
               inputMode="numeric"
               autoComplete="off"
               value={custom}
-              onChange={(e) => setCustom(e.target.value.replace(/[^\d]/g, ""))}
+              onChange={(e) => {
+                setCustom(e.target.value.replace(/[^\d]/g, ""));
+                setErrors(({ amount: _, ...rest }) => rest);
+              }}
               hint={t.giftCard.amountRange(
                 formatCents(minCents, locale),
                 formatCents(maxCents, locale),
@@ -229,7 +235,10 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
               autoComplete="off"
               maxLength={254}
               value={recipientEmail}
-              onChange={(e) => setRecipientEmail(e.target.value)}
+              onChange={(e) => {
+                setRecipientEmail(e.target.value);
+                setErrors(({ recipientEmail: _, ...rest }) => rest);
+              }}
               hint={t.giftCard.recipientEmailHint}
               error={errors.recipientEmail}
             />
@@ -260,7 +269,10 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
             inputMode="email"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrors(({ email: _, ...rest }) => rest);
+            }}
             error={errors.email}
           />
         )}

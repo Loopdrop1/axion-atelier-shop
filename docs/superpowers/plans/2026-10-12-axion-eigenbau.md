@@ -185,8 +185,9 @@
 - `mapProduct(row: ProductRow, locale: Locale): Product` (Fallback DE, `asset:`-Pfade über `media.ts`, Storage-Pfade über öffentliche URL).
 - `index.ts` behält alle Namen, neuer letzter Parameter `locale: Locale = "de"`.
 
-- [ ] Tests: Mapping mit fehlendem EN-Titel → DE-Titel; Preis 54900 → `Money {amount: 549}`; Variante ohne Bestand → `availableForSale=false`; Sample-Adapter liefert dieselben Daten wie heute (bestehende Tests bleiben grün).
-- [ ] Commit.
+- [x] Tests: Mapping mit fehlendem EN-Titel → DE-Titel; Preis 54900 → `Money {amount: 549}`; Variante ohne Bestand → `availableForSale=false`; Sample-Adapter liefert dieselben Daten wie heute (bestehende Tests bleiben grün).
+- [x] Commit.
+- Umgesetzt mit einfacherem Zuschnitt: `source.ts` (Supabase oder Beispielkatalog, 30 s Zwischenspeicher), `mapping.ts`, `rows.ts`, `sample-catalog.ts` (aus `supabase/seed.sql` erzeugt, `--check` im Test), `checkout.ts`, `queries.ts`. Kein separates Adapter-Interface nötig.
 
 ### Task 12: Zweisprachigkeit
 
@@ -198,17 +199,18 @@
 **Interfaces:**
 - `type Locale = "de"|"en"`; `useLocale(): Locale`; `useT(): Messages`; `localeParam(locale): {locale?: "en"}`; `switchLocalePath(pathname: string, target: Locale): string`; `<LanguageSwitch />`.
 
-- [ ] Tests: `en` und `de` haben dieselben Schlüssel; `/en/produkt/x` rendert englische Navigation und `lang="en"`; `/fr/produkt/x` → 404; `switchLocalePath("/en/kollektion/anzuege", "de") === "/kollektion/anzuege"`.
-- [ ] Commit.
+- [x] Tests: `en` und `de` haben dieselben Schlüssel; `/en/produkt/x` rendert englische Navigation und `lang="en"`; `/fr/produkt/x` → 404; `switchLocalePath("/en/kollektion/anzuege", "de") === "/kollektion/anzuege"` (Vitest und e2e/shop.spec.ts).
+- [x] Commit.
 
 ### Task 13: Warenkorb, Kasse, Dankesseite
 
 **Files:**
 - Modify: `src/components/shop/cart.tsx`, `src/routes/{-$locale}/warenkorb.tsx`
-- Create: `src/routes/{-$locale}/bestellung.danke.tsx`, `src/components/shop/checkout-summary.tsx`, `src/components/shop/checkout-summary.test.tsx`
+- Create: `src/routes/{-$locale}/bestellung.$token.tsx` (statt `bestellung.danke`: success_url ist `/bestellung/<token>?bezahlt=1`), `src/components/shop/checkout-summary.tsx`, `src/components/shop/checkout-summary.test.tsx`
 
-- [ ] Rabattcode- und Gutscheinfeld mit Prüfung, Totale, «Zur Kasse» leitet zu Stripe; ausverkauft-Hinweis aktualisiert den Warenkorb; Dankesseite leert den Warenkorb und wartet bis zu 30 s auf `paid`.
-- [ ] Commit.
+- [x] Rabattcode- und Gutscheinfeld mit Prüfung, Totale, «Zur Kasse» leitet zu Stripe; ausverkauft-Hinweis aktualisiert den Warenkorb; Dankesseite leert den Warenkorb und wartet bis zu 30 s auf `paid`.
+- [x] Abbruch in Stripe (`?abgebrochen=<token>`) gibt die Reservierung frei.
+- [x] Commit.
 
 ### Task 14: Kundenkonto
 
@@ -217,16 +219,20 @@
 - Vertrag der Funktionen: `supabase/functions/README.md` (Links der Auth-E-Mails auf `/konto/bestaetigen?token_hash&type&next`, Bestätigung per Klick mit `verifyOtp`, `next` nur als interner Pfad)
 - Modify: `src/components/shop/shell.tsx` (Konto-Symbol)
 
-- [ ] Registrieren mit Locale in den Metadaten, Anmelden, Abmelden, Passwort vergessen/neu, Bestellliste und -detail, Daten und Adresse, Konto löschen; nach Anmeldung `claim_guest_orders`.
-- [ ] Commit.
+- [x] Registrieren mit Locale in den Metadaten, Anmelden, Abmelden, Passwort vergessen/neu, Bestellliste und -detail, Daten und Adresse, Konto löschen; nach Anmeldung `claim_guest_orders`.
+- [x] Commit. (`auth-store.ts` heisst `session.ts`; dazu `claim.ts`, `use-require-session.ts`, `use-sign-out.ts`)
 
 ### Task 15: Geschenkgutschein-Seite und Newsletter
 
 **Files:**
 - Create: `src/routes/{-$locale}/geschenkgutschein.tsx`, `src/routes/{-$locale}/newsletter.bestaetigen.tsx`, `src/routes/{-$locale}/newsletter.abmelden.tsx`, `src/components/shop/newsletter-form.tsx`
-- Modify: `src/components/shop/shell.tsx` (Footer-Formular), `src/config/shop.ts` (Features an, Gutscheinbeträge)
+- Modify: `src/components/shop/shell.tsx` (Footer-Formular), `src/config/shop.ts` (Features an; Gutscheinbeträge kommen aus `shop_settings`)
 
-- [ ] Commit nach UI-Tests.
+- [x] Commit nach UI-Tests.
+
+### Browser-Tests (zusätzlich)
+
+- [x] `e2e/fake-supabase.ts` (Auth, REST, RPC, Functions nachgebaut) und `e2e/shop.spec.ts`: 12 Abläufe × Desktop und Handy (`bun run test:e2e`).
 
 ### Task 16: Admin-Grundgerüst, Anmeldung, Übersicht
 

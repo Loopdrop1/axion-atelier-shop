@@ -222,12 +222,10 @@ export async function updateProfile(userId: string, profile: Profile): Promise<R
 export type DeleteResult =
   { ok: true } | { ok: false; error: "LAST_ADMIN" | "NETWORK" | "UNKNOWN" };
 
+/** Löscht das eigene Konto. Danach muss die Seite abmelden (useSignOut), erst nachdem sie die Bestätigung zeigt. */
 export async function deleteMyAccount(): Promise<DeleteResult> {
   const result = await callFunction<{ deleted: boolean }>("account-delete", { confirm: true });
-  if (result.ok) {
-    await signOut();
-    return { ok: true };
-  }
+  if (result.ok) return { ok: true };
   if (result.error === "LAST_ADMIN") return { ok: false, error: "LAST_ADMIN" };
   return { ok: false, error: result.error === "NETWORK" ? "NETWORK" : "UNKNOWN" };
 }

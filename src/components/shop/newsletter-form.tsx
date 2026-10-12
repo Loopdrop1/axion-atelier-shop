@@ -12,15 +12,18 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 export function NewsletterForm({
   source = "footer",
   dark = false,
+  initialEmail = "",
 }: {
   source?: "footer" | "account";
   dark?: boolean;
+  /** Im Konto: eigene Adresse vorausfüllen */
+  initialEmail?: string;
 }) {
   const t = useT();
   const locale = useLocale();
   const lp = useLocaleParam();
   const id = useId();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");

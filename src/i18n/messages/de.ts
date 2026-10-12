@@ -521,6 +521,7 @@ export const de = {
     samePassword: "Das neue Passwort muss sich vom bisherigen unterscheiden.",
     emailExists: "Diese E-Mail-Adresse wird bereits verwendet.",
     invalidPostalCode: "Bitte gib eine vierstellige PLZ ein.",
+    editData: "Daten bearbeiten",
   },
   giftCard: {
     title: "Geschenkgutschein",
@@ -564,7 +565,7 @@ export const de = {
     consent:
       "Ja, ich möchte den Newsletter von Axion mit Neuheiten und Angeboten per E-Mail erhalten. Die Abmeldung ist jederzeit über den Link in jeder E-Mail möglich.",
     privacy: "Mehr in der Datenschutzerklärung.",
-    submit: "Anmelden",
+    submit: "Abonnieren",
     sending: "Wird gesendet …",
     sent: "Fast geschafft. Falls du noch nicht angemeldet bist, schicken wir dir eine E-Mail. Bitte bestätige darin deine Anmeldung.",
     consentRequired: "Bitte bestätige, dass du den Newsletter erhalten möchtest.",

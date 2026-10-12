@@ -104,6 +104,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   // Das Admin hat ein eigenes Layout (src/routes/admin.tsx), der Shop den ShopShell mit Kopf- und Fusszeile.
   const admin = useRouterState({ select: (s) => /^\/admin(\/|$)/.test(s.location.pathname) });
+  // Merker für Browser-Tests (e2e/): Seite ist hydriert und reagiert auf Eingaben.
+  useEffect(() => {
+    document.documentElement.dataset["hydrated"] = "true";
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -512,6 +512,7 @@ export const en: Messages = {
     samePassword: "The new password must be different from your current one.",
     emailExists: "This email address is already in use.",
     invalidPostalCode: "Please enter a four-digit postcode.",
+    editData: "Edit details",
   },
   giftCard: {
     title: "Gift card",

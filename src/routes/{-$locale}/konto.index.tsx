@@ -85,14 +85,14 @@ function AccountOverview() {
         <p className="text-muted">{t.account.dataIntro}</p>
         <Button variant="tailored" asChild>
           <Link to="/{-$locale}/konto/daten" params={{ locale: lp }}>
-            {t.account.data}
+            {t.account.editData}
           </Link>
         </Button>
       </section>
       <section className="account-section">
         <h2>{t.footer.newsletterTitle}</h2>
         <p className="text-muted">{t.footer.newsletterText}</p>
-        <NewsletterForm source="account" />
+        <NewsletterForm source="account" initialEmail={user.email ?? ""} />
       </section>
       <Button variant="tailored" onClick={() => void signOut()}>
         {t.account.signOut}

@@ -10,6 +10,23 @@ const price = {
 export const formatPrice = (value: Money | number, locale: Locale = "de") =>
   price[locale].format(typeof value === "number" ? value : value.amount);
 
+const francs = {
+  de: new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 0,
+  }),
+  en: new Intl.NumberFormat("en-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 0,
+  }),
+};
+
+/** Ganze Franken ohne Rappen (für Betragsknöpfe): CHF 100 */
+export const formatFrancs = (cents: number, locale: Locale = "de") =>
+  francs[locale].format(Math.round(cents / 100));
+
 /** Rappen → Franken-Text */
 export const formatCents = (cents: number, locale: Locale = "de") =>
   price[locale].format(cents / 100);
