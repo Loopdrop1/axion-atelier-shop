@@ -1461,6 +1461,12 @@ async function functions(req: Request, url: URL, ctx: Ctx): Promise<Response> {
     state.users = state.users.filter((u) => u.id !== ctx.user!.id);
     return json(200, { deleted: true, ordersKept: 2 });
   }
+  if (name === "contact") {
+    if (!String(b["name"] ?? "").trim()) return json(400, { error: "NAME_REQUIRED" });
+    if (String(b["message"] ?? "").trim().length < 10)
+      return json(400, { error: "MESSAGE_TOO_SHORT" });
+    return json(200, { sent: true });
+  }
   if (name === "admin-actions") {
     if (!ctx.user) return json(401, { error: "UNAUTHORIZED" });
     if (!ctx.admin) return json(403, { error: "FORBIDDEN" });
@@ -1478,6 +1484,10 @@ async function functions(req: Request, url: URL, ctx: Ctx): Promise<Response> {
         const emailed = b["notify"] !== false;
         if (emailed) order["shipping_sent_at"] = now();
         return json(200, { status: "shipped", trackingNumber: order["tracking_number"], emailed });
+      }
+      case "translate": {
+        const texts = Array.isArray(b["texts"]) ? (b["texts"] as string[]) : [];
+        return json(200, { translations: texts.map((t) => (t.trim() ? `EN ${t.trim()}` : "")) });
       }
       case "resend_confirmation":
       case "resend_shipping":

@@ -1,5 +1,7 @@
 # Axion Eigenbau Implementation Plan
 
+> **Nachtrag 12.10.2026 (Angebot v5):** Datenbank in Lovable Cloud (Region Europa) statt eigenem Supabase-Projekt, Liefergebiet standardmässig nur CH, englische Rechtstexte von Flowrenix, automatische Übersetzung, Kontaktformular, Grössentabellen im Admin, Quittung. Massgebend für die Inbetriebnahme ist `docs/DEPLOYMENT.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Den Lovable-Shop «Axion» zu einem selbst betriebenen Shop mit Supabase-Backend, Stripe-Kasse, Admin, Kundenkonto, Gutscheinen, Rabattcodes, Newsletter und DE/EN ausbauen, lokal vollständig prüfen und als GitHub-taugliches Paket ablegen.

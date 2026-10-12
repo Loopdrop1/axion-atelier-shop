@@ -7,6 +7,7 @@ import {
   ANON_KEY,
   fakeJwt,
   SERVICE_KEY,
+  startFakeAi,
   startFakeResend,
   startFakeSupabase,
 } from "../../tests/fakes/servers";
@@ -14,6 +15,7 @@ import { createAdminActionsHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
 let resend: Awaited<ReturnType<typeof startFakeResend>>;
+let ai: Awaited<ReturnType<typeof startFakeAi>>;
 let handler: (req: Request) => Promise<Response>;
 let admin: TestUser;
 let customer: TestUser;
@@ -21,6 +23,7 @@ let customer: TestUser;
 beforeAll(async () => {
   supa = await startFakeSupabase();
   resend = await startFakeResend();
+  ai = await startFakeAi();
   const env = readEnv(
     (k) =>
       ({
@@ -30,6 +33,8 @@ beforeAll(async () => {
         SITE_URL: "https://shop.test",
         RESEND_API_KEY: "re_test",
         RESEND_API_BASE: resend.url,
+        LOVABLE_API_KEY: "lov_test",
+        TRANSLATE_API_BASE: `${ai.url}/v1`,
       })[k],
   );
   handler = createAdminActionsHandler(createDeps(env));
@@ -38,7 +43,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await Promise.all([supa.close(), resend.close()]);
+  await Promise.all([supa.close(), resend.close(), ai.close()]);
   await pool.end();
 });
 
@@ -279,5 +284,55 @@ describe("admin-actions: Gutscheine", () => {
         })
       ).status,
     ).toBe(404);
+  });
+});
+
+describe("admin-actions: Übersetzung", () => {
+  it("übersetzt Texte über das AI-Gateway, leere bleiben leer", async () => {
+    const before = ai.calls.length;
+    const res = await post({
+      action: "translate",
+      texts: ["Anzug Limmat", "", "Reine Schurwolle"],
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      translations: ["EN: Anzug Limmat", "", "EN: Reine Schurwolle"],
+    });
+    expect(ai.calls.length).toBe(before + 1);
+    expect(ai.calls.at(-1)!.authorization).toBe("Bearer lov_test");
+    expect(ai.calls.at(-1)!.body.model).toBe("google/gemini-2.5-flash");
+  });
+
+  it("nur fürs Admin: ohne Anmeldung 401, Kundschaft 403", async () => {
+    expect((await post({ action: "translate", texts: ["Anzug"] }, null)).status).toBe(401);
+    expect((await post({ action: "translate", texts: ["Anzug"] }, customer)).status).toBe(403);
+  });
+
+  it("falsche oder zu grosse Eingaben: 400", async () => {
+    for (const [texts, code] of [
+      [undefined, "BAD_REQUEST"],
+      [[], "BAD_REQUEST"],
+      [["ok", 3], "BAD_REQUEST"],
+      [Array.from({ length: 61 }, () => "x"), "TOO_MANY_TEXTS"],
+      [["x".repeat(4001)], "TEXT_TOO_LONG"],
+      [Array.from({ length: 5 }, () => "x".repeat(3500)), "TEXT_TOO_LONG"],
+    ] as const) {
+      const res = await post({ action: "translate", texts });
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: code });
+    }
+  });
+
+  it("Guthaben aufgebraucht: 503, Gateway überlastet: 429, Gateway kaputt: 502", async () => {
+    for (const [status, expected, code] of [
+      [402, 503, "TRANSLATION_UNAVAILABLE"],
+      [429, 429, "RATE_LIMITED"],
+      [500, 502, "TRANSLATION_FAILED"],
+    ] as const) {
+      ai.failNext(status);
+      const res = await post({ action: "translate", texts: ["Anzug"] });
+      expect(res.status).toBe(expected);
+      expect(await res.json()).toEqual({ error: code });
+    }
   });
 });

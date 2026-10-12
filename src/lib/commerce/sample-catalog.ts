@@ -670,8 +670,8 @@ export const sampleCatalog: CatalogData = {
           en: "Delivery in 2 to 5 working days",
         },
         {
-          de: "Bezahlen mit TWINT, Karte, Apple Pay oder Klarna",
-          en: "Pay with TWINT, card, Apple Pay or Klarna",
+          de: "Bezahlen mit TWINT, Karte, Apple Pay, Google Pay oder Klarna",
+          en: "Pay with TWINT, card, Apple Pay, Google Pay or Klarna",
         },
       ],
     },
@@ -807,6 +807,79 @@ export const sampleCatalog: CatalogData = {
       },
       image_width: 1536,
       image_height: 1024,
+    },
+    size_guides: {
+      tables: [
+        {
+          id: "anzuege-westen",
+          note: {
+            de: "Beispielwerte für die Vorschau. Die echten Masse ersetzt ihr im Admin unter «Grössentabellen».",
+            en: "Sample values for the preview.",
+          },
+          rows: [
+            ["46", "92", "80", "170–176"],
+            ["48", "96", "84", "173–179"],
+            ["50", "100", "88", "176–182"],
+            ["52", "104", "92", "179–185"],
+            ["54", "108", "96", "182–188"],
+            ["56", "112", "100", "185–191"],
+          ],
+          title: {
+            de: "Anzüge und Westen",
+            en: "Suits and waistcoats",
+          },
+          columns: [
+            {
+              de: "Grösse",
+              en: "Size",
+            },
+            {
+              de: "Brust (cm)",
+              en: "Chest (cm)",
+            },
+            {
+              de: "Taille (cm)",
+              en: "Waist (cm)",
+            },
+            {
+              de: "Körpergrösse (cm)",
+              en: "Height (cm)",
+            },
+          ],
+          categories: ["anzuege", "westen"],
+        },
+        {
+          id: "schuhe",
+          note: {
+            de: "Beispielwerte für die Vorschau.",
+            en: "Sample values for the preview.",
+          },
+          rows: [
+            ["40", "25.3"],
+            ["41", "26.0"],
+            ["42", "26.7"],
+            ["43", "27.4"],
+            ["44", "28.1"],
+            ["45", "28.8"],
+            ["46", "29.5"],
+          ],
+          title: {
+            de: "Schuhe",
+            en: "Shoes",
+          },
+          columns: [
+            {
+              de: "EU-Grösse",
+              en: "EU size",
+            },
+            {
+              de: "Fusslänge (cm)",
+              en: "Foot length (cm)",
+            },
+          ],
+          categories: ["schuhe"],
+        },
+      ],
     },
   },
 };

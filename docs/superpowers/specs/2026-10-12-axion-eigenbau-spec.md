@@ -1,5 +1,7 @@
 # Axion Online-Shop: Eigenbau ohne Shopify (Spec)
 
+> **Nachtrag 12.10.2026 (Angebot v5):** Datenbank in Lovable Cloud (Region Europa) statt eigenem Supabase-Projekt, Liefergebiet standardmässig nur CH, englische Rechtstexte von Flowrenix, automatische Übersetzung, Kontaktformular, Grössentabellen im Admin, Quittung. Massgebend für die Inbetriebnahme ist `docs/DEPLOYMENT.md`.
+
 Stand 12.10.2026. Grundlage: unterschriftsreifes Angebot «Umfang und Konditionen» (Axion_Checkliste_Online-Shop.pdf, Version 2) und Entscheide von Ben Schmidt (Flowrenix).
 
 ## Ziel

@@ -44,18 +44,30 @@ export function Field({
 export function TextAreaField({
   label,
   hint,
+  error,
   className = "",
   ...area
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string | undefined }) {
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+}) {
   const id = useId();
+  const describedBy =
+    [hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ") || undefined;
   return (
     <div className={`field ${className}`}>
       <label htmlFor={id}>{label}</label>
-      <textarea id={id} aria-describedby={hint ? `${id}-hint` : undefined} {...area} />
+      <textarea id={id} aria-invalid={Boolean(error)} aria-describedby={describedBy} {...area} />
       {hint && (
         <small id={`${id}-hint`} className="field-hint">
           {hint}
         </small>
+      )}
+      {error && (
+        <p id={`${id}-error`} className="form-error" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

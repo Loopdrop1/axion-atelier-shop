@@ -723,6 +723,7 @@ export type Database = {
           gift_card_valid_years: number;
           newsletter_welcome_percent: number | null;
           notify_email: string | null;
+          hide_sold_out: boolean;
           updated_at: string;
         };
         Insert: {
@@ -734,6 +735,7 @@ export type Database = {
           gift_card_valid_years?: number;
           newsletter_welcome_percent?: number | null;
           notify_email?: string | null;
+          hide_sold_out?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -745,6 +747,7 @@ export type Database = {
           gift_card_valid_years?: number;
           newsletter_welcome_percent?: number | null;
           notify_email?: string | null;
+          hide_sold_out?: boolean;
           updated_at?: string;
         };
         Relationships: [];

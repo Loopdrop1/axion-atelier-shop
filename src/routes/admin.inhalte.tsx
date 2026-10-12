@@ -8,9 +8,17 @@ import {
   getContent,
   listProducts,
   saveContent,
+  translateTexts,
   uploadSiteImage,
   type ProductListRow,
 } from "@/lib/admin/api";
+import { autoTranslate, type AutoTranslateResult } from "@/lib/admin/auto-translate";
+import {
+  applyBlockPairs,
+  applyItemPairs,
+  blockPairs,
+  itemPairs,
+} from "@/lib/admin/content-translate";
 import type { Json } from "@/integrations/supabase/types";
 import { messages } from "@/i18n/messages";
 import { imageUrl } from "@/lib/commerce/mapping";
@@ -98,18 +106,32 @@ function clean(value: Obj): Obj {
 function useSave() {
   const queryClient = useQueryClient();
   const { user } = useSession();
-  return async (key: string, value: Json) => {
+  return async (key: string, value: Json, translation?: AutoTranslateResult): Promise<boolean> => {
     try {
       await saveContent(key, value, user!.id);
       invalidateCatalog();
       void queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
-      notify.ok(
+      notify.saved(
         "Gespeichert. Im Shop sichtbar nach dem nächsten Laden der Seite (spätestens nach 30 Sekunden).",
+        translation,
       );
+      return true;
     } catch (error) {
       notify.error(error);
+      return false;
     }
   };
+}
+
+/** Englisch zum Block ergänzen: fehlende oder veraltete Texte automatisch übersetzen. */
+async function translateBlock(base: Obj, next: Obj, fields: string[]) {
+  const translation = await autoTranslate(
+    blockPairs(base, fields),
+    blockPairs(next, fields),
+    translateTexts,
+    { image_alt: 300 },
+  );
+  return { value: applyBlockPairs(next, translation.pairs), translation };
 }
 
 const home = { de: messages.de.home, en: messages.en.home };
@@ -135,7 +157,7 @@ function Content() {
       />
       <Announcements value={obj("announcements")} />
       <TextBlock
-        title="Einstieg (grosses Bild oben)"
+        title="Einstieg (oben, mit 3D-Logo)"
         contentKey="home.hero"
         value={obj("home.hero")}
         fields={[
@@ -209,6 +231,7 @@ function Announcements({ value }: { value: Obj }) {
     ? value["items"].filter(isObj).map((i) => ({ de: str(i["de"]), en: str(i["en"]) }))
     : [];
   const [items, setItems] = useState(initial);
+  const [base, setBase] = useState(initial);
   const [busy, setBusy] = useState(false);
   const move = (i: number, d: -1 | 1) =>
     setItems((list) => {
@@ -293,10 +316,18 @@ function Announcements({ value }: { value: Obj }) {
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            const list = items
+            const translation = await autoTranslate(
+              itemPairs(base),
+              itemPairs(items),
+              translateTexts,
+              Object.fromEntries(items.map((_, i) => [`item:${i}`, 120])),
+            );
+            const next = applyItemPairs(items, translation.pairs);
+            setItems(next);
+            const list = next
               .filter((x) => x.de.trim())
               .map((x) => ({ de: x.de.trim(), ...(x.en.trim() ? { en: x.en.trim() } : {}) }));
-            await save("announcements", { items: list });
+            if (await save("announcements", { items: list }, translation)) setBase(next);
             setBusy(false);
           }}
         >
@@ -307,54 +338,116 @@ function Announcements({ value }: { value: Obj }) {
   );
 }
 
-function ImageField({
+/** Bild hochladen: name = Feld im Inhalt («image» oder «image_mobile» fürs Handy). */
+function ImageUpload({
   value,
   onChange,
   folder,
+  name,
+  label,
+  hint,
 }: {
   value: Obj;
   onChange: (next: Obj) => void;
   folder: string;
+  name: "image" | "image_mobile";
+  label: string;
+  hint: string;
 }) {
   const file = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
-  const src = imageUrl(str(value["image"]), "site-media");
+  const src = imageUrl(str(value[name]), "site-media");
+  return (
+    <div className="admin-image-field">
+      {src ? <img src={src} alt="" /> : <span className="admin-thumb" />}
+      <div>
+        <input
+          ref={file}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          hidden
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            setBusy(true);
+            try {
+              const image = await uploadSiteImage(f, folder);
+              onChange({
+                ...value,
+                [name]: image.path,
+                [`${name}_width`]: image.width,
+                [`${name}_height`]: image.height,
+              });
+            } catch (err) {
+              notify.error(err);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => file.current?.click()}>
+          <Upload /> {busy ? "Wird hochgeladen …" : label}
+        </Button>
+        {name === "image_mobile" && src && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const {
+                image_mobile: _a,
+                image_mobile_width: _b,
+                image_mobile_height: _c,
+                ...rest
+              } = value;
+              onChange(rest);
+            }}
+          >
+            <Trash2 /> Handy-Bild entfernen
+          </Button>
+        )}
+        <p className="admin-hint">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+function ImageField({
+  value,
+  onChange,
+  folder,
+  mobile = false,
+}: {
+  value: Obj;
+  onChange: (next: Obj) => void;
+  folder: string;
+  /** Zusätzlich ein eigenes Bild fürs Handy (hoch) */
+  mobile?: boolean;
+}) {
   const alt = isObj(value["image_alt"]) ? (value["image_alt"] as Obj) : {};
   return (
     <div className="admin-form">
-      <div className="admin-image-field">
-        {src ? <img src={src} alt="" /> : <span className="admin-thumb" />}
-        <div>
-          <input
-            ref={file}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif"
-            hidden
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              setBusy(true);
-              try {
-                const image = await uploadSiteImage(f, folder);
-                onChange({
-                  ...value,
-                  image: image.path,
-                  image_width: image.width,
-                  image_height: image.height,
-                });
-              } catch (err) {
-                notify.error(err);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          />
-          <Button variant="outline" size="sm" disabled={busy} onClick={() => file.current?.click()}>
-            <Upload /> {busy ? "Wird hochgeladen …" : "Bild ersetzen"}
-          </Button>
-          <p className="admin-hint">Neues Bild erst nach «Speichern» im Shop.</p>
-        </div>
-      </div>
+      <ImageUpload
+        value={value}
+        onChange={onChange}
+        folder={folder}
+        name="image"
+        label="Bild ersetzen"
+        hint={
+          mobile
+            ? "Querformat für den Computer. Neues Bild erst nach «Speichern» im Shop."
+            : "Neues Bild erst nach «Speichern» im Shop."
+        }
+      />
+      {mobile && (
+        <ImageUpload
+          value={value}
+          onChange={onChange}
+          folder={folder}
+          name="image_mobile"
+          label="Bild fürs Handy"
+          hint="Freiwillig, im Hochformat. Ohne eigenes Bild zeigt das Handy das Bild oben."
+        />
+      )}
       <Bilingual
         de={
           <TextField
@@ -394,11 +487,13 @@ function TextBlock({
 }) {
   const save = useSave();
   const [draft, setDraft] = useState<Obj>(value);
+  const [base, setBase] = useState<Obj>(value);
   const [busy, setBusy] = useState(false);
+  const names = fields.map((f) => f.name);
   return (
     <Panel title={title}>
       <div className="admin-form">
-        {image && <ImageField value={draft} onChange={setDraft} folder={image} />}
+        {image && <ImageField value={draft} onChange={setDraft} folder={image} mobile />}
         <LocalizedFields value={draft} fields={fields} defaults={defaults} onChange={setDraft} />
         <Button
           variant="admin"
@@ -406,7 +501,10 @@ function TextBlock({
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            await save(contentKey, clean(draft));
+            const { value: next, translation } = await translateBlock(base, draft, names);
+            setDraft(next);
+            const cleaned = clean(next);
+            if (await save(contentKey, cleaned, translation)) setBase(cleaned);
             setBusy(false);
           }}
         >
@@ -416,6 +514,15 @@ function TextBlock({
     </Panel>
   );
 }
+
+const LOOK_TEXTS: FieldDef[] = [
+  { name: "eyebrow", label: "Kleine Zeile oben" },
+  { name: "title", label: "Titel", multiline: true },
+  { name: "text", label: "Text" },
+  { name: "total", label: "Text vor dem Gesamtpreis" },
+  { name: "cta", label: "Knopf" },
+];
+const LOOK_FIELDS = LOOK_TEXTS.map((f) => f.name);
 
 interface Spot {
   handle: string;
@@ -428,6 +535,7 @@ interface Spot {
 function LookBlock({ value, products }: { value: Obj; products: ProductListRow[] }) {
   const save = useSave();
   const [draft, setDraft] = useState<Obj>(value);
+  const [base, setBase] = useState<Obj>(value);
   const [selected, setSelected] = useState(0);
   const [busy, setBusy] = useState(false);
   const spots: Spot[] = useMemo(
@@ -587,13 +695,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
         <LocalizedFields
           value={draft}
           onChange={setDraft}
-          fields={[
-            { name: "eyebrow", label: "Kleine Zeile oben" },
-            { name: "title", label: "Titel", multiline: true },
-            { name: "text", label: "Text" },
-            { name: "total", label: "Text vor dem Gesamtpreis" },
-            { name: "cta", label: "Knopf" },
-          ]}
+          fields={LOOK_TEXTS}
           defaults={{ de: flatten(home.de.look), en: flatten(home.en.look) }}
         />
         <Button
@@ -604,7 +706,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
             if (spots.some((s) => !s.handle))
               return notify.error(new Error("SPOT_WITHOUT_PRODUCT"));
             setBusy(true);
-            const value = clean({
+            const built = {
               ...draft,
               hotspots: spots.map((s, i) => ({
                 handle: s.handle,
@@ -616,8 +718,11 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
                 x: s.x,
                 y: s.y,
               })) as unknown as Json,
-            });
-            await save("home.look", value);
+            };
+            const { value: next, translation } = await translateBlock(base, built, LOOK_FIELDS);
+            setDraft(next);
+            const value = clean(next);
+            if (await save("home.look", value, translation)) setBase(value);
             setBusy(false);
           }}
         >

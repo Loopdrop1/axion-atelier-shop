@@ -287,3 +287,61 @@ export async function startFakeResend(): Promise<
     close: () => new Promise((r) => server.close(() => r())),
   };
 }
+
+export interface AiCall {
+  authorization: string | undefined;
+  body: { model: string; messages: { role: string; content: string }[] };
+}
+
+/**
+ * AI-Gateway (OpenAI-Schnittstelle, /chat/completions): übersetzt jeden Text als «EN: …» über einen Tool-Aufruf.
+ * failNext(status) lässt die nächste Anfrage mit diesem Status scheitern (z. B. 402 Guthaben aufgebraucht).
+ */
+export async function startFakeAi(): Promise<
+  FakeServer & { calls: AiCall[]; failNext: (status: number) => void }
+> {
+  const calls: AiCall[] = [];
+  let failStatus: number | null = null;
+  const server = http.createServer(async (req, res) => {
+    const body = JSON.parse((await readBody(req)) || "{}") as AiCall["body"];
+    if (req.url === "/v1/chat/completions" && req.method === "POST") {
+      calls.push({ authorization: req.headers["authorization"], body });
+      if (failStatus) {
+        const status = failStatus;
+        failStatus = null;
+        return send(res, status, { error: { message: "fake failure" } });
+      }
+      const user = body.messages.find((m) => m.role === "user");
+      const texts = (JSON.parse(user?.content ?? "{}") as { texts?: string[] }).texts ?? [];
+      return send(res, 200, {
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: null,
+              tool_calls: [
+                {
+                  type: "function",
+                  function: {
+                    name: "return_translations",
+                    arguments: JSON.stringify({ translations: texts.map((t) => `EN: ${t}`) }),
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+    }
+    send(res, 404, {});
+  });
+  const url = await listen(server);
+  return {
+    url,
+    calls,
+    failNext: (status: number) => {
+      failStatus = status;
+    },
+    close: () => new Promise((r) => server.close(() => r())),
+  };
+}

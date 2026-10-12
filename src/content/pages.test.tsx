@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { pages } from "./pages";
+import { pages, type WrittenPage } from "./pages";
+import { pagesEn } from "./pages-en";
 import {
   InlineText,
   pageHasPlaceholder,
@@ -73,5 +74,34 @@ describe("Client page content", () => {
     expect(html).toContain('<span class="inline-code">__cf_bm</span>');
     expect(html).toContain('href="https://stripe.com/ch/privacy" target="_blank" rel="noopener"');
     expect(html).toContain('href="https://flowrenix.com"');
+  });
+});
+describe("English pages", () => {
+  // Gleicher Aufbau wie Deutsch: gleiche Abschnitte, Blockarten und Anzahl Punkte (beide Sprachen im Gleichschritt).
+  const shape = (page: WrittenPage) =>
+    page.sections.map((s) =>
+      s.blocks.map((b) => `${b.type}:${"items" in b ? b.items.length : 1}`).join(","),
+    );
+
+  it("has every written page, including the legal texts, with the same structure as German", () => {
+    for (const handle of Object.keys(pages) as (keyof typeof pages)[]) {
+      const en = pagesEn[handle];
+      expect(en, handle).toBeDefined();
+      expect(shape(en!), handle).toEqual(shape(pages[handle]));
+    }
+  });
+
+  it("keeps the client placeholders and config variables", () => {
+    for (const handle of ["impressum", "datenschutz", "agb"] as const) {
+      const de = JSON.stringify(pages[handle]);
+      const en = JSON.stringify(pagesEn[handle]);
+      expect(pageHasPlaceholder(pagesEn[handle]!), handle).toBe(true);
+      for (const v of de.match(/\{\{\w+\}\}/g) ?? []) expect(en, `${handle} ${v}`).toContain(v);
+    }
+  });
+
+  it("names the contact form in the privacy policy (German and English)", () => {
+    expect(JSON.stringify(pages.datenschutz)).toContain("Kontaktformular");
+    expect(JSON.stringify(pagesEn.datenschutz)).toContain("contact form");
   });
 });

@@ -1,4 +1,5 @@
-// Einstellungen: Versandkosten, Gutscheinbeträge und -gültigkeit, Adresse für Bestellmeldungen.
+// Einstellungen: Versandkosten, ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
+// Newsletter, Adresse für Bestellmeldungen.
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +7,15 @@ import { Button } from "@/components/ui/button";
 import { getSettings, saveSettings } from "@/lib/admin/api";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { invalidateCatalog } from "@/lib/commerce/source";
-import { ErrorBox, Loading, notify, PageHeader, Panel, TextField } from "@/components/admin/ui";
+import {
+  CheckField,
+  ErrorBox,
+  Loading,
+  notify,
+  PageHeader,
+  Panel,
+  TextField,
+} from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/einstellungen")({
   component: SettingsPage,
@@ -21,8 +30,10 @@ function SettingsPage() {
     giftMin: "",
     giftMax: "",
     giftYears: "",
+    welcome: "",
     notify: "",
   });
+  const [hideSoldOut, setHideSoldOut] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -35,8 +46,10 @@ function SettingsPage() {
       giftMin: centsToInput(s.gift_card_min_cents),
       giftMax: centsToInput(s.gift_card_max_cents),
       giftYears: String(s.gift_card_valid_years),
+      welcome: s.newsletter_welcome_percent ? String(s.newsletter_welcome_percent) : "",
       notify: s.notify_email ?? "",
     });
+    setHideSoldOut(s.hide_sold_out);
   }, [query.data]);
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
@@ -67,6 +80,9 @@ function SettingsPage() {
       return setError("Gutscheinbeträge in ganzen Franken.");
     if (!Number.isInteger(years) || years < 1 || years > 30)
       return setError("Gültigkeit: 1 bis 30 Jahre.");
+    const welcome = form.welcome.trim() ? Number(form.welcome.trim().replace("%", "")) : null;
+    if (welcome !== null && (!Number.isInteger(welcome) || welcome < 1 || welcome > 50))
+      return setError("Willkommens-Rabatt: ganze Prozent von 1 bis 50, oder leer für keinen.");
     if (form.notify.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.notify.trim()))
       return setError("Die E-Mail-Adresse für Bestellmeldungen ist ungültig.");
     setBusy(true);
@@ -77,6 +93,8 @@ function SettingsPage() {
         gift_card_min_cents: giftMin,
         gift_card_max_cents: giftMax,
         gift_card_valid_years: years,
+        newsletter_welcome_percent: welcome,
+        hide_sold_out: hideSoldOut,
         notify_email: form.notify.trim() || null,
       });
       invalidateCatalog();
@@ -113,9 +131,20 @@ function SettingsPage() {
           />
         </div>
         <p className="admin-hint">
-          Wenn du Versandkosten verlangst, Texte im Shop anpassen (Laufband, Häufige Fragen, Versand
-          und Rückgabe): Dort steht heute «Gratisversand».
+          Produktseiten und Startseite zeigen die Versandkosten automatisch passend an. Das Laufband
+          und den Text im Einstieg der Startseite passt du unter «Startseite und Laufband» selbst
+          an, falls dort «Gratisversand» steht.
         </p>
+      </Panel>
+      <Panel title="Ausverkaufte Grössen">
+        <div className="admin-form">
+          <CheckField
+            label="Ausverkaufte Grössen im Shop ausblenden"
+            hint="Ohne Haken erscheinen sie durchgestrichen und lassen sich nicht wählen."
+            checked={hideSoldOut}
+            onChange={setHideSoldOut}
+          />
+        </div>
       </Panel>
       <Panel
         title="Gutscheine"
@@ -139,6 +168,20 @@ function SettingsPage() {
             inputMode="numeric"
             value={form.giftYears}
             onChange={set("giftYears")}
+          />
+        </div>
+      </Panel>
+      <Panel
+        title="Newsletter"
+        description="Rabatt in der Willkommens-E-Mail nach der bestätigten Anmeldung: ein persönlicher Code, einmal einlösbar, 90 Tage gültig."
+      >
+        <div className="admin-form admin-grid-3">
+          <TextField
+            label="Willkommens-Rabatt (%)"
+            hint="Leer = kein Rabatt"
+            inputMode="numeric"
+            value={form.welcome}
+            onChange={set("welcome")}
           />
         </div>
       </Panel>

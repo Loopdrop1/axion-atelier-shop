@@ -1,6 +1,7 @@
 // Bausteine fürs Admin: Seitenkopf, Bereiche, Felder, Statusanzeigen, Bestätigungsdialog.
 import { useId, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { translationNote, type AutoTranslateResult } from "@/lib/admin/auto-translate";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,6 +47,15 @@ export function dateOnly(iso: string | null | undefined): string {
 export const notify = {
   ok: (text: string): void => {
     toast.success(text);
+  },
+  warn: (text: string): void => {
+    toast.warning(text, { duration: 12_000 });
+  },
+  /** Gespeichert, mit Hinweis zur automatischen Übersetzung (scheitert sie, als Warnung). */
+  saved: (text: string, translation?: AutoTranslateResult): void => {
+    const note = translation ? translationNote(translation) : "";
+    if (translation?.failed) toast.warning(text + note, { duration: 12_000 });
+    else toast.success(text + note);
   },
   error: (error: unknown): void => {
     toast.error(adminErrorText(error));
@@ -337,7 +347,7 @@ export function Bilingual({ de, en }: { de: ReactNode; en: ReactNode }) {
         {de}
       </div>
       <div>
-        <p className="admin-lang">English (leer = deutscher Text)</p>
+        <p className="admin-lang">English · wird beim Speichern automatisch übersetzt</p>
         {en}
       </div>
     </div>

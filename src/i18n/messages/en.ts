@@ -33,11 +33,13 @@ export const en: Messages = {
     switchLabel: "Auf Deutsch wechseln",
     englishLegalNote:
       "This page is currently only available in German. The German version is legally binding.",
+    legalTranslationNote:
+      "This English version is a translation for your convenience. Only the German version is legally binding.",
   },
   announcements: [
     "Free shipping throughout Switzerland",
     "Delivery in 2 to 5 working days",
-    "Pay with TWINT, card, Apple Pay or Klarna",
+    "Pay with TWINT, card, Apple Pay, Google Pay or Klarna",
   ],
   nav: {
     labels: {
@@ -119,9 +121,30 @@ export const en: Messages = {
       text: "Axion stands for clean cuts and pieces that go together. Combine suit, waistcoat and shoes into your look.",
     },
     contact: {
-      intro: "Do you have a question about a piece or your order?",
-      title: "Write to us or call",
+      intro:
+        "Do you have a question about a piece or your order? Write to us and we will reply as soon as possible.",
+      title: "Reach us directly",
+      hours: "Available",
     },
+  },
+  contactForm: {
+    title: "Send us a message",
+    name: "Name",
+    email: "Email address",
+    message: "Message",
+    messageHint: "If your question is about an order, please include the order number.",
+    submit: "Send message",
+    sending: "Sending …",
+    sent: "Thank you! We have received your message and will reply by email as soon as possible.",
+    privacy: "We only use your details to answer your enquiry. Find out more in our",
+    privacyLink: "privacy policy",
+    nameRequired: "Please enter your name.",
+    messageTooShort: "Please write us at least a few words.",
+    messageTooLong: "Your message is too long (4000 characters at most).",
+    rateLimited:
+      "You have just sent several messages. Please try again later or email us directly.",
+    notConfigured: "The form is not active yet. Please email us directly.",
+    failed: "Your message could not be sent. Please try again or email us directly.",
   },
   seo: {
     homeTitle: "Suits, waistcoats and shoes",
@@ -168,9 +191,8 @@ export const en: Messages = {
       imageAlt: "Close-up of dark suit fabric with a brass-coloured button",
     },
     benefits: {
-      shipping: "Free shipping in Switzerland",
       delivery: "Delivery in 2 to 5 working days",
-      payment: "TWINT, card, Apple Pay, Klarna",
+      payment: "TWINT, card, Apple Pay, Google Pay, Klarna",
       returns: (days: number) => `Returns within ${days} days`,
     },
     discover: "Discover",
@@ -229,7 +251,7 @@ export const en: Messages = {
     remember: "add to wishlist",
     forget: "remove from wishlist",
     pleaseChooseSize: "Please choose a size",
-    deliveryNote: "Free shipping in Switzerland · Delivery in 2 to 5 working days",
+    deliveryNote: (shipping: string) => `${shipping} · Delivery in 2 to 5 working days`,
     vatIncluded: "incl. VAT",
     description: "Description",
     materialAndCare: "Material and care",
@@ -238,8 +260,8 @@ export const en: Messages = {
     fit: "Fit",
     fits: { "Slim Fit": "Slim fit", "Regular Fit": "Regular fit" },
     shippingAndReturns: "Shipping and returns",
-    shippingText: (days: number) =>
-      `Free shipping in Switzerland. Delivery in 2 to 5 working days. Returns within ${days} days.`,
+    shippingText: (shipping: string, days: number) =>
+      `${shipping}. Delivery in 2 to 5 working days. Returns within ${days} days.`,
     outfitEyebrow: "Worn together",
     outfitTitle: "The complete outfit",
     outfitSelect: (name: string) => `Select ${name}`,
@@ -262,15 +284,8 @@ export const en: Messages = {
     notFoundDescription: "This product was not found. Discover the pieces from Axion.",
   },
   sizeGuide: {
-    notice: "Sample values, will be replaced",
-    suits: "Suits and waistcoats",
-    size: "Size",
-    chest: "Chest",
-    waist: "Waist",
-    height: "Height",
-    shoes: "Shoes",
-    euSize: "EU size",
-    footLength: "Foot length in cm",
+    missing:
+      "The size chart for this piece will follow. If you have questions about sizing, we are happy to help, just write to us.",
     howTo:
       "Measure your chest at the widest point and your waist at the narrowest point. Measure your foot from the heel to the longest toe.",
   },

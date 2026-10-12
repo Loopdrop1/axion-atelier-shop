@@ -7,6 +7,8 @@ export interface ShopImage {
   altText: string;
   width: number;
   height: number;
+  /** Eigenes Bild fürs Handy (z. B. hoch statt quer), freiwillig */
+  mobile?: { url: string; width: number; height: number } | undefined;
 }
 export interface Variant {
   id: string;

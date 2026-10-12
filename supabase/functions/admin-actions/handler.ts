@@ -1,5 +1,6 @@
 // Admin-Aktionen, die E-Mails auslösen: Versand melden (und Versandmeldung erneut senden), Bestätigung erneut senden,
-// Gutschein ausstellen oder erneut senden. Alles andere erledigt das Admin direkt über RLS und RPC.
+// Gutschein ausstellen oder erneut senden. Dazu die automatische Übersetzung ins Englische (Dienst mit Schlüssel,
+// der nicht in den Browser gehört). Alles andere erledigt das Admin direkt über RLS und RPC.
 import { requireAdmin } from "../_shared/auth.ts";
 import type { Deps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
@@ -8,6 +9,7 @@ import { giftCardEmail, orderConfirmation, type GiftCardInfo } from "../_shared/
 import { HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
+import { TRANSLATE_LIMITS, TranslateError, translateToEnglish } from "../_shared/translate.ts";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -131,6 +133,27 @@ async function resendGiftCard(deps: Deps, body: Record<string, unknown>): Promis
   return json(200, { emailed: true, to });
 }
 
+async function translate(deps: Deps, body: Record<string, unknown>): Promise<Response> {
+  const texts = body["texts"];
+  if (!Array.isArray(texts) || texts.length === 0 || !texts.every((t) => typeof t === "string"))
+    throw new HttpError(400, "BAD_REQUEST");
+  if (texts.length > TRANSLATE_LIMITS.maxTexts) throw new HttpError(400, "TOO_MANY_TEXTS");
+  const list = texts as string[];
+  if (
+    list.some((t) => t.length > TRANSLATE_LIMITS.maxChars) ||
+    list.reduce((n, t) => n + t.length, 0) > TRANSLATE_LIMITS.maxTotalChars
+  )
+    throw new HttpError(400, "TEXT_TOO_LONG");
+  try {
+    return json(200, { translations: await translateToEnglish(list, deps.env.translate) });
+  } catch (error) {
+    if (!(error instanceof TranslateError)) throw error;
+    if (error.code === "UNAVAILABLE") throw new HttpError(503, "TRANSLATION_UNAVAILABLE");
+    if (error.code === "RATE_LIMITED") throw new HttpError(429, "RATE_LIMITED");
+    throw new HttpError(502, "TRANSLATION_FAILED");
+  }
+}
+
 export function createAdminActionsHandler(deps: Deps) {
   return withHttp(deps.env.allowedOrigins, async (req) => {
     const admin = await requireAdmin(req, deps.authClient, deps.rpc);
@@ -146,6 +169,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return issueGiftCard(deps, admin.id, body);
       case "resend_gift_card":
         return resendGiftCard(deps, body);
+      case "translate":
+        return translate(deps, body);
       default:
         throw new HttpError(400, "BAD_REQUEST");
     }

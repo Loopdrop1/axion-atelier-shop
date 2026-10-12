@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapAnnouncements, mapHomeContent, mapProduct, pick } from "./mapping";
+import { mapAnnouncements, mapHomeContent, mapProduct, mapSizeGuides, pick } from "./mapping";
 import { media } from "./media";
 import type { CategoryRow, ProductRow } from "./rows";
 import { estimateTotals, DEFAULT_SETTINGS } from "./source";
@@ -190,5 +190,48 @@ describe("Beträge im Warenkorb (wie reserve_checkout)", () => {
     const settings = { ...DEFAULT_SETTINGS, shippingCents: 900, freeShippingFromCents: 20000 };
     expect(estimateTotals(21000, 2000, 0, settings).shippingCents).toBe(900);
     expect(estimateTotals(21000, 0, 0, settings).shippingCents).toBe(0);
+  });
+});
+
+describe("Grössentabellen", () => {
+  const content = {
+    size_guides: {
+      tables: [
+        {
+          id: "anzug",
+          title: { de: "Anzüge und Westen", en: "Suits and waistcoats" },
+          categories: ["anzuege", "westen"],
+          columns: [{ de: "Grösse", en: "Size" }, { de: "Brust (cm)" }],
+          rows: [
+            ["46", "92"],
+            ["48", "96", "zu viel"],
+            ["", ""],
+          ],
+          note: { de: "Körpermasse", en: "Body measurements" },
+        },
+        { id: "leer", title: { de: "Ohne Zeilen" }, columns: [{ de: "Grösse" }], rows: [] },
+        "kaputt",
+      ],
+    },
+  };
+
+  it("liest Tabellen mit Sprache, Rückfall auf Deutsch, ohne leere Zeilen und überzählige Zellen", () => {
+    expect(mapSizeGuides(content, "en")).toEqual([
+      {
+        id: "anzug",
+        title: "Suits and waistcoats",
+        categories: ["anzuege", "westen"],
+        columns: ["Size", "Brust (cm)"],
+        rows: [
+          ["46", "92"],
+          ["48", "96"],
+        ],
+        note: "Body measurements",
+      },
+    ]);
+  });
+
+  it("ohne Tabellen: leere Liste (keine Beispielwerte im Shop)", () => {
+    expect(mapSizeGuides({}, "de")).toEqual([]);
   });
 });

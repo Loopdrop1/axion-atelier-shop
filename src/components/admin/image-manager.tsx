@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   deleteImage,
+  translateTexts,
   updateImage,
   uploadProductImage,
   type Product,
   type ProductImage,
 } from "@/lib/admin/api";
+import { autoTranslate } from "@/lib/admin/auto-translate";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { ConfirmButton, notify, Panel } from "./ui";
 
@@ -67,8 +69,16 @@ export function ImageManager({
     if (!alt) return;
     if (alt.alt_de === image.alt_de && alt.alt_en === (image.alt_en ?? "")) return;
     try {
-      await updateImage(image.id, { alt_de: alt.alt_de.trim(), alt_en: alt.alt_en.trim() || null });
-      notify.ok("Bildbeschreibung gespeichert.");
+      const translation = await autoTranslate(
+        { alt: { de: image.alt_de, en: image.alt_en ?? "" } },
+        { alt: { de: alt.alt_de, en: alt.alt_en } },
+        translateTexts,
+        { alt: 300 },
+      );
+      const altEn = translation.pairs["alt"]!.en;
+      setAlts((a) => ({ ...a, [image.id]: { ...alt, alt_en: altEn } }));
+      await updateImage(image.id, { alt_de: alt.alt_de.trim(), alt_en: altEn.trim() || null });
+      notify.saved("Bildbeschreibung gespeichert.", translation);
       onChange();
     } catch (error) {
       notify.error(error);

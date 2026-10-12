@@ -1,7 +1,8 @@
 // Produktdaten: Titel, Adresse, Kategorie, Preis, Farbe, Texte DE/EN, Anlässe, Neu/Sale, Outfit.
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import type { Category, Product, ProductListRow } from "@/lib/admin/api";
+import { translateTexts, type Category, type Product, type ProductListRow } from "@/lib/admin/api";
+import { autoTranslate, type AutoTranslateResult, type Pairs } from "@/lib/admin/auto-translate";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { slugify } from "@/lib/admin/slug";
 import { AreaField, Bilingual, CheckField, Panel, SelectField, TextField } from "./ui";
@@ -80,6 +81,21 @@ function initial(product: Product | null, categories: Category[]): FormState {
 
 const orNull = (v: string) => v.trim() || null;
 
+/** Texte mit englischer Fassung; beim Speichern übersetzt das Admin fehlende oder veraltete automatisch. */
+const TEXTS = ["title", "color_name", "description", "material", "care", "fit_note"] as const;
+const MAX_EN: Record<(typeof TEXTS)[number], number> = {
+  title: 120,
+  color_name: 60,
+  description: 4000,
+  material: 500,
+  care: 500,
+  fit_note: 500,
+};
+
+function textPairs(f: FormState): Pairs {
+  return Object.fromEntries(TEXTS.map((k) => [k, { de: f[`${k}_de`], en: f[`${k}_en`] }])) as Pairs;
+}
+
 export function ProductForm({
   product,
   categories,
@@ -89,9 +105,11 @@ export function ProductForm({
   product: Product | null;
   categories: Category[];
   products: ProductListRow[];
-  onSave: (values: ProductValues) => Promise<void>;
+  onSave: (values: ProductValues, translation: AutoTranslateResult) => Promise<void>;
 }) {
   const [form, setForm] = useState<FormState>(() => initial(product, categories));
+  // Stand beim Öffnen: Was seither auf Deutsch geändert wurde, übersetzt das Admin neu.
+  const [baseline] = useState<FormState>(() => initial(product, categories));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [busy, setBusy] = useState(false);
   const [handleTouched, setHandleTouched] = useState(Boolean(product));
@@ -145,32 +163,46 @@ export function ProductForm({
     if (Object.keys(next).length || price === null) return;
     setBusy(true);
     try {
-      await onSave({
-        title_de: form.title_de.trim(),
-        title_en: orNull(form.title_en),
-        handle: form.handle,
-        model: form.model,
-        category_id: form.category_id,
-        status: form.status,
-        sort: Number(form.sort) || 0,
-        price_cents: price,
-        compare_at_cents: compare,
-        color_name_de: form.color_name_de.trim(),
-        color_name_en: orNull(form.color_name_en),
-        color_hex: form.color_hex.toUpperCase(),
-        description_de: form.description_de.trim(),
-        description_en: orNull(form.description_en),
-        material_de: orNull(form.material_de),
-        material_en: orNull(form.material_en),
-        care_de: orNull(form.care_de),
-        care_en: orNull(form.care_en),
-        fit_note_de: orNull(form.fit_note_de),
-        fit_note_en: orNull(form.fit_note_en),
-        fit: orNull(form.fit),
-        occasions: form.occasions,
-        tags: [...(form.neu ? ["neu"] : []), ...(form.sale ? ["sale"] : []), ...form.otherTags],
-        outfit_handles: form.outfit_handles,
-      });
+      const translation = await autoTranslate(
+        textPairs(baseline),
+        textPairs(form),
+        translateTexts,
+        MAX_EN,
+      );
+      const en = Object.fromEntries(
+        TEXTS.map((k) => [`${k}_en`, translation.pairs[k]!.en]),
+      ) as Pick<FormState, `${(typeof TEXTS)[number]}_en`>;
+      const f = { ...form, ...en };
+      setForm(f);
+      await onSave(
+        {
+          title_de: f.title_de.trim(),
+          title_en: orNull(f.title_en),
+          handle: f.handle,
+          model: f.model,
+          category_id: f.category_id,
+          status: f.status,
+          sort: Number(f.sort) || 0,
+          price_cents: price,
+          compare_at_cents: compare,
+          color_name_de: f.color_name_de.trim(),
+          color_name_en: orNull(f.color_name_en),
+          color_hex: f.color_hex.toUpperCase(),
+          description_de: f.description_de.trim(),
+          description_en: orNull(f.description_en),
+          material_de: orNull(f.material_de),
+          material_en: orNull(f.material_en),
+          care_de: orNull(f.care_de),
+          care_en: orNull(f.care_en),
+          fit_note_de: orNull(f.fit_note_de),
+          fit_note_en: orNull(f.fit_note_en),
+          fit: orNull(f.fit),
+          occasions: f.occasions,
+          tags: [...(f.neu ? ["neu"] : []), ...(f.sale ? ["sale"] : []), ...f.otherTags],
+          outfit_handles: f.outfit_handles,
+        },
+        translation,
+      );
     } catch {
       // Meldung zeigt die Seite (notify); Eingaben bleiben stehen.
     } finally {

@@ -6,13 +6,16 @@ import {
   mapCategory,
   mapHomeContent,
   mapProduct,
+  mapSizeGuides,
   virtualCollections,
+  type SizeGuideTable,
 } from "./mapping";
 import type { CategoryRow } from "./rows";
 import { loadCatalog } from "./source";
 import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
 
 export type * from "./types";
+export type { SizeGuideTable } from "./mapping";
 export { backendConfigured } from "@/integrations/supabase/client";
 
 interface Catalog {
@@ -144,6 +147,10 @@ export async function getEditorial(locale: Locale = "de"): Promise<Editorial> {
     look: { image: home.look.image, hotspots: home.look.hotspots },
     fabric: home.story.image,
   };
+}
+
+export async function getSizeGuides(locale: Locale = "de"): Promise<SizeGuideTable[]> {
+  return mapSizeGuides((await loadCatalog()).content, locale);
 }
 
 export async function getAnnouncements(locale: Locale = "de"): Promise<string[]> {

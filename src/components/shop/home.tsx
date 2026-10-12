@@ -4,6 +4,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ArrowRight, ArrowLeft, Truck, Clock3, CreditCard, RotateCcw, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/commerce/format";
+import { shippingLabel } from "@/lib/commerce/shipping-text";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Collection, HomeContent, Product } from "@/lib/commerce";
@@ -23,6 +25,7 @@ export function HomePage({
   const t = useT();
   const locale = useLocale();
   const lp = useLocaleParam();
+  const settings = useShopSettings();
   const [embla, api] = useEmblaCarousel({ align: "start", dragFree: true });
   const [carousel, setCarousel] = useState({ previous: false, next: false, overflow: false });
   useEffect(() => {
@@ -250,7 +253,7 @@ export function HomePage({
       <div className="container">
         <div className="benefits">
           {[
-            { Icon: Truck, text: t.home.benefits.shipping },
+            { Icon: Truck, text: shippingLabel(settings, locale) },
             { Icon: Clock3, text: t.home.benefits.delivery },
             { Icon: CreditCard, text: t.home.benefits.payment },
             { Icon: RotateCcw, text: t.home.benefits.returns(shopConfig.returnDays) },

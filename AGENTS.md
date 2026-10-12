@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -7,9 +8,11 @@
 >
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
+
 <!-- LOVABLE:END -->
 
 # AXION architecture
+
 - Keep brand, contact, launch, VAT, fulfilment and feature settings in `src/config/shop.ts` so client-confirmed values have one source.
 - UI reads commerce data only through async exports from `src/lib/commerce/index.ts`; the catalogue comes from Supabase via `source.ts` (cached 30 s on the server), so page components never query tables directly.
 - Commerce contracts live in `types.ts`, the Supabase row mapping in `mapping.ts`, and image metadata in `media.ts` to separate contracts from content.
@@ -25,6 +28,10 @@
 - Backend is Lovable Cloud (region Europe). Migrations in `supabase/migrations/` are applied manually in order (Lovable does not run migration files from Git); never edit an applied migration, add a new one instead.
 - Keep `src/integrations/supabase/client.ts` as is: it is SSR-safe, exports `backendConfigured` and works without env (preview); do not replace it with a generated client.
 - The delivery area is the `SHIPPING_COUNTRIES` secret (default `CH`); adding `LI` requires the Liechtenstein clauses in the legal texts.
+- English follows German in the admin: on save, `src/lib/admin/auto-translate.ts` translates new or changed German texts through `admin-actions` (`translate`, Lovable AI gateway); English edited by hand is never overwritten, and a failed translation leaves English empty so the shop shows German.
+- Menus come from the active categories (`navQuery`); size charts from `site_content` key `size_guides` (Admin → Grössentabellen); shipping texts from `shop_settings` via `shippingLabel`; never hardcode «Gratisversand» in new UI.
+- Legal and help pages exist in German (`pages.ts`) and English (`pages-en.ts`) with the same structure (a test enforces it); German is binding.
+- The contact form posts to the `contact` Edge Function (rate-limited by `contact_guard`, nothing stored); the admin order page prints a receipt (`components/admin/receipt.tsx`).
 
 - Search serialization uses plain string query values, with optional defaults resolved by consumers, to avoid redirecting clean URLs.
 - Shared Dialog panels restore their external opener and initialise search focus; filter and occasion dropdowns use controlled non-modal Radix Popovers for keyboard and outside-click handling.

@@ -186,7 +186,18 @@ function contentImage(block: Json | undefined, locale: Locale, fallback: ShopIma
       height: num(block["image_height"]) ?? null,
     },
   );
-  return image ?? fallback;
+  if (!image) return fallback;
+  // Freiwillig: eigenes Bild fürs Handy (hoch), gleiche Bildbeschreibung
+  const mobilePath = str(block["image_mobile"]);
+  const mobile = mobilePath
+    ? toImage(mobilePath, image.altText, "site-media", {
+        width: num(block["image_mobile_width"]) ?? null,
+        height: num(block["image_mobile_height"]) ?? null,
+      })
+    : null;
+  return mobile
+    ? { ...image, mobile: { url: mobile.url, width: mobile.width, height: mobile.height } }
+    : image;
 }
 
 /** Startseite: Werte aus site_content, fehlende Felder aus den Übersetzungen. */
@@ -254,6 +265,48 @@ export function mapHomeContent(content: Record<string, Json>, locale: Locale): H
       link: f(story, "link", d.story.link),
     },
   };
+}
+
+/** Grössentabelle aus dem Admin (site_content «size_guides»). */
+export interface SizeGuideTable {
+  id: string;
+  title: string;
+  /** Slugs der Kategorien, für die sie gilt; leer = alle */
+  categories: string[];
+  columns: string[];
+  rows: string[][];
+  note: string;
+}
+
+/** Grössentabellen: nur Tabellen mit Spalten und mindestens einer ausgefüllten Zeile. */
+export function mapSizeGuides(content: Record<string, Json>, locale: Locale): SizeGuideTable[] {
+  const block = content["size_guides"];
+  const tables = isObj(block) && Array.isArray(block["tables"]) ? block["tables"] : [];
+  return tables.flatMap((table, i) => {
+    if (!isObj(table)) return [];
+    const columns = (Array.isArray(table["columns"]) ? table["columns"] : []).map((c) =>
+      localized(c, locale, null, ""),
+    );
+    if (!columns.length || columns.every((c) => !c)) return [];
+    const rows = (Array.isArray(table["rows"]) ? table["rows"] : []).flatMap((row) => {
+      if (!Array.isArray(row)) return [];
+      const cells = columns.map((_, k) => str(row[k])?.trim() ?? "");
+      return cells.some(Boolean) ? [cells] : [];
+    });
+    if (!rows.length) return [];
+    return [
+      {
+        id: str(table["id"]) || `tabelle-${i + 1}`,
+        title: localized(table["title"], locale, null, ""),
+        categories: (Array.isArray(table["categories"]) ? table["categories"] : []).flatMap((c) =>
+          typeof c === "string" ? [c] : [],
+        ),
+        columns,
+        rows,
+        note: localized(table["note"], locale, null, ""),
+      },
+    ];
+  });
 }
 
 /** Laufband oben auf jeder Seite. */

@@ -4,6 +4,7 @@ import { pagesEn } from "@/content/pages-en";
 import { WrittenContent } from "./written-content";
 import { shopConfig } from "@/config/shop";
 import { SizeGuide } from "./size-guide";
+import { ContactForm } from "./contact-form";
 import { Photo } from "./primitives";
 import type { ShopImage } from "@/lib/commerce";
 import { messages, useLocale, useLocaleParam, useT, type Locale } from "@/i18n";
@@ -19,6 +20,9 @@ export const contentHandles = [
   "agb",
 ] as const;
 export type ContentHandle = (typeof contentHandles)[number];
+
+/** Rechtstexte: Auf Englisch steht ein Hinweis, dass die deutsche Fassung massgebend ist. */
+const LEGAL = new Set<ContentHandle>(["impressum", "datenschutz", "agb"]);
 
 /** Titel und Beschreibung einer Inhaltsseite in der gewünschten Sprache (für head). */
 export function contentMeta(handle: ContentHandle, locale: Locale) {
@@ -44,6 +48,11 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
           {t.language.englishLegalNote}
         </p>
       )}
+      {translated && LEGAL.has(handle) && (
+        <p className="language-note" lang="en">
+          {t.language.legalTranslationNote}
+        </p>
+      )}
       {written ? (
         <div lang={germanFallback ? "de-CH" : undefined}>
           <WrittenContent page={written} />
@@ -67,13 +76,25 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
       ) : handle === "kontakt" ? (
         <>
           <p>{t.content.contact.intro}</p>
+          <ContactForm />
           <h2>{t.content.contact.title}</h2>
           <p>
             <a href={`mailto:${shopConfig.contact.email}`}>{shopConfig.contact.email}</a>
-            <br />
-            <a href={`tel:${shopConfig.contact.phone}`}>{shopConfig.contact.phone}</a>
+            {shopConfig.contact.phone && (
+              <>
+                <br />
+                <a href={`tel:${shopConfig.contact.phone.replace(/[^\d+]/g, "")}`}>
+                  {shopConfig.contact.phone}
+                </a>
+              </>
+            )}
+            {shopConfig.contact.hours && (
+              <>
+                <br />
+                {t.content.contact.hours}: {shopConfig.contact.hours}
+              </>
+            )}
           </p>
-          {placeholder}
         </>
       ) : null}
     </article>

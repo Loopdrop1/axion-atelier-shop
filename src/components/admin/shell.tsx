@@ -4,6 +4,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
+  BookOpen,
   Boxes,
   FolderTree,
   Gift,
@@ -12,6 +13,7 @@ import {
   Menu,
   Package,
   PanelsTopLeft,
+  Ruler,
   Percent,
   Settings,
   ShoppingBag,
@@ -37,8 +39,10 @@ const NAV = [
   { to: "/admin/gutscheine", label: "Gutscheine", icon: Gift },
   { to: "/admin/newsletter", label: "Newsletter", icon: Mail },
   { to: "/admin/inhalte", label: "Startseite und Laufband", icon: PanelsTopLeft },
+  { to: "/admin/groessen", label: "Grössentabellen", icon: Ruler },
   { to: "/admin/zugaenge", label: "Zugänge", icon: Users },
   { to: "/admin/einstellungen", label: "Einstellungen", icon: Settings },
+  { to: "/admin/hilfe", label: "Anleitung", icon: BookOpen },
 ] as const;
 
 function useAdminSignOut() {

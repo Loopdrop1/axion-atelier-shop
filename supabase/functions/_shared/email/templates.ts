@@ -213,6 +213,13 @@ function totalsBlock(order: OrderData): { html: string; text: string } {
 }
 
 /** Bestellbestätigung an die Kundschaft (Waren oder Gutscheinkauf). */
+/** Hinweis zu Rückgabe und Umtausch mit Link auf die Seite «Versand und Rückgabe». */
+function returnsNote(shop: ShopInfo, de: boolean): string {
+  return de
+    ? `Rückgabe und Umtausch: Alles Wichtige steht unter ${shop.siteUrl}/versand-und-rueckgabe`
+    : `Returns and exchanges: everything you need to know is at ${shop.siteUrl}/en/versand-und-rueckgabe`;
+}
+
 export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailContent {
   const de = order.locale !== "en";
   const t = T[order.locale];
@@ -255,6 +262,7 @@ export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailConten
       : "",
     address.length ? divider() + label(t.shipTo) + p(address.map(esc).join("<br>")) : "",
     divider(),
+    isGift ? "" : p(esc(returnsNote(shop, de)), { muted: true, size: 13 }),
     p(esc(t.questions), { muted: true, size: 13 }),
   ].join("\n");
   const text = [
@@ -276,6 +284,7 @@ export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailConten
     "",
     `${t.viewOrder}: ${statusUrl(shop, order)}`,
     "",
+    isGift ? "" : returnsNote(shop, de),
     t.questions,
   ]
     .filter((l) => l !== undefined)
@@ -340,6 +349,39 @@ export function shopNotification(order: OrderData, shop: ShopInfo): EmailContent
     address.length ? `\nLieferadresse:\n${address.join("\n")}` : "",
     "",
     `Admin: ${adminUrl}`,
+  ].join("\n");
+  return { subject, html: layout({ locale: "de", subject, preheader: subject, body, shop }), text };
+}
+
+export interface ContactMessage {
+  name: string;
+  email: string;
+  message: string;
+  locale: Locale;
+}
+
+/** Nachricht aus dem Kontaktformular an den Shop (Antworten gehen per Reply-To an die Kundschaft). */
+export function contactMessage(msg: ContactMessage, shop: ShopInfo): EmailContent {
+  const subject = `Kontaktformular: ${msg.name}`;
+  const lang = msg.locale === "en" ? " (auf Englisch geschrieben)" : "";
+  const body = [
+    h1("Neue Nachricht"),
+    p(`Von <strong>${esc(msg.name)}</strong>, ${esc(msg.email)}${lang}`),
+    divider(),
+    p(escLines(msg.message)),
+    divider(),
+    p("Antworten: einfach auf diese E-Mail antworten, sie geht direkt an die Person.", {
+      muted: true,
+      size: 13,
+    }),
+  ].join("\n");
+  const text = [
+    "Neue Nachricht aus dem Kontaktformular",
+    `Von ${msg.name}, ${msg.email}${lang}`,
+    "",
+    msg.message,
+    "",
+    "Antworten: einfach auf diese E-Mail antworten, sie geht direkt an die Person.",
   ].join("\n");
   return { subject, html: layout({ locale: "de", subject, preheader: subject, body, shop }), text };
 }

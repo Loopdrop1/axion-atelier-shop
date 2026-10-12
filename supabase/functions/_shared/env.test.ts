@@ -35,3 +35,28 @@ describe("readEnv: erlaubte Domains", () => {
     expect(isAllowedOrigin("https://boese.example", preview)).toBe(false);
   });
 });
+
+describe("readEnv: Übersetzung", () => {
+  it("nimmt ohne Einstellung das Lovable AI Gateway mit dem Projektschlüssel", () => {
+    expect(env({ LOVABLE_API_KEY: "lov_key" }).translate).toEqual({
+      apiBase: "https://ai.gateway.lovable.dev/v1",
+      apiKey: "lov_key",
+      model: "google/gemini-2.5-flash",
+    });
+  });
+
+  it("eigener Dienst und eigenes Modell gehen vor", () => {
+    expect(
+      env({
+        LOVABLE_API_KEY: "lov_key",
+        TRANSLATE_API_BASE: "https://api.example.com/v1",
+        TRANSLATE_API_KEY: "own_key",
+        TRANSLATE_MODEL: "own-model",
+      }).translate,
+    ).toEqual({ apiBase: "https://api.example.com/v1", apiKey: "own_key", model: "own-model" });
+  });
+
+  it("ohne Schlüssel bleibt er leer (Übersetzung meldet dann «nicht verfügbar»)", () => {
+    expect(env({}).translate.apiKey).toBe("");
+  });
+});

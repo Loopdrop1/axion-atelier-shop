@@ -83,7 +83,7 @@ test("Admin: Übersicht, Bestellung versenden, interne Notiz, Retoure", async ({
   await expect(page).toHaveURL(/ansicht=open/);
   await page.getByRole("link", { name: "AX-1040" }).click();
   await expect(page.getByRole("heading", { name: "Bestellung AX-1040" })).toBeVisible();
-  await page.getByLabel("Sendungsnummer (freiwillig)").fill("99.00.111111.22222222");
+  await page.getByLabel("Sendungsnummer", { exact: true }).fill("99.00.111111.22222222");
   await page.getByRole("button", { name: "Als versendet markieren" }).click();
   await toast(page, "Als versendet markiert und E-Mail gesendet.");
   await expect(page.getByRole("link", { name: "99.00.111111.22222222" })).toHaveAttribute(
@@ -145,8 +145,12 @@ test("Admin: Produkt anlegen mit Grösse, Anfangsbestand und Bild; danach im Sho
   await page.getByLabel("Streichpreis (CHF, freiwillig)").fill("");
   await page.getByRole("button", { name: "Produkt anlegen" }).click();
   await toast(page, "Produkt angelegt.");
+  await toast(page, "automatisch ins Englische übersetzt");
   await expect(page).toHaveURL(/\/admin\/produkte\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: "Sakko Rigi · Grau" })).toBeVisible();
+  // Englisch entsteht beim Speichern automatisch aus dem Deutschen
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("EN Sakko Rigi");
+  await expect(page.getByLabel("Colour name", { exact: true })).toHaveValue("EN Grau");
 
   const sizes = page.locator(".admin-panel", { hasText: "Grössen und Bestand" });
   await sizes.getByLabel("Neue Grösse").fill("50");
@@ -291,7 +295,7 @@ test("Admin: Gutschein ausstellen und sperren", async ({ page, request }) => {
 test("Admin: Startseite und Laufband ändern, im Shop sichtbar", async ({ page }) => {
   test.setTimeout(120_000);
   await adminSignIn(page, "/admin/anmelden?weiter=/admin/inhalte");
-  const hero = page.locator(".admin-panel", { hasText: "Einstieg (grosses Bild oben)" });
+  const hero = page.locator(".admin-panel", { hasText: "Einstieg (oben, mit 3D-Logo)" });
   await hero.getByLabel("Titel").first().fill("Herbst bei Axion.");
   await hero.getByRole("button", { name: "Speichern" }).click();
   await toast(page, "Gespeichert.");

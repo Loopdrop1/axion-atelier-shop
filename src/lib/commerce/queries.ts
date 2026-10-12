@@ -10,6 +10,7 @@ import {
   getProductsByHandles,
   getRecommendations,
   getSiblings,
+  getSizeGuides,
   listCollections,
   listProducts,
   searchProducts,
@@ -81,6 +82,26 @@ export const announcementsQuery = (locale: Locale) =>
   queryOptions({
     queryKey: ["announcements", locale],
     queryFn: () => getAnnouncements(locale),
+    staleTime: 60_000,
+  });
+
+export const sizeGuideQuery = (locale: Locale) =>
+  queryOptions({
+    queryKey: ["size-guides", locale],
+    queryFn: () => getSizeGuides(locale),
+    staleTime: 60_000,
+  });
+
+const VIRTUAL = new Set(["alle", "neu", "sale"]);
+
+/** Kategorien fürs Menü (aktive Kategorien aus dem Admin, in ihrer Reihenfolge). */
+export const navQuery = (locale: Locale) =>
+  queryOptions({
+    queryKey: ["nav", locale],
+    queryFn: async () =>
+      (await listCollections(locale))
+        .filter((c) => !VIRTUAL.has(c.handle))
+        .map((c) => ({ handle: c.handle, title: c.title })),
     staleTime: 60_000,
   });
 

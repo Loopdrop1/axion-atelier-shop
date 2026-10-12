@@ -56,7 +56,8 @@ function Stock() {
       if (!showInactive && (!v.active || v.product?.status !== "active")) return false;
       if (lowOnly && v.stock > 1) return false;
       if (!t) return true;
-      return [v.product?.title_de, v.product?.color_name_de, v.size, v.sku].some((x) =>
+      // Barcode-Scanner tippen den Code wie eine Tastatur ins Suchfeld
+      return [v.product?.title_de, v.product?.color_name_de, v.size, v.sku, v.barcode].some((x) =>
         x?.toLowerCase().includes(t),
       );
     });
@@ -105,7 +106,7 @@ function Stock() {
         <div className="admin-search">
           <Input
             type="search"
-            placeholder="Produkt, Farbe, Grösse oder Artikelnummer"
+            placeholder="Produkt, Farbe, Grösse, Artikelnummer oder Barcode"
             aria-label="Lager durchsuchen"
             value={term}
             onChange={(e) => setTerm(e.target.value)}

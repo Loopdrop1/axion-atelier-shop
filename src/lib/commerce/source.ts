@@ -54,6 +54,8 @@ export interface ShopSettings {
   giftCardMinCents: number;
   giftCardMaxCents: number;
   giftCardValidYears: number;
+  /** Ausverkaufte Grössen ausblenden statt als ausverkauft zeigen */
+  hideSoldOut: boolean;
 }
 
 export const DEFAULT_SETTINGS: ShopSettings = {
@@ -62,6 +64,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   giftCardMinCents: 2500,
   giftCardMaxCents: 100000,
   giftCardValidYears: 5,
+  hideSoldOut: false,
 };
 
 export async function loadSettings(): Promise<ShopSettings> {
@@ -69,7 +72,7 @@ export async function loadSettings(): Promise<ShopSettings> {
   const { data, error } = await supabase
     .from("shop_settings")
     .select(
-      "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years",
+      "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -80,6 +83,7 @@ export async function loadSettings(): Promise<ShopSettings> {
     giftCardMinCents: data.gift_card_min_cents,
     giftCardMaxCents: data.gift_card_max_cents,
     giftCardValidYears: data.gift_card_valid_years,
+    hideSoldOut: data.hide_sold_out,
   };
 }
 

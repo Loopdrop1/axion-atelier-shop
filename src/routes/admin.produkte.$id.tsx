@@ -9,6 +9,7 @@ import {
   listProducts,
   saveProduct,
 } from "@/lib/admin/api";
+import type { AutoTranslateResult } from "@/lib/admin/auto-translate";
 import { invalidateCatalog } from "@/lib/commerce/source";
 import { ImageManager } from "@/components/admin/image-manager";
 import { ProductForm, type ProductValues } from "@/components/admin/product-form";
@@ -48,10 +49,13 @@ function ProductPage() {
     void queryClient.invalidateQueries({ queryKey: ["admin", "stock"] });
   };
 
-  async function save(values: ProductValues) {
+  async function save(values: ProductValues, translation: AutoTranslateResult) {
     try {
       const saved = await saveProduct(isNew ? values : { ...values, id });
-      notify.ok(isNew ? "Produkt angelegt. Jetzt Grössen und Bilder ergänzen." : "Gespeichert.");
+      notify.saved(
+        isNew ? "Produkt angelegt. Jetzt Grössen und Bilder ergänzen." : "Gespeichert.",
+        translation,
+      );
       refresh();
       if (isNew)
         void navigate({ to: "/admin/produkte/$id", params: { id: saved.id }, replace: true });

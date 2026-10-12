@@ -15,9 +15,11 @@ import {
   deleteCategory,
   listCategories,
   saveCategory,
+  translateTexts,
   uploadSiteImage,
   type Category,
 } from "@/lib/admin/api";
+import { autoTranslate } from "@/lib/admin/auto-translate";
 import { slugify } from "@/lib/admin/slug";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { invalidateCatalog } from "@/lib/commerce/source";
@@ -185,18 +187,32 @@ function CategoryDialog({
       );
     setBusy(true);
     try {
-      await saveCategory({
-        ...(form.id ? { id: form.id } : {}),
-        slug: form.slug,
-        name_de: form.name_de.trim(),
-        name_en: form.name_en.trim() || null,
-        description_de: form.description_de.trim() || null,
-        description_en: form.description_en.trim() || null,
-        image_path: form.image_path || null,
-        sort: Number(form.sort) || 0,
-        active: form.active,
+      const pairs = (d: Draft) => ({
+        name: { de: d.name_de, en: d.name_en },
+        description: { de: d.description_de, en: d.description_en },
       });
-      notify.ok("Kategorie gespeichert.");
+      const translation = await autoTranslate(pairs(draft), pairs(form), translateTexts, {
+        name: 80,
+        description: 500,
+      });
+      const f = {
+        ...form,
+        name_en: translation.pairs["name"]!.en,
+        description_en: translation.pairs["description"]!.en,
+      };
+      setForm(f);
+      await saveCategory({
+        ...(f.id ? { id: f.id } : {}),
+        slug: f.slug,
+        name_de: f.name_de.trim(),
+        name_en: f.name_en.trim() || null,
+        description_de: f.description_de.trim() || null,
+        description_en: f.description_en.trim() || null,
+        image_path: f.image_path || null,
+        sort: Number(f.sort) || 0,
+        active: f.active,
+      });
+      notify.saved("Kategorie gespeichert.", translation);
       onSaved();
       onClose();
     } catch (e) {

@@ -3,6 +3,7 @@ import type { Locale } from "../money.ts";
 import type { ShopInfo } from "./layout.ts";
 import {
   authEmail,
+  contactMessage,
   giftCardEmail,
   newsletterConfirm,
   newsletterWelcome,
@@ -223,6 +224,33 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
       "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
     );
     expect(en.text).toContain("Switzerland");
+  });
+
+  it("Bestellbestätigung: Hinweis auf Rückgabe und Umtausch (nicht beim Gutscheinkauf)", () => {
+    expect(orderConfirmation(order("de"), shop).text).toContain(
+      "Rückgabe und Umtausch: Alles Wichtige steht unter https://shop.test/versand-und-rueckgabe",
+    );
+    expect(orderConfirmation(order("en"), shop).html).toContain(
+      "https://shop.test/en/versand-und-rueckgabe",
+    );
+    const gift = orderConfirmation(order("de", { kind: "gift_card", items: [] }), shop);
+    expect(gift.text).not.toContain("Rückgabe und Umtausch");
+  });
+
+  it("Kontaktformular: Absender, maskierte Nachricht, Sprache", () => {
+    const mail = contactMessage(
+      {
+        name: "Anna <Muster>",
+        email: "anna@example.ch",
+        message: "Hallo\n<b>Frage</b>",
+        locale: "en",
+      },
+      shop,
+    );
+    expect(mail.subject).toBe("Kontaktformular: Anna <Muster>");
+    expect(mail.html).toContain("Anna &lt;Muster&gt;");
+    expect(mail.html).toContain("Hallo<br>&lt;b&gt;Frage&lt;/b&gt;");
+    expect(mail.text).toContain("auf Englisch geschrieben");
   });
 
   it("Tausendertrennzeichen wie im Shop (CHF 1’299.00)", () => {

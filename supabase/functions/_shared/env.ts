@@ -26,7 +26,12 @@ export interface FunctionEnv {
   allowedOrigins: string[];
   /** Liefergebiet in der Kasse. SHIPPING_COUNTRIES, z. B. "CH,LI"; Standard nur CH. */
   shippingCountries: ShippingCountry[];
+  /** Automatische Übersetzung (OpenAI-Schnittstelle). Standard: Lovable AI Gateway mit LOVABLE_API_KEY. */
+  translate: { apiBase: string; apiKey: string; model: string };
 }
+
+export const DEFAULT_TRANSLATE_API = "https://ai.gateway.lovable.dev/v1";
+export const DEFAULT_TRANSLATE_MODEL = "google/gemini-2.5-flash";
 
 /** Länder, für die Versand, Preise und Rechtstexte vorbereitet sind. Liechtenstein bringt eigenes
  *  Konsumentenrecht mit (Rücktrittsrecht im Fernabsatz) und kommt nur nach Entscheid des Kunden dazu. */
@@ -79,6 +84,11 @@ export function readEnv(get: EnvSource): FunctionEnv {
       ...(get("ALLOW_PREVIEW_ORIGINS") === "1" ? [PREVIEW_ORIGINS] : []),
     ],
     shippingCountries: shippingCountries(get("SHIPPING_COUNTRIES")),
+    translate: {
+      apiBase: get("TRANSLATE_API_BASE") || DEFAULT_TRANSLATE_API,
+      apiKey: get("TRANSLATE_API_KEY") || get("LOVABLE_API_KEY") || "",
+      model: get("TRANSLATE_MODEL") || DEFAULT_TRANSLATE_MODEL,
+    },
   };
 }
 

@@ -6,7 +6,8 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
-import { announcementsQuery } from "@/lib/commerce/queries";
+import { announcementsQuery, navQuery } from "@/lib/commerce/queries";
+import { useLocaleLoaderData } from "@/lib/commerce/locale-data";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Logo } from "./logo";
 import * as Popover from "@radix-ui/react-popover";
@@ -16,7 +17,10 @@ import { SearchOverlay } from "./search";
 import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
 
-export const navHandles = ["neu", "anzuege", "westen", "schuhe"] as const;
+/** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
+const defaultCategories = ["anzuege", "westen", "schuhe"] as const;
+/** Im Kopfmenü am Computer höchstens so viele Kategorien; die übrigen über «Alle Stücke». */
+const DESKTOP_MAX = 5;
 export const occasionHandles = ["hochzeit", "business", "abschlussfeier", "gala"] as const;
 const helpPages = [
   "versand-und-rueckgabe",
@@ -37,12 +41,19 @@ export function ShopShell({ children }: { children: ReactNode }) {
   const [headerTop, setHeaderTop] = useState<number | null>(null);
   const [scroll, setScroll] = useState({ solid: false, hidden: false });
   const [announcement, setAnnouncement] = useState(0);
-  const { data: announcements = t.announcements } = useQuery(announcementsQuery(locale));
+  const initialAnnouncements = useLocaleLoaderData()?.announcements;
+  const { data: announcements = t.announcements } = useQuery({
+    ...announcementsQuery(locale),
+    ...(initialAnnouncements ? { initialData: initialAnnouncements } : {}),
+  });
 
   const { cartOpen, setCart, menuOpen, setMenu, setSearch } = useShopUI();
   const count = useCart((s) => s.lines.reduce((a, l) => a + l.quantity, 0));
   const wishes = useWishlist((s) => s.handles.length);
   const label = (handle: string) => t.nav.labels[handle] ?? handle;
+  const categories = useNavCategories();
+  const desktop = categories.slice(0, DESKTOP_MAX);
+  const more = categories.length > DESKTOP_MAX;
   useEffect(() => {
     useCart.persist.rehydrate();
     useWishlist.persist.rehydrate();
@@ -131,15 +142,20 @@ export function ShopShell({ children }: { children: ReactNode }) {
             <Logo />
           </Link>
           <nav className="desktop-nav" aria-label={t.nav.main}>
-            {navHandles.map((handle) => (
+            {[{ handle: "neu", title: label("neu") }, ...desktop].map((c) => (
               <Link
-                key={handle}
+                key={c.handle}
                 to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle }}
+                params={{ locale: lp, handle: c.handle }}
               >
-                {label(handle)}
+                {c.title}
               </Link>
             ))}
+            {more && (
+              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "alle" }}>
+                {label("alle")}
+              </Link>
+            )}
             <Popover.Root open={occasionOpen} onOpenChange={setOccasionOpen}>
               <Popover.Trigger asChild>
                 <Button
@@ -225,19 +241,24 @@ export function ShopShell({ children }: { children: ReactNode }) {
       </Panel>
       <Panel open={menuOpen} onOpenChange={setMenu} title={<Logo />} kind="menu">
         <nav className="menu-links" aria-label={t.nav.mobile}>
-          {[...navHandles, "alle", "sale"].map((handle, i) => (
+          {[
+            { handle: "neu", title: label("neu") },
+            ...categories,
+            { handle: "alle", title: label("alle") },
+            { handle: "sale", title: label("sale") },
+          ].map((c, i) => (
             <motion.div
-              key={handle}
+              key={c.handle}
               initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
             >
               <Link
                 to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle }}
+                params={{ locale: lp, handle: c.handle }}
                 onClick={() => setMenu(false)}
               >
-                {label(handle)}
+                {c.title}
               </Link>
             </motion.div>
           ))}
@@ -281,9 +302,21 @@ export function ShopShell({ children }: { children: ReactNode }) {
     </>
   );
 }
+/** Aktive Kategorien aus dem Admin; bis sie geladen sind, das Standardmenü. */
+function useNavCategories(): { handle: string; title: string }[] {
+  const t = useT();
+  const locale = useLocale();
+  const initial = useLocaleLoaderData()?.nav;
+  const { data } = useQuery({ ...navQuery(locale), ...(initial ? { initialData: initial } : {}) });
+  return (
+    data ?? defaultCategories.map((handle) => ({ handle, title: t.nav.labels[handle] ?? handle }))
+  );
+}
+
 function Footer() {
   const t = useT();
   const lp = useLocaleParam();
+  const categories = useNavCategories();
   return (
     <footer className="site-footer">
       <div className="container">
@@ -298,13 +331,13 @@ function Footer() {
           </Link>
           <div className="footer-column">
             <h3>{t.footer.shop}</h3>
-            {navHandles.map((handle) => (
+            {[{ handle: "neu", title: t.nav.labels["neu"] ?? "Neu" }, ...categories].map((c) => (
               <Link
                 to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle }}
-                key={handle}
+                params={{ locale: lp, handle: c.handle }}
+                key={c.handle}
               >
-                {t.nav.labels[handle]}
+                {c.title}
               </Link>
             ))}
             <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "sale" }}>

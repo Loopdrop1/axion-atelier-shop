@@ -417,7 +417,7 @@ test("Newsletter: Anmeldung im Footer, Bestätigen und Abmelden erst per Klick",
   await expect(page.getByText("Dieser Link ist ungültig oder abgelaufen.")).toBeVisible();
 });
 
-test("Sitemap, englische Hilfe-Seiten und deutsche Rechtstexte mit Hinweis", async ({
+test("Sitemap, englische Hilfe-Seiten und englische Rechtstexte mit Hinweis", async ({
   page,
   request,
 }) => {
@@ -440,11 +440,37 @@ test("Sitemap, englische Hilfe-Seiten und deutsche Rechtstexte mit Hinweis", asy
   await expect(page.locator(".language-note")).toHaveCount(0);
 
   await open(page, "/en/agb");
-  await expect(page.locator(".language-note")).toBeVisible();
-  await expect(page.getByText("6. Geschenkgutscheine")).toBeVisible();
+  await expect(page.locator(".language-note")).toContainText("Only the German version");
+  await expect(page.getByRole("heading", { name: "6. Gift cards" })).toBeVisible();
+  await open(page, "/en/datenschutz");
+  await expect(page.getByRole("heading", { level: 1, name: "Privacy policy" })).toBeVisible();
+  await expect(page.getByText(/contact form/).first()).toBeVisible();
 
   await open(page, "/datenschutz");
   await expect(page.getByText(/Stripe Payments Europe, Limited/)).toBeVisible();
   await expect(page.getByText(/Shopify/)).toHaveCount(0);
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
+test("Kontaktformular: prüft Eingaben und schickt die Nachricht", async ({ page, request }) => {
+  const errors = watchErrors(page);
+  await open(page, "/kontakt");
+  const form = page.locator(".contact-form");
+  await form.getByRole("button", { name: "Nachricht senden" }).click();
+  await expect(form.getByText("Bitte gib deinen Namen an.")).toBeVisible();
+  await expect(form.getByText("Bitte schreib uns mindestens ein paar Worte.")).toBeVisible();
+  await form.getByLabel("Name").fill("Max Muster");
+  await form.getByLabel("E-Mail-Adresse").fill("max@example.ch");
+  await form.getByLabel("Nachricht").fill("Gibt es den Anzug Limmat auch in Grösse 58?");
+  await form.getByRole("button", { name: "Nachricht senden" }).click();
+  await expect(page.getByText("Danke! Deine Nachricht ist bei uns.")).toBeVisible();
+  const sent = (await fakeLog(request)).find((e) => e.path === "functions/contact");
+  expect(sent?.body).toMatchObject({
+    name: "Max Muster",
+    email: "max@example.ch",
+    message: "Gibt es den Anzug Limmat auch in Grösse 58?",
+    locale: "de",
+    website: "",
+  });
   expect(errors, errors.join("\n")).toEqual([]);
 });

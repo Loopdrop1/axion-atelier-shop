@@ -232,6 +232,29 @@ await withFunction("newsletter", async (url) => {
   );
 });
 
+await withFunction("contact", async (url) => {
+  const before = resend.sent.length;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://shop.test",
+      "cf-connecting-ip": "203.0.113.10",
+    },
+    body: JSON.stringify({
+      name: "Smoke",
+      email: `smoke-${randomUUID().slice(0, 8)}@example.ch`,
+      message: "Rauchtest für das Kontaktformular.",
+      locale: "de",
+    }),
+  });
+  check(
+    "contact: Nachricht unter Deno",
+    res.status === 200 && resend.sent.length - before === 1,
+    `${res.status}`,
+  );
+});
+
 for (const name of ["admin-actions", "account-delete"]) {
   await withFunction(name, async (url) => {
     const res = await fetch(url, {

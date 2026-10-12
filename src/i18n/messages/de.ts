@@ -34,11 +34,13 @@ export const de = {
     switchLabel: "Switch to English",
     englishLegalNote:
       "This page is currently only available in German. The German version is legally binding.",
+    legalTranslationNote:
+      "This English version is a translation for your convenience. Only the German version is legally binding.",
   },
   announcements: [
     "Gratisversand in der ganzen Schweiz",
     "Lieferung in 2 bis 5 Arbeitstagen",
-    "Bezahlen mit TWINT, Karte, Apple Pay oder Klarna",
+    "Bezahlen mit TWINT, Karte, Apple Pay, Google Pay oder Klarna",
   ],
   nav: {
     labels: {
@@ -121,9 +123,31 @@ export const de = {
       text: "Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste und Schuhe zu deinem Auftritt.",
     },
     contact: {
-      intro: "Hast du eine Frage zu einem Stück oder deiner Bestellung?",
-      title: "Schreib uns oder ruf an",
+      intro:
+        "Hast du eine Frage zu einem Stück oder deiner Bestellung? Schreib uns, wir antworten so rasch wie möglich.",
+      title: "Direkt erreichen",
+      hours: "Erreichbar",
     },
+  },
+  contactForm: {
+    title: "Nachricht schreiben",
+    name: "Name",
+    email: "E-Mail-Adresse",
+    message: "Nachricht",
+    messageHint: "Bei Fragen zu einer Bestellung bitte die Bestellnummer angeben.",
+    submit: "Nachricht senden",
+    sending: "Wird gesendet …",
+    sent: "Danke! Deine Nachricht ist bei uns. Wir antworten dir so rasch wie möglich per E-Mail.",
+    privacy: "Wir verwenden deine Angaben nur, um deine Anfrage zu beantworten. Mehr dazu in der",
+    privacyLink: "Datenschutzerklärung",
+    nameRequired: "Bitte gib deinen Namen an.",
+    messageTooShort: "Bitte schreib uns mindestens ein paar Worte.",
+    messageTooLong: "Die Nachricht ist zu lang (höchstens 4000 Zeichen).",
+    rateLimited:
+      "Du hast gerade mehrere Nachrichten geschickt. Bitte versuch es später wieder oder schreib uns direkt per E-Mail.",
+    notConfigured: "Das Formular ist noch nicht aktiv. Bitte schreib uns direkt per E-Mail.",
+    failed:
+      "Die Nachricht konnte nicht gesendet werden. Bitte versuch es noch einmal oder schreib uns direkt per E-Mail.",
   },
   seo: {
     homeTitle: "Anzüge, Westen und Schuhe",
@@ -170,9 +194,8 @@ export const de = {
       imageAlt: "Detail von dunklem Anzugstoff mit messingfarbenem Knopf",
     },
     benefits: {
-      shipping: "Gratisversand in der Schweiz",
       delivery: "Lieferung in 2 bis 5 Arbeitstagen",
-      payment: "TWINT, Karte, Apple Pay, Klarna",
+      payment: "TWINT, Karte, Apple Pay, Google Pay, Klarna",
       returns: (days: number) => `Rückgabe innert ${days} Tagen`,
     },
     discover: "Entdecken",
@@ -231,7 +254,7 @@ export const de = {
     remember: "merken",
     forget: "aus Merkliste entfernen",
     pleaseChooseSize: "Bitte Grösse wählen",
-    deliveryNote: "Gratisversand in der Schweiz · Lieferung in 2 bis 5 Arbeitstagen",
+    deliveryNote: (shipping: string) => `${shipping} · Lieferung in 2 bis 5 Arbeitstagen`,
     vatIncluded: "inkl. MWST",
     description: "Beschreibung",
     materialAndCare: "Material und Pflege",
@@ -243,8 +266,8 @@ export const de = {
       string
     >,
     shippingAndReturns: "Versand und Rückgabe",
-    shippingText: (days: number) =>
-      `Gratisversand in der Schweiz. Lieferung in 2 bis 5 Arbeitstagen. Rückgabe innert ${days} Tagen.`,
+    shippingText: (shipping: string, days: number) =>
+      `${shipping}. Lieferung in 2 bis 5 Arbeitstagen. Rückgabe innert ${days} Tagen.`,
     outfitEyebrow: "Zusammen getragen",
     outfitTitle: "Komplettes Outfit",
     outfitSelect: (name: string) => `${name} auswählen`,
@@ -267,15 +290,8 @@ export const de = {
     notFoundDescription: "Dieses Produkt wurde nicht gefunden. Entdecke die Stücke von Axion.",
   },
   sizeGuide: {
-    notice: "Beispielwerte, werden ersetzt",
-    suits: "Anzüge und Westen",
-    size: "Grösse",
-    chest: "Brustumfang",
-    waist: "Taillenumfang",
-    height: "Körpergrösse",
-    shoes: "Schuhe",
-    euSize: "EU-Grösse",
-    footLength: "Fusslänge in cm",
+    missing:
+      "Die Grössentabelle für dieses Stück folgt. Bei Fragen zur Grösse helfen wir dir gerne, schreib uns einfach.",
     howTo:
       "Miss den Brustumfang an der breitesten Stelle und die Taille an der schmalsten Stelle. Miss deine Fusslänge von der Ferse bis zum längsten Zeh.",
   },

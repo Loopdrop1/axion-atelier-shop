@@ -79,6 +79,11 @@ export function adminErrorText(error: unknown): string {
     INVALID_SIZE: "Bitte eine Grösse angeben.",
     INVALID_RANGE: "Bitte gültige Daten wählen.",
     SPOT_WITHOUT_PRODUCT: "Jeder Punkt braucht ein Produkt.",
+    TRANSLATION_UNAVAILABLE: "Die Übersetzung ist gerade nicht verfügbar.",
+    TRANSLATION_FAILED: "Die Übersetzung hat nicht geklappt.",
+    RATE_LIMITED: "Zu viele Anfragen. Bitte kurz warten und erneut versuchen.",
+    TOO_MANY_TEXTS: "Zu viele Texte auf einmal.",
+    TEXT_TOO_LONG: "Der Text ist zu lang für die automatische Übersetzung.",
   };
   return texts[code] ?? "Das hat nicht geklappt. Bitte erneut versuchen.";
 }
@@ -87,6 +92,17 @@ async function action<T>(body: Record<string, unknown>): Promise<T> {
   const result = await callFunction<T>("admin-actions", body);
   if (!result.ok) throw new AdminError(result.error, result.body);
   return result.data;
+}
+
+// Übersetzung ----------------------------------------------------------------------------------------
+
+/** Deutsch → Englisch über die Edge Function (Schlüssel bleibt auf dem Server). Leere Texte bleiben leer. */
+export async function translateTexts(texts: string[]): Promise<string[]> {
+  if (!texts.some((t) => t.trim())) return texts.map(() => "");
+  const { translations } = await action<{ translations: string[] }>({ action: "translate", texts });
+  if (!Array.isArray(translations) || translations.length !== texts.length)
+    throw new AdminError("TRANSLATION_FAILED");
+  return translations;
 }
 
 // Zugang --------------------------------------------------------------------------------------------
@@ -501,7 +517,10 @@ export async function uploadSiteImage(file: File, folder: string) {
 
 // Lager ---------------------------------------------------------------------------------------------
 
-export type StockRow = Pick<Variant, "id" | "size" | "stock" | "active" | "sku" | "sort"> & {
+export type StockRow = Pick<
+  Variant,
+  "id" | "size" | "stock" | "active" | "sku" | "barcode" | "sort"
+> & {
   product: Pick<Product, "id" | "handle" | "title_de" | "color_name_de" | "status"> | null;
 };
 
@@ -509,7 +528,7 @@ export async function listStock(): Promise<StockRow[]> {
   const { data, error } = await db()
     .from("product_variants")
     .select(
-      "id, size, stock, active, sku, sort, product:products(id, handle, title_de, color_name_de, status)",
+      "id, size, stock, active, sku, barcode, sort, product:products(id, handle, title_de, color_name_de, status)",
     )
     .limit(2000);
   fail(error);

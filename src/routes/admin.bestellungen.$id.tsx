@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Printer } from "lucide-react";
+import { Receipt } from "@/components/admin/receipt";
 import { Button } from "@/components/ui/button";
 import {
   getOrder,
@@ -91,6 +92,11 @@ function OrderView({ order }: { order: AdminOrder }) {
     <>
       <PageHeader
         title={`Bestellung AX-${order.number}`}
+        actions={
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer /> Quittung drucken
+          </Button>
+        }
         description={
           <>
             <StatusBadge status={order.status} />{" "}
@@ -325,6 +331,7 @@ function OrderView({ order }: { order: AdminOrder }) {
           <NotePanel order={order} onDone={refresh} />
         </div>
       </div>
+      <Receipt order={order} />
     </>
   );
 }
@@ -379,7 +386,8 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
     >
       <div className="admin-form">
         <TextField
-          label="Sendungsnummer (freiwillig)"
+          label="Sendungsnummer"
+          hint="Bitte immer eintragen: AGB und Häufige Fragen sagen der Kundschaft die Sendungsnummer zu."
           placeholder="z. B. 99.00.123456.12345678"
           value={tracking}
           maxLength={60}

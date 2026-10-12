@@ -29,7 +29,7 @@ export function Photo({
   eager?: boolean;
 }) {
   if (!image) return null;
-  return (
+  const img = (
     <img
       className={className}
       src={image.url}
@@ -38,6 +38,18 @@ export function Photo({
       height={image.height}
       loading={eager ? "eager" : "lazy"}
     />
+  );
+  if (!image.mobile) return img;
+  return (
+    <picture>
+      <source
+        media="(max-width: 767px)"
+        srcSet={image.mobile.url}
+        width={image.mobile.width}
+        height={image.mobile.height}
+      />
+      {img}
+    </picture>
   );
 }
 export function Reveal({

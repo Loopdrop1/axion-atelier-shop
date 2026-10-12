@@ -15,7 +15,9 @@ import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$local
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnmeldenRouteImport } from './routes/admin.anmelden'
 import { Route as AdminEinstellungenRouteImport } from './routes/admin.einstellungen'
+import { Route as AdminGroessenRouteImport } from './routes/admin.groessen'
 import { Route as AdminGutscheineRouteImport } from './routes/admin.gutscheine'
+import { Route as AdminHilfeRouteImport } from './routes/admin.hilfe'
 import { Route as AdminInhalteRouteImport } from './routes/admin.inhalte'
 import { Route as AdminKategorienRouteImport } from './routes/admin.kategorien'
 import { Route as AdminLagerRouteImport } from './routes/admin.lager'
@@ -86,9 +88,19 @@ const AdminEinstellungenRoute = AdminEinstellungenRouteImport.update({
   path: '/einstellungen',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGroessenRoute = AdminGroessenRouteImport.update({
+  id: '/groessen',
+  path: '/groessen',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminGutscheineRoute = AdminGutscheineRouteImport.update({
   id: '/gutscheine',
   path: '/gutscheine',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminHilfeRoute = AdminHilfeRouteImport.update({
+  id: '/hilfe',
+  path: '/hilfe',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInhalteRoute = AdminInhalteRouteImport.update({
@@ -315,7 +327,9 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/hilfe': typeof AdminHilfeRoute
   '/admin/inhalte': typeof AdminInhalteRoute
   '/admin/kategorien': typeof AdminKategorienRoute
   '/admin/lager': typeof AdminLagerRoute
@@ -360,7 +374,9 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/hilfe': typeof AdminHilfeRoute
   '/admin/inhalte': typeof AdminInhalteRoute
   '/admin/kategorien': typeof AdminKategorienRoute
   '/admin/lager': typeof AdminLagerRoute
@@ -407,7 +423,9 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
+  '/admin/hilfe': typeof AdminHilfeRoute
   '/admin/inhalte': typeof AdminInhalteRoute
   '/admin/kategorien': typeof AdminKategorienRoute
   '/admin/lager': typeof AdminLagerRoute
@@ -456,7 +474,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/groessen'
     | '/admin/gutscheine'
+    | '/admin/hilfe'
     | '/admin/inhalte'
     | '/admin/kategorien'
     | '/admin/lager'
@@ -501,7 +521,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/groessen'
     | '/admin/gutscheine'
+    | '/admin/hilfe'
     | '/admin/inhalte'
     | '/admin/kategorien'
     | '/admin/lager'
@@ -547,7 +569,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/groessen'
     | '/admin/gutscheine'
+    | '/admin/hilfe'
     | '/admin/inhalte'
     | '/admin/kategorien'
     | '/admin/lager'
@@ -639,11 +663,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEinstellungenRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/groessen': {
+      id: '/admin/groessen'
+      path: '/groessen'
+      fullPath: '/admin/groessen'
+      preLoaderRoute: typeof AdminGroessenRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/gutscheine': {
       id: '/admin/gutscheine'
       path: '/gutscheine'
       fullPath: '/admin/gutscheine'
       preLoaderRoute: typeof AdminGutscheineRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/hilfe': {
+      id: '/admin/hilfe'
+      path: '/hilfe'
+      fullPath: '/admin/hilfe'
+      preLoaderRoute: typeof AdminHilfeRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/inhalte': {
@@ -1013,7 +1051,9 @@ const Char123LocaleChar125RouteRouteWithChildren =
 interface AdminRouteChildren {
   AdminAnmeldenRoute: typeof AdminAnmeldenRoute
   AdminEinstellungenRoute: typeof AdminEinstellungenRoute
+  AdminGroessenRoute: typeof AdminGroessenRoute
   AdminGutscheineRoute: typeof AdminGutscheineRoute
+  AdminHilfeRoute: typeof AdminHilfeRoute
   AdminInhalteRoute: typeof AdminInhalteRoute
   AdminKategorienRoute: typeof AdminKategorienRoute
   AdminLagerRoute: typeof AdminLagerRoute
@@ -1030,7 +1070,9 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnmeldenRoute: AdminAnmeldenRoute,
   AdminEinstellungenRoute: AdminEinstellungenRoute,
+  AdminGroessenRoute: AdminGroessenRoute,
   AdminGutscheineRoute: AdminGutscheineRoute,
+  AdminHilfeRoute: AdminHilfeRoute,
   AdminInhalteRoute: AdminInhalteRoute,
   AdminKategorienRoute: AdminKategorienRoute,
   AdminLagerRoute: AdminLagerRoute,

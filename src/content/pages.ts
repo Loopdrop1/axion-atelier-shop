@@ -131,8 +131,8 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - **Zahlungsdaten:** Kartennummern und ähnliche Zahlungsdaten erhalten wir nicht. Du gibst sie direkt auf der Bezahlseite unseres Zahlungsdienstleisters Stripe ein (Ziffer 4). Wir sehen nur, ob, wann und womit bezahlt wurde.
 - **Kundenkonto (freiwillig):** E-Mail-Adresse, Passwort (nur als verschlüsselter Prüfwert gespeichert, wir können es nicht lesen), Vor- und Nachname, Telefonnummer, Adresse, Sprache und deine Bestellungen.
 - **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
-- **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie dein persönlicher Willkommens-Rabattcode.
-- **Kommunikation:** Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns per E-Mail oder Telefon kontaktierst.
+- **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie, wenn wir einen Willkommensrabatt anbieten, dein persönlicher Rabattcode.
+- **Kommunikation:** Name, E-Mail-Adresse, Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns über das Kontaktformular, per E-Mail oder per Telefon kontaktierst.
 - **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website, zum Beispiel dem Schutz der Formulare vor Missbrauch.
 - **Daten auf deinem Gerät:** Warenkorb, Merkliste und, wenn du angemeldet bist, deine Anmeldung speichert dein Browser (Ziffer 6).
 
@@ -155,7 +155,7 @@ Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten
 - **Datenbank und Kundenkonten:** Bestellungen, Kundenkonten, Gutscheine und Newsletter-Anmeldungen speichern wir in Lovable Cloud. Lovable betreibt die Datenbank mit Supabase, Inc. (USA) in einem Rechenzentrum in Europa ([Ort]).
 - **Zahlung:** Die Bezahlung läuft über Stripe (Stripe Payments Europe, Limited, Irland, zusammen mit Stripe, Inc., USA). Stripe bearbeitet deine Daten für die Zahlung in unserem Auftrag und für eigene Zwecke, etwa zur Betrugsbekämpfung und zur Erfüllung gesetzlicher Pflichten, als eigene Verantwortliche. Bei TWINT, Apple Pay und Google Pay gelten zusätzlich die Datenschutzbestimmungen der jeweiligen Anbieter und deiner Bank. Datenschutzerklärung von Stripe: https://stripe.com/ch/privacy
 - **Klarna:** Wenn du mit Klarna bezahlst, bearbeitet die Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, deine Daten als eigene Verantwortliche. Klarna kann dafür deine Kreditwürdigkeit prüfen, auch mit automatisierten Entscheidungen. Datenschutzhinweise von Klarna: https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_ch/privacy
-- **E-Mail:** Bestellbestätigungen und die übrigen E-Mails des Shops versenden wir über Resend (Plus Five Five, Inc., San Francisco, USA). [Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]
+- **E-Mail:** Bestellbestätigungen, Nachrichten aus dem Kontaktformular und die übrigen E-Mails des Shops versenden wir über Resend (Plus Five Five, Inc., San Francisco, USA). [Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]
 - **Versand:** Für die Zustellung geben wir Name, Lieferadresse und Sendungsdaten an die Schweizerische Post weiter (Post CH AG, Post CH Netz AG und Die Schweizerische Post AG, Wankdorfallee 4, 3030 Bern). Die Post bearbeitet diese Daten als eigene Verantwortliche, gemäss ihren Angaben in der Schweiz, in Liechtenstein und in Deutschland. Datenschutzhinweise der Post: https://www.post.ch/de/pages/footer/datenschutz-und-rechtliches
 - **Technische Betreuung:** Flowrenix, Gibswil (Schweiz), betreibt und wartet den Shop in unserem Auftrag und kann dabei auf die Daten zugreifen, soweit das nötig ist.
 - **Behörden:** wenn wir gesetzlich dazu verpflichtet sind.
@@ -178,6 +178,7 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
 - **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
+- **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
 
 ### 8. Datensicherheit
 Wir schützen deine Daten mit angemessenen technischen und organisatorischen Massnahmen. Die Verbindung zu unserer Website ist verschlüsselt, Passwörter speichern wir nur als verschlüsselten Prüfwert, und Zugriff auf die Daten haben nur wir und unsere Dienstleister im nötigen Umfang.
@@ -215,7 +216,7 @@ Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestells
 
 Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
 
-Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.
+Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. [Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.] oder [Bestellen kannst du ab 16 Jahren; bis 18 Jahre brauchst du die Zustimmung der Eltern oder der gesetzlichen Vertretung.]
 
 ### 3. Preise
 Alle Preise sind Endpreise in Schweizer Franken (CHF). [Bei MWST-Pflicht: Sie enthalten die gesetzliche Mehrwertsteuer.] Allfällige Versandkosten siehst du im Warenkorb und auf der Bezahlseite, bevor du bestellst. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.

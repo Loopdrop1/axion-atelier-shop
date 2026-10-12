@@ -5,6 +5,8 @@ import { Heart, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { formatPrice } from "@/lib/commerce/format";
+import { shippingLabel } from "@/lib/commerce/shipping-text";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import type { Product } from "@/lib/commerce";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -26,6 +28,11 @@ export function ProductPage({
   const locale = useLocale();
   const lp = useLocaleParam();
   const fitLabel = useFitLabel();
+  const settings = useShopSettings();
+  const shipping = shippingLabel(settings, locale);
+  // Einstellung im Admin: ausverkaufte Grössen ausblenden statt durchgestrichen zeigen
+  const forSale = (p: Product) =>
+    settings.hideSoldOut ? p.variants.filter((v) => v.availableForSale) : p.variants;
   const [size, setSize] = useState("");
   const [guide, setGuide] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
@@ -196,7 +203,7 @@ export function ProductPage({
               </Button>
             </div>
             <div className="size-grid" ref={sizeSelector}>
-              {product.variants.map((v) => (
+              {forSale(product).map((v) => (
                 <Button
                   variant="icon"
                   key={v.id}
@@ -225,7 +232,7 @@ export function ProductPage({
               </Button>
             </div>
             {!size && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
-            <p className="delivery-note">{t.product.deliveryNote}</p>
+            <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
             <div className="accordion">
               {[
                 { title: t.product.description, text: product.description },
@@ -247,7 +254,7 @@ export function ProductPage({
                 },
                 {
                   title: t.product.shippingAndReturns,
-                  text: t.product.shippingText(shopConfig.returnDays),
+                  text: t.product.shippingText(shipping, shopConfig.returnDays),
                 },
               ].map((a) => (
                 <details key={a.title}>
@@ -293,7 +300,7 @@ export function ProductPage({
                   onChange={(e) => setChosen((s) => ({ ...s, [p.handle]: e.target.value }))}
                 >
                   <option value="">{t.product.chooseSize}</option>
-                  {p.variants.map((v) => (
+                  {forSale(p).map((v) => (
                     <option key={v.id} value={v.id} disabled={!v.availableForSale}>
                       {v.title}
                       {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
@@ -341,7 +348,7 @@ export function ProductPage({
         </section>
       </div>
       <Panel open={guide} onOpenChange={setGuide} title={t.product.sizeGuide}>
-        <SizeGuide />
+        <SizeGuide category={product.category} />
       </Panel>
       <Panel
         open={zoom !== null}

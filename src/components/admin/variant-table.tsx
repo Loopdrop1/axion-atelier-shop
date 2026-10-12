@@ -10,6 +10,7 @@ import { Badge, ConfirmButton, notify, Panel } from "./ui";
 interface Row {
   size: string;
   sku: string;
+  barcode: string;
   price: string;
   sort: string;
   active: boolean;
@@ -18,6 +19,7 @@ interface Row {
 const toRow = (v: Variant): Row => ({
   size: v.size,
   sku: v.sku ?? "",
+  barcode: v.barcode ?? "",
   price: centsToInput(v.price_cents),
   sort: String(v.sort),
   active: v.active,
@@ -37,7 +39,7 @@ export function VariantTable({
   const [edits, setEdits] = useState<Record<string, Row>>({});
   const [stockTarget, setStockTarget] = useState<StockTarget | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [draft, setDraft] = useState({ size: "", sku: "", stock: "0" });
+  const [draft, setDraft] = useState({ size: "", sku: "", barcode: "", stock: "0" });
 
   const rowOf = (v: Variant) => edits[v.id] ?? toRow(v);
   const setRow = (v: Variant, patch: Partial<Row>) =>
@@ -55,6 +57,7 @@ export function VariantTable({
       await updateVariant(v.id, {
         size: row.size.trim(),
         sku: row.sku.trim() || null,
+        barcode: row.barcode.trim() || null,
         price_cents: price,
         sort: Number(row.sort) || 0,
         active: row.active,
@@ -81,11 +84,12 @@ export function VariantTable({
           product_id: productId,
           size,
           sku: draft.sku.trim() || null,
+          barcode: draft.barcode.trim() || null,
           sort: Math.max(0, ...variants.map((v) => v.sort)) + 10,
         },
         stock,
       );
-      setDraft({ size: "", sku: "", stock: "0" });
+      setDraft({ size: "", sku: "", barcode: "", stock: "0" });
       notify.ok(`Grösse ${size} angelegt.`);
       onChange();
     } catch (error) {
@@ -106,6 +110,7 @@ export function VariantTable({
             <tr>
               <th>Grösse</th>
               <th>Artikelnummer</th>
+              <th>Barcode</th>
               <th>Preis abweichend (CHF)</th>
               <th>Reihenfolge</th>
               <th>Aktiv</th>
@@ -132,6 +137,15 @@ export function VariantTable({
                       value={row.sku}
                       maxLength={60}
                       onChange={(e) => setRow(v, { sku: e.target.value })}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      aria-label="Barcode"
+                      inputMode="numeric"
+                      value={row.barcode}
+                      maxLength={60}
+                      onChange={(e) => setRow(v, { barcode: e.target.value })}
                     />
                   </td>
                   <td>
@@ -221,6 +235,16 @@ export function VariantTable({
                   maxLength={60}
                   value={draft.sku}
                   onChange={(e) => setDraft((d) => ({ ...d, sku: e.target.value }))}
+                />
+              </td>
+              <td>
+                <Input
+                  aria-label="Barcode der neuen Grösse"
+                  placeholder="freiwillig"
+                  inputMode="numeric"
+                  maxLength={60}
+                  value={draft.barcode}
+                  onChange={(e) => setDraft((d) => ({ ...d, barcode: e.target.value }))}
                 />
               </td>
               <td colSpan={3} className="admin-muted">

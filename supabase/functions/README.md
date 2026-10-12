@@ -9,7 +9,8 @@ Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
 | `checkout`        | Shop (Gast oder eingeloggt)     | Bestand reservieren, Stripe-Checkout starten                                         |
 | `stripe-webhook`  | Stripe                          | Zahlung verbuchen, Ablauf/Fehlzahlung stornieren, Rückerstattung übernehmen, E-Mails |
 | `newsletter`      | Shop                            | Anmelden (Double Opt-in), bestätigen, abmelden                                       |
-| `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen                         |
+| `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen, Texte übersetzen       |
+| `contact`         | Shop                            | Kontaktformular: Nachricht als E-Mail an den Shop                                    |
 | `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                  |
 
@@ -34,7 +35,13 @@ Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
 - `{ action: "resend_shipping", orderId }`, `{ action: "resend_confirmation", orderId, to? }` → `200 { emailed: true, to }`
 - `{ action: "issue_gift_card", amountCents, locale?, recipientEmail?, recipientName?, senderName?, message?, note?, send?: true }` → `200 { giftCard, emailed, emailError? }`
 - `{ action: "resend_gift_card", giftCardId, to? }` → `200 { emailed: true, to }`
+- `{ action: "translate", texts: string[] }` → `200 { translations: string[] }` (Deutsch → Englisch, gleiche Reihenfolge, leere Texte bleiben leer). Höchstens 60 Texte, je 4000 Zeichen, zusammen 16'000. Über das Lovable AI Gateway (`LOVABLE_API_KEY`, legt Lovable selbst an); anderer Dienst mit OpenAI-Schnittstelle über `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`, `TRANSLATE_MODEL`. `503 TRANSLATION_UNAVAILABLE` (kein Schlüssel oder AI-Guthaben leer), `429 RATE_LIMITED`, `502 TRANSLATION_FAILED`, `400 BAD_REQUEST | TOO_MANY_TEXTS | TEXT_TOO_LONG`. Das Admin übersetzt beim Speichern nur neue oder geänderte deutsche Texte; von Hand geändertes Englisch bleibt.
 - `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 ORDER_NOT_FOUND | GIFT_CARD_NOT_FOUND`, `409 ORDER_NOT_SHIPPABLE | ORDER_NOT_SHIPPED | ORDER_NOT_PAID`, `400 INVALID_TRACKING | INVALID_AMOUNT | INVALID_EMAIL`
+
+## contact
+
+- `{ name, email, message, locale, website?: "" }` → `200 { sent: true }`. Die Nachricht geht an `SHOP_CONTACT_EMAIL` (sonst `SHOP_NOTIFY_EMAIL`), Antwort per Reply-To an die Kundschaft. Der Shop speichert sie nicht.
+- `400 NAME_REQUIRED | INVALID_EMAIL | MESSAGE_TOO_SHORT | MESSAGE_TOO_LONG` (10 bis 4000 Zeichen), `429 RATE_LIMITED` (pro IP 5 pro Stunde, pro Adresse 3, insgesamt 60), `503 NOT_CONFIGURED` (keine Shop-Adresse), `502 EMAIL_FAILED`. Verstecktes Feld `website` gegen Bots: ausgefüllt → `200`, aber keine E-Mail.
 
 ## account-delete
 
@@ -54,7 +61,10 @@ als interner Pfad geprüft werden (beginnt mit `/`, nicht mit `//`). Sprache: au
 ## Secrets (Supabase → Edge Functions → Secrets)
 
 `SITE_URL`, `STRIPE_SECRET_KEY` (eingeschränkter Schlüssel `rk_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
-`SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`, `SHOP_ADDRESS`, `SEND_EMAIL_HOOK_SECRET`; optional `ALLOWED_ORIGINS`
+`SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (auch Empfänger des Kontaktformulars), `SHOP_ADDRESS`; nur mit eigenem
+Supabase-Projekt `SEND_EMAIL_HOOK_SECRET`. Für die Übersetzung `LOVABLE_API_KEY` (legt Lovable Cloud selbst an),
+optional `TRANSLATE_MODEL` (Standard `google/gemini-2.5-flash`), `TRANSLATE_API_BASE` und `TRANSLATE_API_KEY` für einen
+anderen Dienst mit OpenAI-Schnittstelle. Optional `ALLOWED_ORIGINS`
 (weitere Domains, Komma-getrennt), `STRIPE_REQUIRE_TERMS=1` (AGB-Häkchen in der Stripe-Kasse) und
 `SHIPPING_COUNTRIES` (Liefergebiet, Standard `CH`; `CH,LI` erst nach Entscheid des Kunden, weil für Kundschaft in
 Liechtenstein deren Konsumentenrecht mit Rücktrittsrecht gilt, Rechtstexte anpassen). `ALLOW_PREVIEW_ORIGINS=1`
@@ -63,7 +73,7 @@ erlaubt zusätzlich die Lovable-Vorschau und localhost (CORS und Konto-Links), n
 
 ## Prüfen
 
-- `bun run test:backend` – alle Funktionen mit Fakes für Supabase, Stripe und Resend gegen die lokale Datenbank
+- `bun run test:backend` – alle Funktionen mit Fakes für Supabase, Stripe, Resend und das AI-Gateway gegen die lokale Datenbank
 - `deno check index.ts` im Ordner jeder Funktion
 - `bun scripts/deno-smoke.ts` – startet die echten `index.ts` unter Deno gegen die Fakes
 - `bun scripts/email-preview.ts` – alle E-Mails als HTML nach `.local/email-preview/`
