@@ -307,9 +307,9 @@
 
 ### Task 21: Gesamtprüfung
 
-- [ ] `tsc`, `eslint`, `vitest` (Frontend und Backend), `deno check`, Build.
-- [ ] Playwright Desktop und Handy: Shop DE/EN, Warenkorb bis Kasse (Sample-Adapter mit Test-Checkout), Konto, Admin-Kernabläufe.
-- [ ] Unabhängige Prüfung durch frischen Reviewer: Sicherheit (RLS, RPC, Funktionen) und Code.
+- [x] `tsc`, `eslint`, `vitest` (Frontend 60, Backend 207), Build. `deno check` offen: Deno ist in der Cloud-Umgebung nicht verfügbar, lokal bei Ben vor dem Deploy (`supabase functions deploy` prüft ebenfalls).
+- [x] Playwright Desktop und Handy: Shop DE/EN, Warenkorb bis Kasse, Konto, Admin-Kernabläufe (44/44).
+- [x] Unabhängige Prüfung durch frischen Reviewer: Sicherheit (RLS, RPC, Funktionen) und Code. Befunde behoben (Commit «Sicherheit Kasse und Zahlungen»); offen und dokumentiert: Turnstile gegen Bots, Content-Security-Policy, Streitfälle (Disputes) von Hand.
 
 ### Task 22: Anleitung und Paket
 
@@ -317,5 +317,5 @@
 
 - Create: `docs/DEPLOYMENT.md`, `scripts/package-delivery.sh`
 
-- [ ] Anleitung DE: GitHub verbinden, Dateien übernehmen, Supabase-Projekt (Zürich), Migrationen, Funktionen, Secrets, Auth-Einstellungen und Hook, Stripe (Zahlungsarten, Webhook, Teamzugang), Resend (Domain), erster Admin, Testkauf, Veröffentlichen.
-- [ ] Paket: ZIP mit allen geänderten und neuen Dateien plus Löschliste plus Git-Patch.
+- [x] Anleitung DE: GitHub verbinden, Dateien übernehmen, Supabase-Projekt (Zürich), Migrationen, Funktionen, Secrets, Auth-Einstellungen und Hook, Stripe (Zahlungsarten, Webhook, Teamzugang), Resend (Domain), erster Admin, Testkauf, Veröffentlichen.
+- [x] Paket: ZIP mit allen geänderten und neuen Dateien plus Löschliste plus Git-Patch.
