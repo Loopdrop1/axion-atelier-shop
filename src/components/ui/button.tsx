@@ -13,6 +13,8 @@ const buttonVariants = cva(
         dark: "shop-button shop-button-dark",
         icon: "shop-icon",
         tailored: "shop-button shop-button-outline",
+        // Admin: schlichter Hauptknopf (der Shop-Stil mit Grossbuchstaben ist fürs Admin zu laut)
+        admin: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
           "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",

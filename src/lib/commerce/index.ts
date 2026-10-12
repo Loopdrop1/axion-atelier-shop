@@ -1,15 +1,64 @@
-import { sampleCollections, sampleLook, sampleProducts } from "./sample-data";
-import { media } from "./media";
-import type { Cart, Product, ProductFilters } from "./types";
+// Öffentliche Daten-Schnittstelle des Shops. Alle Funktionen nehmen zuletzt die Sprache (Standard Deutsch).
+// Quelle ist Supabase (wenn eingerichtet) oder der Beispielkatalog, siehe source.ts.
+import type { Locale } from "@/i18n/locale";
+import {
+  mapAnnouncements,
+  mapCategory,
+  mapHomeContent,
+  mapProduct,
+  mapSizeGuides,
+  virtualCollections,
+  type SizeGuideTable,
+} from "./mapping";
+import type { CategoryRow } from "./rows";
+import { loadCatalog } from "./source";
+import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
+
 export type * from "./types";
-export async function listCollections() {
-  return sampleCollections;
+export type { SizeGuideTable } from "./mapping";
+export { backendConfigured } from "@/integrations/supabase/client";
+
+interface Catalog {
+  products: Product[];
+  categories: CategoryRow[];
+  content: Awaited<ReturnType<typeof loadCatalog>>["content"];
 }
-export async function getCollection(handle: string) {
-  return sampleCollections.find((c) => c.handle === handle);
+
+async function catalog(locale: Locale): Promise<Catalog> {
+  const data = await loadCatalog();
+  const categories = [...data.categories].sort(
+    (a, b) => a.sort - b.sort || a.slug.localeCompare(b.slug),
+  );
+  const bySlug = new Map(categories.map((c) => [c.slug, c]));
+  const products = data.products.flatMap((row) => {
+    const product = mapProduct(row, locale, bySlug);
+    return product ? [product] : [];
+  });
+  return { products, categories, content: data.content };
 }
-export async function listProducts(filters: ProductFilters = {}) {
-  let products = sampleProducts.filter((p) => {
+
+const byNewest = (a: Product, b: Product) => b.createdAt.localeCompare(a.createdAt);
+
+export async function listCollections(locale: Locale = "de"): Promise<Collection[]> {
+  const { categories } = await catalog(locale);
+  const virtual = virtualCollections(locale);
+  return [
+    virtual.alle,
+    virtual.neu,
+    ...categories.map((c) => mapCategory(c, locale)),
+    virtual.sale,
+  ];
+}
+
+export async function getCollection(
+  handle: string,
+  locale: Locale = "de",
+): Promise<Collection | undefined> {
+  return (await listCollections(locale)).find((c) => c.handle === handle);
+}
+
+export function filterProducts(all: Product[], filters: ProductFilters = {}): Product[] {
+  const products = all.filter((p) => {
     if (
       filters.collection &&
       filters.collection !== "alle" &&
@@ -27,53 +76,103 @@ export async function listProducts(filters: ProductFilters = {}) {
     if (filters.priceMax !== undefined && p.priceRange.min.amount > filters.priceMax) return false;
     return true;
   });
-  products = [...products].sort((a, b) =>
+  return [...products].sort((a, b) =>
     filters.sort === "price-asc"
       ? a.priceRange.min.amount - b.priceRange.min.amount
       : filters.sort === "price-desc"
         ? b.priceRange.min.amount - a.priceRange.min.amount
-        : b.createdAt.localeCompare(a.createdAt),
+        : byNewest(a, b),
   );
-  return products;
 }
-export async function getProduct(handle: string) {
-  return sampleProducts.find((p) => p.handle === handle);
+
+export async function listProducts(
+  filters: ProductFilters = {},
+  locale: Locale = "de",
+): Promise<Product[]> {
+  return filterProducts((await catalog(locale)).products, filters);
 }
-export async function getProductsByHandles(handles: string[]) {
+
+export async function getProduct(
+  handle: string,
+  locale: Locale = "de",
+): Promise<Product | undefined> {
+  return (await catalog(locale)).products.find((p) => p.handle === handle);
+}
+
+export async function getProductsByHandles(
+  handles: string[],
+  locale: Locale = "de",
+): Promise<Product[]> {
+  const { products } = await catalog(locale);
   return handles.flatMap((h) => {
-    const p = sampleProducts.find((p) => p.handle === h);
+    const p = products.find((p) => p.handle === h);
     return p ? [p] : [];
   });
 }
-export async function searchProducts(query: string) {
-  const q = query.trim().toLocaleLowerCase("de-CH");
-  return q
-    ? sampleProducts.filter((p) =>
-        `${p.title} ${p.category} ${p.color.name} ${p.category === "anzuege" ? "Anzüge" : ""}`
-          .toLocaleLowerCase("de-CH")
-          .includes(q),
-      )
-    : [];
+
+const normalize = (text: string) =>
+  text.toLocaleLowerCase("de-CH").normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+export async function searchProducts(query: string, locale: Locale = "de"): Promise<Product[]> {
+  const words = normalize(query.trim()).split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  const { products } = await catalog(locale);
+  return products.filter((p) => {
+    const haystack = normalize(
+      `${p.title} ${p.categoryTitle} ${p.category} ${p.color.name} ${p.model}`,
+    );
+    return words.every((w) => haystack.includes(w));
+  });
 }
-export async function getRecommendations(handle: string, count: number) {
-  return (await listProducts()).filter((p) => p.handle !== handle).slice(0, count);
+
+export async function getRecommendations(
+  handle: string,
+  count: number,
+  locale: Locale = "de",
+): Promise<Product[]> {
+  return (await listProducts({}, locale)).filter((p) => p.handle !== handle).slice(0, count);
 }
-export async function getSiblings(product: Product) {
-  return sampleProducts.filter((p) => p.model === product.model);
+
+export async function getSiblings(product: Product, locale: Locale = "de"): Promise<Product[]> {
+  return (await catalog(locale)).products.filter((p) => p.model === product.model);
 }
-export async function getEditorial() {
-  return { look: sampleLook, fabric: media.fabric };
+
+export async function getHomeContent(locale: Locale = "de"): Promise<HomeContent> {
+  return mapHomeContent((await loadCatalog()).content, locale);
 }
-export async function resolveCart(lines: { variantId: string; quantity: number }[]): Promise<Cart> {
+
+export async function getEditorial(locale: Locale = "de"): Promise<Editorial> {
+  const home = await getHomeContent(locale);
+  return {
+    look: { image: home.look.image, hotspots: home.look.hotspots },
+    fabric: home.story.image,
+  };
+}
+
+export async function getSizeGuides(locale: Locale = "de"): Promise<SizeGuideTable[]> {
+  return mapSizeGuides((await loadCatalog()).content, locale);
+}
+
+export async function getAnnouncements(locale: Locale = "de"): Promise<string[]> {
+  return mapAnnouncements((await loadCatalog()).content, locale);
+}
+
+export async function resolveCart(
+  lines: { variantId: string; quantity: number }[],
+  locale: Locale = "de",
+): Promise<Cart> {
+  const { products } = await catalog(locale);
   const resolved = lines.flatMap((line) => {
-    const product = sampleProducts.find((p) => p.variants.some((v) => v.id === line.variantId));
+    const product = products.find((p) => p.variants.some((v) => v.id === line.variantId));
     const variant = product?.variants.find((v) => v.id === line.variantId);
     return product && variant ? [{ ...line, product, variant }] : [];
   });
   return {
     lines: resolved,
     subtotal: {
-      amount: resolved.reduce((s, l) => s + l.variant.price.amount * l.quantity, 0),
+      amount:
+        Math.round(resolved.reduce((s, l) => s + l.variant.price.amount * 100 * l.quantity, 0)) /
+        100,
       currencyCode: "CHF",
     },
     checkoutUrl: null,

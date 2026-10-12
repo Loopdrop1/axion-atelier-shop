@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
-  Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -12,35 +12,19 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { ShopShell } from "@/components/shop/shell";
-import { Button } from "@/components/ui/button";
+import { MissingPage } from "@/components/shop/missing-page";
 import { shopConfig } from "@/config/shop";
+import { htmlLang, useLocale, useT } from "@/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
-  return (
-    <div className="container page-body">
-      <p className="eyebrow">404</p>
-      <h1 className="page-title">Dieses Stück fehlt.</h1>
-      <p className="page-intro">
-        Diese Seite wurde nicht gefunden. Entdecke stattdessen unsere Kollektion.
-      </p>
-      <div className="empty-links justify-start">
-        <Button asChild>
-          <Link to="/kollektion/$handle" params={{ handle: "alle" }}>
-            Kollektion entdecken
-          </Link>
-        </Button>
-        <Button variant="tailored" asChild>
-          <Link to="/">Zur Startseite</Link>
-        </Button>
-      </div>
-    </div>
-  );
+  return <MissingPage />;
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const t = useT();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -49,11 +33,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Diese Seite konnte nicht geladen werden
+          {t.errorPage.title}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Bitte versuche es erneut oder kehre zur Startseite zurück.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t.errorPage.text}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -62,13 +44,13 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Erneut versuchen
+            {t.common.retry}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Zur Startseite
+            {t.common.toHome}
           </a>
         </div>
       </div>
@@ -101,10 +83,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const locale = useLocale();
   return (
-    <html lang="de-CH" suppressHydrationWarning>
+    <html lang={htmlLang(locale)} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+        <script
+          dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -117,13 +102,23 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Das Admin hat ein eigenes Layout (src/routes/admin.tsx), der Shop den ShopShell mit Kopf- und Fusszeile.
+  const admin = useRouterState({ select: (s) => /^\/admin(\/|$)/.test(s.location.pathname) });
+  // Merker für Browser-Tests (e2e/): Seite ist hydriert und reagiert auf Eingaben.
+  useEffect(() => {
+    document.documentElement.dataset["hydrated"] = "true";
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <ShopShell><Outlet /></ShopShell> breaks all child routes. */}
-      <ShopShell>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      {admin ? (
         <Outlet />
-      </ShopShell>
+      ) : (
+        <ShopShell>
+          <Outlet />
+        </ShopShell>
+      )}
     </QueryClientProvider>
   );
 }

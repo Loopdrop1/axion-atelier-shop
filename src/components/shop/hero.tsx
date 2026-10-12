@@ -1,7 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { useLocaleParam, useT } from "@/i18n";
+import type { HomeContent } from "@/lib/commerce";
 import { Mark } from "./logo";
+import { Lines } from "./primitives";
 const Scene = lazy(() => import("./hero-scene"));
 class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
@@ -12,7 +15,9 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
     return this.state.failed ? null : this.props.children;
   }
 }
-export function Hero() {
+export function Hero({ content }: { content: HomeContent["hero"] }) {
+  const t = useT();
+  const lp = useLocaleParam();
   const ref = useRef<HTMLElement>(null);
   const [reduced, setReduced] = useState(false);
   const [enabled, setEnabled] = useState(false);
@@ -31,7 +36,10 @@ export function Hero() {
     let idle: number | undefined;
     let fallback: number | undefined;
     const phone = window.matchMedia("(max-width: 767px)").matches;
-    const device = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+    const device = navigator as Navigator & {
+      connection?: { saveData?: boolean };
+      deviceMemory?: number;
+    };
     const permitted = !phone || (!device.connection?.saveData && (device.deviceMemory ?? 4) >= 4);
     const enable = () => {
       if (!permitted || scheduled) return;
@@ -42,10 +50,15 @@ export function Hero() {
         if (idle !== undefined) window.cancelIdleCallback(idle);
         if (fallback !== undefined) window.clearTimeout(fallback);
         const canvas = document.createElement("canvas");
-        try { if (canvas.getContext("webgl2") || canvas.getContext("webgl")) setEnabled(true); } catch { setEnabled(false); }
+        try {
+          if (canvas.getContext("webgl2") || canvas.getContext("webgl")) setEnabled(true);
+        } catch {
+          setEnabled(false);
+        }
       };
       if (phone) {
-        if ("requestIdleCallback" in window) idle = window.requestIdleCallback(load, { timeout: 2000 });
+        if ("requestIdleCallback" in window)
+          idle = window.requestIdleCallback(load, { timeout: 2000 });
         fallback = window.setTimeout(load, 2000);
       } else requestAnimationFrame(load);
     };
@@ -74,25 +87,20 @@ export function Hero() {
     <section className="hero" ref={ref}>
       <div className="container hero-inner">
         <div className="hero-copy">
-          <p className="eyebrow">Anzüge · Westen · Schuhe</p>
+          <p className="eyebrow">{content.eyebrow}</p>
           <h1>
-            Präzise geschnitten.
-            <br />
-            Für jeden Auftritt.
+            <Lines text={content.title} />
           </h1>
-          <p>
-            Anzüge, Westen und Schuhe für Hochzeit, Business und alles dazwischen. Gratisversand in
-            der ganzen Schweiz.
-          </p>
+          <p>{content.text}</p>
           <div className="hero-buttons">
             <Button variant="dark" asChild>
-              <Link to="/kollektion/$handle" params={{ handle: "alle" }}>
-                Kollektion entdecken
+              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "alle" }}>
+                {content.primary}
               </Link>
             </Button>
             <Button variant="tailored" asChild>
-              <Link to="/kollektion/$handle" params={{ handle: "anzuege" }}>
-                Anzüge ansehen
+              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "anzuege" }}>
+                {content.secondary}
               </Link>
             </Button>
           </div>
@@ -109,8 +117,8 @@ export function Hero() {
         </div>
       </div>
       <div className="hero-bottom">
-        <a className="scroll-cue" href="#kollektionen" aria-label="Zu den Kollektionen" />
-        <span>Axion · Schweiz</span>
+        <a className="scroll-cue" href="#kollektionen" aria-label={t.home.scrollCue} />
+        <span>{t.home.location}</span>
       </div>
     </section>
   );

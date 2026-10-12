@@ -1,4 +1,3 @@
-export const pieceCount = (n: number) => `${n} ${n === 1 ? "Stück" : "Stücke"}`;
-export const resultCount = (n: number) => `${n} ${n === 1 ? "Ergebnis" : "Ergebnisse"}`;
+// Suchparameter aus der Adresse als Text (Zahlen wie «48» bleiben Text, damit Links sauber bleiben).
 export const searchString = (value: unknown): string | undefined =>
   typeof value === "string" || typeof value === "number" ? String(value) : undefined;

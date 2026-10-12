@@ -4,8 +4,12 @@ import { ArrowRight } from "lucide-react";
 import { searchProducts, type Product } from "@/lib/commerce";
 import { useShopUI } from "@/lib/commerce/stores";
 import { formatPrice } from "@/lib/commerce/format";
+import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
 export function SearchOverlay() {
+  const t = useT();
+  const locale = useLocale();
+  const lp = useLocaleParam();
   const { searchOpen, setSearch } = useShopUI();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
@@ -13,20 +17,20 @@ export function SearchOverlay() {
   const refs = useRef<(HTMLAnchorElement | null)[]>([]);
   useEffect(() => {
     let live = true;
-    searchProducts(query).then((p) => {
+    searchProducts(query, locale).then((p) => {
       if (live) setResults(p);
     });
     return () => {
       live = false;
     };
-  }, [query]);
+  }, [query, locale]);
   return (
-    <Panel open={searchOpen} onOpenChange={setSearch} title="Was suchst du?" kind="search">
+    <Panel open={searchOpen} onOpenChange={setSearch} title={t.search.overlayTitle} kind="search">
       <input
         ref={input}
         id="overlay-search"
-        aria-label="Produkte suchen"
-        placeholder="Anzüge, Westen, Schuhe …"
+        aria-label={t.search.label}
+        placeholder={t.search.placeholder}
         className="search-input"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -45,8 +49,8 @@ export function SearchOverlay() {
             }}
             className="search-result"
             key={p.handle}
-            to="/produkt/$handle"
-            params={{ handle: p.handle }}
+            to="/{-$locale}/produkt/$handle"
+            params={{ locale: lp, handle: p.handle }}
             onClick={() => setSearch(false)}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
@@ -65,19 +69,20 @@ export function SearchOverlay() {
               <h3>{p.title}</h3>
               <p>{p.color.name}</p>
             </div>
-            <span className="price">{formatPrice(p.priceRange.min)}</span>
+            <span className="price">{formatPrice(p.priceRange.min, locale)}</span>
           </Link>
         ))}
       </div>
-      {query && !results.length && <p className="text-muted">Keine passenden Stücke gefunden.</p>}
+      {query && !results.length && <p className="text-muted">{t.search.none}</p>}
       {query && results.length > 0 && (
         <Link
           className="text-link"
-          to="/suche"
+          to="/{-$locale}/suche"
+          params={{ locale: lp }}
           search={{ q: query }}
           onClick={() => setSearch(false)}
         >
-          Alle Ergebnisse <ArrowRight />
+          {t.search.all} <ArrowRight />
         </Link>
       )}
     </Panel>

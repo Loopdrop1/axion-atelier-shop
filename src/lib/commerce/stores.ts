@@ -1,31 +1,52 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+
+/** Höchstmenge pro Grösse und Bestellung (gleich wie in der Edge Function «checkout»). */
+export const MAX_PER_LINE = 10;
+
 interface CartStore {
   lines: { variantId: string; quantity: number }[];
+  /** Eingelöste Codes und E-Mail bleiben beim Wechsel zwischen Seitenleiste und Warenkorbseite erhalten. */
+  discountCode: string;
+  giftCardCode: string;
+  email: string;
   add: (id: string, quantity?: number) => void;
   quantity: (id: string, quantity: number) => void;
   remove: (id: string) => void;
+  setDiscountCode: (code: string) => void;
+  setGiftCardCode: (code: string) => void;
+  setEmail: (email: string) => void;
+  /** Nach erfolgreicher Bestellung: Positionen und Codes leeren, E-Mail behalten. */
+  clear: () => void;
 }
+const clamp = (n: number) => Math.min(MAX_PER_LINE, Math.max(0, Math.floor(n)));
 export const useCart = create<CartStore>()(
   persist(
     (set) => ({
       lines: [],
+      discountCode: "",
+      giftCardCode: "",
+      email: "",
       add: (id, quantity = 1) =>
         set((s) => ({
           lines: s.lines.some((l) => l.variantId === id)
             ? s.lines.map((l) =>
-                l.variantId === id ? { ...l, quantity: l.quantity + quantity } : l,
+                l.variantId === id ? { ...l, quantity: clamp(l.quantity + quantity) } : l,
               )
-            : [...s.lines, { variantId: id, quantity }],
+            : [...s.lines, { variantId: id, quantity: clamp(quantity) }],
         })),
       quantity: (id, quantity) =>
         set((s) => ({
           lines:
             quantity <= 0
               ? s.lines.filter((l) => l.variantId !== id)
-              : s.lines.map((l) => (l.variantId === id ? { ...l, quantity } : l)),
+              : s.lines.map((l) => (l.variantId === id ? { ...l, quantity: clamp(quantity) } : l)),
         })),
       remove: (id) => set((s) => ({ lines: s.lines.filter((l) => l.variantId !== id) })),
+      setDiscountCode: (discountCode) => set({ discountCode }),
+      setGiftCardCode: (giftCardCode) => set({ giftCardCode }),
+      setEmail: (email) => set({ email }),
+      clear: () => set({ lines: [], discountCode: "", giftCardCode: "" }),
     }),
     { name: "axion-cart", storage: createJSONStorage(() => localStorage), skipHydration: true },
   ),

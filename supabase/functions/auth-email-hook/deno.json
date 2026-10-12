@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.2",
+    "stripe": "npm:stripe@22.6.2",
+    "standardwebhooks": "npm:standardwebhooks@1.1.1"
+  }
+}

@@ -10,7 +10,10 @@ export function useStoreHydrated(persist: PersistState) {
     const start = persist.onHydrate(() => setHydrated(false));
     const finish = persist.onFinishHydration(() => setHydrated(true));
     setHydrated(persist.hasHydrated());
-    return () => { start(); finish(); };
+    return () => {
+      start();
+      finish();
+    };
   }, [persist]);
   return hydrated;
 }
