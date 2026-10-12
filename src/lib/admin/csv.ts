@@ -8,8 +8,11 @@ export function csvCell(value: string | number | boolean | null | undefined): st
   return /[";\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+/** Byte Order Mark: Excel erkennt damit UTF-8. Als Escape, damit kein unsichtbares Zeichen im Code steht. */
+const BOM = "\uFEFF";
+
 export function toCsv(rows: (string | number | boolean | null | undefined)[][]): string {
-  return `﻿${rows.map((row) => row.map(csvCell).join(";")).join("\r\n")}\r\n`;
+  return `${BOM}${rows.map((row) => row.map(csvCell).join(";")).join("\r\n")}\r\n`;
 }
 
 /** Datei im Browser herunterladen. */
