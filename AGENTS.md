@@ -24,10 +24,11 @@
 - `launched` controls metadata; after changing it regenerate `public/robots.txt` using `bun scripts/sync-robots.ts` before publishing so both protections stay aligned.
 - Checkout always goes through the `checkout` Edge Function (stock reservation, Stripe Checkout); never hardcode payment links in the UI.
 - Admin lives under `/admin` (role `admin` in `user_roles`); stock changes only via the `admin_adjust_stock` RPC, never by updating `product_variants.stock`.
-- Edge Functions are documented in `supabase/functions/README.md`, deployment in `docs/DEPLOYMENT.md`. Secrets never go into the repo.
+- Edge Functions: see `supabase/functions/README.md`; secrets live in Cloud, never in the repo.
 - The root `README.md` is the outdated first brief (no backend, sample data); this file, `docs/DEPLOYMENT.md` and `supabase/functions/README.md` describe the current shop.
 - Backend is Lovable Cloud (region Europe). Migrations in `supabase/migrations/` are applied manually in order (Lovable does not run migration files from Git); never edit an applied migration, add a new one instead.
-- Keep `src/integrations/supabase/client.ts` as is: it is SSR-safe, exports `backendConfigured` and works without env (preview); do not replace it with a generated client.
+- Never edit the generated `src/integrations/supabase/client.ts`; `backendConfigured` and `supabaseUrl` live in `src/lib/backend.ts`.
+- Cloud lacks `citext` and rejects `INSERT INTO storage.buckets`: use text with a unique index on `lower(...)`; create buckets with the storage tool, their policies in a migration.
 - The delivery area is the `SHIPPING_COUNTRIES` secret (default `CH`); adding `LI` requires the Liechtenstein clauses in the legal texts.
 - English follows German in the admin: on save, `src/lib/admin/auto-translate.ts` fills empty English and re-translates machine English when the German changes, through `admin-actions` (`translate`, Lovable AI gateway, 500 requests per admin and day). Provenance is stored per field (`en_auto` columns on products, categories and product_images; `en_auto` list in `site_content` blocks; `auto` flag on announcement items and size-guide texts). English written or edited by hand is never overwritten or cleared; emptying an English field asks for a new translation. A failed translation clears only outdated machine English, so the shop shows German there.
 - Menus come from the active categories (`navQuery`); size charts from `site_content` key `size_guides` (Admin → Grössentabellen); shipping texts from `shop_settings` via `shippingLabel`; never hardcode «Gratisversand» in new UI.
