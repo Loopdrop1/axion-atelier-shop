@@ -10,7 +10,7 @@ import {
   startFakeResend,
   startFakeStripe,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createCheckoutHandler } from "./handler.ts";
 
 // Verschachtelter Formular-Body, wie stripe-node ihn sendet (Werte sind Strings, Arrays, Objekte).

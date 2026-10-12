@@ -10,7 +10,7 @@ import {
   startFakeAi,
   startFakeResend,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createAdminActionsHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;

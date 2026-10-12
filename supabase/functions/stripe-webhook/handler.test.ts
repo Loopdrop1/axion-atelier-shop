@@ -10,7 +10,7 @@ import {
   startFakeResend,
   startFakeStripe,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createStripeWebhookHandler } from "./handler.ts";
 
 const SECRET = "whsec_test_secret";
@@ -137,7 +137,7 @@ describe("stripe-webhook", () => {
       needs_attention: false,
     });
     const mails = resend.sent.slice(before);
-    expect(mails.map((m) => m.to[0])).toEqual(["kundin@example.ch", "shop@shop.test"]);
+    expect(mails.map((m: { to: string[] }) => m.to[0])).toEqual(["kundin@example.ch", "shop@shop.test"]);
     expect(mails[0]!.text).toContain("Bahnhofstrasse 1");
     expect(mails[0]!.text).toContain("TWINT");
 
@@ -294,7 +294,7 @@ describe("stripe-webhook", () => {
       sql<{ status: string; balance_cents: number }>(
         "select g.status, g.balance_cents from public.gift_cards g join public.orders o on o.issued_gift_card_id = g.id where o.id = $1",
         [orderId],
-      ).then((rows) => rows[0]!);
+      ).then((rows: { status: string; balance_cents: number }[]) => rows[0]!);
     const unused = await issue(5000);
     await deliver("charge.refunded", {
       id: uniq("ch"),
@@ -347,7 +347,7 @@ describe("stripe-webhook", () => {
       }),
     );
     const mails = resend.sent.slice(before);
-    expect(mails.map((m) => m.to[0])).toEqual([
+    expect(mails.map((m: { to: string[] }) => m.to[0])).toEqual([
       "kaeuferin@example.ch",
       "leo@example.ch",
       "shop@shop.test",
@@ -371,7 +371,7 @@ describe("stripe-webhook", () => {
     const retry = await deliver("checkout.session.completed", s, evtId);
     expect(retry.status).toBe(200);
     const mails = resend.sent.slice(before);
-    expect(mails.filter((m) => m.to[0] === "kundin@example.ch")).toHaveLength(1);
-    expect(mails.filter((m) => m.to[0] === "shop@shop.test")).toHaveLength(1);
+    expect(mails.filter((m: { to: string[] }) => m.to[0] === "kundin@example.ch")).toHaveLength(1);
+    expect(mails.filter((m: { to: string[] }) => m.to[0] === "shop@shop.test")).toHaveLength(1);
   });
 });

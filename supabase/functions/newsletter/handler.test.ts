@@ -7,7 +7,7 @@ import {
   SERVICE_KEY,
   startFakeResend,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createNewsletterHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
