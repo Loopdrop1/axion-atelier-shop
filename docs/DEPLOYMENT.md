@@ -37,9 +37,11 @@ einschalten.
    ```bash
    git clone -c core.autocrlf=false https://github.com/<dein-konto>/<repository>.git axion-shop
    cd axion-shop
-   git am --3way /pfad/zu/axion.patch
+   git am --3way --ignore-whitespace /pfad/zu/axion.patch
    git push
    ```
+   `--ignore-whitespace` ist nötig: Im Lovable-Repo fehlt in `src/content/pages.test.tsx` der Zeilenumbruch am
+   Dateiende, ohne die Option brechen die Patches 17, 23 und 29 ab (`--3way` hilft dort nicht).
    `core.autocrlf=false` verhindert unter Windows Probleme mit Zeilenenden. Fragt Git «Please tell me who you are»,
    einmal `git config user.name "Ben Schmidt"` und `git config user.email "deine@adresse.ch"` eingeben und `git am`
    wiederholen. `git am` übernimmt alle Commits mit ihren Beschreibungen. Lovable zeigt die Änderung danach im Editor
@@ -204,6 +206,9 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 - Überwachen: Logs der Funktionen (Cloud → Edge functions), Stripe → Webhooks (fehlgeschlagene Zustellungen, Meldung
   per E-Mail an Ben), Resend (Bounces). Empfohlen: kostenlose Erreichbarkeits-Überwachung der Startseite mit
   Meldung an Ben.
+- Lokal installieren: `bun.lock` verweist auf den npm-Cache von Lovable, der ausserhalb von Lovable `403` meldet.
+  Für lokale Tests die Adressen vorübergehend umschreiben und danach zurücksetzen (nie committen):
+  `sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock && bun install --frozen-lockfile && git checkout bun.lock`
 - Updates: Sicherheitsmeldungen von GitHub (Dependabot) für das Repository einschalten; Pakete bei Meldungen oder
   einmal im Quartal aktualisieren, prüfen (Tests, Build) und per Push einspielen.
 - Admin → Bestellungen, Ansicht «Prüfen»: Zahlungen nach Ablauf der Reservierung, die von Hand geprüft werden müssen,
