@@ -14,7 +14,820 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description_de: string | null
+          description_en: string | null
+          id: string
+          image_path: string | null
+          name_de: string
+          name_en: string | null
+          slug: string
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description_de?: string | null
+          description_en?: string | null
+          id?: string
+          image_path?: string | null
+          name_de: string
+          name_en?: string | null
+          slug: string
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description_de?: string | null
+          description_en?: string | null
+          id?: string
+          image_path?: string | null
+          name_de?: string
+          name_en?: string | null
+          slug?: string
+          sort?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          ends_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["discount_kind"]
+          max_redemptions: number | null
+          min_subtotal_cents: number
+          note: string | null
+          redemptions: number
+          starts_at: string | null
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["discount_kind"]
+          max_redemptions?: number | null
+          min_subtotal_cents?: number
+          note?: string | null
+          redemptions?: number
+          starts_at?: string | null
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["discount_kind"]
+          max_redemptions?: number | null
+          min_subtotal_cents?: number
+          note?: string | null
+          redemptions?: number
+          starts_at?: string | null
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      gift_card_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta_cents: number
+          gift_card_id: string
+          id: number
+          kind: Database["public"]["Enums"]["gift_card_tx_kind"]
+          note: string | null
+          order_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta_cents: number
+          gift_card_id: string
+          id?: never
+          kind: Database["public"]["Enums"]["gift_card_tx_kind"]
+          note?: string | null
+          order_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta_cents?: number
+          gift_card_id?: string
+          id?: never
+          kind?: Database["public"]["Enums"]["gift_card_tx_kind"]
+          note?: string | null
+          order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_card_transactions_gift_card_id_fkey"
+            columns: ["gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_card_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gift_cards: {
+        Row: {
+          balance_cents: number
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          initial_cents: number
+          locale: string
+          message: string | null
+          note: string | null
+          purchase_order_id: string | null
+          purchaser_email: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          sender_name: string | null
+          status: Database["public"]["Enums"]["gift_card_status"]
+          updated_at: string
+        }
+        Insert: {
+          balance_cents: number
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          initial_cents: number
+          locale?: string
+          message?: string | null
+          note?: string | null
+          purchase_order_id?: string | null
+          purchaser_email?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          status?: Database["public"]["Enums"]["gift_card_status"]
+          updated_at?: string
+        }
+        Update: {
+          balance_cents?: number
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          initial_cents?: number
+          locale?: string
+          message?: string | null
+          note?: string | null
+          purchase_order_id?: string | null
+          purchaser_email?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          status?: Database["public"]["Enums"]["gift_card_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_cards_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          confirmed_at: string | null
+          consent_at: string
+          consent_text: string
+          created_at: string
+          email: string
+          id: string
+          locale: string
+          source: string
+          status: Database["public"]["Enums"]["newsletter_status"]
+          token_hash: string | null
+          unsubscribed_at: string | null
+          updated_at: string
+          welcome_code: string | null
+        }
+        Insert: {
+          confirmed_at?: string | null
+          consent_at?: string
+          consent_text: string
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string
+          source?: string
+          status?: Database["public"]["Enums"]["newsletter_status"]
+          token_hash?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+          welcome_code?: string | null
+        }
+        Update: {
+          confirmed_at?: string | null
+          consent_at?: string
+          consent_text?: string
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string
+          source?: string
+          status?: Database["public"]["Enums"]["newsletter_status"]
+          token_hash?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+          welcome_code?: string | null
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          color: string | null
+          created_at: string
+          handle: string | null
+          id: string
+          image: string | null
+          line_total_cents: number
+          order_id: string
+          product_id: string | null
+          quantity: number
+          restocked_quantity: number
+          size: string | null
+          title: string
+          unit_price_cents: number
+          variant_id: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          handle?: string | null
+          id?: string
+          image?: string | null
+          line_total_cents: number
+          order_id: string
+          product_id?: string | null
+          quantity: number
+          restocked_quantity?: number
+          size?: string | null
+          title: string
+          unit_price_cents: number
+          variant_id?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          handle?: string | null
+          id?: string
+          image?: string | null
+          line_total_cents?: number
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          restocked_quantity?: number
+          size?: string | null
+          title?: string
+          unit_price_cents?: number
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          admin_note: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          confirmation_sent_at: string | null
+          created_at: string
+          currency: string
+          discount_cents: number
+          discount_code: string | null
+          discount_code_id: string | null
+          email: string
+          expires_at: string | null
+          gift_card_cents: number
+          gift_card_id: string | null
+          gift_card_purchase: Json | null
+          gift_card_sent_at: string | null
+          id: string
+          issued_gift_card_id: string | null
+          kind: Database["public"]["Enums"]["order_kind"]
+          locale: string
+          needs_attention: boolean
+          notification_sent_at: string | null
+          number: number
+          paid_at: string | null
+          payment_method: string | null
+          phone: string | null
+          refunded_cents: number
+          shipped_at: string | null
+          shipping_address: Json | null
+          shipping_cents: number
+          shipping_name: string | null
+          shipping_sent_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          status_token: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          subtotal_cents: number
+          total_cents: number
+          tracking_number: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_sent_at?: string | null
+          created_at?: string
+          currency?: string
+          discount_cents?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
+          email: string
+          expires_at?: string | null
+          gift_card_cents?: number
+          gift_card_id?: string | null
+          gift_card_purchase?: Json | null
+          gift_card_sent_at?: string | null
+          id?: string
+          issued_gift_card_id?: string | null
+          kind?: Database["public"]["Enums"]["order_kind"]
+          locale?: string
+          needs_attention?: boolean
+          notification_sent_at?: string | null
+          number?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          phone?: string | null
+          refunded_cents?: number
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          shipping_cents?: number
+          shipping_name?: string | null
+          shipping_sent_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          status_token?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal_cents: number
+          total_cents: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_sent_at?: string | null
+          created_at?: string
+          currency?: string
+          discount_cents?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
+          email?: string
+          expires_at?: string | null
+          gift_card_cents?: number
+          gift_card_id?: string | null
+          gift_card_purchase?: Json | null
+          gift_card_sent_at?: string | null
+          id?: string
+          issued_gift_card_id?: string | null
+          kind?: Database["public"]["Enums"]["order_kind"]
+          locale?: string
+          needs_attention?: boolean
+          notification_sent_at?: string | null
+          number?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          phone?: string | null
+          refunded_cents?: number
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          shipping_cents?: number
+          shipping_name?: string | null
+          shipping_sent_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          status_token?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal_cents?: number
+          total_cents?: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_gift_card_id_fkey"
+            columns: ["gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_issued_gift_card_id_fkey"
+            columns: ["issued_gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_images: {
+        Row: {
+          alt_de: string
+          alt_en: string | null
+          created_at: string
+          height: number
+          id: string
+          path: string
+          product_id: string
+          sort: number
+          width: number
+        }
+        Insert: {
+          alt_de?: string
+          alt_en?: string | null
+          created_at?: string
+          height?: number
+          id?: string
+          path: string
+          product_id: string
+          sort?: number
+          width?: number
+        }
+        Update: {
+          alt_de?: string
+          alt_en?: string | null
+          created_at?: string
+          height?: number
+          id?: string
+          path?: string
+          product_id?: string
+          sort?: number
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          active: boolean
+          barcode: string | null
+          compare_at_cents: number | null
+          created_at: string
+          id: string
+          price_cents: number | null
+          product_id: string
+          size: string
+          sku: string | null
+          sort: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          barcode?: string | null
+          compare_at_cents?: number | null
+          created_at?: string
+          id?: string
+          price_cents?: number | null
+          product_id: string
+          size: string
+          sku?: string | null
+          sort?: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          barcode?: string | null
+          compare_at_cents?: number | null
+          created_at?: string
+          id?: string
+          price_cents?: number | null
+          product_id?: string
+          size?: string
+          sku?: string | null
+          sort?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          care_de: string | null
+          care_en: string | null
+          category_id: string
+          color_hex: string
+          color_name_de: string
+          color_name_en: string | null
+          compare_at_cents: number | null
+          created_at: string
+          description_de: string
+          description_en: string | null
+          fit: string | null
+          fit_note_de: string | null
+          fit_note_en: string | null
+          handle: string
+          id: string
+          material_de: string | null
+          material_en: string | null
+          model: string
+          occasions: string[]
+          outfit_handles: string[]
+          price_cents: number
+          sort: number
+          status: Database["public"]["Enums"]["product_status"]
+          tags: string[]
+          title_de: string
+          title_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          care_de?: string | null
+          care_en?: string | null
+          category_id: string
+          color_hex: string
+          color_name_de: string
+          color_name_en?: string | null
+          compare_at_cents?: number | null
+          created_at?: string
+          description_de?: string
+          description_en?: string | null
+          fit?: string | null
+          fit_note_de?: string | null
+          fit_note_en?: string | null
+          handle: string
+          id?: string
+          material_de?: string | null
+          material_en?: string | null
+          model: string
+          occasions?: string[]
+          outfit_handles?: string[]
+          price_cents: number
+          sort?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          tags?: string[]
+          title_de: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          care_de?: string | null
+          care_en?: string | null
+          category_id?: string
+          color_hex?: string
+          color_name_de?: string
+          color_name_en?: string | null
+          compare_at_cents?: number | null
+          created_at?: string
+          description_de?: string
+          description_en?: string | null
+          fit?: string | null
+          fit_note_de?: string | null
+          fit_note_en?: string | null
+          handle?: string
+          id?: string
+          material_de?: string | null
+          material_en?: string | null
+          model?: string
+          occasions?: string[]
+          outfit_handles?: string[]
+          price_cents?: number
+          sort?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          tags?: string[]
+          title_de?: string
+          title_en?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: Json | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          locale: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          locale?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          locale?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: number
+          note: string | null
+          order_id: string | null
+          reason: Database["public"]["Enums"]["stock_reason"]
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: never
+          note?: string | null
+          order_id?: string | null
+          reason: Database["public"]["Enums"]["stock_reason"]
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: never
+          note?: string | null
+          order_id?: string | null
+          reason?: Database["public"]["Enums"]["stock_reason"]
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_events: {
+        Row: {
+          id: string
+          processed_at: string | null
+          received_at: string
+          type: string
+        }
+        Insert: {
+          id: string
+          processed_at?: string | null
+          received_at?: string
+          type: string
+        }
+        Update: {
+          id?: string
+          processed_at?: string | null
+          received_at?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +836,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
+      discount_kind: "percent" | "amount"
+      gift_card_status: "active" | "disabled"
+      gift_card_tx_kind: "issue" | "redeem" | "release" | "adjust"
+      newsletter_status: "pending" | "confirmed" | "unsubscribed"
+      order_kind: "cart" | "gift_card"
+      order_status: "pending" | "paid" | "shipped" | "cancelled" | "refunded"
+      product_status: "draft" | "active" | "archived"
+      stock_reason:
+        | "reservation"
+        | "release"
+        | "sale_store"
+        | "return"
+        | "correction"
+        | "reclaim"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +977,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+      discount_kind: ["percent", "amount"],
+      gift_card_status: ["active", "disabled"],
+      gift_card_tx_kind: ["issue", "redeem", "release", "adjust"],
+      newsletter_status: ["pending", "confirmed", "unsubscribed"],
+      order_kind: ["cart", "gift_card"],
+      order_status: ["pending", "paid", "shipped", "cancelled", "refunded"],
+      product_status: ["draft", "active", "archived"],
+      stock_reason: [
+        "reservation",
+        "release",
+        "sale_store",
+        "return",
+        "correction",
+        "reclaim",
+      ],
+    },
   },
 } as const
