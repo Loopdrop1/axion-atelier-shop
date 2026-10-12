@@ -21,16 +21,20 @@ export interface Product {
   id: string;
   handle: string;
   title: string;
-  category: "anzuege" | "westen" | "schuhe";
+  /** Slug der Kategorie, z. B. «anzuege» */
+  category: string;
+  /** Name der Kategorie in der aktuellen Sprache */
+  categoryTitle: string;
   model: string;
   color: { name: string; hex: string };
-  fit?: string;
+  /** Passform als Code («Slim Fit», «Regular Fit»), Anzeige über die Übersetzungen */
+  fit?: string | undefined;
   tags: string[];
   occasions: Occasion[];
   description: string;
-  details: { material?: string; care?: string; fit?: string };
+  details: { material?: string | undefined; care?: string | undefined; fit?: string | undefined };
   images: ShopImage[];
-  options: { name: "Grösse" | "Farbe"; values: string[] }[];
+  options: { name: "size" | "color"; values: string[] }[];
   variants: Variant[];
   priceRange: { min: Money; max: Money };
   compareAtPrice?: Money | undefined;
@@ -62,4 +66,34 @@ export interface ProductFilters {
   fits?: string[] | undefined;
   priceMax?: number | undefined;
   sort?: "newest" | "price-asc" | "price-desc" | undefined;
+}
+export interface Hotspot {
+  handle: string;
+  /** Sprachneutraler Schlüssel für die Platzierung der Karte (CSS) */
+  key: string;
+  label: string;
+  x: number;
+  y: number;
+}
+/** Texte und Bilder der Startseite (im Admin bearbeitbar), bereits in der aktuellen Sprache. */
+export interface HomeContent {
+  hero: { eyebrow: string; title: string; text: string; primary: string; secondary: string };
+  collections: { eyebrow: string; title: string };
+  newArrivals: { eyebrow: string; title: string; link: string };
+  look: {
+    image: ShopImage;
+    hotspots: Hotspot[];
+    ctaHandle: string;
+    eyebrow: string;
+    title: string;
+    text: string;
+    total: string;
+    cta: string;
+  };
+  occasions: { eyebrow: string; title: string; texts: Record<string, string> };
+  story: { image: ShopImage; eyebrow: string; title: string; text: string; link: string };
+}
+export interface Editorial {
+  look: { image: ShopImage; hotspots: Hotspot[] };
+  fabric: ShopImage;
 }

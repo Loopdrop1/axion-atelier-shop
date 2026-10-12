@@ -163,6 +163,23 @@ describe("Profile und Rollen", () => {
     expect(rows[0]?.locale).toBe("en");
   });
 
+  it("Vor- und Nachname aus der Registrierung landen gekürzt im Profil", async () => {
+    const id = (
+      await sql<{ id: string }>(
+        `insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id`,
+        [
+          `${uniq("name")}@example.ch`,
+          JSON.stringify({ locale: "de", first_name: "  Anna ", last_name: "M".repeat(150) }),
+        ],
+      )
+    )[0]!.id;
+    const rows = await sql<{ first_name: string; last_name: string }>(
+      "select first_name, last_name from public.profiles where id = $1",
+      [id],
+    );
+    expect(rows[0]).toEqual({ first_name: "Anna", last_name: "M".repeat(100) });
+  });
+
   it("Kundschaft liest und ändert nur das eigene Profil", async () => {
     const own = await q<{ id: string }>(
       "authenticated",

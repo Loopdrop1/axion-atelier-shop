@@ -39,3 +39,5 @@ export const media = {
     height: 1024,
   },
 };
+
+export type MediaKey = keyof typeof media;

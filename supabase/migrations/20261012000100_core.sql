@@ -90,8 +90,14 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, locale)
-  values (new.id, case when new.raw_user_meta_data ->> 'locale' = 'en' then 'en' else 'de' end)
+  -- Sprache und Name aus der Registrierung (user_metadata); nur Anzeige-Daten, nie für Rechte verwenden.
+  insert into public.profiles (id, locale, first_name, last_name)
+  values (
+    new.id,
+    case when new.raw_user_meta_data ->> 'locale' = 'en' then 'en' else 'de' end,
+    left(nullif(btrim(new.raw_user_meta_data ->> 'first_name'), ''), 100),
+    left(nullif(btrim(new.raw_user_meta_data ->> 'last_name'), ''), 100)
+  )
   on conflict (id) do nothing;
   return new;
 end

@@ -873,6 +873,10 @@ export type Database = {
         Args: { p_from: string; p_to: string }
         Returns: Json
       }
+      admin_get_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       admin_grant_admin: {
         Args: { p_email: string }
         Returns: Json

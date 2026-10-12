@@ -30,7 +30,8 @@ create policy "Einstellungen: Admin ändert" on public.shop_settings
 
 grant select (id, shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents,
   gift_card_valid_years, newsletter_welcome_percent) on public.shop_settings to anon, authenticated;
-grant select (notify_email, updated_at) on public.shop_settings to authenticated;
+-- notify_email (interne Adresse des Shops) liest nur das Admin, über admin_get_settings().
+grant select (updated_at) on public.shop_settings to authenticated;
 grant update (shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents,
   gift_card_valid_years, newsletter_welcome_percent, notify_email) on public.shop_settings to authenticated;
 grant all on public.shop_settings to service_role;
@@ -1073,6 +1074,19 @@ begin
 end
 $$;
 
+create or replace function public.admin_get_settings()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.require_admin();
+  return (select to_jsonb(s) from public.shop_settings s where s.id = 1);
+end
+$$;
+
 create or replace function public.admin_dashboard(p_from timestamptz, p_to timestamptz)
 returns jsonb
 language plpgsql
@@ -1286,6 +1300,7 @@ revoke all on function
   public.admin_list_admins(),
   public.admin_grant_admin(text),
   public.admin_revoke_admin(uuid),
+  public.admin_get_settings(),
   public.admin_dashboard(timestamptz, timestamptz),
   public.newsletter_subscribe(text, text, text, text, text),
   public.newsletter_confirm(text),
@@ -1331,5 +1346,6 @@ grant execute on function
   public.admin_list_admins(),
   public.admin_grant_admin(text),
   public.admin_revoke_admin(uuid),
+  public.admin_get_settings(),
   public.admin_dashboard(timestamptz, timestamptz)
 to authenticated;
