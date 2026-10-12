@@ -1,7 +1,7 @@
 import pg from "pg";
 import { randomUUID } from "node:crypto";
 
-export const DB_URL = process.env.AXION_DB_URL ?? "postgres://postgres@127.0.0.1:54329/axion";
+export const DB_URL = process.env["AXION_DB_URL"] ?? "postgres://postgres@127.0.0.1:54329/axion";
 
 export const pool = new pg.Pool({ connectionString: DB_URL, max: 12 });
 
@@ -34,7 +34,9 @@ export async function withRole<T>(
     await c.query("select set_config('request.jwt.claims', $1, true)", [
       JSON.stringify({ role, ...(claims ?? {}) }),
     ]);
-    await c.query("select set_config('request.headers', $1, true)", [JSON.stringify(opts.headers ?? {})]);
+    await c.query("select set_config('request.headers', $1, true)", [
+      JSON.stringify(opts.headers ?? {}),
+    ]);
     const result = await fn(c);
     await c.query("commit");
     return result;
@@ -58,7 +60,10 @@ export async function q<T = Record<string, unknown>>(
 }
 
 /** Abfrage als Superuser (Testvorbereitung, Kontrolle). */
-export async function sql<T = Record<string, unknown>>(text: string, params: unknown[] = []): Promise<T[]> {
+export async function sql<T = Record<string, unknown>>(
+  text: string,
+  params: unknown[] = [],
+): Promise<T[]> {
   return (await pool.query(text, params)).rows as T[];
 }
 
@@ -80,15 +85,22 @@ export async function createUser(
   const rows = await sql<{ id: string }>(
     `insert into auth.users (email, email_confirmed_at, raw_user_meta_data)
      values ($1, $2, $3) returning id`,
-    [email, opts.confirmed === false ? null : new Date().toISOString(), JSON.stringify({ locale: opts.locale ?? "de" })],
+    [
+      email,
+      opts.confirmed === false ? null : new Date().toISOString(),
+      JSON.stringify({ locale: opts.locale ?? "de" }),
+    ],
   );
   const id = rows[0]!.id;
-  if (opts.admin) await sql("insert into public.user_roles (user_id, role) values ($1, 'admin')", [id]);
+  if (opts.admin)
+    await sql("insert into public.user_roles (user_id, role) values ($1, 'admin')", [id]);
   return { id, email, claims: { sub: id, email } };
 }
 
 /** Erwartet einen Postgres-Fehler und gibt Meldung und Detail zurück. */
-export async function expectPgError(promise: Promise<unknown>): Promise<{ message: string; detail?: string; code?: string }> {
+export async function expectPgError(
+  promise: Promise<unknown>,
+): Promise<{ message: string; detail?: string | undefined; code?: string | undefined }> {
   try {
     await promise;
   } catch (error) {

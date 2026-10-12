@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["supabase/**/*.ts", "scripts/**/*.ts", "vitest.backend.config.ts"],
+  "exclude": ["supabase/functions/*/index.ts", "scripts/sync-robots.ts"],
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  }
+}

@@ -13,7 +13,9 @@ function orderIdOf(session: Stripe.Checkout.Session): string | null {
 async function paymentMethodOf(deps: Deps, paymentIntentId: string | null): Promise<string | null> {
   if (!paymentIntentId) return null;
   try {
-    const pi = await deps.stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
+    const pi = await deps.stripe.paymentIntents.retrieve(paymentIntentId, {
+      expand: ["latest_charge"],
+    });
     const charge = pi.latest_charge as Stripe.Charge | null;
     const details = charge?.payment_method_details;
     if (!details) return null;
@@ -33,7 +35,10 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
     console.error("Session ohne order_id", session.id);
     return;
   }
-  const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent?.id ?? null);
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : (session.payment_intent?.id ?? null);
   const shipping = session.collected_information?.shipping_details ?? null;
   const address = shipping?.address ?? null;
   const result = await deps.rpc<{ order: OrderRecord }>("complete_order", {
@@ -47,7 +52,13 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
       name: shipping?.name ?? session.customer_details?.name ?? null,
       phone: session.customer_details?.phone ?? null,
       address: address
-        ? { line1: address.line1, line2: address.line2, postal_code: address.postal_code, city: address.city, country: address.country }
+        ? {
+            line1: address.line1,
+            line2: address.line2,
+            postal_code: address.postal_code,
+            city: address.city,
+            country: address.country,
+          }
         : null,
     },
   });
@@ -62,13 +73,22 @@ export function createStripeWebhookHandler(deps: Deps) {
     let event: Stripe.Event;
     try {
       if (!signature) throw new Error("Signatur fehlt");
-      event = await deps.stripe.webhooks.constructEventAsync(payload, signature, deps.env.stripeWebhookSecret, undefined, stripeCrypto);
+      event = await deps.stripe.webhooks.constructEventAsync(
+        payload,
+        signature,
+        deps.env.stripeWebhookSecret,
+        undefined,
+        stripeCrypto,
+      );
     } catch (error) {
       console.warn("Webhook abgelehnt", (error as Error).message);
       return json(400, { error: "INVALID_SIGNATURE" });
     }
 
-    const fresh = await deps.rpc<boolean>("register_stripe_event", { p_event_id: event.id, p_type: event.type });
+    const fresh = await deps.rpc<boolean>("register_stripe_event", {
+      p_event_id: event.id,
+      p_type: event.type,
+    });
     if (!fresh) return json(200, { received: true, duplicate: true });
 
     try {
@@ -80,13 +100,24 @@ export function createStripeWebhookHandler(deps: Deps) {
         case "checkout.session.expired":
         case "checkout.session.async_payment_failed": {
           const orderId = orderIdOf(event.data.object);
-          if (orderId) await deps.rpc("cancel_order", { p_order_id: orderId, p_reason: event.type === "checkout.session.expired" ? "expired" : "payment_failed" });
+          if (orderId)
+            await deps.rpc("cancel_order", {
+              p_order_id: orderId,
+              p_reason: event.type === "checkout.session.expired" ? "expired" : "payment_failed",
+            });
           break;
         }
         case "charge.refunded": {
           const charge = event.data.object;
-          const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
-          if (pi) await deps.rpc("record_refund", { p_payment_intent_id: pi, p_refunded_cents: charge.amount_refunded });
+          const pi =
+            typeof charge.payment_intent === "string"
+              ? charge.payment_intent
+              : charge.payment_intent?.id;
+          if (pi)
+            await deps.rpc("record_refund", {
+              p_payment_intent_id: pi,
+              p_refunded_cents: charge.amount_refunded,
+            });
           break;
         }
         default:

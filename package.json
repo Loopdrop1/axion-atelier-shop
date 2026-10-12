@@ -13,7 +13,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:reset": "scripts/db/local-db.sh reset",
-    "test:backend": "vitest run --config vitest.backend.config.ts"
+    "test:backend": "vitest run --config vitest.backend.config.ts",
+    "typecheck:backend": "tsc --noEmit -p tsconfig.backend.json",
+    "test:deno": "bun scripts/deno-smoke.ts",
+    "email:preview": "bun scripts/email-preview.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

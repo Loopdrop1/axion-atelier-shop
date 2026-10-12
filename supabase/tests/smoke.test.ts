@@ -13,7 +13,11 @@ describe("lokale Werkbank", () => {
 
   it("liefert auth.uid() aus den JWT-Claims", async () => {
     const sub = "11111111-2222-3333-4444-555555555555";
-    const rows = await q<{ uid: string; role: string }>("authenticated", { sub }, "select auth.uid() as uid, current_user as role");
+    const rows = await q<{ uid: string; role: string }>(
+      "authenticated",
+      { sub },
+      "select auth.uid() as uid, current_user as role",
+    );
     expect(rows[0]).toEqual({ uid: sub, role: "authenticated" });
   });
 });

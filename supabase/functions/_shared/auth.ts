@@ -22,7 +22,11 @@ export async function requireUser(req: Request, authClient: SupabaseClient): Pro
   return user;
 }
 
-export async function requireAdmin(req: Request, authClient: SupabaseClient, rpc: Rpc): Promise<AuthUser> {
+export async function requireAdmin(
+  req: Request,
+  authClient: SupabaseClient,
+  rpc: Rpc,
+): Promise<AuthUser> {
   const user = await requireUser(req, authClient);
   const isAdmin = await rpc<boolean>("user_is_admin", { p_user_id: user.id });
   if (!isAdmin) throw new HttpError(403, "FORBIDDEN");

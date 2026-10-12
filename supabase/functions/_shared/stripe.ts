@@ -10,7 +10,11 @@ export function createStripe(secretKey: string, apiBase?: string): Stripe {
   };
   if (apiBase) {
     const u = new URL(apiBase);
-    Object.assign(config, { host: u.hostname, port: Number(u.port || (u.protocol === "https:" ? 443 : 80)), protocol: u.protocol.replace(":", "") });
+    Object.assign(config, {
+      host: u.hostname,
+      port: Number(u.port || (u.protocol === "https:" ? 443 : 80)),
+      protocol: u.protocol.replace(":", ""),
+    });
   }
   return new Stripe(secretKey, config);
 }

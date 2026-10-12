@@ -39,7 +39,10 @@ export function h1(text: string): string {
   return `<h1 style="margin:0 0 16px;font-family:${FONT};font-size:24px;line-height:1.25;font-weight:600;color:${COLORS.ink};">${esc(text)}</h1>`;
 }
 
-export function p(html: string, opts: { muted?: boolean; size?: number; margin?: string } = {}): string {
+export function p(
+  html: string,
+  opts: { muted?: boolean; size?: number; margin?: string } = {},
+): string {
   return `<p style="margin:${opts.margin ?? "0 0 14px"};font-family:${FONT};font-size:${opts.size ?? 15}px;line-height:1.6;color:${opts.muted ? COLORS.grey : COLORS.ink};">${html}</p>`;
 }
 
@@ -50,12 +53,13 @@ export function button(label: string, href: string): string {
 </td></tr></table>`;
 }
 
-/** Hervorgehobener Code (Gutschein, Rabatt). */
+/** Hervorgehobener Code (Gutschein, Rabatt, Sendungsnummer). Lange Codes kleiner, damit sie auf dem Handy auf eine Zeile passen. */
 export function codeBox(code: string, caption?: string): string {
+  const long = code.length > 18;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;"><tr>
-<td style="background:${COLORS.paper};border:1px solid ${COLORS.line};padding:18px 20px;text-align:center;">
+<td style="background:${COLORS.paper};border:1px solid ${COLORS.line};padding:18px 12px;text-align:center;">
 ${caption ? `<div style="font-family:${FONT};font-size:12px;letter-spacing:2px;text-transform:uppercase;color:${COLORS.grey};margin-bottom:6px;">${esc(caption)}</div>` : ""}
-<div style="font-family:'Courier New', Courier, monospace;font-size:22px;letter-spacing:3px;font-weight:700;color:${COLORS.ink};">${esc(code)}</div>
+<div style="font-family:'Courier New', Courier, monospace;font-size:${long ? 16 : 19}px;letter-spacing:${long ? 1 : 1.5}px;font-weight:700;color:${COLORS.ink};word-break:break-all;">${esc(code)}</div>
 </td></tr></table>`;
 }
 
@@ -95,7 +99,9 @@ export function layout(opts: {
   const footer = [
     esc(shop.name),
     shop.address ? esc(shop.address) : "",
-    shop.contactEmail ? `<a href="mailto:${esc(shop.contactEmail)}" style="color:${COLORS.grey};">${esc(shop.contactEmail)}</a>` : "",
+    shop.contactEmail
+      ? `<a href="mailto:${esc(shop.contactEmail)}" style="color:${COLORS.grey};">${esc(shop.contactEmail)}</a>`
+      : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -107,19 +113,25 @@ export function layout(opts: {
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title>${esc(opts.subject)}</title>
+<style>
+@media only screen and (max-width: 480px) {
+  .ax-outer { padding: 0 !important; }
+  .ax-pad { padding-left: 20px !important; padding-right: 20px !important; }
+}
+</style>
 </head>
 <body style="margin:0;padding:0;background:${COLORS.paper};-webkit-text-size-adjust:100%;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${COLORS.paper};">${esc(opts.preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.paper};">
-<tr><td align="center" style="padding:24px 12px;">
+<tr><td class="ax-outer" align="center" style="padding:24px 12px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;">
-<tr><td style="background:${COLORS.green};padding:26px 32px;">
+<tr><td class="ax-pad" style="background:${COLORS.green};padding:26px 32px;">
 <a href="${esc(shop.siteUrl + prefix + "/")}" style="font-family:${FONT};font-size:20px;letter-spacing:7px;font-weight:600;color:${COLORS.sand};text-decoration:none;">AXION</a>
 </td></tr>
-<tr><td style="padding:32px 32px 18px;">
+<tr><td class="ax-pad" style="padding:32px 32px 18px;">
 ${opts.body}
 </td></tr>
-<tr><td style="padding:18px 32px 26px;background:${COLORS.paper};font-family:${FONT};font-size:12px;line-height:1.6;color:${COLORS.grey};">
+<tr><td class="ax-pad" style="padding:18px 32px 26px;background:${COLORS.paper};font-family:${FONT};font-size:12px;line-height:1.6;color:${COLORS.grey};">
 ${opts.footerNote ? `<div style="margin-bottom:8px;">${opts.footerNote}</div>` : ""}
 <div>${footer}</div>
 <div style="margin-top:6px;"><a href="${esc(shop.siteUrl + prefix + "/agb")}" style="color:${COLORS.grey};">${legal}</a> · <a href="${esc(shop.siteUrl + prefix + "/datenschutz")}" style="color:${COLORS.grey};">${privacy}</a></div>

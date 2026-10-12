@@ -34,3 +34,6 @@ dist-ssr
 # Lokale Test-Datenbank, Vorschauen und Lieferpaket
 .local/
 delivery/
+
+# Deno-Lockfiles: Format hängt von der Deno-Version ab; Abhängigkeiten sind in deno.json exakt gepinnt
+supabase/functions/**/deno.lock

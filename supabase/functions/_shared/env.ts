@@ -56,7 +56,13 @@ export function readEnv(get: EnvSource): FunctionEnv {
     shopAddress: get("SHOP_ADDRESS") ?? "",
     shopNotifyEmail: get("SHOP_NOTIFY_EMAIL") ?? "",
     sendEmailHookSecret: get("SEND_EMAIL_HOOK_SECRET") ?? "",
-    allowedOrigins: [siteUrl, ...(get("ALLOWED_ORIGINS") ?? "").split(",").map((s) => s.trim()).filter(Boolean)],
+    allowedOrigins: [
+      siteUrl,
+      ...(get("ALLOWED_ORIGINS") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ],
   };
 }
 

@@ -27,8 +27,18 @@ export function createDeps(env: FunctionEnv, overrides: Partial<Deps> = {}): Dep
     rpc: createRpc(service),
     authClient: createSupabase(env.supabaseUrl, env.publicKey),
     stripe: createStripe(env.stripeSecretKey || "sk_test_missing", env.stripeApiBase),
-    mail: { apiKey: env.resendApiKey, from: env.emailFrom, replyTo: env.shopContactEmail || undefined, baseUrl: env.resendApiBase },
-    shop: { name: env.shopName, siteUrl: env.siteUrl, contactEmail: env.shopContactEmail, address: env.shopAddress },
+    mail: {
+      apiKey: env.resendApiKey,
+      from: env.emailFrom,
+      replyTo: env.shopContactEmail || undefined,
+      baseUrl: env.resendApiBase,
+    },
+    shop: {
+      name: env.shopName,
+      siteUrl: env.siteUrl,
+      contactEmail: env.shopContactEmail,
+      address: env.shopAddress,
+    },
     now: () => new Date(),
     ...overrides,
   };

@@ -5,13 +5,23 @@ import pg from "pg";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 
-const DB_URL = process.env.AXION_DB_URL ?? "postgres://postgres@127.0.0.1:54329/axion";
+const DB_URL = process.env["AXION_DB_URL"] ?? "postgres://postgres@127.0.0.1:54329/axion";
 const OUT = path.resolve(import.meta.dirname, "../../src/integrations/supabase/types.ts");
 
 const client = new pg.Client({ connectionString: DB_URL });
 await client.connect();
 
-type Col = { table: string; column: string; udt: string; udt_schema: string; data_type: string; nullable: boolean; has_default: boolean; identity: boolean; ordinal: number };
+type Col = {
+  table: string;
+  column: string;
+  udt: string;
+  udt_schema: string;
+  data_type: string;
+  nullable: boolean;
+  has_default: boolean;
+  identity: boolean;
+  ordinal: number;
+};
 const cols = (
   await client.query<Col>(`
     select c.table_name as table, c.column_name as column, c.udt_name as udt, c.udt_schema, c.data_type,
@@ -32,7 +42,14 @@ const enums = (
 const enumNames = new Set(enums.map((e) => e.name));
 
 const rels = (
-  await client.query<{ table: string; name: string; columns: string[]; ref_table: string; ref_columns: string[]; one_to_one: boolean }>(`
+  await client.query<{
+    table: string;
+    name: string;
+    columns: string[];
+    ref_table: string;
+    ref_columns: string[];
+    one_to_one: boolean;
+  }>(`
     select cl.relname as table, con.conname as name,
       array(select a.attname::text from unnest(con.conkey) k join pg_attribute a on a.attrelid = con.conrelid and a.attnum = k) as columns,
       rcl.relname as ref_table,
@@ -45,7 +62,16 @@ const rels = (
     order by cl.relname, con.conname`)
 ).rows;
 
-type Fn = { name: string; arg_names: string[] | null; arg_types: string[]; arg_modes: string[] | null; n_defaults: number; ret: string; ret_set: boolean; table_cols: { name: string; type: string }[] | null };
+type Fn = {
+  name: string;
+  arg_names: string[] | null;
+  arg_types: string[];
+  arg_modes: string[] | null;
+  n_defaults: number;
+  ret: string;
+  ret_set: boolean;
+  table_cols: { name: string; type: string }[] | null;
+};
 const fns = (
   await client.query<Fn>(`
     select p.proname as name, p.proargnames as arg_names,
@@ -64,8 +90,33 @@ function tsType(pgType: string): string {
   const t = pgType.replace(/^public\./, "");
   if (t.endsWith("[]")) return `${tsType(t.slice(0, -2))}[]`;
   if (enumNames.has(t)) return `Database["public"]["Enums"]["${t}"]`;
-  if (["uuid", "text", "citext", "extensions.citext", "character varying", "timestamp with time zone", "date", "interval"].includes(t)) return "string";
-  if (["integer", "bigint", "smallint", "numeric", "real", "double precision", "int4", "int8", "int2"].includes(t)) return "number";
+  if (
+    [
+      "uuid",
+      "text",
+      "citext",
+      "extensions.citext",
+      "character varying",
+      "timestamp with time zone",
+      "date",
+      "interval",
+    ].includes(t)
+  )
+    return "string";
+  if (
+    [
+      "integer",
+      "bigint",
+      "smallint",
+      "numeric",
+      "real",
+      "double precision",
+      "int4",
+      "int8",
+      "int2",
+    ].includes(t)
+  )
+    return "number";
   if (["boolean", "bool"].includes(t)) return "boolean";
   if (["jsonb", "json"].includes(t)) return "Json";
   if (t === "void") return "undefined";
@@ -76,7 +127,18 @@ function colType(c: Col): string {
   if (c.data_type === "ARRAY") return `${tsType(c.udt.replace(/^_/, ""))}[]`;
   if (c.data_type === "USER-DEFINED" && enumNames.has(c.udt)) return tsType(c.udt);
   if (c.udt === "citext") return "string";
-  const map: Record<string, string> = { uuid: "uuid", text: "text", int4: "integer", int8: "bigint", int2: "smallint", bool: "boolean", timestamptz: "timestamp with time zone", jsonb: "jsonb", json: "json", date: "date" };
+  const map: Record<string, string> = {
+    uuid: "uuid",
+    text: "text",
+    int4: "integer",
+    int8: "bigint",
+    int2: "smallint",
+    bool: "boolean",
+    timestamptz: "timestamp with time zone",
+    jsonb: "jsonb",
+    json: "json",
+    date: "date",
+  };
   return tsType(map[c.udt] ?? c.udt);
 }
 
@@ -101,11 +163,39 @@ export type Database = {
 for (const table of tables) {
   const tc = cols.filter((c) => c.table === table);
   out += `${ind(6)}${table}: {\n`;
-  out += `${ind(8)}Row: {\n` + tc.map((c) => `${ind(10)}${c.column}: ${colType(c)}${c.nullable ? " | null" : ""}`).join("\n") + `\n${ind(8)}}\n`;
-  out += `${ind(8)}Insert: {\n` + tc.map((c) => `${ind(10)}${c.column}${c.nullable || c.has_default || c.identity ? "?" : ""}: ${colType(c)}${c.nullable ? " | null" : ""}`).join("\n") + `\n${ind(8)}}\n`;
-  out += `${ind(8)}Update: {\n` + tc.map((c) => `${ind(10)}${c.column}?: ${colType(c)}${c.nullable ? " | null" : ""}`).join("\n") + `\n${ind(8)}}\n`;
+  out +=
+    `${ind(8)}Row: {\n` +
+    tc.map((c) => `${ind(10)}${c.column}: ${colType(c)}${c.nullable ? " | null" : ""}`).join("\n") +
+    `\n${ind(8)}}\n`;
+  out +=
+    `${ind(8)}Insert: {\n` +
+    tc
+      .map(
+        (c) =>
+          `${ind(10)}${c.column}${c.nullable || c.has_default || c.identity ? "?" : ""}: ${colType(c)}${c.nullable ? " | null" : ""}`,
+      )
+      .join("\n") +
+    `\n${ind(8)}}\n`;
+  out +=
+    `${ind(8)}Update: {\n` +
+    tc
+      .map((c) => `${ind(10)}${c.column}?: ${colType(c)}${c.nullable ? " | null" : ""}`)
+      .join("\n") +
+    `\n${ind(8)}}\n`;
   const tr = rels.filter((r) => r.table === table);
-  out += `${ind(8)}Relationships: [` + (tr.length ? "\n" + tr.map((r) => `${ind(10)}{\n${ind(12)}foreignKeyName: "${r.name}"\n${ind(12)}columns: [${r.columns.map((c) => `"${c}"`).join(", ")}]\n${ind(12)}isOneToOne: ${r.one_to_one}\n${ind(12)}referencedRelation: "${r.ref_table}"\n${ind(12)}referencedColumns: [${r.ref_columns.map((c) => `"${c}"`).join(", ")}]\n${ind(10)}},`).join("\n") + `\n${ind(8)}` : "") + "]\n";
+  out +=
+    `${ind(8)}Relationships: [` +
+    (tr.length
+      ? "\n" +
+        tr
+          .map(
+            (r) =>
+              `${ind(10)}{\n${ind(12)}foreignKeyName: "${r.name}"\n${ind(12)}columns: [${r.columns.map((c) => `"${c}"`).join(", ")}]\n${ind(12)}isOneToOne: ${r.one_to_one}\n${ind(12)}referencedRelation: "${r.ref_table}"\n${ind(12)}referencedColumns: [${r.ref_columns.map((c) => `"${c}"`).join(", ")}]\n${ind(10)}},`,
+          )
+          .join("\n") +
+        `\n${ind(8)}`
+      : "") +
+    "]\n";
   out += `${ind(6)}}\n`;
 }
 out += `${ind(4)}}\n${ind(4)}Views: {\n${ind(6)}[_ in never]: never\n${ind(4)}}\n${ind(4)}Functions: {\n`;
@@ -118,13 +208,22 @@ for (const f of fns) {
   let inputIndex = 0;
   modes.forEach((m, i) => {
     if (m === "i" || m === "b") {
-      inArgs.push({ name: names[i] ?? `arg${i}`, type: tsType(f.arg_types[i]!), optional: inputIndex >= inputCount - f.n_defaults });
+      inArgs.push({
+        name: names[i] ?? `arg${i}`,
+        type: tsType(f.arg_types[i]!),
+        optional: inputIndex >= inputCount - f.n_defaults,
+      });
       inputIndex++;
     }
-    if (m === "t" || m === "o") outCols.push({ name: names[i] ?? `col${i}`, type: tsType(f.arg_types[i]!) });
+    if (m === "t" || m === "o")
+      outCols.push({ name: names[i] ?? `col${i}`, type: tsType(f.arg_types[i]!) });
   });
-  const args = inArgs.length ? `{ ${inArgs.map((a) => `${a.name}${a.optional ? "?" : ""}: ${a.type}`).join("; ")} }` : "Record<PropertyKey, never>";
-  const ret = outCols.length ? `{ ${outCols.map((c) => `${c.name}: ${c.type}`).join("; ")} }[]` : tsType(f.ret) + (f.ret_set ? "[]" : "");
+  const args = inArgs.length
+    ? `{ ${inArgs.map((a) => `${a.name}${a.optional ? "?" : ""}: ${a.type}`).join("; ")} }`
+    : "Record<PropertyKey, never>";
+  const ret = outCols.length
+    ? `{ ${outCols.map((c) => `${c.name}: ${c.type}`).join("; ")} }[]`
+    : tsType(f.ret) + (f.ret_set ? "[]" : "");
   out += `${ind(6)}${f.name}: {\n${ind(8)}Args: ${args}\n${ind(8)}Returns: ${ret}\n${ind(6)}}\n`;
 }
 out += `${ind(4)}}\n${ind(4)}Enums: {\n`;
@@ -148,4 +247,6 @@ ${enums.map((e) => `      ${e.name}: [${e.values.map((v) => `"${v}"`).join(", ")
 `;
 writeFileSync(OUT, out);
 await client.end();
-console.log(`Typen geschrieben: ${path.relative(process.cwd(), OUT)} (${tables.length} Tabellen, ${fns.length} Funktionen, ${enums.length} Enums)`);
+console.log(
+  `Typen geschrieben: ${path.relative(process.cwd(), OUT)} (${tables.length} Tabellen, ${fns.length} Funktionen, ${enums.length} Enums)`,
+);

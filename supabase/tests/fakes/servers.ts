@@ -20,7 +20,10 @@ function decodeJwt(token: string): { sub?: string; email?: string } | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   try {
-    return JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf8")) as { sub?: string; email?: string };
+    return JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf8")) as {
+      sub?: string;
+      email?: string;
+    };
   } catch {
     return null;
   }
@@ -63,7 +66,10 @@ export async function startFakeSupabase(): Promise<FakeServer & { rpcCalls: stri
         const claims = token === SERVICE_KEY ? null : decodeJwt(token);
         const role = token === SERVICE_KEY ? "service_role" : claims ? "authenticated" : "anon";
         if (!setof.has(fn)) {
-          const r = await pool.query<{ proretset: boolean }>("select proretset from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = $1 limit 1", [fn]);
+          const r = await pool.query<{ proretset: boolean }>(
+            "select proretset from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = $1 limit 1",
+            [fn],
+          );
           setof.set(fn, r.rows[0]?.proretset ?? false);
         }
         const names = Object.keys(args);
@@ -76,15 +82,26 @@ export async function startFakeSupabase(): Promise<FakeServer & { rpcCalls: stri
         try {
           await c.query("begin");
           await c.query("select set_config('role', $1, true)", [role]);
-          await c.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ role, ...(claims ?? {}) })]);
-          await c.query("select set_config('request.headers', $1, true)", [JSON.stringify({ "x-forwarded-for": req.headers["x-forwarded-for"] ?? "127.0.0.1" })]);
-          const result = setof.get(fn) ? await c.query(`select * from ${call}`, params) : await c.query(`select ${call} as r`, params);
+          await c.query("select set_config('request.jwt.claims', $1, true)", [
+            JSON.stringify({ role, ...(claims ?? {}) }),
+          ]);
+          await c.query("select set_config('request.headers', $1, true)", [
+            JSON.stringify({ "x-forwarded-for": req.headers["x-forwarded-for"] ?? "127.0.0.1" }),
+          ]);
+          const result = setof.get(fn)
+            ? await c.query(`select * from ${call}`, params)
+            : await c.query(`select ${call} as r`, params);
           await c.query("commit");
-          send(res, 200, setof.get(fn) ? result.rows : result.rows[0]?.r ?? null);
+          send(res, 200, setof.get(fn) ? result.rows : (result.rows[0]?.r ?? null));
         } catch (error) {
           await c.query("rollback").catch(() => undefined);
           const e = error as { code?: string; message: string; detail?: string; hint?: string };
-          send(res, e.code === "42501" ? 403 : 400, { code: e.code, message: e.message, details: e.detail ?? null, hint: e.hint ?? null });
+          send(res, e.code === "42501" ? 403 : 400, {
+            code: e.code,
+            message: e.message,
+            details: e.detail ?? null,
+            hint: e.hint ?? null,
+          });
         } finally {
           c.release();
         }
@@ -92,9 +109,19 @@ export async function startFakeSupabase(): Promise<FakeServer & { rpcCalls: stri
       }
       if (url.pathname === "/auth/v1/user" && req.method === "GET") {
         const claims = decodeJwt(token);
-        const rows = claims?.sub ? (await pool.query("select id, email from auth.users where id = $1", [claims.sub])).rows : [];
+        const rows = claims?.sub
+          ? (await pool.query("select id, email from auth.users where id = $1", [claims.sub])).rows
+          : [];
         if (!rows[0]) return send(res, 401, { code: 401, msg: "invalid JWT" });
-        return send(res, 200, { id: rows[0].id, email: rows[0].email, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() });
+        return send(res, 200, {
+          id: rows[0].id,
+          email: rows[0].email,
+          aud: "authenticated",
+          role: "authenticated",
+          app_metadata: {},
+          user_metadata: {},
+          created_at: new Date().toISOString(),
+        });
       }
       const del = url.pathname.match(/^\/auth\/v1\/admin\/users\/([0-9a-f-]+)$/);
       if (del && req.method === "DELETE") {
@@ -137,7 +164,9 @@ export interface StripeCall {
   body: Record<string, unknown>;
 }
 
-export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Promise<FakeServer & { calls: StripeCall[]; failNextSession: (times?: number) => void }> {
+export async function startFakeStripe(
+  opts: { paymentMethod?: string } = {},
+): Promise<FakeServer & { calls: StripeCall[]; failNextSession: (times?: number) => void }> {
   const calls: StripeCall[] = [];
   let fail = 0;
   const server = http.createServer(async (req, res) => {
@@ -150,20 +179,45 @@ export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Pr
     if (url.pathname === "/v1/checkout/sessions" && req.method === "POST") {
       if (fail > 0) {
         fail -= 1;
-        return send(res, 500, { error: { type: "api_error", message: "Stripe ist gerade nicht erreichbar" } });
+        return send(res, 500, {
+          error: { type: "api_error", message: "Stripe ist gerade nicht erreichbar" },
+        });
       }
       const id = `cs_test_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
-      return send(res, 200, { id, object: "checkout.session", url: `https://checkout.stripe.test/c/pay/${id}`, expires_at: Number(body["expires_at"]), metadata: body["metadata"] });
+      return send(res, 200, {
+        id,
+        object: "checkout.session",
+        url: `https://checkout.stripe.test/c/pay/${id}`,
+        expires_at: Number(body["expires_at"]),
+        metadata: body["metadata"],
+      });
     }
     const pi = url.pathname.match(/^\/v1\/payment_intents\/([^/]+)$/);
     if (pi && req.method === "GET") {
       const type = opts.paymentMethod ?? "twint";
-      return send(res, 200, { id: pi[1], object: "payment_intent", latest_charge: { id: "ch_test", payment_method_details: type === "apple_pay" ? { type: "card", card: { wallet: { type: "apple_pay" } } } : { type } } });
+      return send(res, 200, {
+        id: pi[1],
+        object: "payment_intent",
+        latest_charge: {
+          id: "ch_test",
+          payment_method_details:
+            type === "apple_pay"
+              ? { type: "card", card: { wallet: { type: "apple_pay" } } }
+              : { type },
+        },
+      });
     }
     send(res, 404, { error: { message: `Nicht nachgebaut: ${req.method} ${url.pathname}` } });
   });
   const url = await listen(server);
-  return { url, calls, failNextSession: (times = 1) => { fail = times; }, close: () => new Promise((r) => server.close(() => r())) };
+  return {
+    url,
+    calls,
+    failNextSession: (times = 1) => {
+      fail = times;
+    },
+    close: () => new Promise((r) => server.close(() => r())),
+  };
 }
 
 export interface SentEmail {
@@ -176,7 +230,9 @@ export interface SentEmail {
   idempotencyKey?: string;
 }
 
-export async function startFakeResend(): Promise<FakeServer & { sent: SentEmail[]; failNext: () => void }> {
+export async function startFakeResend(): Promise<
+  FakeServer & { sent: SentEmail[]; failNext: () => void }
+> {
   const sent: SentEmail[] = [];
   let fail = false;
   const server = http.createServer(async (req, res) => {
@@ -193,5 +249,12 @@ export async function startFakeResend(): Promise<FakeServer & { sent: SentEmail[
     send(res, 404, {});
   });
   const url = await listen(server);
-  return { url, sent, failNext: () => { fail = true; }, close: () => new Promise((r) => server.close(() => r())) };
+  return {
+    url,
+    sent,
+    failNext: () => {
+      fail = true;
+    },
+    close: () => new Promise((r) => server.close(() => r())),
+  };
 }

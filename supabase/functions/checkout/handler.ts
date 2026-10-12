@@ -51,7 +51,16 @@ function prefix(locale: Locale): string {
 function imageUrl(deps: Deps, path: string | null): string[] {
   if (!path || path.startsWith("asset:")) return [];
   if (/^https:\/\//.test(path)) return [path];
-  return [`${deps.env.supabaseUrl}/storage/v1/object/public/product-images/${path.split("/").map(encodeURIComponent).join("/")}`];
+  return [
+    `${deps.env.supabaseUrl}/storage/v1/object/public/product-images/${path.split("/").map(encodeURIComponent).join("/")}`,
+  ];
+}
+
+type ProductData = Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData;
+
+/** Produktangaben für Stripe; leere Beschreibung und Bilder werden weggelassen. */
+function productData(name: string, description: string | null, images: string[] = []): ProductData {
+  return { name, ...(description ? { description } : {}), ...(images.length ? { images } : {}) };
 }
 
 function mapReserveError(error: unknown): never {
@@ -59,29 +68,44 @@ function mapReserveError(error: unknown): never {
     switch (error.code) {
       case "OUT_OF_STOCK":
         throw new HttpError(409, "OUT_OF_STOCK", {
-          items: (Array.isArray(error.detail) ? error.detail : []).map((i: { variant_id: string; available: number }) => ({
-            variantId: i.variant_id,
-            available: i.available,
-          })),
+          items: (Array.isArray(error.detail) ? error.detail : []).map(
+            (i: { variant_id: string; available: number }) => ({
+              variantId: i.variant_id,
+              available: i.available,
+            }),
+          ),
         });
       case "DISCOUNT_INVALID":
       case "GIFT_CARD_INVALID":
-        throw new HttpError(422, error.code, { reason: (error.detail as { reason?: string } | null)?.reason ?? "invalid" });
+        throw new HttpError(422, error.code, {
+          reason: (error.detail as { reason?: string } | null)?.reason ?? "invalid",
+        });
       case "INVALID_LINES":
       case "INVALID_EMAIL":
       case "INVALID_AMOUNT":
-        throw new HttpError(400, error.code, error.detail && typeof error.detail === "object" ? { detail: error.detail } : {});
+        throw new HttpError(
+          400,
+          error.code,
+          error.detail && typeof error.detail === "object" ? { detail: error.detail } : {},
+        );
     }
   }
   throw error;
 }
 
 function parseLines(value: unknown): { variant_id: string; quantity: number }[] {
-  if (!Array.isArray(value) || value.length === 0 || value.length > 30) throw new HttpError(400, "INVALID_LINES");
+  if (!Array.isArray(value) || value.length === 0 || value.length > 30)
+    throw new HttpError(400, "INVALID_LINES");
   return value.map((l) => {
     const line = l as { variantId?: unknown; quantity?: unknown };
-    if (typeof line.variantId !== "string" || !UUID.test(line.variantId)) throw new HttpError(400, "INVALID_LINES");
-    if (typeof line.quantity !== "number" || !Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 10) {
+    if (typeof line.variantId !== "string" || !UUID.test(line.variantId))
+      throw new HttpError(400, "INVALID_LINES");
+    if (
+      typeof line.quantity !== "number" ||
+      !Number.isInteger(line.quantity) ||
+      line.quantity < 1 ||
+      line.quantity > 10
+    ) {
       throw new HttpError(400, "INVALID_LINES");
     }
     return { variant_id: line.variantId, quantity: line.quantity };
@@ -89,7 +113,9 @@ function parseLines(value: unknown): { variant_id: string; quantity: number }[] 
 }
 
 async function cancelQuietly(deps: Deps, orderId: string, reason: string) {
-  await deps.rpc("cancel_order", { p_order_id: orderId, p_reason: reason }).catch((e) => console.error("Storno fehlgeschlagen", e));
+  await deps
+    .rpc("cancel_order", { p_order_id: orderId, p_reason: reason })
+    .catch((e) => console.error("Storno fehlgeschlagen", e));
 }
 
 async function createSession(
@@ -98,7 +124,9 @@ async function createSession(
   orderId: string,
 ): Promise<Stripe.Checkout.Session> {
   try {
-    return await deps.stripe.checkout.sessions.create(params, { idempotencyKey: `session-${orderId}` });
+    return await deps.stripe.checkout.sessions.create(params, {
+      idempotencyKey: `session-${orderId}`,
+    });
   } catch (error) {
     console.error("Stripe-Session fehlgeschlagen", error);
     await cancelQuietly(deps, orderId, "stripe_error");
@@ -106,7 +134,13 @@ async function createSession(
   }
 }
 
-async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: string, userId: string | null, locale: Locale) {
+async function cartCheckout(
+  deps: Deps,
+  body: Record<string, unknown>,
+  email: string,
+  userId: string | null,
+  locale: Locale,
+) {
   const lines = parseLines(body["lines"]);
   const reservation = await deps
     .rpc<Reservation>("reserve_checkout", {
@@ -127,7 +161,9 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
       p_order_id: reservation.order_id,
       p_payment: { amount_total_cents: 0, email: reservation.email },
     });
-    await sendPaidEmails(deps, result.order).catch((e) => console.error("E-Mail nach Gutscheinzahlung fehlgeschlagen", e));
+    await sendPaidEmails(deps, result.order).catch((e) =>
+      console.error("E-Mail nach Gutscheinzahlung fehlgeschlagen", e),
+    );
     return json(200, { url: successUrl, orderNumber: reservation.order_number });
   }
 
@@ -137,12 +173,21 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
   let couponId: string | undefined;
   if (couponAmount > 0) {
     const parts = [
-      reservation.discount_cents > 0 ? (locale === "en" ? "Discount" : "Rabatt") + (reservation.discount_code ? ` ${reservation.discount_code}` : "") : null,
+      reservation.discount_cents > 0
+        ? (locale === "en" ? "Discount" : "Rabatt") +
+          (reservation.discount_code ? ` ${reservation.discount_code}` : "")
+        : null,
       reservation.gift_card_cents > 0 ? (locale === "en" ? "Gift card" : "Gutschein") : null,
     ].filter(Boolean);
     try {
       const coupon = await deps.stripe.coupons.create(
-        { amount_off: couponAmount, currency: "chf", duration: "once", max_redemptions: 1, name: parts.join(" + ").slice(0, 40) },
+        {
+          amount_off: couponAmount,
+          currency: "chf",
+          duration: "once",
+          max_redemptions: 1,
+          name: parts.join(" + ").slice(0, 40),
+        },
         { idempotencyKey: `coupon-${reservation.order_id}` },
       );
       couponId = coupon.id;
@@ -155,7 +200,10 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
 
   const expiresAt = Math.floor(deps.now().getTime() / 1000) + SESSION_MINUTES * 60;
   const sizeWord = locale === "en" ? "Size" : "Grösse";
-  const metadata = { order_id: reservation.order_id, order_number: String(reservation.order_number) };
+  const metadata = {
+    order_id: reservation.order_id,
+    order_number: String(reservation.order_number),
+  };
   const session = await createSession(
     deps,
     {
@@ -166,18 +214,18 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
       client_reference_id: reservation.order_id,
       metadata,
       payment_intent_data: { metadata, description: `Axion AX-${reservation.order_number}` },
-      line_items: reservation.lines.map((l) => ({
+      line_items: reservation.lines.map((l): Stripe.Checkout.SessionCreateParams.LineItem => ({
         quantity: l.quantity,
         price_data: {
           currency: "chf",
           unit_amount: l.unit_price_cents,
-          product_data: {
-            name: l.title,
-            description: [l.color, l.size ? `${sizeWord} ${l.size}` : null].filter(Boolean).join(" · ") || undefined,
-            images: imageUrl(deps, l.image),
-          },
+          product_data: productData(
+            l.title,
+            [l.color, l.size ? `${sizeWord} ${l.size}` : null].filter(Boolean).join(" · "),
+            imageUrl(deps, l.image),
+          ),
         },
-      })) as Stripe.Checkout.SessionCreateParams.LineItem[],
+      })),
       ...(couponId ? { discounts: [{ coupon: couponId }] } : {}),
       shipping_address_collection: { allowed_countries: ["CH", "LI"] },
       shipping_options: [
@@ -186,11 +234,16 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
             type: "fixed_amount",
             display_name: locale === "en" ? "Swiss Post" : "Post",
             fixed_amount: { amount: stripeShipping, currency: "chf" },
-            delivery_estimate: { minimum: { unit: "business_day", value: 2 }, maximum: { unit: "business_day", value: 5 } },
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 2 },
+              maximum: { unit: "business_day", value: 5 },
+            },
           },
         },
       ],
-      ...(deps.env.stripeRequireTerms ? { consent_collection: { terms_of_service: "required" as const } } : {}),
+      ...(deps.env.stripeRequireTerms
+        ? { consent_collection: { terms_of_service: "required" as const } }
+        : {}),
       expires_at: expiresAt,
       success_url: successUrl,
       cancel_url: `${base}/warenkorb?abgebrochen=1`,
@@ -205,9 +258,16 @@ async function cartCheckout(deps: Deps, body: Record<string, unknown>, email: st
   return json(200, { url: session.url, orderNumber: reservation.order_number });
 }
 
-async function giftCardCheckout(deps: Deps, body: Record<string, unknown>, email: string, userId: string | null, locale: Locale) {
+async function giftCardCheckout(
+  deps: Deps,
+  body: Record<string, unknown>,
+  email: string,
+  userId: string | null,
+  locale: Locale,
+) {
   const amount = body["amountCents"];
-  if (typeof amount !== "number" || !Number.isInteger(amount)) throw new HttpError(400, "INVALID_AMOUNT");
+  if (typeof amount !== "number" || !Number.isInteger(amount))
+    throw new HttpError(400, "INVALID_AMOUNT");
   const reservation = await deps
     .rpc<GiftReservation>("reserve_gift_card_purchase", {
       p_amount_cents: amount,
@@ -224,7 +284,11 @@ async function giftCardCheckout(deps: Deps, body: Record<string, unknown>, email
     .catch(mapReserveError);
   const base = deps.env.siteUrl + prefix(locale);
   const expiresAt = Math.floor(deps.now().getTime() / 1000) + SESSION_MINUTES * 60;
-  const metadata = { order_id: reservation.order_id, order_number: String(reservation.order_number), kind: "gift_card" };
+  const metadata = {
+    order_id: reservation.order_id,
+    order_number: String(reservation.order_number),
+    kind: "gift_card",
+  };
   const forName = reservation.purchase.recipient_name;
   const session = await createSession(
     deps,
@@ -235,21 +299,26 @@ async function giftCardCheckout(deps: Deps, body: Record<string, unknown>, email
       customer_email: reservation.email,
       client_reference_id: reservation.order_id,
       metadata,
-      payment_intent_data: { metadata, description: `Axion AX-${reservation.order_number} Gutschein` },
+      payment_intent_data: {
+        metadata,
+        description: `Axion AX-${reservation.order_number} Gutschein`,
+      },
       line_items: [
         {
           quantity: 1,
           price_data: {
             currency: "chf",
             unit_amount: reservation.total_cents,
-            product_data: {
-              name: locale === "en" ? "Axion gift card" : "Axion-Geschenkgutschein",
-              description: forName ? (locale === "en" ? `For ${forName}` : `Für ${forName}`) : undefined,
-            },
+            product_data: productData(
+              locale === "en" ? "Axion gift card" : "Axion-Geschenkgutschein",
+              forName ? (locale === "en" ? `For ${forName}` : `Für ${forName}`) : null,
+            ),
           },
         },
       ],
-      ...(deps.env.stripeRequireTerms ? { consent_collection: { terms_of_service: "required" as const } } : {}),
+      ...(deps.env.stripeRequireTerms
+        ? { consent_collection: { terms_of_service: "required" as const } }
+        : {}),
       expires_at: expiresAt,
       success_url: `${base}/bestellung/${reservation.status_token}?bezahlt=1`,
       cancel_url: `${base}/geschenkgutschein?abgebrochen=1`,
@@ -271,8 +340,10 @@ export function createCheckoutHandler(deps: Deps) {
     const email = str(body["email"], 254) ?? user?.email ?? undefined;
     if (!email) throw new HttpError(400, "INVALID_EMAIL");
     const locale = toLocale(body["locale"]);
-    if (body["kind"] === "gift_card") return giftCardCheckout(deps, body, email, user?.id ?? null, locale);
-    if (body["kind"] === "cart" || body["kind"] === undefined) return cartCheckout(deps, body, email, user?.id ?? null, locale);
+    if (body["kind"] === "gift_card")
+      return giftCardCheckout(deps, body, email, user?.id ?? null, locale);
+    if (body["kind"] === "cart" || body["kind"] === undefined)
+      return cartCheckout(deps, body, email, user?.id ?? null, locale);
     throw new HttpError(400, "BAD_REQUEST");
   });
 }

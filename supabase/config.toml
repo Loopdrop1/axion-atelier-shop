@@ -1,0 +1,28 @@
+# Supabase-CLI-Konfiguration für den Axion-Shop.
+# project_id beim Einrichten durch die Projekt-Referenz ersetzen (Supabase-Dashboard → Project Settings → General).
+# Wichtig: «supabase config push» NICHT verwenden – diese Datei enthält bewusst nur die Funktionen,
+# ein Push würde die übrigen Auth-Einstellungen des Projekts auf Standardwerte zurücksetzen.
+project_id = "axion-shop"
+
+# Alle Funktionen prüfen den Aufrufer selbst im Code (Anmelde-Token über Supabase Auth, Stripe-Signatur,
+# Standard-Webhooks-Signatur). Die eingebaute JWT-Prüfung versteht die neuen Schlüssel (sb_publishable_…)
+# nicht und würde Gäste an der Kasse abweisen; Supabase empfiehlt dafür verify_jwt = false.
+# Quelle: https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys
+
+[functions.checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.newsletter]
+verify_jwt = false
+
+[functions.admin-actions]
+verify_jwt = false
+
+[functions.account-delete]
+verify_jwt = false
+
+[functions.auth-email-hook]
+verify_jwt = false

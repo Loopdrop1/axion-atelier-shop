@@ -13,8 +13,26 @@ export class HttpError extends Error {
 const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
+/** Shop-Domain, weitere erlaubte Domains, Lovable-Vorschau und localhost. */
+export function isAllowedOrigin(origin: string | null, allowed: string[]): origin is string {
+  return (
+    origin !== null &&
+    (allowed.includes(origin) || PREVIEW_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin))
+  );
+}
+
+/** IP der Kundschaft für Rate-Limits (Cloudflare-Header zuerst, sonst erster Eintrag von X-Forwarded-For). */
+export function clientIp(req: Request): string | null {
+  const ip = (
+    req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0] ??
+    ""
+  ).trim();
+  return ip ? ip.slice(0, 64) : null;
+}
+
 export function corsHeaders(origin: string | null, allowed: string[]): Record<string, string> {
-  const ok = origin !== null && (allowed.includes(origin) || PREVIEW_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin));
+  const ok = isAllowedOrigin(origin, allowed);
   return {
     ...(ok ? { "Access-Control-Allow-Origin": origin } : {}),
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -24,10 +42,18 @@ export function corsHeaders(origin: string | null, allowed: string[]): Record<st
   };
 }
 
-export function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
+export function json(
+  status: number,
+  body: unknown,
+  headers: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...headers },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      ...headers,
+    },
   });
 }
 
@@ -67,7 +93,8 @@ export function withHttp(
       for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
       return res;
     } catch (error) {
-      if (error instanceof HttpError) return json(error.status, { error: error.code, ...error.extra }, cors);
+      if (error instanceof HttpError)
+        return json(error.status, { error: error.code, ...error.extra }, cors);
       console.error(error);
       return json(500, { error: "INTERNAL" }, cors);
     }
