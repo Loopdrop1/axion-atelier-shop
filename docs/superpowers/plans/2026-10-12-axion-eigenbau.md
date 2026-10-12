@@ -41,10 +41,12 @@
 ### Task 1: Lokale Werkbank (Git-Basis, Postgres, Supabase-Nachbau, Testlauf)
 
 **Files:**
+
 - Create: `scripts/db/local-db.sh`, `scripts/db/supabase-compat.sql`, `scripts/db/migrate.ts`, `vitest.backend.config.ts`, `supabase/tests/setup.ts`, `supabase/tests/helpers.ts`
 - Modify: `.gitignore` (`.local/`, `delivery/`), `package.json` (Scripts `db:reset`, `test:backend`; devDeps `pg`, `@types/pg`, `tsx`), `vitest.config.ts` (`exclude: ["supabase/**"]`)
 
 **Interfaces:**
+
 - Produces: `withRole(role: "anon"|"authenticated"|"service_role", claims: {sub?: string, email?: string} | null, fn: (c: PoolClient) => Promise<T>): Promise<T>`; `resetDb(): Promise<void>`; `createUser(email: string, opts?: {confirmed?: boolean, admin?: boolean}): Promise<string /* uuid */>`.
 
 - [x] Commit «Basis = Lovable e3800b2» mit dem heutigen Stand (ohne `qa/`, `docs/`).
@@ -56,9 +58,11 @@
 ### Task 2: Katalog, Rollen, Profile, Inhalte
 
 **Files:**
+
 - Create: `supabase/migrations/20261012000100_core.sql`, `supabase/seed.sql`, `supabase/tests/core.test.ts`
 
 **Interfaces:**
+
 - Produces Tabellen: `user_roles(user_id, role app_role)`, `profiles(id, first_name, last_name, phone, address jsonb, locale)`, `categories(id, slug, sort, name_de, name_en, description_de, description_en, image_path, active)`, `products(id, handle, category_id, model, status product_status, title_de/en, description_de/en, material_de/en, care_de/en, fit_note_de/en, fit, color_name_de/en, color_hex, tags text[], occasions text[], outfit_handles text[], price_cents, compare_at_cents, created_at, updated_at)`, `product_variants(id, product_id, size, sku, barcode, price_cents, compare_at_cents, stock int check (stock >= 0), sort, active)`, `product_images(id, product_id, path, alt_de, alt_en, width, height, sort)`, `site_content(key, value jsonb, updated_at)`.
 - Produces Funktionen: `public.has_role(_user_id uuid, _role public.app_role) returns boolean`; Trigger `handle_new_user` legt `profiles` an.
 - Seed: Kategorien `anzuege`, `westen`, `schuhe`; die 6 Beispielprodukte aus `sample-data.ts` mit Bildpfaden `asset:<schlüssel>` (Schlüssel wie in `media.ts`); `site_content` Schlüssel `announcements`, `home.hero`, `home.collections`, `home.new`, `home.look`, `home.occasions`, `home.story`.
@@ -70,9 +74,11 @@
 ### Task 3: Bestellungen, Gutscheine, Rabatte, Newsletter, Ereignisse
 
 **Files:**
+
 - Create: `supabase/migrations/20261012000200_commerce.sql`, `supabase/tests/commerce-rls.test.ts`
 
 **Interfaces:**
+
 - Produces Tabellen: `orders(id, number bigint, status order_status, user_id, email, locale, subtotal_cents, discount_cents, discount_code, gift_card_cents, gift_card_id, shipping_cents, total_cents, refunded_cents, shipping_name, shipping_address jsonb, phone, stripe_session_id unique, stripe_payment_intent_id, payment_method, kind ('cart'|'gift_card'), gift_card_purchase jsonb, tracking_number, shipped_at, paid_at, cancelled_at, expires_at, needs_attention bool, admin_note, created_at, updated_at)`, `order_items(...)`, `stock_movements(id, variant_id, delta, reason stock_reason, order_id, note, created_by, created_at)`, `discount_codes(id, code citext unique, kind, value, min_subtotal_cents, starts_at, ends_at, max_redemptions, redemptions, active)`, `gift_cards(id, code unique, initial_cents, balance_cents check (balance_cents >= 0), status, expires_at, purchaser_email, recipient_email, recipient_name, sender_name, message, order_id, created_at)`, `gift_card_transactions(id, gift_card_id, order_id, delta_cents, kind, created_at)`, `newsletter_subscribers(id, email citext unique, locale, status, consent_text, consent_at, token_hash, confirmed_at, unsubscribed_at, source, welcome_code)`, `stripe_events(id text pk, type, received_at)`, `rate_limits(key, window_start, hits)`.
 - `order_number` Sequenz ab 10001.
 
@@ -82,9 +88,11 @@
 ### Task 4: Geschäftslogik als RPC
 
 **Files:**
+
 - Create: `supabase/migrations/20261012000300_rpc.sql`, `supabase/tests/checkout-rpc.test.ts`, `supabase/tests/giftcard-rpc.test.ts`, `supabase/tests/admin-rpc.test.ts`
 
 **Interfaces (alle `security definer`, `search_path = ''`):**
+
 - `reserve_checkout(p_lines jsonb, p_email text, p_locale text, p_discount_code text, p_gift_card_code text, p_user_id uuid) returns jsonb` (nur `service_role`). Rückgabe `{order_id, order_number, subtotal_cents, discount_cents, gift_card_cents, shipping_cents, total_cents, lines:[{variant_id, product_id, handle, title, size, color, unit_price_cents, quantity, image}]}`. Fehler als `raise exception` mit Meldung `OUT_OF_STOCK`, `INVALID_LINES`, `DISCOUNT_INVALID`, `GIFT_CARD_INVALID` und JSON im `detail`.
 - `reserve_gift_card_purchase(p_amount_cents int, p_email text, p_locale text, p_purchase jsonb, p_user_id uuid) returns jsonb` (nur `service_role`), Betrag 25 bis 1000 CHF.
 - `attach_checkout_session(p_order_id uuid, p_session_id text, p_expires_at timestamptz) returns void`.
@@ -105,6 +113,7 @@
 ### Task 5: Speicher für Bilder
 
 **Files:**
+
 - Create: `supabase/migrations/20261012000400_storage.sql`, `supabase/tests/storage.test.ts`
 
 - [x] Buckets `product-images` und `site-media` (öffentlich lesbar, 8 MB, nur Bildtypen); Schreiben, Ändern, Löschen nur Admin. Tests: `anon` darf nicht schreiben, Admin darf.
@@ -113,6 +122,7 @@
 ### Task 6: TypeScript-Typen der Datenbank
 
 **Files:**
+
 - Create: `scripts/db/gen-types.ts`, `src/integrations/supabase/types.ts`
 
 - [x] Generator liest Tabellen, Enums und RPC-Signaturen aus der lokalen DB und schreibt einen `Database`-Typ im Supabase-Format (`Tables.Row/Insert/Update`, `Functions.Args/Returns`, `Enums`). Später durch `supabase gen types` ersetzbar.
@@ -123,9 +133,11 @@
 ### Task 7: Gemeinsame Bausteine und E-Mail-Vorlagen
 
 **Files:**
+
 - Create: `supabase/functions/_shared/{env,http,money,db,stripe,auth,i18n}.ts`, `supabase/functions/_shared/email/{send,layout,templates}.ts`, `supabase/functions/_shared/email/templates.test.ts`, `scripts/email-preview.ts`, `supabase/functions/deno.json`
 
 **Interfaces:**
+
 - `getEnv(): FunctionEnv`; `json(status: number, body: unknown, headers?: HeadersInit): Response`; `corsHeaders(origin: string | null, allowed: string[]): HeadersInit`.
 - `type Rpc = <T>(fn: string, args: Record<string, unknown>) => Promise<T>`; `class RpcError { code: string; detail: unknown }`; `createRpc(url: string, key: string): Rpc`.
 - `createStripe(secretKey: string, opts?: {host?: string, port?: number, protocol?: "http"|"https"}): Stripe` (Fetch-Client, SubtleCrypto).
@@ -140,9 +152,11 @@
 ### Task 8: Funktion `checkout`
 
 **Files:**
+
 - Create: `supabase/functions/checkout/{index.ts,handler.ts,handler.test.ts}`, `supabase/tests/fakes/{rpc-shim.ts,fake-stripe.ts,fake-resend.ts}`
 
 **Interfaces:**
+
 - Request `POST {kind:"cart", lines:[{variantId, quantity}], email?, discountCode?, giftCardCode?, locale}` oder `{kind:"gift_card", amountCents, recipientName?, recipientEmail?, senderName?, message?, email?, locale}`; optional `Authorization: Bearer <jwt>`.
 - Response `200 {url}` | `409 {error:"OUT_OF_STOCK", items:[{variantId, available}]}` | `422 {error:"DISCOUNT_INVALID"|"GIFT_CARD_INVALID"|"INVALID_LINES", reason}` | `400 {error:"BAD_REQUEST"}`.
 - `handleCheckout(req: Request, deps: {env, rpc, stripe, now?}): Promise<Response>`.
@@ -153,6 +167,7 @@
 ### Task 9: Funktion `stripe-webhook`
 
 **Files:**
+
 - Create: `supabase/functions/stripe-webhook/{index.ts,handler.ts,handler.test.ts}`
 
 - [x] Tests: falsche Signatur → 400; `checkout.session.completed` (bezahlt) → Bestellung `paid`, Bestätigung an Kundschaft und Meldung an Shop genau einmal; dasselbe Ereignis doppelt → keine zweite E-Mail; `checkout.session.expired` → storniert, Bestand zurück; `async_payment_failed` → storniert; `charge.refunded` → `refunded_cents`; Gutscheinkauf → Gutschein-E-Mail mit Code.
@@ -161,6 +176,7 @@
 ### Task 10: Funktionen `newsletter`, `admin-actions`, `account-delete`, `auth-email-hook`
 
 **Files:**
+
 - Create: je `index.ts`, `handler.ts`, `handler.test.ts` unter `supabase/functions/<name>/`, `supabase/config.toml`
 
 - [x] Newsletter: Anmeldung → `pending` + Bestätigungs-E-Mail; Bestätigen → `confirmed` (+ Willkommensrabatt, falls eingestellt); Abmelden → `unsubscribed`; doppelte Anmeldung verrät nicht, ob die Adresse existiert.
@@ -176,10 +192,12 @@
 ### Task 11: Supabase-Client und Commerce-Adapter
 
 **Files:**
+
 - Create: `src/integrations/supabase/client.ts`, `src/lib/commerce/backend.ts`, `src/lib/commerce/adapters/sample.ts`, `src/lib/commerce/adapters/supabase.ts`, `src/lib/commerce/adapters/supabase.test.ts`, `src/lib/commerce/mapping.ts`
 - Modify: `src/lib/commerce/index.ts`, `src/lib/commerce/types.ts`, `src/lib/commerce/media.ts`, `package.json` (`@supabase/supabase-js`)
 
 **Interfaces:**
+
 - `supabase: SupabaseClient<Database> | null`, `backendConfigured: boolean`.
 - `interface CommerceBackend` mit allen heutigen Exporten aus `index.ts` plus `locale` und `checkDiscount(code, subtotalCents)`, `checkGiftCard(code)`, `startCheckout(input: CheckoutInput): Promise<CheckoutResult>`, `getOrderStatus(sessionId)`, `getSiteContent(locale)`.
 - `mapProduct(row: ProductRow, locale: Locale): Product` (Fallback DE, `asset:`-Pfade über `media.ts`, Storage-Pfade über öffentliche URL).
@@ -192,11 +210,13 @@
 ### Task 12: Zweisprachigkeit
 
 **Files:**
+
 - Create: `src/i18n/{index.ts,messages/de.ts,messages/en.ts,routing.ts,i18n.test.ts}`, `src/routes/{-$locale}/route.tsx`
 - Move: alle Shop-Routen von `src/routes/*.tsx` nach `src/routes/{-$locale}/`
 - Modify: `src/routes/__root.tsx` (lang, hreflang), `src/components/shop/*.tsx` (Texte über `useT()`, Links mit `locale`), `src/lib/commerce/seo.ts`, `src/content/pages.ts` (EN-Hinweis)
 
 **Interfaces:**
+
 - `type Locale = "de"|"en"`; `useLocale(): Locale`; `useT(): Messages`; `localeParam(locale): {locale?: "en"}`; `switchLocalePath(pathname: string, target: Locale): string`; `<LanguageSwitch />`.
 
 - [x] Tests: `en` und `de` haben dieselben Schlüssel; `/en/produkt/x` rendert englische Navigation und `lang="en"`; `/fr/produkt/x` → 404; `switchLocalePath("/en/kollektion/anzuege", "de") === "/kollektion/anzuege"` (Vitest und e2e/shop.spec.ts).
@@ -205,6 +225,7 @@
 ### Task 13: Warenkorb, Kasse, Dankesseite
 
 **Files:**
+
 - Modify: `src/components/shop/cart.tsx`, `src/routes/{-$locale}/warenkorb.tsx`
 - Create: `src/routes/{-$locale}/bestellung.$token.tsx` (statt `bestellung.danke`: success_url ist `/bestellung/<token>?bezahlt=1`), `src/components/shop/checkout-summary.tsx`, `src/components/shop/checkout-summary.test.tsx`
 
@@ -215,6 +236,7 @@
 ### Task 14: Kundenkonto
 
 **Files:**
+
 - Create: `src/lib/account/{auth-store.ts,api.ts,api.test.ts}`, `src/routes/{-$locale}/konto.*.tsx` (anmelden, registrieren, bestaetigen, passwort-vergessen, passwort-neu, index, bestellungen.$number, daten), `src/components/account/*`
 - Vertrag der Funktionen: `supabase/functions/README.md` (Links der Auth-E-Mails auf `/konto/bestaetigen?token_hash&type&next`, Bestätigung per Klick mit `verifyOtp`, `next` nur als interner Pfad)
 - Modify: `src/components/shop/shell.tsx` (Konto-Symbol)
@@ -225,6 +247,7 @@
 ### Task 15: Geschenkgutschein-Seite und Newsletter
 
 **Files:**
+
 - Create: `src/routes/{-$locale}/geschenkgutschein.tsx`, `src/routes/{-$locale}/newsletter.bestaetigen.tsx`, `src/routes/{-$locale}/newsletter.abmelden.tsx`, `src/components/shop/newsletter-form.tsx`
 - Modify: `src/components/shop/shell.tsx` (Footer-Formular), `src/config/shop.ts` (Features an; Gutscheinbeträge kommen aus `shop_settings`)
 
@@ -237,43 +260,48 @@
 ### Task 16: Admin-Grundgerüst, Anmeldung, Übersicht
 
 **Files:**
+
 - Create: `src/routes/admin.tsx`, `src/routes/admin.index.tsx`, `src/routes/admin.anmelden.tsx`, `src/components/admin/{layout,guard,stat-cards}.tsx`, `src/lib/admin/api.ts`
 
-- [ ] Ohne Admin-Rolle «Kein Zugriff»; Übersicht mit Umsatz heute/7/30 Tage, offene Versände, tiefer Bestand.
-- [ ] Commit.
+- [x] Ohne Admin-Rolle «Kein Zugriff»; Übersicht mit Umsatz heute/7/30 Tage, offene Versände, tiefer Bestand.
+- [x] Commit.
 
 ### Task 17: Admin Produkte und Kategorien
 
 **Files:**
+
 - Create: `src/routes/admin.produkte.*.tsx`, `src/routes/admin.kategorien.tsx`, `src/components/admin/{product-form,variant-table,image-uploader}.tsx`, `src/lib/admin/image.ts`, `src/lib/admin/image.test.ts`
 
-- [ ] Bild wird im Browser auf max. 2000 px verkleinert (WebP, sonst JPEG); Felder DE/EN; Varianten mit Bestand; Sortierung der Bilder.
-- [ ] Commit.
+- [x] Bild wird im Browser auf max. 2000 px verkleinert (WebP, sonst JPEG); Felder DE/EN; Varianten mit Bestand; Sortierung der Bilder.
+- [x] Commit.
 
 ### Task 18: Admin Bestellungen und Lager
 
 **Files:**
+
 - Create: `src/routes/admin.bestellungen.*.tsx`, `src/routes/admin.lager.tsx`, `src/components/admin/{order-table,order-detail,stock-table}.tsx`
 
-- [ ] Versand mit Sendungsnummer (E-Mail), Notiz, Retoure einbuchen, Verkauf vor Ort (−1), Korrektur mit Grund, Bewegungsliste.
-- [ ] Commit.
+- [x] Versand mit Sendungsnummer (E-Mail), Notiz, Retoure einbuchen, Verkauf vor Ort (−1), Korrektur mit Grund, Bewegungsliste.
+- [x] Commit.
 
 ### Task 19: Admin Rabattcodes, Gutscheine, Newsletter, Inhalte, Zugänge, Export
 
 **Files:**
+
 - Create: `src/routes/admin.{rabattcodes,gutscheine,newsletter,inhalte,zugaenge}.tsx`, `src/lib/admin/csv.ts`, `src/lib/admin/csv.test.ts`
 
-- [ ] CSV mit Semikolon und UTF-8-BOM (Excel CH); Inhalte DE/EN für Startseite und Laufband.
-- [ ] Commit.
+- [x] CSV mit Semikolon und UTF-8-BOM (Excel CH); Inhalte DE/EN für Startseite und Laufband.
+- [x] Commit.
 
 ### Task 20: Rechtstexte, Hilfe, SEO
 
 **Files:**
+
 - Modify: `src/content/pages.ts`, `src/lib/commerce/seo.ts`
 - Create: `src/routes/sitemap[.]xml.ts`
 
-- [ ] Datenschutz ohne Shopify, mit Supabase, Stripe, Resend, Lovable-Hosting, Kundenkonto, Newsletter; AGB mit Gutscheinen und Kundenkonto; Fakten mit Quellen geprüft.
-- [ ] Commit.
+- [x] Datenschutz ohne Shopify, mit Supabase, Stripe, Resend, Lovable-Hosting, Kundenkonto, Newsletter; AGB mit Gutscheinen und Kundenkonto; Fakten mit Quellen geprüft.
+- [x] Commit.
 
 ## Phase D: Prüfen und Paket
 
@@ -286,6 +314,7 @@
 ### Task 22: Anleitung und Paket
 
 **Files:**
+
 - Create: `docs/DEPLOYMENT.md`, `scripts/package-delivery.sh`
 
 - [ ] Anleitung DE: GitHub verbinden, Dateien übernehmen, Supabase-Projekt (Zürich), Migrationen, Funktionen, Secrets, Auth-Einstellungen und Hook, Stripe (Zahlungsarten, Webhook, Teamzugang), Resend (Domain), erster Admin, Testkauf, Veröffentlichen.

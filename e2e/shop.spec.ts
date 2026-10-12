@@ -416,3 +416,35 @@ test("Newsletter: Anmeldung im Footer, Bestätigen und Abmelden erst per Klick",
   await open(page, "/newsletter/bestaetigen?token=kaputt");
   await expect(page.getByText("Dieser Link ist ungültig oder abgelaufen.")).toBeVisible();
 });
+
+test("Sitemap, englische Hilfe-Seiten und deutsche Rechtstexte mit Hinweis", async ({
+  page,
+  request,
+}) => {
+  const errors = watchErrors(page);
+  const res = await request.get("/sitemap.xml");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("application/xml");
+  const xml = await res.text();
+  expect(xml).toContain("/produkt/weste-limmat-marine</loc>");
+  expect(xml).toContain("/en/produkt/weste-limmat-marine</loc>");
+  expect(xml).toContain("/kollektion/alle</loc>");
+  expect(xml).toContain("/en/haeufige-fragen</loc>");
+  expect(xml).not.toMatch(/warenkorb|konto|admin|merkliste|suche/);
+
+  await open(page, "/en/haeufige-fragen");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Frequently asked questions" }),
+  ).toBeVisible();
+  await expect(page.getByText("Do I need an account?")).toBeVisible();
+  await expect(page.locator(".language-note")).toHaveCount(0);
+
+  await open(page, "/en/agb");
+  await expect(page.locator(".language-note")).toBeVisible();
+  await expect(page.getByText("6. Geschenkgutscheine")).toBeVisible();
+
+  await open(page, "/datenschutz");
+  await expect(page.getByText(/Stripe Payments Europe, Limited/)).toBeVisible();
+  await expect(page.getByText(/Shopify/)).toHaveCount(0);
+  expect(errors, errors.join("\n")).toEqual([]);
+});

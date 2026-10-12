@@ -11,12 +11,14 @@ describe("Client page content", () => {
   it("keeps the five page structures and question groups", () => {
     expect(Object.keys(pages)).toHaveLength(5);
     expect(pages.datenschutz.sections).toHaveLength(11);
-    expect(pages.agb.sections).toHaveLength(12);
+    expect(pages.agb.sections).toHaveLength(14);
     expect(pages["haeufige-fragen"].sections.map((s) => s.heading)).toEqual([
       "Grössen",
+      "Bestellung und Konto",
       "Lieferung",
       "Rückgabe",
-      "Zahlung",
+      "Zahlung, Gutscheine und Rabattcodes",
+      "Newsletter",
       "Pflege",
     ]);
     expect(
@@ -24,8 +26,19 @@ describe("Client page content", () => {
         .flatMap((s) => s.blocks)
         .filter((b) => b.type === "questions")
         .flatMap((b) => b.items),
-    ).toHaveLength(12);
+    ).toHaveLength(19);
     expect(pages["versand-und-rueckgabe"].sections[0]?.blocks[0]?.type).toBe("definitions");
+  });
+  it("describes the real services (no Shopify), accounts, gift cards and newsletter", () => {
+    const text = (handle: keyof typeof pages) => JSON.stringify(pages[handle]);
+    for (const handle of Object.keys(pages) as (keyof typeof pages)[])
+      expect(text(handle)).not.toMatch(/Shopify|Shop Pay|PayPal|Adyen/);
+    for (const service of ["Stripe", "Supabase", "Resend", "Klarna", "Lovable", "Post"])
+      expect(text("datenschutz")).toContain(service);
+    for (const topic of ["Kundenkonto", "Geschenkgutschein", "Newsletter"]) {
+      expect(text("datenschutz")).toContain(topic);
+      expect(text("agb")).toContain(topic);
+    }
   });
   it("interpolates only config values and preserves bracketed copy", () => {
     expect(resolvePageVariables("{{brand}} {{returnDays}} [Datum] {{email}}")).toBe(
@@ -54,15 +67,11 @@ describe("Client page content", () => {
   });
   it("renders formatting, line breaks and external links without changing text", () => {
     const html = renderToStaticMarkup(
-      <InlineText
-        text={"**Kontakt**\n`__cf_bm` https://www.shopify.com/legal/privacy. flowrenix.com"}
-      />,
+      <InlineText text={"**Kontakt**\n`__cf_bm` https://stripe.com/ch/privacy. flowrenix.com"} />,
     );
     expect(html).toContain("<strong>Kontakt</strong><br/>");
     expect(html).toContain('<span class="inline-code">__cf_bm</span>');
-    expect(html).toContain(
-      'href="https://www.shopify.com/legal/privacy" target="_blank" rel="noopener"',
-    );
+    expect(html).toContain('href="https://stripe.com/ch/privacy" target="_blank" rel="noopener"');
     expect(html).toContain('href="https://flowrenix.com"');
   });
 });

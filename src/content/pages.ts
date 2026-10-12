@@ -13,7 +13,7 @@ export interface WrittenPage {
 }
 
 // Kundentexte: wortgetreu; nur {{Variablen}} werden bei der Darstellung ersetzt.
-function structure(
+export function structure(
   title: string,
   text: string,
   mode?: "questions" | "definitions" | "impressum",
@@ -127,55 +127,68 @@ E-Mail für Datenschutzfragen: [Datenschutz-E-Mail, sonst {{email}}]
 Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über den Datenschutz (DSG).
 
 ### 2. Welche Daten wir bearbeiten
-- **Bestelldaten:** Vor- und Nachname, Liefer- und Rechnungsadresse, E-Mail-Adresse, freiwillig Telefonnummer, bestellte Artikel, Grössen, Preise, Zahlungsart und Bestellverlauf.
-- **Zahlungsdaten:** Kartennummern und ähnliche Zahlungsdaten erhalten wir nicht. Sie werden direkt vom Zahlungsdienstleister bearbeitet (Ziffer 4). Wir sehen nur, ob und womit bezahlt wurde.
+- **Bestelldaten:** E-Mail-Adresse, Vor- und Nachname, Lieferadresse, freiwillig Telefonnummer, bestellte Artikel, Grössen, Preise, eingelöste Rabattcodes und Gutscheine, Zahlungsart sowie Bestell- und Versandverlauf mit Sendungsnummer.
+- **Zahlungsdaten:** Kartennummern und ähnliche Zahlungsdaten erhalten wir nicht. Du gibst sie direkt auf der Bezahlseite unseres Zahlungsdienstleisters Stripe ein (Ziffer 4). Wir sehen nur, ob, wann und womit bezahlt wurde.
+- **Kundenkonto (freiwillig):** E-Mail-Adresse, Passwort (nur als verschlüsselter Prüfwert gespeichert, wir können es nicht lesen), Vor- und Nachname, Telefonnummer, Adresse, Sprache und deine Bestellungen.
+- **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
+- **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie dein persönlicher Willkommens-Rabattcode.
 - **Kommunikation:** Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns per E-Mail oder Telefon kontaktierst.
-- **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website.
-- **Daten auf deinem Gerät:** Warenkorb und Merkliste speichern wir im Speicher deines Browsers (Local Storage), nicht bei uns (Ziffer 6).
+- **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website, zum Beispiel dem Schutz der Formulare vor Missbrauch.
+- **Daten auf deinem Gerät:** Warenkorb, Merkliste und, wenn du angemeldet bist, deine Anmeldung speichert dein Browser (Ziffer 6).
 
 ### 3. Wofür wir deine Daten bearbeiten
 - um Bestellungen abzuwickeln: Vertragsschluss, Zahlung, Versand, Rückgabe, Umtausch und Gewährleistung;
+- um dir E-Mails zu deiner Bestellung, zu deinem Kundenkonto und zu Gutscheinen zu senden, zum Beispiel die Bestellbestätigung und die Versandmeldung;
+- um dein Kundenkonto zu führen, wenn du eines eröffnest;
+- um Geschenkgutscheine auszustellen, einzulösen und das Restguthaben zu führen;
+- um dir den Newsletter zu senden, wenn du dich angemeldet und die Anmeldung per E-Mail bestätigt hast;
 - um deine Fragen zu beantworten;
-- um die Website sicher und funktionsfähig zu betreiben;
+- um die Website sicher und funktionsfähig zu betreiben und Missbrauch zu verhindern;
 - um gesetzliche Pflichten zu erfüllen, insbesondere die Aufbewahrung von Geschäftsunterlagen.
 
-Wir verkaufen deine Daten nicht. Werbung per E-Mail senden wir dir nur, wenn du dich dafür angemeldet hast.
+Wir verkaufen deine Daten nicht. Werbung per E-Mail senden wir dir nur, wenn du dich für den Newsletter angemeldet hast. Du kannst ihn jederzeit über den Link in jeder Ausgabe abbestellen.
 
 ### 4. Wem wir Daten bekanntgeben
-Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten nur die Daten, die sie für ihre Aufgabe brauchen.
+Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten nur die Daten, die sie für ihre Aufgabe brauchen, und bearbeiten sie in unserem Auftrag, soweit hier nichts anderes steht.
 
-- **Shop-System und Kasse:** Unser Shop und die Kasse laufen auf Shopify. Vertragspartnerin ist die Shopify International Limited, The Sidings, 4th Floor, Grand Canal Quay, Dublin D02 E7K8, Irland. Shopify bearbeitet die Bestelldaten in unserem Auftrag und kann sie in weiteren Ländern bearbeiten, in denen Shopify oder seine Dienstleister tätig sind, insbesondere Kanada, USA und Singapur. Datenschutzerklärung: https://www.shopify.com/legal/privacy
-  Wenn du in der Kasse Shop Pay nutzt, bearbeitet Shopify deine Daten zusätzlich als eigene Verantwortliche: https://www.shopify.com/legal/privacy/consumers
-- **Zahlung:** Zahlungen laufen über Shopify Payments. Die Zahlungen wickeln je nach Zahlungsart Zahlungsdienstleister von Shopify ab (gemäss Shopify derzeit Stripe Payments Europe Ltd., Irland, Adyen N.V., Niederlande, und PayPal Pte. Ltd., Singapur). Bei TWINT, Apple Pay und Google Pay gelten zusätzlich die Datenschutzbestimmungen der jeweiligen Anbieter und deiner Bank.
-- **Klarna:** Wenn du mit Klarna bezahlst, bearbeitet die Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, deine Daten als eigene Verantwortliche. Klarna kann dafür deine Kreditwürdigkeit prüfen, auch mit automatisierten Entscheidungen. Datenschutzhinweise von Klarna: https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_ch/privacy
-- **Versand:** Für die Zustellung geben wir Name, Lieferadresse und Sendungsdaten an die Schweizerische Post weiter (Post CH AG, Post CH Netz AG und Die Schweizerische Post AG, Wankdorfallee 4, 3030 Bern). Die Post bearbeitet diese Daten als eigene Verantwortliche, gemäss ihren Angaben in der Schweiz, in Liechtenstein und in Deutschland. Datenschutzhinweise der Post: https://www.post.ch/de/pages/footer/datenschutz-und-rechtliches
 - **Website-Betrieb:** Diese Website wird mit Lovable betrieben (Lovable Labs Incorporated, USA, und Lovable Labs Sweden AB, Regeringsgatan 25, 111 53 Stockholm, Schweden) und über das weltweite Netzwerk von Cloudflare, Inc. (USA) ausgeliefert. Dabei fallen die technischen Daten aus Ziffer 2 an.
-- **E-Mail:** Unsere E-Mails laufen über [E-Mail-Anbieter, Sitz].
+- **Datenbank und Kundenkonten:** Bestellungen, Kundenkonten, Gutscheine und Newsletter-Anmeldungen speichern wir bei Supabase, Inc. (USA), in einem Rechenzentrum in [Zürich, Schweiz].
+- **Zahlung:** Die Bezahlung läuft über Stripe (Stripe Payments Europe, Limited, Irland, zusammen mit Stripe, Inc., USA). Stripe bearbeitet deine Daten für die Zahlung in unserem Auftrag und für eigene Zwecke, etwa zur Betrugsbekämpfung und zur Erfüllung gesetzlicher Pflichten, als eigene Verantwortliche. Bei TWINT, Apple Pay und Google Pay gelten zusätzlich die Datenschutzbestimmungen der jeweiligen Anbieter und deiner Bank. Datenschutzerklärung von Stripe: https://stripe.com/ch/privacy
+- **Klarna:** Wenn du mit Klarna bezahlst, bearbeitet die Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, deine Daten als eigene Verantwortliche. Klarna kann dafür deine Kreditwürdigkeit prüfen, auch mit automatisierten Entscheidungen. Datenschutzhinweise von Klarna: https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_ch/privacy
+- **E-Mail:** Bestellbestätigungen und die übrigen E-Mails des Shops versenden wir über Resend (Plus Five Five, Inc., San Francisco, USA). [Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]
+- **Versand:** Für die Zustellung geben wir Name, Lieferadresse und Sendungsdaten an die Schweizerische Post weiter (Post CH AG, Post CH Netz AG und Die Schweizerische Post AG, Wankdorfallee 4, 3030 Bern). Die Post bearbeitet diese Daten als eigene Verantwortliche, gemäss ihren Angaben in der Schweiz, in Liechtenstein und in Deutschland. Datenschutzhinweise der Post: https://www.post.ch/de/pages/footer/datenschutz-und-rechtliches
+- **Technische Betreuung:** Flowrenix, Gibswil (Schweiz), betreibt und wartet den Shop in unserem Auftrag und kann dabei auf die Daten zugreifen, soweit das nötig ist.
 - **Behörden:** wenn wir gesetzlich dazu verpflichtet sind.
 
 ### 5. Bekanntgabe ins Ausland
-Einige der genannten Dienstleister bearbeiten Daten ausserhalb der Schweiz. Für Länder der EU und des EWR (zum Beispiel Irland, Schweden, Niederlande) sowie für Kanada (für private Unternehmen) hat der Bundesrat einen angemessenen Datenschutz festgestellt. In die USA geben wir Daten an Unternehmen bekannt, die unter dem Swiss-U.S. Data Privacy Framework zertifiziert sind, oder gestützt auf von der Schweiz anerkannte Standardvertragsklauseln. Für andere Länder ohne angemessenen Datenschutz, etwa Singapur, stützen wir uns auf Standardvertragsklauseln oder verbindliche unternehmensinterne Datenschutzvorschriften der Dienstleister, oder die Bekanntgabe ist für die Abwicklung deines Vertrags nötig.
+Einige der genannten Dienstleister bearbeiten Daten ausserhalb der Schweiz. Für die Länder der EU und des EWR (zum Beispiel Irland, Schweden und Deutschland) hat der Bundesrat einen angemessenen Datenschutz festgestellt. In die USA geben wir Daten an Unternehmen bekannt, die unter dem Swiss-U.S. Data Privacy Framework zertifiziert sind, oder gestützt auf von der Schweiz anerkannte Standardvertragsklauseln.
 
 ### 6. Cookies und Speicher im Browser
 Wir verwenden nur, was für den Betrieb des Shops nötig ist:
 - **Warenkorb und Merkliste** im Local Storage deines Browsers. Du kannst sie in den Browser-Einstellungen jederzeit löschen.
+- **Anmeldung:** Wenn du dich im Kundenkonto anmeldest, speichert dein Browser einen Anmeldeschlüssel, bis du dich abmeldest.
 - **Cloudflare** setzt ein Cookie (\`__cf_bm\`), das automatisierte Angriffe abwehrt und nach 30 Minuten Inaktivität abläuft.
-- **Kasse:** In der Kasse setzt Shopify die für den Kaufvorgang nötigen Cookies, zum Beispiel für den Warenkorb und die Sitzung. Details: https://www.shopify.com/legal/cookies
+- **Bezahlseite:** Auf der Bezahlseite von Stripe setzt Stripe eigene Cookies, unter anderem zur Betrugsbekämpfung. Details stehen in der Datenschutzerklärung von Stripe.
 
-Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Soweit Shopify in der Kasse zusätzlich Cookies für Statistik oder Marketing setzt (zum Beispiel \`_shopify_analytics\` oder \`_shopify_marketing\`), kannst du sie über den Cookie-Hinweis der Kasse oder in deinem Browser ablehnen. Du kannst Cookies in deinem Browser jederzeit blockieren oder löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
+Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Du kannst Cookies und den Speicher deines Browsers jederzeit löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
 
 ### 7. Wie lange wir Daten aufbewahren
-Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke brauchen. Geschäftsunterlagen wie Bestellungen und Belege bewahren wir während der gesetzlichen Frist von zehn Jahren auf.
+Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke brauchen:
+- **Bestellungen und Belege:** zehn Jahre, wie es das Gesetz für Geschäftsunterlagen verlangt.
+- **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
+- **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
+- **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 
 ### 8. Datensicherheit
-Wir schützen deine Daten mit angemessenen technischen und organisatorischen Massnahmen. Die Verbindung zu unserer Website ist verschlüsselt.
+Wir schützen deine Daten mit angemessenen technischen und organisatorischen Massnahmen. Die Verbindung zu unserer Website ist verschlüsselt, Passwörter speichern wir nur als verschlüsselten Prüfwert, und Zugriff auf die Daten haben nur wir und unsere Dienstleister im nötigen Umfang.
 
 ### 9. Deine Rechte
 Du kannst jederzeit:
 - Auskunft verlangen, ob und welche Daten wir über dich bearbeiten;
 - die Berichtigung unrichtiger Daten verlangen;
 - verlangen, dass wir deine Daten löschen oder nicht weiter bearbeiten, soweit keine gesetzliche Pflicht oder ein überwiegendes Interesse entgegensteht;
-- die Herausgabe oder Übertragung deiner Daten in einem gängigen elektronischen Format verlangen.
+- die Herausgabe oder Übertragung deiner Daten in einem gängigen elektronischen Format verlangen;
+- eine Einwilligung, zum Beispiel für den Newsletter, für die Zukunft widerrufen.
 
 Schreib uns dafür an {{email}}. Wir können einen Identitätsnachweis verlangen. Du kannst dich zudem beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB) beschweren: www.edoeb.admin.ch
 
@@ -189,64 +202,79 @@ Wir können diese Datenschutzerklärung anpassen. Es gilt die Version, die auf d
 Stand: [Datum]
 
 ### 1. Geltungsbereich
-Diese AGB gelten für alle Bestellungen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in [der Schweiz].
+Diese AGB gelten für alle Bestellungen und für den Kauf von Geschenkgutscheinen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in der Schweiz [und in Liechtenstein].
 
 ### 2. Bestellung und Vertragsschluss
 Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestellst du:
 1. Grösse wählen und Artikel in den Warenkorb legen.
-2. Im Warenkorb auf «Zur Kasse» klicken.
-3. E-Mail-Adresse, Liefer- und Rechnungsadresse eingeben.
-4. Zahlungsart wählen.
-5. Alle Angaben in der Übersicht prüfen und bei Bedarf korrigieren.
-6. Die Bestellung mit dem Bestell-Button verbindlich absenden.
+2. Im Warenkorb deine E-Mail-Adresse eingeben und, falls vorhanden, einen Rabattcode oder Geschenkgutschein einlösen.
+3. Auf «Zur Kasse» klicken. Du gelangst auf die Bezahlseite unseres Zahlungsdienstleisters Stripe.
+4. Lieferadresse eingeben und Zahlungsart wählen.
+5. Alle Angaben prüfen und bei Bedarf korrigieren.
+6. Die Bestellung mit dem Bezahl-Button verbindlich absenden.
 
-Bis zum Absenden kannst du alle Eingaben ändern. Nach dem Absenden erhältst du sofort eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
+Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
 
-Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.
+Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.
 
 ### 3. Preise
-Alle Preise sind Endpreise in Schweizer Franken (CHF). [Bei MWST-Pflicht: Sie enthalten die gesetzliche Mehrwertsteuer.] Der Versand innerhalb der Schweiz ist gratis. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.
+Alle Preise sind Endpreise in Schweizer Franken (CHF). [Bei MWST-Pflicht: Sie enthalten die gesetzliche Mehrwertsteuer.] Allfällige Versandkosten siehst du im Warenkorb und auf der Bezahlseite, bevor du bestellst. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.
 
-### 4. Zahlung
-Du kannst mit TWINT, Kredit- oder Debitkarte (Visa, Mastercard, American Express), Apple Pay, Google Pay oder Klarna bezahlen. Die Zahlung wird bei der Bestellung ausgelöst. Bei Klarna gelten zusätzlich die Bedingungen und Zahlungsfristen von Klarna. Einen eigenen Kauf auf Rechnung bieten wir nicht an.
+### 4. Zahlung, Rabattcodes und Gutscheine
+Du kannst mit TWINT, Kredit- oder Debitkarte (Visa, Mastercard, American Express), Apple Pay, Google Pay oder Klarna bezahlen. Welche Zahlungsarten erscheinen, hängt unter anderem von deinem Gerät und vom Betrag ab. Die Zahlung wird bei der Bestellung ausgelöst und über Stripe abgewickelt. Bei Klarna gelten zusätzlich die Bedingungen und Zahlungsfristen von Klarna. Einen eigenen Kauf auf Rechnung bieten wir nicht an.
+
+Pro Bestellung kannst du einen Rabattcode und einen Geschenkgutschein einlösen. Rabatte gelten auf den Warenwert, nicht auf Versandkosten und nicht auf den Kauf von Geschenkgutscheinen. Rabattcodes gelten nur zu den angegebenen Bedingungen und sind nicht in bar auszahlbar.
 
 ### 5. Lieferung
-Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2 bis 5 Arbeitstage nach Zahlungseingang. Teillieferungen sind möglich, ohne Mehrkosten für dich. Bis zur Übergabe der Ware an dich tragen wir das Risiko für Verlust und Beschädigung auf dem Transport.
+Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2 bis 5 Arbeitstage nach Zahlungseingang. Sobald dein Paket unterwegs ist, erhältst du eine Versandmeldung mit Sendungsnummer. Teillieferungen sind möglich, ohne Mehrkosten für dich. Bis zur Übergabe der Ware an dich tragen wir das Risiko für Verlust und Beschädigung auf dem Transport.
 
-### 6. Freiwilliges Rückgaberecht
-Das Gesetz sieht für Online-Käufe kein Rückgaberecht vor. Wir gewähren dir freiwillig ein Rückgaberecht von {{returnDays}} Tagen ab Erhalt der Ware.
+### 6. Geschenkgutscheine
+- Du erhältst den Gutschein per E-Mail mit einem persönlichen Code. Auf Wunsch senden wir ihn direkt an die beschenkte Person.
+- Der Gutschein gilt ab Kauf so lange, wie auf dem Gutschein angegeben ([5 Jahre]). Das Restguthaben kannst du im Shop jederzeit prüfen.
+- Du kannst den Gutschein in mehreren Bestellungen einlösen, bis das Guthaben aufgebraucht ist. Eine Barauszahlung ist nicht möglich. Geschenkgutscheine kannst du nicht mit Rabattcodes oder anderen Gutscheinen kaufen.
+- Wer den Code kennt, kann ihn einlösen. Bewahre ihn deshalb sorgfältig auf. Ist ein Code verloren gegangen, melde dich sofort: Solange das Guthaben nicht eingelöst ist, sperren wir den Code und übertragen das Restguthaben auf einen neuen.
+- Geschenkgutscheine sind vom freiwilligen Rückgaberecht ausgenommen. Gibst du Ware zurück, die du ganz oder teilweise mit einem Gutschein bezahlt hast, erstatten wir diesen Teil als Gutschein.
+
+### 7. Freiwilliges Rückgaberecht
+Das Schweizer Recht sieht für Online-Käufe kein Rückgaberecht vor. Wir gewähren dir freiwillig ein Rückgaberecht von {{returnDays}} Tagen ab Erhalt der Ware.
 - **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. [Ausgeschlossen sind: …]
 - **So gehst du vor:** Melde die Rückgabe per E-Mail an {{email}} mit deiner Bestellnummer. [Rücksendeetikett: liegt dem Paket bei / senden wir dir per E-Mail / du frankierst selbst.]
 - **Kosten:** [Die Rücksendung ist für dich gratis.] oder [Die Rücksendekosten von CHF … trägst du.]
 - **Rückerstattung:** Nach Eingang und Prüfung der Ware erstatten wir den Kaufpreis innert [Anzahl] Tagen auf das ursprüngliche Zahlungsmittel [oder als Gutschein, nach deiner Wahl].
 - **Umtausch:** Eine andere Grösse kannst du [gratis] tauschen, solange sie verfügbar ist.
 
-### 7. Gewährleistung
+[Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein gilt zusätzlich das gesetzliche Rücktrittsrecht bei Fernabsatzverträgen nach liechtensteinischem Recht. Fachperson beiziehen.]
+
+### 8. Gewährleistung
 Es gelten die gesetzlichen Bestimmungen. Die Gewährleistungsfrist beträgt zwei Jahre ab Lieferung. Bitte prüfe die Ware nach Erhalt und melde uns Mängel sofort nach ihrer Entdeckung per E-Mail an {{email}}. Bei einem Mangel kannst du nach Gesetz die Rückgängigmachung des Kaufs, eine Minderung des Preises oder eine mangelfreie Ersatzlieferung verlangen. Gerne bieten wir dir auch eine Reparatur an, wenn das für dich passt. Normale Abnutzung und Schäden durch unsachgemässe Pflege sind keine Mängel.
 
-### 8. Haftung
+### 9. Kundenkonto und Newsletter
+Das Kundenkonto ist freiwillig. Halte dein Passwort geheim. Du kannst dein Konto jederzeit selbst im Kundenkonto löschen. Den Newsletter erhältst du nur, wenn du dich angemeldet und die Anmeldung per E-Mail bestätigt hast. Du kannst ihn jederzeit über den Link in jeder Ausgabe abbestellen.
+
+### 10. Haftung
 Wir haften nach den gesetzlichen Bestimmungen. Für leichte Fahrlässigkeit haften wir nicht, soweit das Gesetz dies zulässt. Die Haftung für absichtlich oder grobfahrlässig verursachte Schäden und für Personenschäden bleibt unberührt.
 
-### 9. Datenschutz
+### 11. Datenschutz
 Wie wir deine Daten bearbeiten, steht in unserer Datenschutzerklärung.
 
-### 10. Anwendbares Recht und Gerichtsstand
-Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen.
+### 12. Anwendbares Recht und Gerichtsstand
+Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen. [Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein bleiben die zwingenden Bestimmungen ihres Wohnsitzrechts vorbehalten.]
 
-### 11. Änderungen
+### 13. Änderungen
 Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version, die zum Zeitpunkt der Bestellung veröffentlicht war.
 `,
   ),
   "versand-und-rueckgabe": structure(
     "Versand und Rückgabe",
     `
-- **Liefergebiet:** [nur Schweiz]
-- **Versand:** gratis, mit der Schweizerischen Post
-- **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang
+- **Liefergebiet:** Schweiz [und Liechtenstein]
+- **Versand:** mit der Schweizerischen Post, die Kosten siehst du im Warenkorb
+- **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
 - **Rücksendung:** [gratis / CHF …], [Etikett liegt bei / auf Anfrage]
 - **Rückerstattung:** innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel
 - **Umtausch:** andere Grösse [gratis], solange verfügbar
+- **Gutscheine:** vom Rückgaberecht ausgenommen
 - **Mängel:** zwei Jahre Gewährleistung nach Gesetz, Meldung per E-Mail an {{email}}
 Die verbindlichen Regeln stehen in den AGB.
 `,
@@ -263,13 +291,21 @@ Das sind die üblichen Konfektionsgrössen für Anzüge und Westen. Schuhe führ
 **Kann ich eine andere Grösse tauschen?**
 Ja, innert {{returnDays}} Tagen, solange die Grösse verfügbar ist. Schreib uns an {{email}}.
 
+### Bestellung und Konto
+**Brauche ich ein Kundenkonto?**
+Nein, du kannst als Gast bestellen. Mit einem Kundenkonto siehst du alle Bestellungen und den Versandstatus an einem Ort.
+**Wo sehe ich, wo mein Paket ist?**
+Sobald dein Paket unterwegs ist, bekommst du eine Versandmeldung mit der Sendungsnummer der Post. Mit Kundenkonto findest du sie auch dort.
+**Kann ich meine Bestellung noch ändern?**
+Schreib uns möglichst schnell an {{email}}. Solange das Paket noch nicht unterwegs ist, finden wir meist eine Lösung.
+
 ### Lieferung
 **Wie lange dauert die Lieferung?**
 In der Regel 2 bis 5 Arbeitstage nach Zahlungseingang.
 **Was kostet der Versand?**
-Innerhalb der Schweiz ist der Versand gratis.
+Die Versandkosten siehst du im Warenkorb, bevor du bestellst.
 **Liefert ihr ins Ausland?**
-Zurzeit liefern wir nur in die Schweiz.
+Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 
 ### Rückgabe
 **Kann ich etwas zurückgeben?**
@@ -277,11 +313,21 @@ Ja. Du kannst Artikel innert {{returnDays}} Tagen ab Erhalt zurückgeben, ungetr
 **Wann bekomme ich mein Geld zurück?**
 Innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel.
 
-### Zahlung
+### Zahlung, Gutscheine und Rabattcodes
 **Wie kann ich bezahlen?**
 Mit TWINT, Kredit- oder Debitkarte, Apple Pay, Google Pay oder Klarna.
 **Kann ich auf Rechnung bezahlen?**
 Mit Klarna kannst du je nach Prüfung durch Klarna später oder in Raten bezahlen. Einen eigenen Kauf auf Rechnung bieten wir nicht an.
+**Wie löse ich einen Gutschein oder Rabattcode ein?**
+Gib den Code im Warenkorb ein, bevor du zur Kasse gehst. Pro Bestellung kannst du einen Rabattcode und einen Gutschein einlösen.
+**Wie lange gilt ein Geschenkgutschein?**
+So lange, wie auf dem Gutschein steht. Das Restguthaben kannst du jederzeit auf der Gutschein-Seite prüfen.
+**Kann ich einen Gutschein direkt verschenken?**
+Ja. Gib beim Kauf Name und E-Mail-Adresse der beschenkten Person an, dann senden wir den Gutschein direkt an sie.
+
+### Newsletter
+**Wie melde ich mich vom Newsletter ab?**
+Mit dem Link am Ende jeder Newsletter-E-Mail. Die Abmeldung gilt sofort.
 
 ### Pflege
 **Wie pflege ich meinen Anzug?**
