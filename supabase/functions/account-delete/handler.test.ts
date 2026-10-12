@@ -2,9 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
 import { readEnv, type FunctionEnv } from "../_shared/env.ts";
-import { createUser, pool, sql, type TestUser } from "../../tests/helpers";
-import { makeProduct, reserve } from "../../tests/fixtures";
-import { ANON_KEY, fakeJwt, SERVICE_KEY, startFakeSupabase } from "../../tests/fakes/servers";
+import { createUser, pool, sql, type TestUser } from "../../tests/helpers.ts";
+import { makeProduct, reserve } from "../../tests/fixtures.ts";
+import { ANON_KEY, fakeJwt, SERVICE_KEY, startFakeSupabase } from "../../tests/fakes/servers.ts";
 import { createAccountDeleteHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;

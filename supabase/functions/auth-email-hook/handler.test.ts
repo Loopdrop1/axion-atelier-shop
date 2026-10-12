@@ -3,7 +3,7 @@ import { Webhook } from "standardwebhooks";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { ANON_KEY, SERVICE_KEY, startFakeResend } from "../../tests/fakes/servers";
+import { ANON_KEY, SERVICE_KEY, startFakeResend } from "../../tests/fakes/servers.ts";
 import { createAuthEmailHookHandler, type HookPayload } from "./handler.ts";
 
 const SECRET = `v1,whsec_${randomBytes(32).toString("base64")}`;

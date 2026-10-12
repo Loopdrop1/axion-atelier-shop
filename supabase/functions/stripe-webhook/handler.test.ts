@@ -2,8 +2,8 @@ import Stripe from "stripe";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { pool, sql, uniq } from "../../tests/helpers";
-import { makeGiftCard, makeProduct, reserve, rpc, stockOf } from "../../tests/fixtures";
+import { pool, sql, uniq } from "../../tests/helpers.ts";
+import { makeGiftCard, makeProduct, reserve, rpc, stockOf } from "../../tests/fixtures.ts";
 import {
   ANON_KEY,
   SERVICE_KEY,

@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { createUser, pool, sql, type TestUser } from "../../tests/helpers";
-import { makeProduct, reserve, rpc } from "../../tests/fixtures";
+import { createUser, pool, sql, type TestUser } from "../../tests/helpers.ts";
+import { makeProduct, reserve, rpc } from "../../tests/fixtures.ts";
 import {
   ANON_KEY,
   fakeJwt,

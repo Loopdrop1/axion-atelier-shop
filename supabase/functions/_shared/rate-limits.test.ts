@@ -2,8 +2,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createDeps, type Deps } from "./deps.ts";
 import { readEnv } from "./env.ts";
 import { pruneRateLimitsSometimes } from "./rate-limits.ts";
-import { pool, sql, uniq } from "../../tests/helpers";
-import { ANON_KEY, SERVICE_KEY, startFakeSupabase } from "../../tests/fakes/servers";
+import { pool, sql, uniq } from "../../tests/helpers.ts";
+import { ANON_KEY, SERVICE_KEY, startFakeSupabase } from "../../tests/fakes/servers.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
 let deps: Deps;
