@@ -139,6 +139,8 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
     setBusy(false);
     if (result.error === "INVALID_AMOUNT") setErrors({ amount: t.giftCard.invalidAmount });
     else if (result.error === "INVALID_EMAIL") setErrors({ email: t.common.invalidEmail });
+    else if (result.error === "RATE_LIMITED" || result.error === "TOO_MANY_CHECKOUTS")
+      setError(t.checkout.tooManyAttempts);
     else setError(result.error === "NETWORK" ? t.common.networkError : t.checkout.paymentError);
   }
 

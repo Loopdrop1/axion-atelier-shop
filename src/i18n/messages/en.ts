@@ -340,6 +340,7 @@ export const en: Messages = {
     pay: "Continue to payment",
     placeOrder: "Place order",
     estimateNote: "The final amount is confirmed at checkout.",
+    tooManyAttempts: "Too many attempts in a short time. Please wait a few minutes and try again.",
     paymentError: "Checkout is not available right now. Please try again in a few minutes.",
     redirecting: "Continuing to payment …",
     notConnected: "Checkout will be connected at launch.",

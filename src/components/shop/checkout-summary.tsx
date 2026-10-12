@@ -261,6 +261,10 @@ export function CheckoutSummary({
       case "NETWORK":
         setError(t.common.networkError);
         break;
+      case "RATE_LIMITED":
+      case "TOO_MANY_CHECKOUTS":
+        setError(t.checkout.tooManyAttempts);
+        break;
       default:
         setError(t.checkout.paymentError);
     }

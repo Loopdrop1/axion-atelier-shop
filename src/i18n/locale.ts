@@ -28,7 +28,8 @@ export function switchLocalePath(path: string, target: Locale): string {
   const match = path.match(/^([^?#]*)(.*)$/);
   const pathname = match?.[1] || "/";
   const rest = match?.[2] ?? "";
-  const bare = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+  // «//» oder «/\» am Anfang wäre ein Link auf eine fremde Domain (auch nach dem Entfernen von «/en»)
+  const bare = (pathname.replace(/^\/en(?=\/|$)/, "") || "/").replace(/^[/\\]+/, "/");
   if (target === "de") return bare + rest;
   return (bare === "/" ? "/en" : `/en${bare}`) + rest;
 }

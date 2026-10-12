@@ -6,6 +6,7 @@ import { MissingPage } from "@/components/shop/missing-page";
 import { productQuery } from "@/lib/commerce/queries";
 import { pageHead, pageUrl } from "@/lib/commerce/seo";
 import { ProductPage } from "@/components/shop/product";
+import { jsonLd } from "@/lib/seo/json-ld";
 export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(productQuery(params.handle, toLocale(params.locale))),
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
         ? [
             {
               type: "application/ld+json",
-              children: JSON.stringify({
+              children: jsonLd({
                 "@context": "https://schema.org",
                 "@type": "Product",
                 name: `${p.title}, ${p.color.name}`,

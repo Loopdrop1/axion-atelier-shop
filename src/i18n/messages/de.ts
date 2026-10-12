@@ -346,6 +346,8 @@ export const de = {
     pay: "Weiter zur Zahlung",
     placeOrder: "Bestellung abschliessen",
     estimateNote: "Der Endbetrag wird in der Kasse bestätigt.",
+    tooManyAttempts:
+      "Zu viele Versuche in kurzer Zeit. Bitte warte ein paar Minuten und versuche es dann erneut.",
     paymentError:
       "Die Kasse ist gerade nicht erreichbar. Bitte versuche es in ein paar Minuten erneut.",
     redirecting: "Weiter zur Zahlung …",

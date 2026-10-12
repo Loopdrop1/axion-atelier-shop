@@ -53,3 +53,12 @@ describe("Sprachwechsel-Pfade", () => {
     expect(switchLocalePath(from, target)).toBe(expected);
   });
 });
+
+describe("Sprachwechsel ohne Sprung auf fremde Domains", () => {
+  it("fasst führende Schrägstriche zusammen", () => {
+    expect(switchLocalePath("/en//boese.example/x", "de")).toBe("/boese.example/x");
+    expect(switchLocalePath("/en/\\boese.example", "de")).toBe("/boese.example");
+    expect(switchLocalePath("//boese.example", "en")).toBe("/en/boese.example");
+    expect(switchLocalePath("/en", "de")).toBe("/");
+  });
+});
