@@ -5,6 +5,7 @@ let admin: TestUser;
 let customer: TestUser;
 let other: TestUser;
 let draftHandle: string;
+const SEED = ["anzug-limmat-marine", "anzug-aare-anthrazit", "weste-limmat-marine", "weste-limmat-salbeigruen", "derby-lino-braun", "oxford-nero-schwarz"];
 
 beforeAll(async () => {
   admin = await createUser(undefined, { admin: true });
@@ -29,7 +30,7 @@ afterAll(async () => {
 
 describe("Katalog lesen", () => {
   it("anon sieht die sechs aktiven Beispielprodukte, aber keinen Entwurf", async () => {
-    const rows = await q<{ handle: string }>("anon", null, "select handle from public.products order by handle");
+    const rows = await q<{ handle: string }>("anon", null, "select handle from public.products where handle = any($1) order by handle", [[...SEED, draftHandle]]);
     const handles = rows.map((r) => r.handle);
     expect(handles).toContain("anzug-limmat-marine");
     expect(handles).toHaveLength(6);
@@ -44,7 +45,7 @@ describe("Katalog lesen", () => {
       [draftHandle],
     );
     expect(variants[0]?.n).toBe("0");
-    const images = await q<{ path: string }>("anon", null, "select path from public.product_images");
+    const images = await q<{ path: string }>("anon", null, "select i.path from public.product_images i join public.products p on p.id = i.product_id where p.handle = any($1)", [SEED]);
     expect(images.length).toBe(9);
     expect(images.every((i) => i.path.startsWith("asset:"))).toBe(true);
   });
