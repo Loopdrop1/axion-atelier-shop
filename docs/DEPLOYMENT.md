@@ -52,7 +52,7 @@ einschalten.
    Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
    Danach prüfen: 16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`, Funktionen
-   `contact_guard` und `translate_guard`, Spalte `en_auto` in `products`. Spätere Änderungen mit neuer Migration:
+   `contact_guard`, `translate_guard` und `prune_rate_limits`, Spalte `en_auto` in `products`. Spätere Änderungen mit neuer Migration:
    **zuerst die Migration ausführen, dann den Code pushen** (Lovable übernimmt Code sofort).
    `supabase/seed.sql` **nicht** ausführen: Er enthält Platzhalterprodukte und Beispielwerte für die Vorschau.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
@@ -144,7 +144,9 @@ einschalten.
 - Admin → Kategorien (erscheinen in dieser Reihenfolge in den Menüs; am Computer höchstens fünf, die übrigen über
   «Alle Stücke»), Produkte (die drei Beispielprodukte mit echten Angaben und Fotos), Grössentabellen (Masse von Axion,
   pro Kategorie), Startseite und Laufband (Texte, Bild der Geschichte quer und fürs Handy hoch). Englisch entsteht beim
-  Speichern automatisch; Ben prüft die Übersetzungen zum Start einmal durch.
+  Speichern automatisch und folgt dem Deutschen; Ben prüft die Übersetzungen zum Start einmal durch. Was Ben auf
+  Englisch selbst korrigiert, gilt als eigenes Englisch: Das Admin überschreibt es nie, sondern meldet «bitte prüfen»,
+  wenn sich das Deutsch dazu ändert. Englisches Feld leeren und speichern = wieder automatisch übersetzen.
 - Verlangt Axion Versandkosten oder «gratis ab»: Produktseiten und Startseite passen sich an. Laufband und Einstieg
   der Startseite (Admin) sowie die Texte für Suchmaschinen (`src/i18n/messages/de.ts` und `en.ts`, Abschnitt `seo`)
   von Hand anpassen.
@@ -165,7 +167,9 @@ einschalten.
 3. Gutschein kaufen und einlösen, Rabattcode einlösen, Newsletter anmelden und bestätigen, Konto anlegen und löschen,
    Passwort zurücksetzen, Kontaktformular abschicken (E-Mail an `SHOP_CONTACT_EMAIL`, Antworten gehen an die
    Absenderin).
-4. Produkt im Admin auf Deutsch ändern und speichern: Die englischen Felder füllen sich, `/en/produkt/…` zeigt sie.
+4. Neues Produkt nur auf Deutsch anlegen: Die englischen Felder füllen sich, `/en/produkt/…` zeigt sie. Danach den
+   deutschen Titel ändern: Das Englisch folgt. Englisch von Hand ändern, dann das Deutsch: Das Englisch bleibt, die
+   Meldung sagt «bitte prüfen».
 5. Abgebrochene Zahlung: Artikel sind sofort wieder verfügbar.
 
 ## 8. Livegang
