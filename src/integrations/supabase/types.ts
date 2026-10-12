@@ -897,6 +897,10 @@ export type Database = {
         Args: { p_order_id: string; p_session_id: string; p_expires_at: string }
         Returns: undefined
       }
+      cancel_checkout_by_token: {
+        Args: { p_token: string }
+        Returns: Json
+      }
       cancel_order: {
         Args: { p_order_id: string; p_reason?: string }
         Returns: boolean

@@ -478,3 +478,35 @@ describe("Mindestbetrag und E-Mail-Status", () => {
     expect(err.message).toBe("INVALID_KIND");
   });
 });
+
+describe("cancel_checkout_by_token", () => {
+  it("gibt eine offene Reservierung über das Status-Token sofort frei, nur einmal und nur offene", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [1] });
+    const r = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }] });
+    expect(await stockOf(p.variants[0]!.id)).toBe(0);
+    const first = await rpc<{ cancelled: boolean }>("cancel_checkout_by_token", [r.status_token]);
+    expect(first.cancelled).toBe(true);
+    expect(await stockOf(p.variants[0]!.id)).toBe(1);
+    const again = await rpc<{ cancelled: boolean }>("cancel_checkout_by_token", [r.status_token]);
+    expect(again).toEqual({ cancelled: false });
+    const row = await sql<{ status: string; cancel_reason: string }>(
+      "select status, cancel_reason from public.orders where id = $1",
+      [r.order_id],
+    );
+    expect(row[0]).toEqual({ status: "cancelled", cancel_reason: "customer_cancelled" });
+  });
+
+  it("bezahlte Bestellungen bleiben unberührt; nur der Server darf die Funktion aufrufen", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [2] });
+    const r = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }] });
+    await rpc("complete_order", [
+      r.order_id,
+      JSON.stringify({ amount_total_cents: r.total_cents }),
+    ]);
+    expect(await rpc("cancel_checkout_by_token", [r.status_token])).toEqual({ cancelled: false });
+    const err = await expectPgError(
+      q("anon", null, "select public.cancel_checkout_by_token($1)", [r.status_token]),
+    );
+    expect(err.code).toBe("42501");
+  });
+});

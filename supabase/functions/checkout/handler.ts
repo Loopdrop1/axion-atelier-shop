@@ -246,7 +246,7 @@ async function cartCheckout(
         : {}),
       expires_at: expiresAt,
       success_url: successUrl,
-      cancel_url: `${base}/warenkorb?abgebrochen=1`,
+      cancel_url: `${base}/warenkorb?abgebrochen=${reservation.status_token}`,
     },
     reservation.order_id,
   );
@@ -321,7 +321,7 @@ async function giftCardCheckout(
         : {}),
       expires_at: expiresAt,
       success_url: `${base}/bestellung/${reservation.status_token}?bezahlt=1`,
-      cancel_url: `${base}/geschenkgutschein?abgebrochen=1`,
+      cancel_url: `${base}/geschenkgutschein?abgebrochen=${reservation.status_token}`,
     },
     reservation.order_id,
   );
@@ -333,9 +333,33 @@ async function giftCardCheckout(
   return json(200, { url: session.url, orderNumber: reservation.order_number });
 }
 
+/**
+ * Zurück von Stripe ohne Zahlung (cancel_url mit Status-Token): Reservierung sofort freigeben und die
+ * Stripe-Session beenden, damit Bestand und Gutschein nicht 30 Minuten blockiert bleiben.
+ */
+async function releaseCheckout(deps: Deps, body: Record<string, unknown>) {
+  const token = body["token"];
+  if (typeof token !== "string" || !UUID.test(token)) throw new HttpError(400, "INVALID_TOKEN");
+  const result = await deps.rpc<{ cancelled: boolean; session_id?: string | null }>(
+    "cancel_checkout_by_token",
+    {
+      p_token: token,
+    },
+  );
+  if (result.cancelled && result.session_id) {
+    await deps.stripe.checkout.sessions
+      .expire(result.session_id)
+      .catch((error) =>
+        console.warn("Stripe-Session liess sich nicht beenden", (error as Error).message),
+      );
+  }
+  return json(200, { released: result.cancelled });
+}
+
 export function createCheckoutHandler(deps: Deps) {
   return withHttp(deps.env.allowedOrigins, async (req) => {
     const body = await readJson(req);
+    if (body["kind"] === "release") return releaseCheckout(deps, body);
     const user = await getUser(req, deps.authClient);
     const email = str(body["email"], 254) ?? user?.email ?? undefined;
     if (!email) throw new HttpError(400, "INVALID_EMAIL");

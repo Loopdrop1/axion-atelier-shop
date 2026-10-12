@@ -107,7 +107,9 @@ describe("checkout: Warenkorb", () => {
     expect(session["success_url"]).toMatch(
       /^https:\/\/shop\.test\/en\/bestellung\/[0-9a-f-]{36}\?bezahlt=1$/,
     );
-    expect(session["cancel_url"]).toBe("https://shop.test/en/warenkorb?abgebrochen=1");
+    expect(session["cancel_url"]).toMatch(
+      /^https:\/\/shop\.test\/en\/warenkorb\?abgebrochen=[0-9a-f-]{36}$/,
+    );
     expect(Number(session["expires_at"])).toBe(
       Math.floor(new Date("2026-10-12T10:30:00Z").getTime() / 1000),
     );
@@ -257,7 +259,9 @@ describe("checkout: Geschenkgutschein", () => {
       },
     });
     expect(session["shipping_address_collection"]).toBeUndefined();
-    expect(session["cancel_url"]).toBe("https://shop.test/geschenkgutschein?abgebrochen=1");
+    expect(session["cancel_url"]).toMatch(
+      /^https:\/\/shop\.test\/geschenkgutschein\?abgebrochen=[0-9a-f-]{36}$/,
+    );
     expect(session["metadata"].kind).toBe("gift_card");
   });
 
@@ -282,5 +286,30 @@ describe("checkout: CORS", () => {
       expect(res.status).toBe(204);
       expect(res.headers.get("access-control-allow-origin")).toBe(allowed ? origin : null);
     }
+  });
+});
+
+describe("checkout: Abbruch in der Stripe-Kasse", () => {
+  it("gibt die Reservierung über das Token aus der cancel_url frei und beendet die Stripe-Session", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [1] });
+    const res = await post({
+      kind: "cart",
+      email: "a@example.ch",
+      lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+    });
+    expect(res.status).toBe(200);
+    expect(await stockOf(p.variants[0]!.id)).toBe(0);
+    const session = stripe.calls.findLast((c) => c.path === "/v1/checkout/sessions")!
+      .body as StripeForm;
+    const token = String(session["cancel_url"]).split("abgebrochen=")[1]!;
+    const release = await post({ kind: "release", token });
+    expect(await release.json()).toEqual({ released: true });
+    expect(await stockOf(p.variants[0]!.id)).toBe(1);
+    expect(
+      stripe.calls.some((c) => /\/v1\/checkout\/sessions\/cs_test_[^/]+\/expire$/.test(c.path)),
+    ).toBe(true);
+    const again = await post({ kind: "release", token });
+    expect(await again.json()).toEqual({ released: false });
+    expect((await post({ kind: "release", token: "kaputt" })).status).toBe(400);
   });
 });

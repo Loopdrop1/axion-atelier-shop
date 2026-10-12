@@ -12,7 +12,7 @@ Der bestehende Lovable-Shop (TanStack Start, Beispieldaten) wird zu einem vollst
 - Zahlungen: Stripe Checkout (gehostet) über das eigene Stripe-Konto des Kunden. TWINT, Karten, Apple Pay, Google Pay, Klarna werden im Stripe-Dashboard aktiviert, nicht im Code fest verdrahtet.
 - E-Mails: Resend über Edge Functions. Auth-E-Mails (Bestätigung, Passwort) über den Supabase «Send Email Hook», damit alle E-Mails dieselben zweisprachigen Vorlagen nutzen.
 - Sprachen: Deutsch ohne Präfix (`/produkt/x`), Englisch mit Präfix (`/en/produkt/x`). Admin nur Deutsch unter `/admin`.
-- Preis CHF 2'000, Betreuung CHF 50 pro Monat (betrifft den Code nicht).
+- Preis CHF 2'000, Betreuung CHF 50 pro Monat oder CHF 550 pro Jahr (betrifft den Code nicht). Angebot Version 3 vom 12.10.2026.
 
 ## Umfang (aus dem Angebot, Seite 10)
 

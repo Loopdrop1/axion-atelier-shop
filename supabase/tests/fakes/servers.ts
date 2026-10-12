@@ -192,6 +192,10 @@ export async function startFakeStripe(
         metadata: body["metadata"],
       });
     }
+    const expire = url.pathname.match(/^\/v1\/checkout\/sessions\/([^/]+)\/expire$/);
+    if (expire && req.method === "POST") {
+      return send(res, 200, { id: expire[1], object: "checkout.session", status: "expired" });
+    }
     const pi = url.pathname.match(/^\/v1\/payment_intents\/([^/]+)$/);
     if (pi && req.method === "GET") {
       const type = opts.paymentMethod ?? "twint";
