@@ -973,6 +973,10 @@ export type Database = {
         Args: { p_amount_cents: number; p_email: string; p_locale?: string; p_purchase?: Json; p_user_id?: string }
         Returns: Json
       }
+      user_is_admin: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin"

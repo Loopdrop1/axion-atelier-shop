@@ -856,6 +856,16 @@ begin
 end
 $$;
 
+create or replace function public.user_is_admin(p_user_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.user_roles r where r.user_id = p_user_id and r.role = 'admin')
+$$;
+
 -- Öffentliche Prüfungen (mit Rate-Limit pro IP) ------------------------------------------------------
 
 create or replace function public.check_discount(p_code text, p_subtotal_cents int)
@@ -1262,6 +1272,7 @@ revoke all on function
   public.mark_order_shipped(uuid, text),
   public.get_order_for_email(uuid),
   public.mark_order_email_sent(uuid, text),
+  public.user_is_admin(uuid),
   public.get_shop_notify_email(),
   public.issue_gift_card(int, text, text, text, text, text, uuid, text),
   public.check_discount(text, int),
@@ -1293,6 +1304,7 @@ grant execute on function
   public.mark_order_shipped(uuid, text),
   public.get_order_for_email(uuid),
   public.mark_order_email_sent(uuid, text),
+  public.user_is_admin(uuid),
   public.get_shop_notify_email(),
   public.issue_gift_card(int, text, text, text, text, text, uuid, text),
   public.newsletter_subscribe(text, text, text, text, text),
