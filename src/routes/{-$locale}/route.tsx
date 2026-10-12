@@ -7,11 +7,12 @@ export const Route = createFileRoute("/{-$locale}")({
     if (params.locale !== undefined && params.locale !== "en") throw notFound();
   },
   // Gibt die Daten für Kopf, Menü und Versandtexte zurück: So hat der Browser beim Hydrieren dieselben Werte wie der
-  // Server (die Abfragen selbst werden nicht mitgeschickt). Ohne Backend bleiben die Standardwerte.
+  // Server (die Abfragen selbst werden nicht mitgeschickt). Ohne Backend oder bei einem Fehler bleiben die
+  // Standardwerte; die Seite (Rechtstexte, Kontakt) bleibt erreichbar.
   loader: async ({ context, params }) => {
     const locale = toLocale(params.locale);
     const [announcements, nav, settings] = await Promise.all([
-      context.queryClient.ensureQueryData(announcementsQuery(locale)),
+      context.queryClient.ensureQueryData(announcementsQuery(locale)).catch(() => undefined),
       context.queryClient.ensureQueryData(navQuery(locale)).catch(() => undefined),
       context.queryClient.ensureQueryData(settingsQuery()).catch(() => undefined),
     ]);

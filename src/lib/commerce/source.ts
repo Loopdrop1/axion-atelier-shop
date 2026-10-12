@@ -69,14 +69,29 @@ export const DEFAULT_SETTINGS: ShopSettings = {
 
 export async function loadSettings(): Promise<ShopSettings> {
   if (!supabase) return DEFAULT_SETTINGS;
-  const { data, error } = await supabase
+  const full = await supabase
     .from("shop_settings")
     .select(
       "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out",
     )
     .eq("id", 1)
     .maybeSingle();
-  if (error || !data) return DEFAULT_SETTINGS;
+  let data = full.data;
+  if (full.error) {
+    // Z. B. Migration 0700 noch nicht ausgeführt (Spalte hide_sold_out fehlt): Versandkosten trotzdem richtig
+    // anzeigen, statt still «Gratisversand» zu versprechen, während die Kasse Versand verrechnet.
+    console.error("Shop-Einstellungen nicht vollständig lesbar:", full.error.message);
+    const base = await supabase
+      .from("shop_settings")
+      .select(
+        "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years",
+      )
+      .eq("id", 1)
+      .maybeSingle();
+    if (base.error) console.error("Shop-Einstellungen nicht lesbar:", base.error.message);
+    data = base.data ? { ...base.data, hide_sold_out: false } : null;
+  }
+  if (!data) return DEFAULT_SETTINGS;
   return {
     shippingCents: data.shipping_cents,
     freeShippingFromCents: data.free_shipping_from_cents,

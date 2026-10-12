@@ -146,6 +146,7 @@ export const de = {
     rateLimited:
       "Du hast gerade mehrere Nachrichten geschickt. Bitte versuch es später wieder oder schreib uns direkt per E-Mail.",
     notConfigured: "Das Formular ist noch nicht aktiv. Bitte schreib uns direkt per E-Mail.",
+    busy: "Gerade kommen sehr viele Nachrichten an. Bitte versuch es später wieder oder schreib uns direkt per E-Mail.",
     failed:
       "Die Nachricht konnte nicht gesendet werden. Bitte versuch es noch einmal oder schreib uns direkt per E-Mail.",
   },

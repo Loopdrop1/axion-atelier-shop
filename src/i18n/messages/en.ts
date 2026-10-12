@@ -144,6 +144,7 @@ export const en: Messages = {
     rateLimited:
       "You have just sent several messages. Please try again later or email us directly.",
     notConfigured: "The form is not active yet. Please email us directly.",
+    busy: "We are receiving a lot of messages right now. Please try again later or email us directly.",
     failed: "Your message could not be sent. Please try again or email us directly.",
   },
   seo: {

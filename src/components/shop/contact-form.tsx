@@ -57,6 +57,7 @@ export function ContactForm() {
       MESSAGE_TOO_LONG: { message: f.messageTooLong },
       RATE_LIMITED: { form: f.rateLimited },
       NOT_CONFIGURED: { form: f.notConfigured },
+      BUSY: { form: f.busy },
       NETWORK: { form: t.common.networkError },
     };
     setErrors(byCode[result.error] ?? { form: f.failed });

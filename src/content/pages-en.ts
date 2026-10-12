@@ -102,6 +102,7 @@ We keep personal data for as long as we need it for the purposes described:
 - **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence.
 - **Gift cards:** until they expire and then for the statutory period for business records.
 - **Messages sent through the contact form:** The shop does not store them; they reach our mailbox as emails. We keep them for as long as we need them for your enquiry.
+- **Protection against misuse:** To stop anyone from using the forms, checkout or gift card check on a massive scale, we count requests per IP address and email address. For this, we store only a hash of the address, not the address itself, together with the count and the time. We delete expired counters on an ongoing basis, usually after two days.
 
 ### 8. Data security
 We protect your data with appropriate technical and organisational measures. The connection to our website is encrypted, we store passwords only as an encrypted hash, and only we and our service providers have access to the data, to the extent necessary.

@@ -104,4 +104,9 @@ describe("English pages", () => {
     expect(JSON.stringify(pages.datenschutz)).toContain("Kontaktformular");
     expect(JSON.stringify(pagesEn.datenschutz)).toContain("contact form");
   });
+
+  it("explains the abuse counters (hash only, deleted after about two days)", () => {
+    expect(JSON.stringify(pages.datenschutz)).toContain("nur ein Prüfwert (Hash)");
+    expect(JSON.stringify(pagesEn.datenschutz)).toContain("only a hash of the address");
+  });
 });

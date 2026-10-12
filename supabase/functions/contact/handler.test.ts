@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { pool, uniq } from "../../tests/helpers";
+import { pool, sql, uniq } from "../../tests/helpers";
 import {
   ANON_KEY,
   SERVICE_KEY,
@@ -32,10 +32,27 @@ function makeEnv(extra: Record<string, string> = {}) {
   );
 }
 
+const GLOBAL_KEYS = ["contact-global", "contact-global-day"];
+const hash = "encode(extensions.digest($1::text, 'sha256'), 'hex')";
+
+async function setHits(key: string, hits: number) {
+  await sql(
+    `insert into private.rate_limits (key, window_start, hits) values (${hash}, now(), $2)
+     on conflict (key) do update set window_start = now(), hits = $2`,
+    [key, hits],
+  );
+}
+
+async function resetGlobal() {
+  for (const key of GLOBAL_KEYS)
+    await sql(`delete from private.rate_limits where key = ${hash}`, [key]);
+}
+
 beforeAll(async () => {
   supa = await startFakeSupabase();
   resend = await startFakeResend();
   handler = createContactHandler(createDeps(makeEnv()));
+  await resetGlobal();
 });
 
 afterAll(async () => {
@@ -165,5 +182,77 @@ describe("contact", () => {
   it("nur von erlaubten Seiten (CORS) und nur POST", async () => {
     const res = await handler(new Request("https://fn.test/contact", { method: "GET" }));
     expect(res.status).toBe(405);
+  });
+
+  it("fremde Webseite mit text/plain (ohne CORS-Prüfung): 415, keine E-Mail", async () => {
+    const before = resend.sent.length;
+    const res = await handler(
+      new Request("https://fn.test/contact", {
+        method: "POST",
+        headers: {
+          "content-type": "text/plain;charset=UTF-8",
+          origin: "https://boese.example",
+          "x-forwarded-for": "10.2.0.1",
+        },
+        body: JSON.stringify({
+          name: "Max",
+          email: `${uniq("fremd")}@example.ch`,
+          message: MESSAGE,
+        }),
+      }),
+    );
+    expect(res.status).toBe(415);
+    expect(await res.json()).toEqual({ error: "UNSUPPORTED_MEDIA_TYPE" });
+    expect(resend.sent.length).toBe(before);
+  });
+
+  it("IPv6: alle Adressen eines /64-Netzes teilen sich das IP-Limit", async () => {
+    const send = (i: number) =>
+      post(
+        { name: "Max", email: `${uniq("v6")}@example.ch`, message: MESSAGE },
+        `2001:db8:a:b::${i}`,
+      );
+    for (let i = 1; i <= 5; i++) expect((await send(i)).status).toBe(200);
+    expect((await send(6)).status).toBe(429);
+    // leerer erster Eintrag in X-Forwarded-For hebelt die Bremse nicht aus
+    const emptyFirst = await post(
+      { name: "Max", email: `${uniq("v6")}@example.ch`, message: MESSAGE },
+      ", 2001:db8:a:b::8",
+    );
+    expect(emptyFirst.status).toBe(429);
+  });
+
+  it("Zähler nur als Prüfwert: weder E-Mail-Adresse noch IP im Klartext", async () => {
+    const email = `${uniq("klartext")}@example.ch`;
+    expect((await post({ name: "Max", email, message: MESSAGE }, "10.3.0.1")).status).toBe(200);
+    const plain = await sql(
+      "select key from private.rate_limits where key like '%' || $1 || '%' or key like '%10.3.0.1%'",
+      [email],
+    );
+    expect(plain).toEqual([]);
+    const hashed = await sql(`select hits from private.rate_limits where key = ${hash}`, [
+      `contact-email:${email}`,
+    ]);
+    expect(hashed).toEqual([{ hits: 1 }]);
+  });
+
+  it("Deckel für alle (20 pro Stunde, 50 pro Tag): 503 BUSY, keine E-Mail", async () => {
+    const before = resend.sent.length;
+    const body = () => ({ name: "Max", email: `${uniq("voll")}@example.ch`, message: MESSAGE });
+    try {
+      await setHits("contact-global", 20);
+      const hour = await post(body());
+      expect(hour.status).toBe(503);
+      expect(await hour.json()).toEqual({ error: "BUSY" });
+
+      await resetGlobal();
+      await setHits("contact-global-day", 50);
+      const day = await post(body());
+      expect(day.status).toBe(503);
+      expect(await day.json()).toEqual({ error: "BUSY" });
+      expect(resend.sent.length).toBe(before);
+    } finally {
+      await resetGlobal();
+    }
   });
 });

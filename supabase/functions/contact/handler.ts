@@ -5,6 +5,7 @@ import { sendEmail } from "../_shared/email/send.ts";
 import { contactMessage } from "../_shared/email/templates.ts";
 import { clientIp, HttpError, json, readJson, str, withHttp } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
+import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 export const MESSAGE_MIN = 10;
@@ -25,6 +26,9 @@ export function createContactHandler(deps: Deps) {
     const to = deps.env.shopContactEmail || deps.env.shopNotifyEmail;
     if (!to) throw new HttpError(503, "NOT_CONFIGURED");
     const guard = await deps.rpc<string>("contact_guard", { p_email: email, p_ip: clientIp(req) });
+    await pruneRateLimitsSometimes(deps);
+    // 'busy': Tagesdeckel für alle erreicht (schützt das E-Mail-Kontingent der Bestell-E-Mails)
+    if (guard === "busy") throw new HttpError(503, "BUSY");
     if (guard !== "ok") throw new HttpError(429, "RATE_LIMITED");
     try {
       await sendEmail(

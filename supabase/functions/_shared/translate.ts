@@ -119,10 +119,12 @@ export async function translateToEnglish(
     throw new TranslateError("FAILED");
   }
   const translations = extract(await response.json().catch(() => undefined));
+  // Eine einzelne leere Übersetzung lässt nicht den ganzen Stapel scheitern: Das Feld bleibt leer, und das Admin
+  // versucht es beim nächsten Speichern erneut.
   if (
     !Array.isArray(translations) ||
     translations.length !== input.length ||
-    !translations.every((t) => typeof t === "string" && t.trim())
+    !translations.every((t) => typeof t === "string")
   ) {
     console.error("Übersetzung: unerwartete Antwort");
     throw new TranslateError("FAILED");

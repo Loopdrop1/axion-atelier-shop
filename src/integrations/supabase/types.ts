@@ -15,6 +15,7 @@ export type Database = {
           name_en: string | null;
           description_de: string | null;
           description_en: string | null;
+          en_auto: string[];
           image_path: string | null;
           sort: number;
           active: boolean;
@@ -28,6 +29,7 @@ export type Database = {
           name_en?: string | null;
           description_de?: string | null;
           description_en?: string | null;
+          en_auto?: string[];
           image_path?: string | null;
           sort?: number;
           active?: boolean;
@@ -41,6 +43,7 @@ export type Database = {
           name_en?: string | null;
           description_de?: string | null;
           description_en?: string | null;
+          en_auto?: string[];
           image_path?: string | null;
           sort?: number;
           active?: boolean;
@@ -492,6 +495,7 @@ export type Database = {
           path: string;
           alt_de: string;
           alt_en: string | null;
+          en_auto: string[];
           width: number;
           height: number;
           sort: number;
@@ -503,6 +507,7 @@ export type Database = {
           path: string;
           alt_de?: string;
           alt_en?: string | null;
+          en_auto?: string[];
           width?: number;
           height?: number;
           sort?: number;
@@ -514,6 +519,7 @@ export type Database = {
           path?: string;
           alt_de?: string;
           alt_en?: string | null;
+          en_auto?: string[];
           width?: number;
           height?: number;
           sort?: number;
@@ -593,6 +599,7 @@ export type Database = {
           title_en: string | null;
           description_de: string;
           description_en: string | null;
+          en_auto: string[];
           material_de: string | null;
           material_en: string | null;
           care_de: string | null;
@@ -622,6 +629,7 @@ export type Database = {
           title_en?: string | null;
           description_de?: string;
           description_en?: string | null;
+          en_auto?: string[];
           material_de?: string | null;
           material_en?: string | null;
           care_de?: string | null;
@@ -651,6 +659,7 @@ export type Database = {
           title_en?: string | null;
           description_de?: string;
           description_en?: string | null;
+          en_auto?: string[];
           material_de?: string | null;
           material_en?: string | null;
           care_de?: string | null;

@@ -152,6 +152,30 @@ test("Admin: Produkt anlegen mit Grösse, Anfangsbestand und Bild; danach im Sho
   await expect(page.getByLabel("Title", { exact: true })).toHaveValue("EN Sakko Rigi");
   await expect(page.getByLabel("Colour name", { exact: true })).toHaveValue("EN Grau");
 
+  // Deutsch geändert: maschinelles Englisch folgt dem Deutschen
+  const save = page.getByRole("button", { name: "Änderungen speichern" });
+  await page.getByLabel("Titel", { exact: true }).fill("Sakko Rigi Wolle");
+  await save.click();
+  await toast(page, "automatisch ins Englische übersetzt");
+  await expect(page.getByRole("heading", { name: "Sakko Rigi Wolle · Grau" })).toBeVisible();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("EN Sakko Rigi Wolle");
+  // Englisch von Hand: bleibt stehen, auch wenn sich das Deutsch später ändert
+  await page.getByLabel("Title", { exact: true }).fill("Rigi wool jacket");
+  await save.click();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Rigi wool jacket");
+  await page.waitForTimeout(500);
+  await page.getByLabel("Titel", { exact: true }).fill("Sakko Rigi Flanell");
+  await save.click();
+  await toast(page, "Ein deutscher Text hat sich geändert (Titel)");
+  await expect(page.getByRole("heading", { name: "Sakko Rigi Flanell · Grau" })).toBeVisible();
+  await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Rigi wool jacket");
+  const updates = (await fakeLog(request)).filter((e) => e.path === "products:update");
+  expect(updates.at(-1)?.body).toMatchObject({
+    title_de: "Sakko Rigi Flanell",
+    title_en: "Rigi wool jacket",
+    en_auto: ["color_name"],
+  });
+
   const sizes = page.locator(".admin-panel", { hasText: "Grössen und Bestand" });
   await sizes.getByLabel("Neue Grösse").fill("50");
   await sizes.getByLabel("Anfangsbestand").fill("4");
@@ -298,20 +322,24 @@ test("Admin: Startseite und Laufband ändern, im Shop sichtbar", async ({ page }
   const hero = page.locator(".admin-panel", { hasText: "Einstieg (oben, mit 3D-Logo)" });
   await hero.getByLabel("Titel").first().fill("Herbst bei Axion.");
   await hero.getByRole("button", { name: "Speichern" }).click();
-  await toast(page, "Gespeichert.");
+  // Englisch aus dem Seed gilt als von Hand geschrieben: bleibt stehen, Hinweis zum Prüfen
+  await toast(page, "Ein deutscher Text hat sich geändert (Titel)");
 
   const ticker = page.locator(".admin-panel", { hasText: "Laufband" }).first();
   await ticker.getByLabel("Satz 1").fill("Neue Herbstkollektion ist da");
   await ticker.getByRole("button", { name: "Laufband speichern" }).click();
-  await toast(page, "Gespeichert.");
+  await toast(page, "Ein deutscher Text hat sich geändert (Satz 1)");
 
+  // Der Server hält Inhalte bis zu 30 Sekunden im Zwischenspeicher: neu laden, bis beides sichtbar ist
   await expect(async () => {
     await open(page, "/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Herbst bei Axion.", {
       timeout: 1000,
     });
-  }).toPass({ timeout: 45_000, intervals: [2_000, 5_000, 10_000] });
-  await expect(page.locator(".announcement")).toContainText("Neue Herbstkollektion ist da");
+    await expect(page.locator(".announcement")).toContainText("Neue Herbstkollektion ist da", {
+      timeout: 1000,
+    });
+  }).toPass({ timeout: 60_000, intervals: [2_000, 5_000, 10_000] });
 });
 
 test("Admin: Zugänge geben und entfernen, Versandkosten im Warenkorb", async ({ page }) => {

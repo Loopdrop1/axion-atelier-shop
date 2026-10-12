@@ -49,8 +49,11 @@ einschalten.
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
 2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die sieben Dateien in `supabase/migrations/` werden der
-   Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud). Danach prüfen:
-   16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`, Funktion `contact_guard`.
+   Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
+   **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
+   Danach prüfen: 16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`, Funktionen
+   `contact_guard` und `translate_guard`, Spalte `en_auto` in `products`. Spätere Änderungen mit neuer Migration:
+   **zuerst die Migration ausführen, dann den Code pushen** (Lovable übernimmt Code sofort).
    `supabase/seed.sql` **nicht** ausführen: Er enthält Platzhalterprodukte und Beispielwerte für die Vorschau.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
@@ -201,4 +204,7 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 - Streitfälle (Disputes) bearbeitest du im Stripe-Dashboard. Betrifft es einen Gutscheinkauf, den Gutschein im Admin
   unter «Gutscheine» sperren.
 - Missbrauchsbremsen: Kasse pro IP 20 in 30 Minuten, pro E-Mail 10, höchstens 3 gleichzeitig offen; Kontaktformular
-  pro IP 5 pro Stunde, pro Adresse 3, insgesamt 60 (Antwort `429`, die Kundschaft sieht einen Hinweis).
+  pro IP (IPv6: pro /64-Netz) 5 pro Stunde, pro Adresse 3 (Antwort `429`), für alle zusammen 20 pro Stunde und 50 pro
+  Tag (Antwort `503`, die Kundschaft sieht «sehr viele Nachrichten, bitte direkt per E-Mail»). Das schützt das
+  Resend-Kontingent, über das auch Bestellbestätigungen laufen. Die Zähler speichert die Datenbank nur als Hash und
+  löscht sie nach rund zwei Tagen. Automatische Übersetzung: höchstens 500 Anfragen pro Admin und Tag.

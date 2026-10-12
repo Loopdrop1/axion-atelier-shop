@@ -23,7 +23,12 @@ function SearchPage() {
   const lp = useLocaleParam();
   const { q } = Route.useSearch();
   const navigate = useNavigate();
-  const { data } = useSuspenseQuery(searchQuery(q ?? "", locale));
+  // Startwert aus dem Loader (vom Server mitgeschickt): Server und Browser hydrieren mit denselben Daten,
+  // auch wenn der Server-Zwischenspeicher (30 s) nach einer Änderung im Admin noch den alten Stand hat.
+  const { data } = useSuspenseQuery({
+    ...searchQuery(q ?? "", locale),
+    initialData: Route.useLoaderData(),
+  });
   return (
     <div className="container page-body">
       <h1 className="page-title">{t.search.title}</h1>

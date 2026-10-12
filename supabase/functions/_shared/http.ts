@@ -26,14 +26,59 @@ export function isAllowedOrigin(origin: string | null, allowed: string[]): origi
   );
 }
 
-/** IP der Kundschaft für Rate-Limits (Cloudflare-Header zuerst, sonst erster Eintrag von X-Forwarded-For). */
+/** Netz der Kundschaft, nur für Rate-Limits: Cloudflare-Header zuerst (setzt Cloudflare selbst), sonst der erste
+ *  gültige Eintrag von X-Forwarded-For. Leere oder ungültige Einträge zählen nicht. */
 export function clientIp(req: Request): string | null {
-  const ip = (
-    req.headers.get("cf-connecting-ip") ??
-    req.headers.get("x-forwarded-for")?.split(",")[0] ??
-    ""
-  ).trim();
-  return ip ? ip.slice(0, 64) : null;
+  const candidates = [
+    req.headers.get("cf-connecting-ip"),
+    ...(req.headers.get("x-forwarded-for")?.split(",") ?? []),
+  ];
+  for (const raw of candidates) {
+    const bucket = ipBucket(raw);
+    if (bucket) return bucket;
+  }
+  return null;
+}
+
+const IPV4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+
+/** IPv4 einzeln, IPv6 als /64-Netz (ein Anschluss bekommt meist ein ganzes /64, sonst zählt jede Adresse
+ *  einzeln). IPv4 in IPv6 (`::ffff:1.2.3.4`) gilt als IPv4. Keine gültige IP: null. */
+export function ipBucket(raw: string | null | undefined): string | null {
+  let ip = (raw ?? "").trim().toLowerCase();
+  const bracketed = /^\[([^\]]+)\](?::\d+)?$/.exec(ip);
+  if (bracketed) ip = bracketed[1]!;
+  const withPort = /^(\d{1,3}(?:\.\d{1,3}){3}):\d+$/.exec(ip);
+  if (withPort) ip = withPort[1]!;
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(ip);
+  if (mapped) ip = mapped[1]!;
+  const v4 = IPV4.exec(ip);
+  if (v4) {
+    const parts = v4.slice(1).map(Number);
+    return parts.every((n) => n <= 255) ? parts.join(".") : null;
+  }
+  return ipv6Net64(ip);
+}
+
+function ipv6Net64(ip: string): string | null {
+  // Zonen-ID weg, eingebettete IPv4 am Ende zählt als zwei Gruppen
+  const addr = (ip.split("%")[0] ?? "").replace(/\d{1,3}(?:\.\d{1,3}){3}$/, "0:0");
+  if (!addr.includes(":") || !/^[0-9a-f:]+$/.test(addr)) return null;
+  const halves = addr.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  let groups = head;
+  if (halves.length === 2) {
+    const missing = 8 - head.length - tail.length;
+    if (missing < 1) return null;
+    groups = [...head, ...Array<string>(missing).fill("0"), ...tail];
+  }
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return null;
+  return `${groups
+    .slice(0, 4)
+    .map((g) => parseInt(g, 16).toString(16))
+    .join(":")}::/64`;
 }
 
 export function corsHeaders(origin: string | null, allowed: string[]): Record<string, string> {
@@ -62,8 +107,12 @@ export function json(
   });
 }
 
-/** Liest JSON mit Grössenlimit (Standard 20 KB). */
+/** Liest JSON mit Grössenlimit (Standard 20 KB). Verlangt `Content-Type: application/json`: Damit braucht jede
+ *  Anfrage aus dem Browser eine CORS-Freigabe (Preflight), und fremde Webseiten können ihre Besuchenden keine
+ *  Anfragen mit `text/plain` an die Funktionen schicken lassen. */
 export async function readJson(req: Request, maxBytes = 20_000): Promise<Record<string, unknown>> {
+  if (!/^application\/json\s*(;|$)/i.test(req.headers.get("content-type") ?? ""))
+    throw new HttpError(415, "UNSUPPORTED_MEDIA_TYPE");
   const text = await req.text();
   if (text.length > maxBytes) throw new HttpError(413, "PAYLOAD_TOO_LARGE");
   try {

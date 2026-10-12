@@ -11,7 +11,7 @@ import {
   type Product,
   type ProductImage,
 } from "@/lib/admin/api";
-import { autoTranslate } from "@/lib/admin/auto-translate";
+import { autoList, autoSet, autoTranslate, type TextPair } from "@/lib/admin/auto-translate";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { ConfirmButton, notify, Panel } from "./ui";
 
@@ -20,13 +20,18 @@ export function ImageManager({
   images,
   onChange,
 }: {
-  product: Pick<Product, "id" | "handle" | "title_de" | "title_en">;
+  product: Pick<Product, "id" | "handle" | "title_de" | "title_en" | "en_auto">;
   images: ProductImage[];
   onChange: () => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [alts, setAlts] = useState<Record<string, { alt_de: string; alt_en: string }>>({});
+  // Zuletzt gespeicherter Stand pro Bild (die Liste lädt erst danach neu) und laufende Speichervorgänge:
+  // Pro Bild speichert immer nur ein Vorgang, die Felder sind solange gesperrt.
+  const saved = useRef<Record<string, TextPair>>({});
+  const inFlight = useRef(new Set<string>());
+  const [saving, setSaving] = useState<string[]>([]);
 
   async function upload(files: FileList | null) {
     if (!files?.length) return;
@@ -64,24 +69,46 @@ export function ImageManager({
     }
   }
 
+  const savedAlt = (image: ProductImage): TextPair =>
+    saved.current[image.id] ?? {
+      de: image.alt_de,
+      en: image.alt_en ?? "",
+      auto: autoSet(image.en_auto).has("alt"),
+    };
+
   async function saveAlt(image: ProductImage) {
     const alt = alts[image.id];
-    if (!alt) return;
-    if (alt.alt_de === image.alt_de && alt.alt_en === (image.alt_en ?? "")) return;
+    if (!alt || inFlight.current.has(image.id)) return;
+    const before = savedAlt(image);
+    if (alt.alt_de.trim() === before.de.trim() && alt.alt_en.trim() === before.en.trim()) return;
+    inFlight.current.add(image.id);
+    setSaving((list) => [...list, image.id]);
     try {
       const translation = await autoTranslate(
-        { alt: { de: image.alt_de, en: image.alt_en ?? "" } },
+        { alt: before },
         { alt: { de: alt.alt_de, en: alt.alt_en } },
         translateTexts,
         { alt: 300 },
       );
-      const altEn = translation.pairs["alt"]!.en;
-      setAlts((a) => ({ ...a, [image.id]: { ...alt, alt_en: altEn } }));
-      await updateImage(image.id, { alt_de: alt.alt_de.trim(), alt_en: altEn.trim() || null });
+      const pair = translation.pairs["alt"]!;
+      await updateImage(image.id, {
+        alt_de: alt.alt_de.trim(),
+        alt_en: pair.en.trim() || null,
+        en_auto: autoList(translation.pairs),
+      });
+      saved.current[image.id] = {
+        de: alt.alt_de.trim(),
+        en: pair.en.trim(),
+        auto: Boolean(pair.auto),
+      };
+      setAlts((a) => ({ ...a, [image.id]: { alt_de: alt.alt_de, alt_en: pair.en } }));
       notify.saved("Bildbeschreibung gespeichert.", translation);
       onChange();
     } catch (error) {
       notify.error(error);
+    } finally {
+      inFlight.current.delete(image.id);
+      setSaving((list) => list.filter((id) => id !== image.id));
     }
   }
 
@@ -133,6 +160,7 @@ export function ImageManager({
                   aria-label={`Bildbeschreibung Deutsch, Bild ${index + 1}`}
                   placeholder="Bildbeschreibung (Deutsch)"
                   maxLength={300}
+                  disabled={saving.includes(image.id)}
                   value={alt.alt_de}
                   onChange={(e) =>
                     setAlts((a) => ({ ...a, [image.id]: { ...alt, alt_de: e.target.value } }))
@@ -143,6 +171,7 @@ export function ImageManager({
                   aria-label={`Bildbeschreibung Englisch, Bild ${index + 1}`}
                   placeholder="Image description (English)"
                   maxLength={300}
+                  disabled={saving.includes(image.id)}
                   value={alt.alt_en}
                   onChange={(e) =>
                     setAlts((a) => ({ ...a, [image.id]: { ...alt, alt_en: e.target.value } }))

@@ -2,7 +2,10 @@
 
 Alle Funktionen laufen mit `verify_jwt = false` (siehe `supabase/config.toml`) und prüfen den Aufrufer selbst.
 Aufruf aus dem Shop mit `supabase.functions.invoke(name, { body })`; eingeloggte Aufrufe schicken das Anmelde-Token automatisch mit.
-Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
+Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status. Anfragen brauchen `Content-Type: application/json`
+(sonst `415 UNSUPPORTED_MEDIA_TYPE`): So braucht jede Anfrage aus dem Browser eine CORS-Freigabe, auch von fremden Webseiten.
+Für Rate-Limits zählt die IP aus `cf-connecting-ip` (sonst der erste gültige Eintrag von X-Forwarded-For), IPv6 als /64-Netz;
+die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zwei Tagen gelöscht.
 
 | Funktion          | Aufrufer                        | Zweck                                                                                |
 | ----------------- | ------------------------------- | ------------------------------------------------------------------------------------ |
@@ -35,13 +38,13 @@ Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status.
 - `{ action: "resend_shipping", orderId }`, `{ action: "resend_confirmation", orderId, to? }` → `200 { emailed: true, to }`
 - `{ action: "issue_gift_card", amountCents, locale?, recipientEmail?, recipientName?, senderName?, message?, note?, send?: true }` → `200 { giftCard, emailed, emailError? }`
 - `{ action: "resend_gift_card", giftCardId, to? }` → `200 { emailed: true, to }`
-- `{ action: "translate", texts: string[] }` → `200 { translations: string[] }` (Deutsch → Englisch, gleiche Reihenfolge, leere Texte bleiben leer). Höchstens 60 Texte, je 4000 Zeichen, zusammen 16'000. Über das Lovable AI Gateway (`LOVABLE_API_KEY`, legt Lovable selbst an); anderer Dienst mit OpenAI-Schnittstelle über `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`, `TRANSLATE_MODEL`. `503 TRANSLATION_UNAVAILABLE` (kein Schlüssel oder AI-Guthaben leer), `429 RATE_LIMITED`, `502 TRANSLATION_FAILED`, `400 BAD_REQUEST | TOO_MANY_TEXTS | TEXT_TOO_LONG`. Das Admin übersetzt beim Speichern nur neue oder geänderte deutsche Texte; von Hand geändertes Englisch bleibt.
+- `{ action: "translate", texts: string[] }` → `200 { translations: string[] }` (Deutsch → Englisch, gleiche Reihenfolge, leere Texte bleiben leer). Höchstens 60 Texte, je 4000 Zeichen, zusammen 16'000. Über das Lovable AI Gateway (`LOVABLE_API_KEY`, legt Lovable selbst an); anderer Dienst mit OpenAI-Schnittstelle über `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`, `TRANSLATE_MODEL`. `503 TRANSLATION_UNAVAILABLE` (kein Schlüssel oder AI-Guthaben leer), `429 RATE_LIMITED` (Gateway) oder `429 DAILY_LIMIT` (500 Anfragen pro Admin und Tag, `translate_guard`), `502 TRANSLATION_FAILED`, `400 BAD_REQUEST | TOO_MANY_TEXTS | TEXT_TOO_LONG`. Das Admin schickt höchstens 40 Texte pro Anfrage und übersetzt leeres Englisch sowie maschinelles, dessen Deutsch sich geändert hat; von Hand geschriebenes Englisch bleibt (Herkunft in `en_auto` bzw. `auto`).
 - `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 ORDER_NOT_FOUND | GIFT_CARD_NOT_FOUND`, `409 ORDER_NOT_SHIPPABLE | ORDER_NOT_SHIPPED | ORDER_NOT_PAID`, `400 INVALID_TRACKING | INVALID_AMOUNT | INVALID_EMAIL`
 
 ## contact
 
 - `{ name, email, message, locale, website?: "" }` → `200 { sent: true }`. Die Nachricht geht an `SHOP_CONTACT_EMAIL` (sonst `SHOP_NOTIFY_EMAIL`), Antwort per Reply-To an die Kundschaft. Der Shop speichert sie nicht.
-- `400 NAME_REQUIRED | INVALID_EMAIL | MESSAGE_TOO_SHORT | MESSAGE_TOO_LONG` (10 bis 4000 Zeichen), `429 RATE_LIMITED` (pro IP 5 pro Stunde, pro Adresse 3, insgesamt 60), `503 NOT_CONFIGURED` (keine Shop-Adresse), `502 EMAIL_FAILED`. Verstecktes Feld `website` gegen Bots: ausgefüllt → `200`, aber keine E-Mail.
+- `400 NAME_REQUIRED | INVALID_EMAIL | MESSAGE_TOO_SHORT | MESSAGE_TOO_LONG` (10 bis 4000 Zeichen), `429 RATE_LIMITED` (pro IP bzw. IPv6-/64-Netz 5 pro Stunde, pro Adresse 3), `503 BUSY` (für alle zusammen 20 pro Stunde und 50 pro Tag: schützt das E-Mail-Kontingent der Bestell-E-Mails), `503 NOT_CONFIGURED` (keine Shop-Adresse), `502 EMAIL_FAILED`. Verstecktes Feld `website` gegen Bots: ausgefüllt → `200`, aber keine E-Mail.
 
 ## account-delete
 

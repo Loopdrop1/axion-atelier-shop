@@ -323,6 +323,28 @@ describe("admin-actions: Übersetzung", () => {
     }
   });
 
+  it("Tagesdeckel pro Admin (500 Anfragen): 429 DAILY_LIMIT ohne Aufruf des Gateways", async () => {
+    const key = "encode(extensions.digest($1::text, 'sha256'), 'hex')";
+    await sql(
+      `insert into private.rate_limits (key, window_start, hits) values (${key}, now(), 500)
+       on conflict (key) do update set window_start = now(), hits = 500`,
+      [`translate:${admin.id}`],
+    );
+    try {
+      const before = ai.calls.length;
+      const res = await post({ action: "translate", texts: ["Anzug"] });
+      expect(res.status).toBe(429);
+      expect(await res.json()).toEqual({ error: "DAILY_LIMIT" });
+      expect(ai.calls.length).toBe(before);
+      // nur leere Texte: kein Aufruf, zählt nicht
+      const empty = await post({ action: "translate", texts: ["", " "] });
+      expect(empty.status).toBe(200);
+      expect(await empty.json()).toEqual({ translations: ["", ""] });
+    } finally {
+      await sql(`delete from private.rate_limits where key = ${key}`, [`translate:${admin.id}`]);
+    }
+  });
+
   it("Guthaben aufgebraucht: 503, Gateway überlastet: 429, Gateway kaputt: 502", async () => {
     for (const [status, expected, code] of [
       [402, 503, "TRANSLATION_UNAVAILABLE"],

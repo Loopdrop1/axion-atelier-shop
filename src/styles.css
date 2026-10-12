@@ -828,6 +828,13 @@ svg {
   aspect-ratio: 3/2;
   width: 100%;
 }
+@media (max-width: 767px) {
+  /* Eigenes Hochformat-Bild fürs Handy (picture mit source) nicht auf 3:2 zuschneiden */
+  .about-layout picture img {
+    aspect-ratio: auto 4 / 5;
+    height: auto;
+  }
+}
 .about-layout p:not(.eyebrow) {
   color: var(--muted);
   max-width: 420px;
@@ -3937,6 +3944,17 @@ button.text-link {
   margin: 0;
   min-width: 0;
 }
+/* Sperre während Übersetzung und Speichern: fieldset ohne eigene Optik */
+.admin-lock {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.admin-lock:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
 .admin-fieldset legend {
   font-size: 13px;
   font-weight: 500;
@@ -4251,10 +4269,12 @@ button.text-link {
   body:has(> .admin-receipt) > :not(.admin-receipt) {
     display: none !important;
   }
+  /* Eigene Druckseite nur für die Quittung; andere Seiten (AGB, Bestellstatus) drucken mit den Rändern
+     des Browsers */
   .admin-receipt {
+    page: receipt;
     display: block;
     width: 100%;
-    padding: 12mm 14mm;
     font:
       11pt/1.45 Helvetica,
       Arial,
@@ -4318,8 +4338,8 @@ button.text-link {
   .admin-receipt p {
     margin: 0 0 2.5mm;
   }
-  @page {
-    size: A4;
-    margin: 0;
-  }
+}
+@page receipt {
+  size: A4;
+  margin: 12mm 14mm;
 }

@@ -2,7 +2,13 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { translateTexts, type Category, type Product, type ProductListRow } from "@/lib/admin/api";
-import { autoTranslate, type AutoTranslateResult, type Pairs } from "@/lib/admin/auto-translate";
+import {
+  autoList,
+  autoSet,
+  autoTranslate,
+  type AutoTranslateResult,
+  type Pairs,
+} from "@/lib/admin/auto-translate";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { slugify } from "@/lib/admin/slug";
 import { AreaField, Bilingual, CheckField, Panel, SelectField, TextField } from "./ui";
@@ -81,8 +87,17 @@ function initial(product: Product | null, categories: Category[]): FormState {
 
 const orNull = (v: string) => v.trim() || null;
 
-/** Texte mit englischer Fassung; beim Speichern übersetzt das Admin fehlende oder veraltete automatisch. */
+/** Texte mit englischer Fassung; beim Speichern übersetzt das Admin leere und veraltete maschinelle automatisch. */
 const TEXTS = ["title", "color_name", "description", "material", "care", "fit_note"] as const;
+/** Bezeichnungen für den Hinweis «Englisch prüfen» */
+const TEXT_LABELS: Record<(typeof TEXTS)[number], string> = {
+  title: "Titel",
+  color_name: "Farbname",
+  description: "Beschreibung",
+  material: "Material",
+  care: "Pflege",
+  fit_note: "Hinweis zur Passform",
+};
 const MAX_EN: Record<(typeof TEXTS)[number], number> = {
   title: 120,
   color_name: 60,
@@ -92,8 +107,11 @@ const MAX_EN: Record<(typeof TEXTS)[number], number> = {
   fit_note: 500,
 };
 
-function textPairs(f: FormState): Pairs {
-  return Object.fromEntries(TEXTS.map((k) => [k, { de: f[`${k}_de`], en: f[`${k}_en`] }])) as Pairs;
+/** auto: Felder, deren Englisch aus der automatischen Übersetzung stammt (Spalte en_auto) */
+function textPairs(f: FormState, auto: Set<string> = new Set()): Pairs {
+  return Object.fromEntries(
+    TEXTS.map((k) => [k, { de: f[`${k}_de`], en: f[`${k}_en`], auto: auto.has(k) }]),
+  ) as Pairs;
 }
 
 export function ProductForm({
@@ -108,8 +126,10 @@ export function ProductForm({
   onSave: (values: ProductValues, translation: AutoTranslateResult) => Promise<void>;
 }) {
   const [form, setForm] = useState<FormState>(() => initial(product, categories));
-  // Stand beim Öffnen: Was seither auf Deutsch geändert wurde, übersetzt das Admin neu.
-  const [baseline] = useState<FormState>(() => initial(product, categories));
+  // Gespeicherter Stand mit Herkunft des Englisch: Daran misst das Admin, was neu zu übersetzen ist. Nach dem
+  // Speichern lädt die Seite das Formular mit dem neuen Stand neu (key = updated_at).
+  const [baseline, setBaseline] = useState<FormState>(() => initial(product, categories));
+  const [savedAuto, setSavedAuto] = useState(() => autoSet(product?.en_auto));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [busy, setBusy] = useState(false);
   const [handleTouched, setHandleTouched] = useState(Boolean(product));
@@ -163,17 +183,20 @@ export function ProductForm({
     if (Object.keys(next).length || price === null) return;
     setBusy(true);
     try {
-      const translation = await autoTranslate(
-        textPairs(baseline),
-        textPairs(form),
-        translateTexts,
-        MAX_EN,
-      );
+      const translation: AutoTranslateResult = {
+        ...(await autoTranslate(
+          textPairs(baseline, savedAuto),
+          textPairs(form),
+          translateTexts,
+          MAX_EN,
+        )),
+        labels: TEXT_LABELS,
+      };
       const en = Object.fromEntries(
         TEXTS.map((k) => [`${k}_en`, translation.pairs[k]!.en]),
       ) as Pick<FormState, `${(typeof TEXTS)[number]}_en`>;
       const f = { ...form, ...en };
-      setForm(f);
+      const enAuto = autoList(translation.pairs);
       await onSave(
         {
           title_de: f.title_de.trim(),
@@ -200,9 +223,15 @@ export function ProductForm({
           occasions: f.occasions,
           tags: [...(f.neu ? ["neu"] : []), ...(f.sale ? ["sale"] : []), ...f.otherTags],
           outfit_handles: f.outfit_handles,
+          en_auto: enAuto,
         },
         translation,
       );
+      // Erst nach dem Speichern übernehmen: Scheitert es, bleibt maschinelles Englisch nicht als «eigenes» im
+      // Formular stehen, und ein zweites Speichern vor dem Neuladen vergleicht mit dem gespeicherten Stand.
+      setForm(f);
+      setBaseline(f);
+      setSavedAuto(new Set(enAuto));
     } catch {
       // Meldung zeigt die Seite (notify); Eingaben bleiben stehen.
     } finally {
@@ -212,224 +241,228 @@ export function ProductForm({
 
   return (
     <form onSubmit={submit} noValidate className="admin-product-form">
-      <Panel title="Grunddaten">
-        <div className="admin-form">
-          <Bilingual
-            de={
-              <TextField
-                label="Titel"
-                required
-                maxLength={120}
-                value={form.title_de}
-                onChange={(e) => updateTitle(e.target.value)}
-                error={errors.title_de}
-              />
-            }
-            en={<TextField label="Title" maxLength={120} {...text("title_en")} />}
-          />
-          <div className="admin-grid-2">
-            <TextField
-              label="Adresse im Shop"
-              hint={
-                handleChanged
-                  ? "Achtung: Alte Links auf dieses Produkt führen danach ins Leere."
-                  : `/produkt/${form.handle || "…"}`
+      {/* Während Übersetzung und Speichern gesperrt: Eingaben in dieser Zeit gingen sonst verloren. */}
+      <fieldset className="admin-lock" disabled={busy}>
+        <Panel title="Grunddaten">
+          <div className="admin-form">
+            <Bilingual
+              de={
+                <TextField
+                  label="Titel"
+                  required
+                  maxLength={120}
+                  value={form.title_de}
+                  onChange={(e) => updateTitle(e.target.value)}
+                  error={errors.title_de}
+                />
               }
-              value={form.handle}
-              onChange={(e) => {
-                setHandleTouched(true);
-                set("handle", e.target.value.toLowerCase());
-              }}
-              error={errors.handle}
+              en={<TextField label="Title" maxLength={120} {...text("title_en")} />}
             />
-            <TextField
-              label="Modell"
-              hint="Gleiches Modell in anderen Farben erscheint auf der Produktseite als Farbauswahl."
-              value={form.model}
-              onChange={(e) => {
-                setModelTouched(true);
-                set("model", e.target.value.toLowerCase());
-              }}
-              error={errors.model}
-            />
+            <div className="admin-grid-2">
+              <TextField
+                label="Adresse im Shop"
+                hint={
+                  handleChanged
+                    ? "Achtung: Alte Links auf dieses Produkt führen danach ins Leere."
+                    : `/produkt/${form.handle || "…"}`
+                }
+                value={form.handle}
+                onChange={(e) => {
+                  setHandleTouched(true);
+                  set("handle", e.target.value.toLowerCase());
+                }}
+                error={errors.handle}
+              />
+              <TextField
+                label="Modell"
+                hint="Gleiches Modell in anderen Farben erscheint auf der Produktseite als Farbauswahl."
+                value={form.model}
+                onChange={(e) => {
+                  setModelTouched(true);
+                  set("model", e.target.value.toLowerCase());
+                }}
+                error={errors.model}
+              />
+            </div>
+            <div className="admin-grid-3">
+              <SelectField
+                label="Kategorie"
+                value={form.category_id}
+                onChange={(e) => set("category_id", e.target.value)}
+                options={categories.map((c) => ({ value: c.id, label: c.name_de }))}
+              />
+              <SelectField
+                label="Status"
+                value={form.status}
+                onChange={(e) => set("status", e.target.value as Product["status"])}
+                options={[
+                  { value: "draft", label: "Entwurf (nicht sichtbar)" },
+                  { value: "active", label: "Aktiv (im Shop)" },
+                  { value: "archived", label: "Archiviert (nicht sichtbar)" },
+                ]}
+              />
+              <TextField
+                label="Reihenfolge"
+                hint="Kleinere Zahl = weiter vorne"
+                inputMode="numeric"
+                value={form.sort}
+                onChange={(e) => set("sort", e.target.value.replace(/[^\d]/g, ""))}
+              />
+            </div>
           </div>
-          <div className="admin-grid-3">
-            <SelectField
-              label="Kategorie"
-              value={form.category_id}
-              onChange={(e) => set("category_id", e.target.value)}
-              options={categories.map((c) => ({ value: c.id, label: c.name_de }))}
+        </Panel>
+
+        <Panel title="Preis und Farbe">
+          <div className="admin-form">
+            <div className="admin-grid-2">
+              <TextField
+                label="Preis (CHF, inkl. MWST)"
+                inputMode="decimal"
+                {...text("price")}
+                error={errors.price}
+              />
+              <TextField
+                label="Streichpreis (CHF, freiwillig)"
+                hint="Früherer Preis, erscheint durchgestrichen. Nur angeben, wenn er wirklich verlangt wurde."
+                inputMode="decimal"
+                {...text("compare_at")}
+                error={errors.compare_at}
+              />
+            </div>
+            <Bilingual
+              de={
+                <TextField
+                  label="Farbname"
+                  maxLength={60}
+                  value={form.color_name_de}
+                  onChange={(e) => updateColor(e.target.value)}
+                  error={errors.color_name_de}
+                />
+              }
+              en={<TextField label="Colour name" maxLength={60} {...text("color_name_en")} />}
+            />
+            <div className="admin-color">
+              <input
+                type="color"
+                aria-label="Farbe wählen"
+                value={/^#[0-9A-Fa-f]{6}$/.test(form.color_hex) ? form.color_hex : "#000000"}
+                onChange={(e) => set("color_hex", e.target.value.toUpperCase())}
+              />
+              <TextField
+                label="Farbcode für das Farbfeld"
+                {...text("color_hex")}
+                error={errors.color_hex}
+              />
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title="Texte">
+          <div className="admin-form">
+            <Bilingual
+              de={
+                <AreaField
+                  label="Beschreibung"
+                  rows={5}
+                  maxLength={4000}
+                  {...text("description_de")}
+                />
+              }
+              en={
+                <AreaField
+                  label="Description"
+                  rows={5}
+                  maxLength={4000}
+                  {...text("description_en")}
+                />
+              }
+            />
+            <Bilingual
+              de={<TextField label="Material" maxLength={500} {...text("material_de")} />}
+              en={<TextField label="Material" maxLength={500} {...text("material_en")} />}
+            />
+            <Bilingual
+              de={<TextField label="Pflege" maxLength={500} {...text("care_de")} />}
+              en={<TextField label="Care" maxLength={500} {...text("care_en")} />}
+            />
+            <Bilingual
+              de={
+                <TextField label="Hinweis zur Passform" maxLength={500} {...text("fit_note_de")} />
+              }
+              en={<TextField label="Fit note" maxLength={500} {...text("fit_note_en")} />}
             />
             <SelectField
-              label="Status"
-              value={form.status}
-              onChange={(e) => set("status", e.target.value as Product["status"])}
+              label="Passform (Filter im Shop)"
+              value={form.fit}
+              onChange={(e) => set("fit", e.target.value)}
               options={[
-                { value: "draft", label: "Entwurf (nicht sichtbar)" },
-                { value: "active", label: "Aktiv (im Shop)" },
-                { value: "archived", label: "Archiviert (nicht sichtbar)" },
+                { value: "", label: "keine Angabe" },
+                { value: "Slim Fit", label: "Slim Fit (schmal)" },
+                { value: "Regular Fit", label: "Regular Fit (gerade)" },
               ]}
             />
-            <TextField
-              label="Reihenfolge"
-              hint="Kleinere Zahl = weiter vorne"
-              inputMode="numeric"
-              value={form.sort}
-              onChange={(e) => set("sort", e.target.value.replace(/[^\d]/g, ""))}
-            />
           </div>
-        </div>
-      </Panel>
+        </Panel>
 
-      <Panel title="Preis und Farbe">
-        <div className="admin-form">
-          <div className="admin-grid-2">
-            <TextField
-              label="Preis (CHF, inkl. MWST)"
-              inputMode="decimal"
-              {...text("price")}
-              error={errors.price}
-            />
-            <TextField
-              label="Streichpreis (CHF, freiwillig)"
-              hint="Früherer Preis, erscheint durchgestrichen. Nur angeben, wenn er wirklich verlangt wurde."
-              inputMode="decimal"
-              {...text("compare_at")}
-              error={errors.compare_at}
-            />
-          </div>
-          <Bilingual
-            de={
-              <TextField
-                label="Farbname"
-                maxLength={60}
-                value={form.color_name_de}
-                onChange={(e) => updateColor(e.target.value)}
-                error={errors.color_name_de}
+        <Panel title="Sichtbarkeit und Kombinationen">
+          <div className="admin-form">
+            <div className="admin-grid-2">
+              <CheckField
+                label="Neu"
+                hint="Erscheint unter «Neu» und auf der Startseite bei den Neuheiten, mit Badge."
+                checked={form.neu}
+                onChange={(v) => set("neu", v)}
               />
-            }
-            en={<TextField label="Colour name" maxLength={60} {...text("color_name_en")} />}
-          />
-          <div className="admin-color">
-            <input
-              type="color"
-              aria-label="Farbe wählen"
-              value={/^#[0-9A-Fa-f]{6}$/.test(form.color_hex) ? form.color_hex : "#000000"}
-              onChange={(e) => set("color_hex", e.target.value.toUpperCase())}
-            />
-            <TextField
-              label="Farbcode für das Farbfeld"
-              {...text("color_hex")}
-              error={errors.color_hex}
-            />
-          </div>
-        </div>
-      </Panel>
-
-      <Panel title="Texte">
-        <div className="admin-form">
-          <Bilingual
-            de={
-              <AreaField
-                label="Beschreibung"
-                rows={5}
-                maxLength={4000}
-                {...text("description_de")}
+              <CheckField
+                label="Sale"
+                hint="Erscheint unter «Sale», mit Badge. Dazu einen Streichpreis setzen."
+                checked={form.sale}
+                onChange={(v) => set("sale", v)}
               />
-            }
-            en={
-              <AreaField
-                label="Description"
-                rows={5}
-                maxLength={4000}
-                {...text("description_en")}
-              />
-            }
-          />
-          <Bilingual
-            de={<TextField label="Material" maxLength={500} {...text("material_de")} />}
-            en={<TextField label="Material" maxLength={500} {...text("material_en")} />}
-          />
-          <Bilingual
-            de={<TextField label="Pflege" maxLength={500} {...text("care_de")} />}
-            en={<TextField label="Care" maxLength={500} {...text("care_en")} />}
-          />
-          <Bilingual
-            de={<TextField label="Hinweis zur Passform" maxLength={500} {...text("fit_note_de")} />}
-            en={<TextField label="Fit note" maxLength={500} {...text("fit_note_en")} />}
-          />
-          <SelectField
-            label="Passform (Filter im Shop)"
-            value={form.fit}
-            onChange={(e) => set("fit", e.target.value)}
-            options={[
-              { value: "", label: "keine Angabe" },
-              { value: "Slim Fit", label: "Slim Fit (schmal)" },
-              { value: "Regular Fit", label: "Regular Fit (gerade)" },
-            ]}
-          />
-        </div>
-      </Panel>
-
-      <Panel title="Sichtbarkeit und Kombinationen">
-        <div className="admin-form">
-          <div className="admin-grid-2">
-            <CheckField
-              label="Neu"
-              hint="Erscheint unter «Neu» und auf der Startseite bei den Neuheiten, mit Badge."
-              checked={form.neu}
-              onChange={(v) => set("neu", v)}
-            />
-            <CheckField
-              label="Sale"
-              hint="Erscheint unter «Sale», mit Badge. Dazu einen Streichpreis setzen."
-              checked={form.sale}
-              onChange={(v) => set("sale", v)}
-            />
-          </div>
-          <fieldset className="admin-fieldset">
-            <legend>Anlässe (Filter und Menü «Anlässe»)</legend>
-            <div className="admin-checks">
-              {OCCASIONS.map((o) => (
-                <CheckField
-                  key={o.value}
-                  label={o.label}
-                  checked={form.occasions.includes(o.value)}
-                  onChange={(v) =>
-                    set(
-                      "occasions",
-                      v
-                        ? [...form.occasions, o.value]
-                        : form.occasions.filter((x) => x !== o.value),
-                    )
-                  }
-                />
-              ))}
             </div>
-          </fieldset>
-          <fieldset className="admin-fieldset">
-            <legend>Komplettes Outfit (auf der Produktseite zusammen anbieten)</legend>
-            <div className="admin-checks admin-checks-scroll">
-              {others.map((p) => (
-                <CheckField
-                  key={p.id}
-                  label={`${p.title_de} · ${p.color_name_de}`}
-                  checked={form.outfit_handles.includes(p.handle)}
-                  onChange={(v) =>
-                    set(
-                      "outfit_handles",
-                      v
-                        ? [...form.outfit_handles, p.handle]
-                        : form.outfit_handles.filter((h) => h !== p.handle),
-                    )
-                  }
-                />
-              ))}
-            </div>
-          </fieldset>
-        </div>
-      </Panel>
-
+            <fieldset className="admin-fieldset">
+              <legend>Anlässe (Filter und Menü «Anlässe»)</legend>
+              <div className="admin-checks">
+                {OCCASIONS.map((o) => (
+                  <CheckField
+                    key={o.value}
+                    label={o.label}
+                    checked={form.occasions.includes(o.value)}
+                    onChange={(v) =>
+                      set(
+                        "occasions",
+                        v
+                          ? [...form.occasions, o.value]
+                          : form.occasions.filter((x) => x !== o.value),
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="admin-fieldset">
+              <legend>Komplettes Outfit (auf der Produktseite zusammen anbieten)</legend>
+              <div className="admin-checks admin-checks-scroll">
+                {others.map((p) => (
+                  <CheckField
+                    key={p.id}
+                    label={`${p.title_de} · ${p.color_name_de}`}
+                    checked={form.outfit_handles.includes(p.handle)}
+                    onChange={(v) =>
+                      set(
+                        "outfit_handles",
+                        v
+                          ? [...form.outfit_handles, p.handle]
+                          : form.outfit_handles.filter((h) => h !== p.handle),
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        </Panel>
+      </fieldset>
       <div className="admin-savebar">
         <Button type="submit" variant="admin" disabled={busy}>
           {busy ? "Wird gespeichert …" : product ? "Änderungen speichern" : "Produkt anlegen"}

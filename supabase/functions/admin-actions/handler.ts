@@ -133,7 +133,11 @@ async function resendGiftCard(deps: Deps, body: Record<string, unknown>): Promis
   return json(200, { emailed: true, to });
 }
 
-async function translate(deps: Deps, body: Record<string, unknown>): Promise<Response> {
+async function translate(
+  deps: Deps,
+  adminId: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
   const texts = body["texts"];
   if (!Array.isArray(texts) || texts.length === 0 || !texts.every((t) => typeof t === "string"))
     throw new HttpError(400, "BAD_REQUEST");
@@ -144,6 +148,12 @@ async function translate(deps: Deps, body: Record<string, unknown>): Promise<Res
     list.reduce((n, t) => n + t.length, 0) > TRANSLATE_LIMITS.maxTotalChars
   )
     throw new HttpError(400, "TEXT_TOO_LONG");
+  // Tagesdeckel pro Admin (translate_guard): Das AI-Guthaben teilt sich Lovable Cloud mit Datenbank und Login.
+  if (
+    list.some((t) => t.trim()) &&
+    !(await deps.rpc<boolean>("translate_guard", { p_user_id: adminId }))
+  )
+    throw new HttpError(429, "DAILY_LIMIT");
   try {
     return json(200, { translations: await translateToEnglish(list, deps.env.translate) });
   } catch (error) {
@@ -170,7 +180,7 @@ export function createAdminActionsHandler(deps: Deps) {
       case "resend_gift_card":
         return resendGiftCard(deps, body);
       case "translate":
-        return translate(deps, body);
+        return translate(deps, admin.id, body);
       default:
         throw new HttpError(400, "BAD_REQUEST");
     }

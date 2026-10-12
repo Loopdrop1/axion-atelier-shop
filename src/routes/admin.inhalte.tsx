@@ -18,6 +18,12 @@ import {
   applyItemPairs,
   blockPairs,
   itemPairs,
+  itemsJson,
+  newId,
+  nextSpotKey,
+  readItems,
+  withUniqueSpotKeys,
+  type Item,
 } from "@/lib/admin/content-translate";
 import type { Json } from "@/integrations/supabase/types";
 import { messages } from "@/i18n/messages";
@@ -123,14 +129,25 @@ function useSave() {
   };
 }
 
-/** Englisch zum Block ergänzen: fehlende oder veraltete Texte automatisch übersetzen. */
-async function translateBlock(base: Obj, next: Obj, fields: string[]) {
-  const translation = await autoTranslate(
-    blockPairs(base, fields),
-    blockPairs(next, fields),
-    translateTexts,
-    { image_alt: 300 },
-  );
+/** Englisch zum Block ergänzen: leere und veraltete maschinelle Texte automatisch übersetzen.
+ *  base: gespeicherter Stand (mit en_auto), labels: Bezeichnungen für den Hinweis «Englisch prüfen». */
+async function translateBlock(
+  base: Obj,
+  next: Obj,
+  fields: FieldDef[],
+  labels: Record<string, string> = {},
+) {
+  const names = fields.map((f) => f.name);
+  const translation: AutoTranslateResult = {
+    ...(await autoTranslate(blockPairs(base, names), blockPairs(next, names), translateTexts, {
+      image_alt: 300,
+    })),
+    labels: {
+      ...Object.fromEntries(fields.map((f) => [`f:${f.name}`, f.label])),
+      image_alt: "Bildbeschreibung",
+      ...labels,
+    },
+  };
   return { value: applyBlockPairs(next, translation.pairs), translation };
 }
 
@@ -227,9 +244,8 @@ function Content() {
 
 function Announcements({ value }: { value: Obj }) {
   const save = useSave();
-  const initial = Array.isArray(value["items"])
-    ? value["items"].filter(isObj).map((i) => ({ de: str(i["de"]), en: str(i["en"]) }))
-    : [];
+  // IDs nur für die Bearbeitung: Englisch bleibt beim Umsortieren und Löschen beim richtigen Satz.
+  const [initial] = useState<Item[]>(() => readItems(value));
   const [items, setItems] = useState(initial);
   const [base, setBase] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -248,16 +264,16 @@ function Announcements({ value }: { value: Obj }) {
         <Button
           variant="outline"
           size="sm"
-          disabled={items.length >= 6}
-          onClick={() => setItems((l) => [...l, { de: "", en: "" }])}
+          disabled={items.length >= 6 || busy}
+          onClick={() => setItems((l) => [...l, { id: newId(), de: "", en: "" }])}
         >
           <Plus /> Satz hinzufügen
         </Button>
       }
     >
-      <div className="admin-form">
+      <fieldset className="admin-lock admin-form" disabled={busy}>
         {items.map((item, i) => (
-          <div key={i} className="admin-repeat">
+          <div key={item.id} className="admin-repeat">
             <Bilingual
               de={
                 <TextField
@@ -316,24 +332,28 @@ function Announcements({ value }: { value: Obj }) {
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            const translation = await autoTranslate(
-              itemPairs(base),
-              itemPairs(items),
-              translateTexts,
-              Object.fromEntries(items.map((_, i) => [`item:${i}`, 120])),
-            );
-            const next = applyItemPairs(items, translation.pairs);
-            setItems(next);
-            const list = next
-              .filter((x) => x.de.trim())
-              .map((x) => ({ de: x.de.trim(), ...(x.en.trim() ? { en: x.en.trim() } : {}) }));
-            if (await save("announcements", { items: list }, translation)) setBase(next);
+            // Sätze ohne Deutsch fallen beim Speichern weg und brauchen keine Übersetzung
+            const kept = items.filter((x) => x.de.trim());
+            const translation: AutoTranslateResult = {
+              ...(await autoTranslate(
+                itemPairs(base),
+                itemPairs(kept),
+                translateTexts,
+                Object.fromEntries(kept.map((x) => [`item:${x.id}`, 120])),
+              )),
+              labels: Object.fromEntries(kept.map((x, i) => [`item:${x.id}`, `Satz ${i + 1}`])),
+            };
+            const next = applyItemPairs(kept, translation.pairs);
+            if (await save("announcements", itemsJson(next), translation)) {
+              setItems(next);
+              setBase(next);
+            }
             setBusy(false);
           }}
         >
           Laufband speichern
         </Button>
-      </div>
+      </fieldset>
     </Panel>
   );
 }
@@ -346,13 +366,17 @@ function ImageUpload({
   name,
   label,
   hint,
+  onBusy,
 }: {
   value: Obj;
-  onChange: (next: Obj) => void;
+  /** Änderung als Funktion des aktuellen Stands: Ein Upload, der während anderer Eingaben endet, setzt sie nicht zurück. */
+  onChange: (update: (current: Obj) => Obj) => void;
   folder: string;
   name: "image" | "image_mobile";
   label: string;
   hint: string;
+  /** Meldet laufende Uploads (Speichern ist solange gesperrt). */
+  onBusy: (busy: boolean) => void;
 }) {
   const file = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -370,18 +394,20 @@ function ImageUpload({
             const f = e.target.files?.[0];
             if (!f) return;
             setBusy(true);
+            onBusy(true);
             try {
               const image = await uploadSiteImage(f, folder);
-              onChange({
-                ...value,
+              onChange((current) => ({
+                ...current,
                 [name]: image.path,
                 [`${name}_width`]: image.width,
                 [`${name}_height`]: image.height,
-              });
+              }));
             } catch (err) {
               notify.error(err);
             } finally {
               setBusy(false);
+              onBusy(false);
             }
           }}
         />
@@ -392,15 +418,17 @@ function ImageUpload({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              const {
-                image_mobile: _a,
-                image_mobile_width: _b,
-                image_mobile_height: _c,
-                ...rest
-              } = value;
-              onChange(rest);
-            }}
+            onClick={() =>
+              onChange((current) => {
+                const {
+                  image_mobile: _a,
+                  image_mobile_width: _b,
+                  image_mobile_height: _c,
+                  ...rest
+                } = current;
+                return rest;
+              })
+            }
           >
             <Trash2 /> Handy-Bild entfernen
           </Button>
@@ -415,20 +443,28 @@ function ImageField({
   value,
   onChange,
   folder,
+  onBusy,
   mobile = false,
 }: {
   value: Obj;
-  onChange: (next: Obj) => void;
+  onChange: (update: (current: Obj) => Obj) => void;
   folder: string;
+  onBusy: (busy: boolean) => void;
   /** Zusätzlich ein eigenes Bild fürs Handy (hoch) */
   mobile?: boolean;
 }) {
   const alt = isObj(value["image_alt"]) ? (value["image_alt"] as Obj) : {};
+  const setAlt = (lang: "de" | "en", text: string) =>
+    onChange((current) => ({
+      ...current,
+      image_alt: { ...(isObj(current["image_alt"]) ? current["image_alt"] : {}), [lang]: text },
+    }));
   return (
     <div className="admin-form">
       <ImageUpload
         value={value}
         onChange={onChange}
+        onBusy={onBusy}
         folder={folder}
         name="image"
         label="Bild ersetzen"
@@ -442,6 +478,7 @@ function ImageField({
         <ImageUpload
           value={value}
           onChange={onChange}
+          onBusy={onBusy}
           folder={folder}
           name="image_mobile"
           label="Bild fürs Handy"
@@ -454,7 +491,7 @@ function ImageField({
             label="Bildbeschreibung"
             maxLength={300}
             value={str(alt["de"])}
-            onChange={(e) => onChange({ ...value, image_alt: { ...alt, de: e.target.value } })}
+            onChange={(e) => setAlt("de", e.target.value)}
           />
         }
         en={
@@ -462,7 +499,7 @@ function ImageField({
             label="Image description"
             maxLength={300}
             value={str(alt["en"])}
-            onChange={(e) => onChange({ ...value, image_alt: { ...alt, en: e.target.value } })}
+            onChange={(e) => setAlt("en", e.target.value)}
           />
         }
       />
@@ -489,28 +526,34 @@ function TextBlock({
   const [draft, setDraft] = useState<Obj>(value);
   const [base, setBase] = useState<Obj>(value);
   const [busy, setBusy] = useState(false);
-  const names = fields.map((f) => f.name);
+  const [uploads, setUploads] = useState(0);
+  const onBusy = (b: boolean) => setUploads((n) => n + (b ? 1 : -1));
   return (
     <Panel title={title}>
-      <div className="admin-form">
-        {image && <ImageField value={draft} onChange={setDraft} folder={image} mobile />}
+      <fieldset className="admin-lock admin-form" disabled={busy}>
+        {image && (
+          <ImageField value={draft} onChange={setDraft} onBusy={onBusy} folder={image} mobile />
+        )}
         <LocalizedFields value={draft} fields={fields} defaults={defaults} onChange={setDraft} />
         <Button
           variant="admin"
           className="admin-save"
-          disabled={busy}
+          disabled={busy || uploads > 0}
           onClick={async () => {
             setBusy(true);
-            const { value: next, translation } = await translateBlock(base, draft, names);
-            setDraft(next);
+            const { value: next, translation } = await translateBlock(base, draft, fields);
             const cleaned = clean(next);
-            if (await save(contentKey, cleaned, translation)) setBase(cleaned);
+            // Erst nach dem Speichern übernehmen (sonst gälte maschinelles Englisch danach als eigenes)
+            if (await save(contentKey, cleaned, translation)) {
+              setDraft(next);
+              setBase(cleaned);
+            }
             setBusy(false);
           }}
         >
           Speichern
         </Button>
-      </div>
+      </fieldset>
     </Panel>
   );
 }
@@ -522,7 +565,6 @@ const LOOK_TEXTS: FieldDef[] = [
   { name: "total", label: "Text vor dem Gesamtpreis" },
   { name: "cta", label: "Knopf" },
 ];
-const LOOK_FIELDS = LOOK_TEXTS.map((f) => f.name);
 
 interface Spot {
   handle: string;
@@ -534,10 +576,14 @@ interface Spot {
 
 function LookBlock({ value, products }: { value: Obj; products: ProductListRow[] }) {
   const save = useSave();
-  const [draft, setDraft] = useState<Obj>(value);
-  const [base, setBase] = useState<Obj>(value);
+  // Eindeutige Schlüssel für die Punkte: Das Englisch einer Bezeichnung hängt daran.
+  const [initial] = useState<Obj>(() => withUniqueSpotKeys(value));
+  const [draft, setDraft] = useState<Obj>(initial);
+  const [base, setBase] = useState<Obj>(initial);
   const [selected, setSelected] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [uploads, setUploads] = useState(0);
+  const onBusy = (b: boolean) => setUploads((n) => n + (b ? 1 : -1));
   const spots: Spot[] = useMemo(
     () =>
       (Array.isArray(draft["hotspots"]) ? draft["hotspots"] : []).filter(isObj).map((h, i) => ({
@@ -556,7 +602,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
   const src = imageUrl(str(draft["image"]), "site-media") ?? imageUrl("asset:look", "site-media");
 
   function place(event: MouseEvent<HTMLDivElement>) {
-    if (!spots[selected]) return;
+    if (busy || !spots[selected]) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
     const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
@@ -574,14 +620,14 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
       title="Komplettes Outfit (Bild mit Punkten)"
       description="Punkte auf dem Bild führen zu den Produkten. Punkt auswählen, dann ins Bild klicken, um ihn zu setzen."
     >
-      <div className="admin-form">
-        <ImageField value={draft} onChange={setDraft} folder="look" />
+      <fieldset className="admin-lock admin-form" disabled={busy}>
+        <ImageField value={draft} onChange={setDraft} onBusy={onBusy} folder="look" />
         <div className="admin-look">
           <div className="admin-look-image" onClick={place} role="presentation">
             {src && <img src={src} alt="" />}
             {spots.map((s, i) => (
               <button
-                key={i}
+                key={s.key}
                 type="button"
                 className={`admin-spot ${i === selected ? "active" : ""}`}
                 style={{ left: `${s.x}%`, top: `${s.y}%` }}
@@ -598,7 +644,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
           <div className="admin-form">
             {spots.map((s, i) => (
               <div
-                key={i}
+                key={s.key}
                 className={`admin-repeat ${i === selected ? "selected" : ""}`}
                 onFocus={() => setSelected(i)}
               >
@@ -667,7 +713,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
                   ...spots,
                   {
                     handle: "",
-                    key: `punkt-${spots.length + 1}`,
+                    key: nextSpotKey(spots.map((s) => s.key)),
                     label: { de: "", en: "" },
                     x: 50,
                     y: 50,
@@ -701,16 +747,16 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
         <Button
           variant="admin"
           className="admin-save"
-          disabled={busy}
+          disabled={busy || uploads > 0}
           onClick={async () => {
             if (spots.some((s) => !s.handle))
               return notify.error(new Error("SPOT_WITHOUT_PRODUCT"));
             setBusy(true);
             const built = {
               ...draft,
-              hotspots: spots.map((s, i) => ({
+              hotspots: spots.map((s) => ({
                 handle: s.handle,
-                key: s.key || `punkt-${i + 1}`,
+                key: s.key,
                 label: {
                   de: s.label.de.trim(),
                   ...(s.label.en.trim() ? { en: s.label.en.trim() } : {}),
@@ -719,16 +765,23 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
                 y: s.y,
               })) as unknown as Json,
             };
-            const { value: next, translation } = await translateBlock(base, built, LOOK_FIELDS);
-            setDraft(next);
+            const { value: next, translation } = await translateBlock(
+              base,
+              built,
+              LOOK_TEXTS,
+              Object.fromEntries(spots.map((s, i) => [`spot:${s.key}`, `Punkt ${i + 1}`])),
+            );
             const value = clean(next);
-            if (await save("home.look", value, translation)) setBase(value);
+            if (await save("home.look", value, translation)) {
+              setDraft(next);
+              setBase(value);
+            }
             setBusy(false);
           }}
         >
           Speichern
         </Button>
-      </div>
+      </fieldset>
     </Panel>
   );
 }

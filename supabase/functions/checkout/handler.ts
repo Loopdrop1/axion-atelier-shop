@@ -6,6 +6,7 @@ import type { Deps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
 import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
+import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 import { INTEGRATION_ID } from "../_shared/stripe.ts";
 
 interface ReservedLine {
@@ -373,6 +374,7 @@ async function guard(deps: Deps, req: Request, email: string) {
     p_email: email,
     p_ip: clientIp(req),
   });
+  await pruneRateLimitsSometimes(deps);
   if (verdict === "rate_limited") throw new HttpError(429, "RATE_LIMITED");
   if (verdict === "too_many_open") throw new HttpError(429, "TOO_MANY_CHECKOUTS");
 }

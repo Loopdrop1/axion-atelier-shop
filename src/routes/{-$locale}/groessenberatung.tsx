@@ -11,6 +11,8 @@ export const Route = createFileRoute("/{-$locale}/groessenberatung")({
   },
   // Rückgabe = Startwert für die Abfrage im Browser (gleiche Tabellen wie beim Server-Rendering)
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(sizeGuideQuery(toLocale(params.locale))).catch(() => undefined),
+    context.queryClient
+      .ensureQueryData(sizeGuideQuery(toLocale(params.locale)))
+      .catch(() => undefined),
   component: () => <ContentPage handle="groessenberatung" />,
 });

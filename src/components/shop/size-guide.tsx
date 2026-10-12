@@ -9,7 +9,10 @@ export function SizeGuide({ category }: { category?: string }) {
   const t = useT().sizeGuide;
   const locale = useLocale();
   // Auf der Seite «Grössenberatung» kommen die Tabellen vom Server mit (sonst Unterschied beim Hydrieren).
-  const initial = useMatch({ from: "/{-$locale}/groessenberatung", shouldThrow: false })?.loaderData;
+  const initial = useMatch({
+    from: "/{-$locale}/groessenberatung",
+    shouldThrow: false,
+  })?.loaderData;
   const { data: tables = [], isLoading } = useQuery({
     ...sizeGuideQuery(locale),
     ...(initial ? { initialData: initial } : {}),

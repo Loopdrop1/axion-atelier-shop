@@ -19,7 +19,7 @@ import {
   uploadSiteImage,
   type Category,
 } from "@/lib/admin/api";
-import { autoTranslate } from "@/lib/admin/auto-translate";
+import { autoList, autoTranslate, type AutoTranslateResult } from "@/lib/admin/auto-translate";
 import { slugify } from "@/lib/admin/slug";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { invalidateCatalog } from "@/lib/commerce/source";
@@ -50,6 +50,8 @@ type Draft = {
   image_path: string;
   sort: string;
   active: boolean;
+  /** Felder mit maschinellem Englisch (Spalte en_auto) */
+  en_auto: string[];
 };
 
 const toDraft = (c: Category | null, nextSort: number): Draft => ({
@@ -62,6 +64,7 @@ const toDraft = (c: Category | null, nextSort: number): Draft => ({
   image_path: c?.image_path ?? "",
   sort: String(c?.sort ?? nextSort),
   active: c?.active ?? true,
+  en_auto: c?.en_auto ?? [],
 });
 
 function Categories() {
@@ -188,19 +191,26 @@ function CategoryDialog({
     setBusy(true);
     try {
       const pairs = (d: Draft) => ({
-        name: { de: d.name_de, en: d.name_en },
-        description: { de: d.description_de, en: d.description_en },
+        name: { de: d.name_de, en: d.name_en, auto: d.en_auto.includes("name") },
+        description: {
+          de: d.description_de,
+          en: d.description_en,
+          auto: d.en_auto.includes("description"),
+        },
       });
-      const translation = await autoTranslate(pairs(draft), pairs(form), translateTexts, {
-        name: 80,
-        description: 500,
-      });
+      const translation: AutoTranslateResult = {
+        ...(await autoTranslate(pairs(draft), pairs(form), translateTexts, {
+          name: 80,
+          description: 500,
+        })),
+        labels: { name: "Name", description: "Beschreibung" },
+      };
       const f = {
         ...form,
         name_en: translation.pairs["name"]!.en,
         description_en: translation.pairs["description"]!.en,
+        en_auto: autoList(translation.pairs),
       };
-      setForm(f);
       await saveCategory({
         ...(f.id ? { id: f.id } : {}),
         slug: f.slug,
@@ -211,6 +221,7 @@ function CategoryDialog({
         image_path: f.image_path || null,
         sort: Number(f.sort) || 0,
         active: f.active,
+        en_auto: f.en_auto,
       });
       notify.saved("Kategorie gespeichert.", translation);
       onSaved();
@@ -228,7 +239,7 @@ function CategoryDialog({
         <DialogHeader>
           <DialogTitle>{form.id ? `Kategorie «${draft.name_de}»` : "Neue Kategorie"}</DialogTitle>
         </DialogHeader>
-        <div className="admin-form">
+        <fieldset className="admin-lock admin-form" disabled={busy}>
           <Bilingual
             de={
               <TextField
@@ -326,7 +337,7 @@ function CategoryDialog({
               {error}
             </p>
           )}
-        </div>
+        </fieldset>
         <DialogFooter>
           <Button variant="outline" disabled={busy} onClick={onClose}>
             Abbrechen

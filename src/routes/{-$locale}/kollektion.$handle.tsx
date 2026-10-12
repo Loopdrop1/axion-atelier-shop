@@ -42,6 +42,11 @@ function Collection() {
   const { handle } = Route.useParams();
   const search = Route.useSearch();
   const locale = useLocale();
-  const { data } = useSuspenseQuery(collectionQuery(handle, search, locale));
+  // Startwert aus dem Loader (vom Server mitgeschickt): Server und Browser hydrieren mit denselben Daten,
+  // auch wenn der Server-Zwischenspeicher (30 s) nach einer Änderung im Admin noch den alten Stand hat.
+  const { data } = useSuspenseQuery({
+    ...collectionQuery(handle, search, locale),
+    initialData: Route.useLoaderData(),
+  });
   return <CollectionPage {...data} search={search} />;
 }

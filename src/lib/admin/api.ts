@@ -84,6 +84,8 @@ export function adminErrorText(error: unknown): string {
     RATE_LIMITED: "Zu viele Anfragen. Bitte kurz warten und erneut versuchen.",
     TOO_MANY_TEXTS: "Zu viele Texte auf einmal.",
     TEXT_TOO_LONG: "Der Text ist zu lang für die automatische Übersetzung.",
+    DAILY_LIMIT:
+      "Das Tageslimit der automatischen Übersetzung ist erreicht (500 Anfragen). Morgen geht es wieder; Englisch bis dahin von Hand.",
   };
   return texts[code] ?? "Das hat nicht geklappt. Bitte erneut versuchen.";
 }
@@ -96,13 +98,48 @@ async function action<T>(body: Record<string, unknown>): Promise<T> {
 
 // Übersetzung ----------------------------------------------------------------------------------------
 
-/** Deutsch → Englisch über die Edge Function (Schlüssel bleibt auf dem Server). Leere Texte bleiben leer. */
+/** Pakete für die Edge Function: höchstens 40 Texte und 12'000 Zeichen pro Anfrage (Grenze dort: 60 und 16'000). */
+export function translationBatches(
+  texts: string[],
+  maxTexts = 40,
+  maxChars = 12_000,
+): { start: number; texts: string[] }[] {
+  const batches: { start: number; texts: string[] }[] = [];
+  let current: { start: number; texts: string[] } = { start: 0, texts: [] };
+  let chars = 0;
+  texts.forEach((text, i) => {
+    if (
+      current.texts.length &&
+      (current.texts.length >= maxTexts || chars + text.length > maxChars)
+    ) {
+      batches.push(current);
+      current = { start: i, texts: [] };
+      chars = 0;
+    }
+    current.texts.push(text);
+    chars += text.length;
+  });
+  if (current.texts.length) batches.push(current);
+  return batches;
+}
+
+/** Deutsch → Englisch über die Edge Function (Schlüssel bleibt auf dem Server). Leere Texte bleiben leer.
+ *  Viele Texte gehen in mehreren Paketen; Fehler kommen mit Code (AdminError), z. B. TRANSLATION_UNAVAILABLE. */
 export async function translateTexts(texts: string[]): Promise<string[]> {
-  if (!texts.some((t) => t.trim())) return texts.map(() => "");
-  const { translations } = await action<{ translations: string[] }>({ action: "translate", texts });
-  if (!Array.isArray(translations) || translations.length !== texts.length)
-    throw new AdminError("TRANSLATION_FAILED");
-  return translations;
+  const out = texts.map(() => "");
+  const todo = texts.flatMap((t, i) => (t.trim() ? [i] : []));
+  for (const batch of translationBatches(todo.map((i) => texts[i]!))) {
+    const { translations } = await action<{ translations: string[] }>({
+      action: "translate",
+      texts: batch.texts,
+    });
+    if (!Array.isArray(translations) || translations.length !== batch.texts.length)
+      throw new AdminError("TRANSLATION_FAILED");
+    translations.forEach((t, k) => {
+      out[todo[batch.start + k]!] = typeof t === "string" ? t : "";
+    });
+  }
+  return out;
 }
 
 // Zugang --------------------------------------------------------------------------------------------
@@ -460,7 +497,7 @@ export async function adjustStock(
 
 /** Bild verkleinern, hochladen und als letztes Bild anhängen. */
 export async function uploadProductImage(
-  product: Pick<Product, "id" | "handle" | "title_de" | "title_en">,
+  product: Pick<Product, "id" | "handle" | "title_de" | "title_en" | "en_auto">,
   file: File,
   sort: number,
 ): Promise<ProductImage> {
@@ -479,6 +516,8 @@ export async function uploadProductImage(
       path,
       alt_de: product.title_de,
       alt_en: product.title_en,
+      // Übernommener englischer Titel: maschinell, wenn der Titel es ist (folgt dann dem Deutschen)
+      en_auto: product.title_en && (product.en_auto ?? []).includes("title") ? ["alt"] : [],
       width: image.width,
       height: image.height,
       sort,

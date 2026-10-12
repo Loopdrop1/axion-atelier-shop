@@ -179,6 +179,7 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
+- **Schutz vor Missbrauch:** Damit niemand Formulare, Kasse oder Gutscheinprüfung massenhaft benutzt, zählen wir Anfragen pro IP-Adresse und E-Mail-Adresse. Gespeichert wird dafür nur ein Prüfwert (Hash), nicht die Adresse selbst, zusammen mit der Anzahl und dem Zeitpunkt. Abgelaufene Zähler löschen wir laufend, in der Regel nach zwei Tagen.
 
 ### 8. Datensicherheit
 Wir schützen deine Daten mit angemessenen technischen und organisatorischen Massnahmen. Die Verbindung zu unserer Website ist verschlüsselt, Passwörter speichern wir nur als verschlüsselten Prüfwert, und Zugriff auf die Daten haben nur wir und unsere Dienstleister im nötigen Umfang.

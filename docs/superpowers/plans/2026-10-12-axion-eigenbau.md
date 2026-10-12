@@ -1,6 +1,8 @@
 # Axion Eigenbau Implementation Plan
 
 > **Nachtrag 12.10.2026 (Angebot v5):** Datenbank in Lovable Cloud (Region Europa) statt eigenem Supabase-Projekt, Liefergebiet standardmässig nur CH, englische Rechtstexte von Flowrenix, automatische Übersetzung, Kontaktformular, Grössentabellen im Admin, Quittung. Massgebend für die Inbetriebnahme ist `docs/DEPLOYMENT.md`.
+> Nach dem unabhängigen Review: Herkunft des Englisch pro Feld (eigenes Englisch wird nie überschrieben), Kontaktformular
+> mit Deckel für alle und JSON-Pflicht für alle Funktionen, Rate-Limit-Zähler nur als Hash, Übersetzung mit Tagesdeckel.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

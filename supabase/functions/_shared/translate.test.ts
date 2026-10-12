@@ -114,10 +114,15 @@ describe("translateToEnglish", () => {
     });
   });
 
-  it("falsche Anzahl, leere oder unlesbare Antwort: FAILED", async () => {
+  it("eine leere Übersetzung lässt den Stapel nicht scheitern: Feld bleibt leer", async () => {
+    const { fetchFn } = gateway(() => toolReply(["Suit", "   "]));
+    expect(await translateToEnglish(["Anzug", "Weste"], config(fetchFn))).toEqual(["Suit", ""]);
+  });
+
+  it("falsche Anzahl oder unlesbare Antwort: FAILED", async () => {
     for (const reply of [
       () => toolReply(["Suit", "zu viel"]),
-      () => toolReply(["   "]),
+      () => toolReply([3]),
       () => toolReply("kein Array"),
       () => Response.json({ choices: [{ message: { content: "Here you go: Suit" } }] }),
       () => new Response("kaputt", { status: 500 }),

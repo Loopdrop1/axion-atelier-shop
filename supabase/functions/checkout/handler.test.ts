@@ -232,9 +232,21 @@ describe("checkout: Warenkorb", () => {
       expect(res.status).toBe(400);
     }
     const bad = await handler(
-      new Request("https://fn.test/checkout", { method: "POST", body: "kein json" }),
+      new Request("https://fn.test/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "kein json",
+      }),
     );
     expect(bad.status).toBe(400);
+    // ohne JSON-Content-Type (z. B. text/plain von einer fremden Seite ohne CORS-Prüfung): 415
+    const plain = await handler(
+      new Request("https://fn.test/checkout", {
+        method: "POST",
+        body: JSON.stringify({ kind: "cart", email: "a@example.ch", lines: [] }),
+      }),
+    );
+    expect(plain.status).toBe(415);
   });
 });
 

@@ -6,6 +6,7 @@ import { sendEmail } from "../_shared/email/send.ts";
 import { newsletterConfirm, newsletterWelcome } from "../_shared/email/templates.ts";
 import { clientIp, HttpError, json, readJson, str, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
+import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const TOKEN = /^[0-9a-f]{48}$/;
@@ -68,6 +69,7 @@ async function subscribe(
       }
       throw error;
     });
+  await pruneRateLimitsSometimes(deps);
   if (result.status === "rate_limited") throw new HttpError(429, "RATE_LIMITED");
   if (result.status === "pending" && result.token && result.email) {
     const locale = toLocale(result.locale);

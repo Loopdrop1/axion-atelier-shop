@@ -28,8 +28,10 @@ function HelpPage() {
           <li>
             Texte auf Deutsch ergänzen: Beschreibung in zwei bis vier Sätzen, Material in Prozent,
             Pflege, Hinweis zur Passform. Die englischen Felder füllt das Admin beim Speichern
-            automatisch aus. Kurz prüfen, bei Bedarf anpassen: Von Hand geändertes Englisch bleibt
-            stehen.
+            automatisch aus und übersetzt sie neu, wenn sich das Deutsch ändert. Kurz prüfen, bei
+            Bedarf anpassen: Englisch, das ihr selbst schreibt oder ändert, bleibt immer stehen;
+            ändert sich danach das Deutsch, erscheint der Hinweis «bitte prüfen». Soll das Admin ein
+            Feld wieder selbst übersetzen, das englische Feld leeren und speichern.
           </li>
           <li>
             Unter «Grössen und Bestand» jede Grösse mit Anfangsbestand hinzufügen, auf Wunsch mit
