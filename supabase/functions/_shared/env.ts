@@ -1,5 +1,6 @@
 // Konfiguration der Edge Functions. In Supabase kommen die Werte aus den Secrets,
 // in Tests werden sie direkt übergeben.
+import { PREVIEW_ORIGINS } from "./http.ts";
 
 export interface FunctionEnv {
   supabaseUrl: string;
@@ -75,6 +76,7 @@ export function readEnv(get: EnvSource): FunctionEnv {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
+      ...(get("ALLOW_PREVIEW_ORIGINS") === "1" ? [PREVIEW_ORIGINS] : []),
     ],
     shippingCountries: shippingCountries(get("SHIPPING_COUNTRIES")),
   };

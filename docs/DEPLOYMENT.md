@@ -57,8 +57,12 @@ unkritisch sind nur die Supabase-URL und der Publishable Key (`sb_publishable_�
    `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`, `SHOP_ADDRESS`, `SEND_EMAIL_HOOK_SECRET`. Optional
    `ALLOWED_ORIGINS` (weitere Domains, Komma-getrennt), `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES`
    (Standard `CH`; `CH,LI` erst, wenn Axion Liechtenstein beliefern will und die Liechtenstein-Klauseln in den
-   Rechtstexten stehen).
+   Rechtstexten stehen). `ALLOW_PREVIEW_ORIGINS=1` nur in der Testphase, damit die Lovable-Vorschau die Kasse und
+   Konto-Links nutzen kann; **vor dem Livegang entfernen** (sonst dürfte jede `*.lovable.app`-Seite das auch).
 5. Authentication einstellen:
+   - **«Confirm email» eingeschaltet lassen, «Secure email change» einschalten.** Gastbestellungen werden einem
+     Konto über die E-Mail-Adresse zugeordnet; ohne Bestätigung könnte jemand mit einer fremden Adresse ein Konto
+     eröffnen und deren Bestellungen sehen.
    - Site URL: die Shop-Adresse. Redirect URLs: `<shop>/konto`, `<shop>/konto/passwort-neu`, `<shop>/konto/daten`
      und dieselben mit `/en` davor (z. B. `<shop>/en/konto`). Vor dem Livegang auch für die echte Domain.
    - Ablauf der E-Mail-Codes (Email OTP Expiration): **3600 Sekunden** (1 Stunde).
@@ -140,4 +144,9 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 
 - Sicherung: Supabase Pro täglich (7 Tage). Zusätzlich monatlich `supabase db dump` verschlüsselt ablegen.
 - Überwachen: Supabase Logs der Funktionen, Stripe → Webhooks (fehlgeschlagene Zustellungen), Resend (Bounces).
-- Admin → Bestellungen, Ansicht «Prüfen»: Zahlungen nach Ablauf der Reservierung, die von Hand geprüft werden müssen.
+- Admin → Bestellungen, Ansicht «Prüfen»: Zahlungen nach Ablauf der Reservierung, die von Hand geprüft werden müssen,
+  und zurückerstattete Gutscheinkäufe, deren Gutschein schon benutzt war.
+- Streitfälle (Disputes) bearbeitest du im Stripe-Dashboard. Betrifft es einen Gutscheinkauf, den Gutschein im Admin
+  unter «Gutscheine» sperren.
+- Die Kasse begrenzt Missbrauch: pro IP 20 Kassen in 30 Minuten, pro E-Mail 10, höchstens 3 gleichzeitig offen
+  (Antwort `429`, die Kundschaft sieht «Zu viele Versuche»).

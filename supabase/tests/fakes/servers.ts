@@ -164,11 +164,18 @@ export interface StripeCall {
   body: Record<string, unknown>;
 }
 
-export async function startFakeStripe(
-  opts: { paymentMethod?: string } = {},
-): Promise<FakeServer & { calls: StripeCall[]; failNextSession: (times?: number) => void }> {
+export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Promise<
+  FakeServer & {
+    calls: StripeCall[];
+    failNextSession: (times?: number) => void;
+    completeSession: (id: string) => void;
+  }
+> {
   const calls: StripeCall[] = [];
   let fail = 0;
+  // Bezahlte Sessions lassen sich wie bei Stripe nicht mehr beenden.
+  const completed = new Set<string>();
+  const expired = new Set<string>();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://x");
     const body = parseStripeForm(await readBody(req));
@@ -194,7 +201,22 @@ export async function startFakeStripe(
     }
     const expire = url.pathname.match(/^\/v1\/checkout\/sessions\/([^/]+)\/expire$/);
     if (expire && req.method === "POST") {
-      return send(res, 200, { id: expire[1], object: "checkout.session", status: "expired" });
+      const id = expire[1]!;
+      if (completed.has(id))
+        return send(res, 400, {
+          error: {
+            type: "invalid_request_error",
+            message: 'Only Checkout Sessions with a status in ["open"] can be expired.',
+          },
+        });
+      expired.add(id);
+      return send(res, 200, { id, object: "checkout.session", status: "expired" });
+    }
+    const one = url.pathname.match(/^\/v1\/checkout\/sessions\/([^/]+)$/);
+    if (one && req.method === "GET") {
+      const id = one[1]!;
+      const status = completed.has(id) ? "complete" : expired.has(id) ? "expired" : "open";
+      return send(res, 200, { id, object: "checkout.session", status });
     }
     const pi = url.pathname.match(/^\/v1\/payment_intents\/([^/]+)$/);
     if (pi && req.method === "GET") {
@@ -219,6 +241,9 @@ export async function startFakeStripe(
     calls,
     failNextSession: (times = 1) => {
       fail = times;
+    },
+    completeSession: (id: string) => {
+      completed.add(id);
     },
     close: () => new Promise((r) => server.close(() => r())),
   };

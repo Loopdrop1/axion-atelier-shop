@@ -212,6 +212,12 @@ describe("Admin-Funktionen", () => {
       rpc("admin_grant_admin", ["niemand@example.ch"], "authenticated", admin.claims),
     );
     expect(missing.message).toBe("USER_NOT_FOUND");
+    // Unbestätigte Konten bekommen keine Admin-Rechte (sonst Vorab-Registrierung fremder Adressen)
+    const unconfirmed = await createUser(`${uniq("offen")}@example.ch`, { confirmed: false });
+    const notYet = await expectPgError(
+      rpc("admin_grant_admin", [unconfirmed.email], "authenticated", admin.claims),
+    );
+    expect(notYet.message).toBe("USER_NOT_FOUND");
   });
 
   it("Übersicht zählt bezahlte Bestellungen und Umsatz im Zeitraum", async () => {
@@ -303,7 +309,7 @@ describe("Newsletter", () => {
         "newsletter_confirm",
         [sub.token],
       );
-      expect(res.welcome_code).toMatch(/^WILLKOMMEN-[0-9A-F]{6}$/);
+      expect(res.welcome_code).toMatch(/^WILLKOMMEN-[A-HJ-NP-Z2-9]{10}$/);
       expect(res.welcome_percent).toBe(10);
       const code = await sql<{ max_redemptions: number }>(
         "select max_redemptions from public.discount_codes where code = $1",
@@ -336,17 +342,19 @@ describe("Newsletter", () => {
 });
 
 describe("Stripe-Ereignisse", () => {
-  it("register_stripe_event erkennt Wiederholungen", async () => {
+  it("register_stripe_event: neu, in Bearbeitung, erledigt; vergessen und hängengeblieben = neu", async () => {
     const id = uniq("evt");
-    expect(await rpc<boolean>("register_stripe_event", [id, "checkout.session.completed"])).toBe(
-      true,
-    );
-    expect(await rpc<boolean>("register_stripe_event", [id, "checkout.session.completed"])).toBe(
-      false,
-    );
+    const register = () => rpc<string>("register_stripe_event", [id, "checkout.session.completed"]);
+    expect(await register()).toBe("new");
+    expect(await register()).toBe("processing");
     await rpc("forget_stripe_event", [id]);
-    expect(await rpc<boolean>("register_stripe_event", [id, "checkout.session.completed"])).toBe(
-      true,
+    expect(await register()).toBe("new");
+    await sql(
+      "update public.stripe_events set received_at = now() - interval '6 minutes' where id = $1",
+      [id],
     );
+    expect(await register()).toBe("new");
+    await rpc("finish_stripe_event", [id]);
+    expect(await register()).toBe("done");
   });
 });

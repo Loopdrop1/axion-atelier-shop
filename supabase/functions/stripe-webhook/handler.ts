@@ -1,5 +1,6 @@
-// Stripe-Webhook: verbucht Zahlungen, storniert abgelaufene Kassen, übernimmt Rückerstattungen.
-// Jedes Ereignis wird nur einmal verarbeitet; scheitert etwas, gibt es 500 und Stripe wiederholt.
+// Stripe-Webhook: verbucht Zahlungen (auch ohne Zahlbetrag, wenn ein Gutschein alles deckt), storniert
+// abgelaufene Kassen, übernimmt Rückerstattungen. Jedes Ereignis wird nur einmal verarbeitet; scheitert etwas,
+// gibt es 500 und Stripe wiederholt.
 import type Stripe from "stripe";
 import type { Deps } from "../_shared/deps.ts";
 import { json } from "../_shared/http.ts";
@@ -85,11 +86,14 @@ export function createStripeWebhookHandler(deps: Deps) {
       return json(400, { error: "INVALID_SIGNATURE" });
     }
 
-    const fresh = await deps.rpc<boolean>("register_stripe_event", {
+    // Erledigt: nichts mehr tun. Läuft gerade (zweite Zustellung, während die erste noch arbeitet): 409,
+    // damit Stripe später wiederholt, statt das Ereignis als zugestellt abzuhaken.
+    const state = await deps.rpc<"new" | "processing" | "done">("register_stripe_event", {
       p_event_id: event.id,
       p_type: event.type,
     });
-    if (!fresh) return json(200, { received: true, duplicate: true });
+    if (state === "done") return json(200, { received: true, duplicate: true });
+    if (state === "processing") return json(409, { error: "IN_PROGRESS" });
 
     try {
       switch (event.type) {
@@ -123,6 +127,7 @@ export function createStripeWebhookHandler(deps: Deps) {
         default:
           break;
       }
+      await deps.rpc("finish_stripe_event", { p_event_id: event.id });
     } catch (error) {
       console.error(`Webhook ${event.type} fehlgeschlagen`, error);
       await deps.rpc("forget_stripe_event", { p_event_id: event.id }).catch(() => undefined);

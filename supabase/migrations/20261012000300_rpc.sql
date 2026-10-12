@@ -18,6 +18,7 @@ create table public.shop_settings (
 );
 insert into public.shop_settings default values;
 alter table public.shop_settings enable row level security;
+revoke all on public.shop_settings from anon, authenticated;
 create trigger shop_settings_updated_at before update on public.shop_settings
   for each row execute function private.set_updated_at();
 
@@ -641,6 +642,8 @@ declare
   v_amount int := nullif(p_payment ->> 'amount_total_cents', '')::int;
   v_address jsonb := p_payment -> 'address';
   v_email text;
+  v_used int;
+  v_max int;
 begin
   select * into v_order from public.orders where id = p_order_id for update;
   if not found then
@@ -684,6 +687,16 @@ begin
     v_notes := v_notes || format('Bezahlter Betrag %s statt %s Rappen', v_amount, v_order.total_cents);
   end if;
 
+  if v_order.discount_code_id is not null then
+    select redemptions, max_redemptions into v_used, v_max
+      from public.discount_codes where id = v_order.discount_code_id for update;
+    if v_order.status = 'cancelled' and v_max is not null and v_used >= v_max then
+      v_attention := true;
+      v_notes := v_notes || 'Rabattcode war nach Zahlungseingang schon aufgebraucht'::text;
+    end if;
+    update public.discount_codes set redemptions = redemptions + 1 where id = v_order.discount_code_id;
+  end if;
+
   begin
     v_email := private.normalize_email(p_payment ->> 'email');
   exception when others then
@@ -708,10 +721,6 @@ begin
     admin_note = case when cardinality(v_notes) > 0
       then concat_ws(E'\n', admin_note, array_to_string(v_notes, E'\n')) else admin_note end
   where id = v_order.id;
-
-  if v_order.discount_code_id is not null then
-    update public.discount_codes set redemptions = redemptions + 1 where id = v_order.discount_code_id;
-  end if;
 
   if v_order.kind = 'gift_card' then
     v_card := private.issue_gift_card(
@@ -748,17 +757,43 @@ set search_path = ''
 as $$
 declare
   v_order public.orders;
+  v_delta int;
+  v_card public.gift_cards;
+  v_taken int;
 begin
   select * into v_order from public.orders where stripe_payment_intent_id = p_payment_intent_id for update;
   if not found then
     return jsonb_build_object('found', false);
   end if;
+  v_delta := greatest(0, p_refunded_cents - v_order.refunded_cents);
   update public.orders set
     refunded_cents = greatest(refunded_cents, p_refunded_cents),
     status = case when greatest(refunded_cents, p_refunded_cents) >= total_cents and total_cents > 0
       then 'refunded'::public.order_status else status end
   where id = v_order.id
   returning * into v_order;
+
+  -- Gutscheinkauf zurückerstattet: Der verschickte Code darf nicht weiter gelten.
+  if v_order.kind = 'gift_card' and v_order.issued_gift_card_id is not null and v_delta > 0 then
+    select * into v_card from public.gift_cards where id = v_order.issued_gift_card_id for update;
+    v_taken := least(v_card.balance_cents, v_delta);
+    update public.gift_cards set
+      balance_cents = balance_cents - v_taken,
+      status = case when v_order.status = 'refunded' or balance_cents - v_taken = 0
+        then 'disabled'::public.gift_card_status else status end
+    where id = v_card.id;
+    if v_taken > 0 then
+      insert into public.gift_card_transactions (gift_card_id, order_id, delta_cents, kind, note)
+      values (v_card.id, v_order.id, -v_taken, 'adjust', 'Rückerstattung des Gutscheinkaufs');
+    end if;
+    if v_taken < v_delta then
+      update public.orders set needs_attention = true,
+        admin_note = concat_ws(E'\n', admin_note, format(
+          'Gutscheinkauf zurückerstattet, Gutschein %s war schon benutzt: %s Rappen nicht mehr gedeckt',
+          v_card.code, v_delta - v_taken))
+      where id = v_order.id;
+    end if;
+  end if;
   return jsonb_build_object('found', true, 'order_number', v_order.number, 'status', v_order.status,
     'refunded_cents', v_order.refunded_cents);
 end
@@ -1048,7 +1083,8 @@ declare
   v_uid uuid;
 begin
   perform private.require_admin();
-  select u.id into v_uid from auth.users u where lower(u.email) = lower(btrim(p_email));
+  select u.id into v_uid from auth.users u
+    where lower(u.email) = lower(btrim(p_email)) and u.email_confirmed_at is not null;
   if v_uid is null then
     raise exception 'USER_NOT_FOUND' using errcode = 'P0002';
   end if;
@@ -1219,7 +1255,7 @@ begin
   select newsletter_welcome_percent into v_percent from public.shop_settings where id = 1;
   if v_percent is not null and v_sub.welcome_code is null then
     loop
-      v_code := 'WILLKOMMEN-' || upper(substr(private.random_token(), 1, 6));
+      v_code := 'WILLKOMMEN-' || substr(replace(private.gift_card_code(), '-', ''), 4, 10);
       begin
         insert into public.discount_codes (code, kind, value, max_redemptions, ends_at, note)
         values (v_code, 'percent', v_percent, 1, now() + interval '90 days', 'Newsletter-Willkommensrabatt');
@@ -1254,18 +1290,40 @@ end
 $$;
 
 -- Ereignisse von Stripe nur einmal verarbeiten. true = neu.
+-- 'new' = verarbeiten, 'processing' = läuft gerade (Stripe soll später wiederholen), 'done' = erledigt.
+-- Hängt eine Bearbeitung länger als 5 Minuten (Funktion abgebrochen), gilt das Ereignis wieder als neu.
 create or replace function public.register_stripe_event(p_event_id text, p_type text)
-returns boolean
+returns text
 language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_event public.stripe_events;
 begin
-  insert into public.stripe_events (id, type) values (p_event_id, p_type);
-  return true;
-exception when unique_violation then
-  return false;
+  insert into public.stripe_events (id, type) values (p_event_id, p_type) on conflict (id) do nothing;
+  if found then
+    return 'new';
+  end if;
+  select * into v_event from public.stripe_events where id = p_event_id for update;
+  if v_event.processed_at is not null then
+    return 'done';
+  end if;
+  if v_event.received_at < now() - interval '5 minutes' then
+    update public.stripe_events set received_at = now() where id = p_event_id;
+    return 'new';
+  end if;
+  return 'processing';
 end
+$$;
+
+create or replace function public.finish_stripe_event(p_event_id text)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update public.stripe_events set processed_at = now() where id = p_event_id
 $$;
 
 create or replace function public.forget_stripe_event(p_event_id text)
@@ -1308,6 +1366,7 @@ revoke all on function
   public.newsletter_confirm(text),
   public.newsletter_unsubscribe(text),
   public.register_stripe_event(text, text),
+  public.finish_stripe_event(text),
   public.forget_stripe_event(text)
 from public, anon, authenticated;
 
@@ -1330,6 +1389,7 @@ grant execute on function
   public.newsletter_confirm(text),
   public.newsletter_unsubscribe(text),
   public.register_stripe_event(text, text),
+  public.finish_stripe_event(text),
   public.forget_stripe_event(text)
 to service_role;
 

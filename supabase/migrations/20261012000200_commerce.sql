@@ -198,7 +198,8 @@ create trigger newsletter_subscribers_updated_at before update on public.newslet
 create table public.stripe_events (
   id text primary key,
   type text not null,
-  received_at timestamptz not null default now()
+  received_at timestamptz not null default now(),
+  processed_at timestamptz
 );
 
 create table private.rate_limits (
@@ -210,13 +211,21 @@ create table private.rate_limits (
 -- Zeilenschutz -------------------------------------------------------------------------------------
 
 alter table public.discount_codes enable row level security;
+revoke all on public.discount_codes from anon, authenticated;
 alter table public.gift_cards enable row level security;
+revoke all on public.gift_cards from anon, authenticated;
 alter table public.orders enable row level security;
+revoke all on public.orders from anon, authenticated;
 alter table public.order_items enable row level security;
+revoke all on public.order_items from anon, authenticated;
 alter table public.stock_movements enable row level security;
+revoke all on public.stock_movements from anon, authenticated;
 alter table public.gift_card_transactions enable row level security;
+revoke all on public.gift_card_transactions from anon, authenticated;
 alter table public.newsletter_subscribers enable row level security;
+revoke all on public.newsletter_subscribers from anon, authenticated;
 alter table public.stripe_events enable row level security;
+revoke all on public.stripe_events from anon, authenticated;
 alter table private.rate_limits enable row level security;
 
 create policy "Bestellungen: eigene oder als Admin lesen" on public.orders

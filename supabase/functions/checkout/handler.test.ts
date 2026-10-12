@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { createUser, pool, sql } from "../../tests/helpers";
+import { createUser, pool, sql, uniq } from "../../tests/helpers";
 import { makeGiftCard, makeProduct, stockOf } from "../../tests/fixtures";
 import {
   ANON_KEY,
@@ -21,6 +21,8 @@ let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
 let stripe: Awaited<ReturnType<typeof startFakeStripe>>;
 let resend: Awaited<ReturnType<typeof startFakeResend>>;
 let handler: (req: Request) => Promise<Response>;
+// Mit echter Uhr: Die Datenbank rechnet mit der echten Zeit (Reservierungen, offene Kassen).
+let liveHandler: (req: Request) => Promise<Response>;
 
 beforeAll(async () => {
   supa = await startFakeSupabase();
@@ -43,6 +45,7 @@ beforeAll(async () => {
       })[k],
   );
   handler = createCheckoutHandler(createDeps(env, { now: () => new Date("2026-10-12T10:00:00Z") }));
+  liveHandler = createCheckoutHandler(createDeps(env));
 });
 
 afterAll(async () => {
@@ -50,8 +53,8 @@ afterAll(async () => {
   await pool.end();
 });
 
-function post(body: unknown, headers: Record<string, string> = {}) {
-  return handler(
+function post(body: unknown, headers: Record<string, string> = {}, h = handler) {
+  return h(
     new Request("https://fn.test/checkout", {
       method: "POST",
       headers: { "content-type": "application/json", origin: "https://shop.test", ...headers },
@@ -111,8 +114,9 @@ describe("checkout: Warenkorb", () => {
     expect(session["cancel_url"]).toMatch(
       /^https:\/\/shop\.test\/en\/warenkorb\?abgebrochen=[0-9a-f-]{36}$/,
     );
+    // Stripe verlangt mindestens 30 Minuten ab Erstellung; 31, damit Netzwerkzeit nicht stört
     expect(Number(session["expires_at"])).toBe(
-      Math.floor(new Date("2026-10-12T10:30:00Z").getTime() / 1000),
+      Math.floor(new Date("2026-10-12T10:31:00Z").getTime() / 1000),
     );
     const orderId = session["metadata"].order_id as string;
     expect(session["client_reference_id"]).toBe(orderId);
@@ -125,10 +129,9 @@ describe("checkout: Warenkorb", () => {
     expect(await stockOf(p.variants[0]!.id)).toBe(1);
   });
 
-  it("Gutschein deckt alles: keine Stripe-Session, Bestellung bezahlt, E-Mails raus", async () => {
+  it("Gutschein deckt alles: Stripe-Session ohne Zahlbetrag, damit Stripe die Lieferadresse erfasst", async () => {
     const p = await makeProduct({ priceCents: 12900, stocks: [2], category: "westen" });
     const card = await makeGiftCard(20000);
-    const before = stripe.calls.length;
     const sentBefore = resend.sent.length;
     const res = await post({
       kind: "cart",
@@ -139,22 +142,19 @@ describe("checkout: Warenkorb", () => {
     });
     expect(res.status).toBe(200);
     const { url } = (await res.json()) as { url: string };
-    expect(url).toMatch(/^https:\/\/shop\.test\/bestellung\/[0-9a-f-]{36}\?bezahlt=1$/);
-    expect(stripe.calls.length).toBe(before);
-    const mails = resend.sent.slice(sentBefore);
-    expect(mails.map((m) => m.to[0])).toEqual(["lea@example.ch", "shop@shop.test"]);
-    expect(mails[0]!.subject).toMatch(/^Bestellbestätigung AX-\d+$/);
-    expect(mails[0]!.html).toContain("Geschenkgutschein");
-    expect(mails[0]!.idempotencyKey).toMatch(/^order-[0-9a-f-]+-confirmation$/);
-    const order = await sql<{
-      status: string;
-      payment_method: string;
-      confirmation_sent_at: Date | null;
-    }>(
-      "select status, payment_method, confirmation_sent_at from public.orders where email = 'lea@example.ch' order by created_at desc limit 1",
+    expect(url).toMatch(/^https:\/\/checkout\.stripe\.test\//);
+    const coupon = stripe.calls.findLast((c) => c.path === "/v1/coupons")!.body as StripeForm;
+    expect(coupon["amount_off"]).toBe("12900");
+    const session = stripe.calls.findLast((c) => c.path === "/v1/checkout/sessions")!
+      .body as StripeForm;
+    expect(session["shipping_address_collection"]).toEqual({ allowed_countries: ["CH"] });
+    expect(session["shipping_options"][0].shipping_rate_data.fixed_amount.amount).toBe("0");
+    expect(session["payment_intent_data"]).toBeUndefined();
+    expect(resend.sent.length).toBe(sentBefore);
+    const order = await sql<{ status: string; total_cents: number }>(
+      "select status, total_cents from public.orders where email = 'lea@example.ch' order by created_at desc limit 1",
     );
-    expect(order[0]).toMatchObject({ status: "paid", payment_method: "gift_card" });
-    expect(order[0]!.confirmation_sent_at).not.toBeNull();
+    expect(order[0]).toEqual({ status: "pending", total_cents: 0 });
   });
 
   it("ausverkauft: 409 mit verfügbarer Menge", async () => {
@@ -274,11 +274,11 @@ describe("checkout: Geschenkgutschein", () => {
 });
 
 describe("checkout: CORS", () => {
-  it("erlaubt Shop, Lovable-Vorschau und localhost, aber keine fremden Seiten", async () => {
+  it("erlaubt nur die Shop-Domain (Vorschau und localhost nur mit ALLOW_PREVIEW_ORIGINS=1)", async () => {
     for (const [origin, allowed] of [
       ["https://shop.test", true],
-      ["https://id-preview--abc.lovable.app", true],
-      ["http://localhost:5174", true],
+      ["https://id-preview--abc.lovable.app", false],
+      ["http://localhost:5174", false],
       ["https://boese.example", false],
     ] as const) {
       const res = await handler(
@@ -312,5 +312,79 @@ describe("checkout: Abbruch in der Stripe-Kasse", () => {
     const again = await post({ kind: "release", token });
     expect(await again.json()).toEqual({ released: false });
     expect((await post({ kind: "release", token: "kaputt" })).status).toBe(400);
+  });
+});
+
+describe("checkout: Abbruch bei schon bezahlter Session", () => {
+  it("gibt nichts frei, Gutschein bleibt verbraucht (kein doppelter Einsatz)", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [1] });
+    const card = await makeGiftCard(4000);
+    const res = await post({
+      kind: "cart",
+      email: `${uniq("bezahlt")}@example.ch`,
+      giftCardCode: card,
+      lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+    });
+    expect(res.status).toBe(200);
+    const session = stripe.calls.findLast((c) => c.path === "/v1/checkout/sessions")!
+      .body as StripeForm;
+    const token = String(session["cancel_url"]).split("abgebrochen=")[1]!;
+    const row = await sql<{ stripe_session_id: string }>(
+      "select stripe_session_id from public.orders where status_token = $1",
+      [token],
+    );
+    stripe.completeSession(row[0]!.stripe_session_id);
+    const release = await post({ kind: "release", token });
+    expect(await release.json()).toEqual({ released: false });
+    expect(await stockOf(p.variants[0]!.id)).toBe(0);
+    const balance = await sql<{ balance_cents: number }>(
+      "select balance_cents from public.gift_cards where code = $1",
+      [card],
+    );
+    expect(balance[0]!.balance_cents).toBe(0);
+    const order = await sql<{ status: string }>(
+      "select status from public.orders where status_token = $1",
+      [token],
+    );
+    expect(order[0]!.status).toBe("pending");
+  });
+});
+
+describe("checkout: Schutz vor Missbrauch", () => {
+  it("höchstens 3 offene Kassen pro E-Mail-Adresse", async () => {
+    const p = await makeProduct({ priceCents: 1000, stocks: [10] });
+    const email = `${uniq("viel")}@example.ch`;
+    const once = () =>
+      post(
+        { kind: "cart", email, lines: [{ variantId: p.variants[0]!.id, quantity: 1 }] },
+        {},
+        liveHandler,
+      );
+    for (let i = 0; i < 3; i++) expect((await once()).status).toBe(200);
+    const fourth = await once();
+    expect(fourth.status).toBe(429);
+    expect(await fourth.json()).toEqual({ error: "TOO_MANY_CHECKOUTS" });
+    expect(await stockOf(p.variants[0]!.id)).toBe(7);
+  });
+
+  it("höchstens 20 Kassen pro IP-Adresse in 30 Minuten", async () => {
+    const p = await makeProduct({ priceCents: 1000, stocks: [100] });
+    const ip = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
+    const statuses: number[] = [];
+    for (let i = 0; i < 21; i++) {
+      const res = await post(
+        {
+          kind: "cart",
+          email: `${uniq("ip")}@example.ch`,
+          lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+        },
+        { "cf-connecting-ip": ip },
+        liveHandler,
+      );
+      statuses.push(res.status);
+    }
+    expect(statuses.slice(0, 20).every((s) => s === 200)).toBe(true);
+    expect(statuses[20]).toBe(429);
+    expect(await stockOf(p.variants[0]!.id)).toBe(80);
   });
 });

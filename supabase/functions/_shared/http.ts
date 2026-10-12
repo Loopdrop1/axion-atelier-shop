@@ -13,11 +13,16 @@ export class HttpError extends Error {
 const PREVIEW_ORIGIN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
 const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-/** Shop-Domain, weitere erlaubte Domains, Lovable-Vorschau und localhost. */
+/** Eintrag in der Liste der erlaubten Domains: Lovable-Vorschau und localhost zulassen (ALLOW_PREVIEW_ORIGINS=1).
+ *  Nur für die Testphase: Sonst könnte jede *.lovable.app-Seite Konto-Links und die Kasse benutzen. */
+export const PREVIEW_ORIGINS = "*preview*";
+
+/** Shop-Domain und weitere erlaubte Domains; Vorschau und localhost nur mit PREVIEW_ORIGINS in der Liste. */
 export function isAllowedOrigin(origin: string | null, allowed: string[]): origin is string {
+  if (origin === null) return false;
+  if (allowed.includes(origin)) return true;
   return (
-    origin !== null &&
-    (allowed.includes(origin) || PREVIEW_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin))
+    allowed.includes(PREVIEW_ORIGINS) && (PREVIEW_ORIGIN.test(origin) || LOCAL_ORIGIN.test(origin))
   );
 }
 

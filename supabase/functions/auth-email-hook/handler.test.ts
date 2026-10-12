@@ -153,9 +153,16 @@ describe("auth-email-hook: Links und Sprache", () => {
     expect(mail!.text).not.toContain("boese.example");
   });
 
-  it("Lovable-Vorschau als Redirect: Link bleibt in der Vorschau", async () => {
-    const before = resend.sent.length;
-    await deliver(payload("signup", { redirect: "https://id-preview--abc.lovable.app/konto" }));
+  it("Lovable-Vorschau als Redirect: nur mit ALLOW_PREVIEW_ORIGINS=1, sonst Link auf den Shop", async () => {
+    const preview = { redirect: "https://id-preview--abc.lovable.app/konto" };
+    let before = resend.sent.length;
+    await deliver(payload("signup", preview));
+    expect(sentSince(before)[0]!.text).toContain(
+      "https://shop.test/konto/bestaetigen?token_hash=hash-abc&type=signup",
+    );
+    expect(sentSince(before)[0]!.text).not.toContain("lovable.app");
+    before = resend.sent.length;
+    await deliver(payload("signup", preview), makeHandler({ ALLOW_PREVIEW_ORIGINS: "1" }));
     expect(sentSince(before)[0]!.text).toContain(
       "https://id-preview--abc.lovable.app/konto/bestaetigen?token_hash=hash-abc&type=signup",
     );

@@ -208,7 +208,7 @@ describe("newsletter: bestätigen und abmelden", () => {
       await post({ action: "confirm", token: t });
       const mail = resend.sent[before]!;
       expect(mail.text).toContain("10% off your next order");
-      expect(mail.text).toMatch(/WILLKOMMEN-[0-9A-F]{6}/);
+      expect(mail.text).toMatch(/WILLKOMMEN-[A-HJ-NP-Z2-9]{10}/);
     } finally {
       await sql("update public.shop_settings set newsletter_welcome_percent = null");
     }

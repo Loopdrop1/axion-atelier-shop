@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
 import { pool, sql, uniq } from "../../tests/helpers";
-import { makeProduct, reserve, rpc, stockOf } from "../../tests/fixtures";
+import { makeGiftCard, makeProduct, reserve, rpc, stockOf } from "../../tests/fixtures";
 import {
   ANON_KEY,
   SERVICE_KEY,
@@ -222,6 +222,106 @@ describe("stripe-webhook", () => {
         )
       )[0],
     ).toEqual({ status: "refunded", refunded_cents: 10000 });
+  });
+
+  it("Bestellung ohne Zahlbetrag (Gutschein deckt alles): bezahlt, mit Lieferadresse, Zahlungsart Gutschein", async () => {
+    const p = await makeProduct({ priceCents: 8000, stocks: [1] });
+    const card = await makeGiftCard(20000);
+    const r = await reserve({
+      lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }],
+      email: "frei@example.ch",
+      giftCard: card,
+    });
+    expect(r.total_cents).toBe(0);
+    const res = await deliver(
+      "checkout.session.completed",
+      session(r.order_id, {
+        payment_status: "no_payment_required",
+        payment_intent: null,
+        amount_total: 0,
+        customer_details: { email: "frei@example.ch", name: "Frei", phone: null },
+      }),
+    );
+    expect(res.status).toBe(200);
+    const o = (
+      await sql<{ status: string; payment_method: string; shipping_address: { city: string } }>(
+        "select status, payment_method, shipping_address from public.orders where id = $1",
+        [r.order_id],
+      )
+    )[0]!;
+    expect(o).toMatchObject({ status: "paid", payment_method: "gift_card" });
+    expect(o.shipping_address.city).toBe("Zürich");
+  });
+
+  it("Ereignis noch in Bearbeitung: 409, damit Stripe wiederholt; hängengeblieben wird neu verarbeitet", async () => {
+    const { order } = await pendingOrder();
+    const s = session(order.order_id);
+    const id = uniq("evt");
+    await sql(
+      "insert into public.stripe_events (id, type) values ($1, 'checkout.session.completed')",
+      [id],
+    );
+    const busy = await deliver("checkout.session.completed", s, id);
+    expect(busy.status).toBe(409);
+    expect(await busy.json()).toEqual({ error: "IN_PROGRESS" });
+    await sql(
+      "update public.stripe_events set received_at = now() - interval '6 minutes' where id = $1",
+      [id],
+    );
+    expect((await deliver("checkout.session.completed", s, id)).status).toBe(200);
+    const paid = await sql<{ status: string }>("select status from public.orders where id = $1", [
+      order.order_id,
+    ]);
+    expect(paid[0]!.status).toBe("paid");
+    const again = await deliver("checkout.session.completed", s, id);
+    expect(await again.json()).toEqual({ received: true, duplicate: true });
+  });
+
+  it("Gutscheinkauf zurückerstattet: unbenutzter Gutschein gesperrt, benutzter zusätzlich zur Prüfung markiert", async () => {
+    const issue = async (amount: number) => {
+      const r = await rpc<{ order_id: string }>("reserve_gift_card_purchase", [
+        amount,
+        "kaeuferin@example.ch",
+        "de",
+        JSON.stringify({}),
+        null,
+      ]);
+      const s = session(r.order_id, { amount_total: amount, collected_information: null });
+      await deliver("checkout.session.completed", s);
+      return { orderId: r.order_id, pi: s.payment_intent };
+    };
+    const card = (orderId: string) =>
+      sql<{ status: string; balance_cents: number }>(
+        "select g.status, g.balance_cents from public.gift_cards g join public.orders o on o.issued_gift_card_id = g.id where o.id = $1",
+        [orderId],
+      ).then((rows) => rows[0]!);
+    const unused = await issue(5000);
+    await deliver("charge.refunded", {
+      id: uniq("ch"),
+      object: "charge",
+      payment_intent: unused.pi,
+      amount_refunded: 5000,
+    });
+    expect(await card(unused.orderId)).toEqual({ status: "disabled", balance_cents: 0 });
+
+    const used = await issue(5000);
+    await sql(
+      "update public.gift_cards set balance_cents = 1000 where id = (select issued_gift_card_id from public.orders where id = $1)",
+      [used.orderId],
+    );
+    await deliver("charge.refunded", {
+      id: uniq("ch"),
+      object: "charge",
+      payment_intent: used.pi,
+      amount_refunded: 5000,
+    });
+    expect(await card(used.orderId)).toEqual({ status: "disabled", balance_cents: 0 });
+    const flagged = await sql<{ needs_attention: boolean; admin_note: string }>(
+      "select needs_attention, admin_note from public.orders where id = $1",
+      [used.orderId],
+    );
+    expect(flagged[0]!.needs_attention).toBe(true);
+    expect(flagged[0]!.admin_note).toMatch(/schon benutzt: 4000 Rappen nicht mehr gedeckt/);
   });
 
   it("Gutscheinkauf: Code geht an die beschenkte Person, Bestätigung an die Käuferin", async () => {

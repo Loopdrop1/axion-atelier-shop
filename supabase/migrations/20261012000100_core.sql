@@ -32,6 +32,7 @@ create table public.user_roles (
   primary key (user_id, role)
 );
 alter table public.user_roles enable row level security;
+revoke all on public.user_roles from anon, authenticated;
 
 create or replace function private.is_admin()
 returns boolean
@@ -68,6 +69,7 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 alter table public.profiles enable row level security;
+revoke all on public.profiles from anon, authenticated;
 create trigger profiles_updated_at before update on public.profiles
   for each row execute function private.set_updated_at();
 
@@ -209,9 +211,13 @@ revoke all on function private.product_is_public(uuid) from public;
 grant execute on function private.product_is_public(uuid) to anon, authenticated, service_role;
 
 alter table public.categories enable row level security;
+revoke all on public.categories from anon, authenticated;
 alter table public.products enable row level security;
+revoke all on public.products from anon, authenticated;
 alter table public.product_variants enable row level security;
+revoke all on public.product_variants from anon, authenticated;
 alter table public.product_images enable row level security;
+revoke all on public.product_images from anon, authenticated;
 
 create policy "Kategorien: aktive lesen" on public.categories
   for select to anon, authenticated
@@ -264,6 +270,7 @@ create table public.site_content (
   updated_by uuid references auth.users (id) on delete set null
 );
 alter table public.site_content enable row level security;
+revoke all on public.site_content from anon, authenticated;
 create trigger site_content_updated_at before update on public.site_content
   for each row execute function private.set_updated_at();
 

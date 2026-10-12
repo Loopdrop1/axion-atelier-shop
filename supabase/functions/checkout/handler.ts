@@ -4,9 +4,8 @@ import type Stripe from "stripe";
 import { getUser } from "../_shared/auth.ts";
 import type { Deps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
-import { HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
+import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
-import { sendPaidEmails, type OrderRecord } from "../_shared/order-mail.ts";
 import { INTEGRATION_ID } from "../_shared/stripe.ts";
 
 interface ReservedLine {
@@ -42,7 +41,9 @@ interface GiftReservation {
   purchase: { recipient_name: string | null; recipient_email: string | null };
 }
 
-const SESSION_MINUTES = 30;
+// Stripe verlangt mindestens 30 Minuten ab Erstellung der Session; 31, damit Netzwerkzeit nicht stört.
+// Die Reservierung in der Datenbank läuft 35 Minuten, also länger als die Session.
+const SESSION_MINUTES = 31;
 
 function prefix(locale: Locale): string {
   return locale === "en" ? "/en" : "";
@@ -155,17 +156,9 @@ async function cartCheckout(
 
   const base = deps.env.siteUrl + prefix(locale);
   const successUrl = `${base}/bestellung/${reservation.status_token}?bezahlt=1`;
-
-  if (reservation.total_cents === 0) {
-    const result = await deps.rpc<{ order: OrderRecord }>("complete_order", {
-      p_order_id: reservation.order_id,
-      p_payment: { amount_total_cents: 0, email: reservation.email },
-    });
-    await sendPaidEmails(deps, result.order).catch((e) =>
-      console.error("E-Mail nach Gutscheinzahlung fehlgeschlagen", e),
-    );
-    return json(200, { url: successUrl, orderNumber: reservation.order_number });
-  }
+  // Auch wenn Gutschein oder Rabatt alles decken, läuft die Bestellung über Stripe: Bei 0 Franken verlangt
+  // Stripe keine Zahlung, erfasst aber die Lieferadresse. Der Webhook verbucht die Bestellung wie sonst.
+  const free = reservation.total_cents === 0;
 
   const reduction = reservation.discount_cents + reservation.gift_card_cents;
   const couponAmount = Math.min(reduction, reservation.subtotal_cents);
@@ -213,7 +206,12 @@ async function cartCheckout(
       customer_email: reservation.email,
       client_reference_id: reservation.order_id,
       metadata,
-      payment_intent_data: { metadata, description: `Axion AX-${reservation.order_number}` },
+      // Ohne Zahlbetrag gibt es keinen PaymentIntent
+      ...(free
+        ? {}
+        : {
+            payment_intent_data: { metadata, description: `Axion AX-${reservation.order_number}` },
+          }),
       line_items: reservation.lines.map((l): Stripe.Checkout.SessionCreateParams.LineItem => ({
         quantity: l.quantity,
         price_data: {
@@ -340,20 +338,43 @@ async function giftCardCheckout(
 async function releaseCheckout(deps: Deps, body: Record<string, unknown>) {
   const token = body["token"];
   if (typeof token !== "string" || !UUID.test(token)) throw new HttpError(400, "INVALID_TOKEN");
-  const result = await deps.rpc<{ cancelled: boolean; session_id?: string | null }>(
-    "cancel_checkout_by_token",
-    {
-      p_token: token,
-    },
+  const pending = await deps.rpc<{ order_id: string | null; session_id: string | null }>(
+    "pending_checkout_by_token",
+    { p_token: token },
   );
-  if (result.cancelled && result.session_id) {
-    await deps.stripe.checkout.sessions
-      .expire(result.session_id)
-      .catch((error) =>
-        console.warn("Stripe-Session liess sich nicht beenden", (error as Error).message),
-      );
-  }
+  if (!pending.order_id) return json(200, { released: false });
+  // Zuerst bei Stripe beenden. Nur eine abgelaufene Session darf freigegeben werden: Ist sie schon bezahlt,
+  // verbucht der Webhook die Bestellung, und Gutschein und Rabattcode bleiben verbraucht.
+  if (pending.session_id && !(await expireSession(deps, pending.session_id)))
+    return json(200, { released: false });
+  const result = await deps.rpc<{ cancelled: boolean }>("cancel_checkout_by_token", {
+    p_token: token,
+  });
   return json(200, { released: result.cancelled });
+}
+
+/** true, wenn die Session bei Stripe abgelaufen ist (jetzt beendet oder schon vorher). */
+async function expireSession(deps: Deps, sessionId: string): Promise<boolean> {
+  try {
+    return (await deps.stripe.checkout.sessions.expire(sessionId)).status === "expired";
+  } catch (error) {
+    console.warn("Stripe-Session liess sich nicht beenden", (error as Error).message);
+    try {
+      return (await deps.stripe.checkout.sessions.retrieve(sessionId)).status === "expired";
+    } catch {
+      return false;
+    }
+  }
+}
+
+/** Schutz vor Missbrauch (Bestand blockieren, Codes durchprobieren), siehe checkout_guard. */
+async function guard(deps: Deps, req: Request, email: string) {
+  const verdict = await deps.rpc<"ok" | "rate_limited" | "too_many_open">("checkout_guard", {
+    p_email: email,
+    p_ip: clientIp(req),
+  });
+  if (verdict === "rate_limited") throw new HttpError(429, "RATE_LIMITED");
+  if (verdict === "too_many_open") throw new HttpError(429, "TOO_MANY_CHECKOUTS");
 }
 
 export function createCheckoutHandler(deps: Deps) {
@@ -364,6 +385,9 @@ export function createCheckoutHandler(deps: Deps) {
     const email = str(body["email"], 254) ?? user?.email ?? undefined;
     if (!email) throw new HttpError(400, "INVALID_EMAIL");
     const locale = toLocale(body["locale"]);
+    if (body["kind"] !== "gift_card" && body["kind"] !== "cart" && body["kind"] !== undefined)
+      throw new HttpError(400, "BAD_REQUEST");
+    await guard(deps, req, email);
     if (body["kind"] === "gift_card")
       return giftCardCheckout(deps, body, email, user?.id ?? null, locale);
     if (body["kind"] === "cart" || body["kind"] === undefined)
