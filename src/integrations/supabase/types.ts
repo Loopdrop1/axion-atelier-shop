@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           description_de: string | null
           description_en: string | null
+          en_auto: string[]
           id: string
           image_path: string | null
           name_de: string
@@ -33,6 +34,7 @@ export type Database = {
           created_at?: string
           description_de?: string | null
           description_en?: string | null
+          en_auto?: string[]
           id?: string
           image_path?: string | null
           name_de: string
@@ -46,6 +48,7 @@ export type Database = {
           created_at?: string
           description_de?: string | null
           description_en?: string | null
+          en_auto?: string[]
           id?: string
           image_path?: string | null
           name_de?: string
@@ -497,6 +500,7 @@ export type Database = {
           alt_de: string
           alt_en: string | null
           created_at: string
+          en_auto: string[]
           height: number
           id: string
           path: string
@@ -508,6 +512,7 @@ export type Database = {
           alt_de?: string
           alt_en?: string | null
           created_at?: string
+          en_auto?: string[]
           height?: number
           id?: string
           path: string
@@ -519,6 +524,7 @@ export type Database = {
           alt_de?: string
           alt_en?: string | null
           created_at?: string
+          en_auto?: string[]
           height?: number
           id?: string
           path?: string
@@ -601,6 +607,7 @@ export type Database = {
           created_at: string
           description_de: string
           description_en: string | null
+          en_auto: string[]
           fit: string | null
           fit_note_de: string | null
           fit_note_en: string | null
@@ -630,6 +637,7 @@ export type Database = {
           created_at?: string
           description_de?: string
           description_en?: string | null
+          en_auto?: string[]
           fit?: string | null
           fit_note_de?: string | null
           fit_note_en?: string | null
@@ -659,6 +667,7 @@ export type Database = {
           created_at?: string
           description_de?: string
           description_en?: string | null
+          en_auto?: string[]
           fit?: string | null
           fit_note_de?: string | null
           fit_note_en?: string | null
@@ -726,6 +735,7 @@ export type Database = {
           gift_card_max_cents: number
           gift_card_min_cents: number
           gift_card_valid_years: number
+          hide_sold_out: boolean
           id: number
           newsletter_welcome_percent: number | null
           notify_email: string | null
@@ -737,6 +747,7 @@ export type Database = {
           gift_card_max_cents?: number
           gift_card_min_cents?: number
           gift_card_valid_years?: number
+          hide_sold_out?: boolean
           id?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
@@ -748,6 +759,7 @@ export type Database = {
           gift_card_max_cents?: number
           gift_card_min_cents?: number
           gift_card_valid_years?: number
+          hide_sold_out?: boolean
           id?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
@@ -879,6 +891,7 @@ export type Database = {
         Returns: number
       }
       admin_dashboard: { Args: { p_from: string; p_to: string }; Returns: Json }
+      admin_get_order: { Args: { p_order_id: string }; Returns: Json }
       admin_get_settings: { Args: never; Returns: Json }
       admin_grant_admin: { Args: { p_email: string }; Returns: Json }
       admin_list_admins: {
@@ -898,6 +911,7 @@ export type Database = {
         Args: { p_expires_at: string; p_order_id: string; p_session_id: string }
         Returns: undefined
       }
+      cancel_checkout_by_token: { Args: { p_token: string }; Returns: Json }
       cancel_order: {
         Args: { p_order_id: string; p_reason?: string }
         Returns: boolean
@@ -907,10 +921,18 @@ export type Database = {
         Returns: Json
       }
       check_gift_card: { Args: { p_code: string }; Returns: Json }
+      checkout_guard: {
+        Args: { p_email: string; p_ip: string }
+        Returns: string
+      }
       claim_guest_orders: { Args: never; Returns: number }
       complete_order: {
         Args: { p_order_id: string; p_payment?: Json }
         Returns: Json
+      }
+      contact_guard: {
+        Args: { p_email: string; p_ip: string }
+        Returns: string
       }
       finish_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
       forget_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
@@ -954,7 +976,9 @@ export type Database = {
         Returns: Json
       }
       newsletter_unsubscribe: { Args: { p_token: string }; Returns: Json }
+      pending_checkout_by_token: { Args: { p_token: string }; Returns: Json }
       prepare_account_deletion: { Args: { p_user_id: string }; Returns: Json }
+      prune_rate_limits: { Args: never; Returns: number }
       record_refund: {
         Args: { p_payment_intent_id: string; p_refunded_cents: number }
         Returns: Json
@@ -985,6 +1009,7 @@ export type Database = {
         }
         Returns: Json
       }
+      translate_guard: { Args: { p_user_id: string }; Returns: boolean }
       user_is_admin: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {

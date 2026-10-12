@@ -36,6 +36,20 @@
       "when": 1791845692157,
       "tag": "0004_axion_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791845709228,
+      "tag": "0005_axion_checkout_release",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791845711306,
+      "tag": "0006_axion_contact_and_settings",
+      "breakpoints": true
     }
   ]
 }
