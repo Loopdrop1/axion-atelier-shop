@@ -2,7 +2,7 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 import { shopConfig } from "@/config/shop";
 import { messages, toLocale, useT } from "@/i18n";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { pageHead } from "@/lib/commerce/seo";
 import { Notice } from "@/components/account/form";
 export const Route = createFileRoute("/{-$locale}/konto")({

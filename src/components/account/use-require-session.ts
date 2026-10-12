@@ -1,7 +1,7 @@
 // Seiten im Konto: ohne Anmeldung zur Anmeldeseite (mit Rücksprung).
 import { useEffect, useRef } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { useLocaleParam } from "@/i18n";
 import { useSession } from "@/lib/account/session";
 

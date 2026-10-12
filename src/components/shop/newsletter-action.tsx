@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { useLocaleParam, useT } from "@/i18n";
 import { Notice } from "@/components/account/form";

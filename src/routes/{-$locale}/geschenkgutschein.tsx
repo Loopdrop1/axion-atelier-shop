@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { checkGiftCard, releaseCheckout, startCheckout } from "@/lib/commerce/checkout";
 import { formatCents, formatDate, formatFrancs } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";

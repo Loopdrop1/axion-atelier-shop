@@ -1,7 +1,8 @@
 // Woher die Shop-Daten kommen: Supabase, wenn eingerichtet, sonst der Beispielkatalog.
 // Der Katalog wird 30 Sekunden zwischengespeichert (pro Browser bzw. pro Server-Instanz),
 // damit eine Seite mit mehreren Abfragen nur einmal lädt. Änderungen im Admin sind spätestens dann sichtbar.
-import { backendConfigured, supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { CATEGORY_SELECT, PRODUCT_SELECT, type CatalogData, type ProductRow } from "./rows";
 import { sampleCatalog } from "./sample-catalog";
 

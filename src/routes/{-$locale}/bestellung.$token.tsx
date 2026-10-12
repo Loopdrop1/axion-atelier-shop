@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { getOrderStatus, type OrderStatus } from "@/lib/commerce/checkout";
 import { formatCents } from "@/lib/commerce/format";
 import { pageHead } from "@/lib/commerce/seo";

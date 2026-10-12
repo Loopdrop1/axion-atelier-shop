@@ -23,7 +23,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { backendConfigured } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { isAdmin } from "@/lib/admin/api";
 import { signOut } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";
