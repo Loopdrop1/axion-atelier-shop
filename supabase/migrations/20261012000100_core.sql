@@ -1,6 +1,9 @@
 -- Axion: Grundlagen (Rollen, Profile, Katalog, Inhalte)
 -- Rechte werden ausdrücklich vergeben, weil neue Supabase-Projekte Tabellen nicht mehr automatisch freigeben.
 
+create extension if not exists pgcrypto with schema extensions;
+create extension if not exists citext with schema extensions;
+
 create schema if not exists private;
 grant usage on schema private to anon, authenticated, service_role;
 
