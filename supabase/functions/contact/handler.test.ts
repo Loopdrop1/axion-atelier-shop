@@ -1,13 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { pool, sql, uniq } from "../../tests/helpers";
+import { pool, sql, uniq } from "../../tests/helpers.ts";
 import {
   ANON_KEY,
   SERVICE_KEY,
   startFakeResend,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createContactHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;

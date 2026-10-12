@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { createUser, pool, sql, uniq } from "../../tests/helpers";
-import { makeGiftCard, makeProduct, stockOf } from "../../tests/fixtures";
+import { createUser, pool, sql, uniq } from "../../tests/helpers.ts";
+import { makeGiftCard, makeProduct, stockOf } from "../../tests/fixtures.ts";
 import {
   ANON_KEY,
   fakeJwt,
@@ -10,7 +10,7 @@ import {
   startFakeResend,
   startFakeStripe,
   startFakeSupabase,
-} from "../../tests/fakes/servers";
+} from "../../tests/fakes/servers.ts";
 import { createCheckoutHandler } from "./handler.ts";
 
 // Verschachtelter Formular-Body, wie stripe-node ihn sendet (Werte sind Strings, Arrays, Objekte).

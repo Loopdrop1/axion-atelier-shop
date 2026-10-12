@@ -21,7 +21,7 @@ function gateway(reply: (texts: string[]) => Response | Promise<Response>) {
       headers: Object.fromEntries(new Headers(init?.headers).entries()),
       body,
     });
-    const user = body.messages.find((m) => m.role === "user")!;
+    const user = body.messages.find((m: { role: string }) => m.role === "user")!;
     return reply((JSON.parse(user.content) as { texts: string[] }).texts);
   }) as typeof fetch;
   return { calls, fetchFn };

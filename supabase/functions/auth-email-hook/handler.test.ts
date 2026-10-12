@@ -3,7 +3,7 @@ import { Webhook } from "standardwebhooks";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { ANON_KEY, SERVICE_KEY, startFakeResend } from "../../tests/fakes/servers";
+import { ANON_KEY, SERVICE_KEY, startFakeResend } from "../../tests/fakes/servers.ts";
 import { createAuthEmailHookHandler, type HookPayload } from "./handler.ts";
 
 const SECRET = `v1,whsec_${randomBytes(32).toString("base64")}`;
@@ -184,7 +184,7 @@ describe("auth-email-hook: E-Mail-Adresse ändern", () => {
       }),
     );
     const mails = sentSince(before);
-    expect(mails.map((m) => m.to[0])).toEqual(["alt@example.ch", "neu@example.ch"]);
+    expect(mails.map((m: { to: string[] }) => m.to[0])).toEqual(["alt@example.ch", "neu@example.ch"]);
     expect(mails[0]!.subject).toBe("Änderung deiner E-Mail-Adresse bestätigen");
     expect(mails[0]!.text).toContain("neu@example.ch");
     expect(mails[0]!.text).toContain("token_hash=hash-fuer-alt&type=email_change");
