@@ -137,7 +137,10 @@ describe("stripe-webhook", () => {
       needs_attention: false,
     });
     const mails = resend.sent.slice(before);
-    expect(mails.map((m: { to: string[] }) => m.to[0])).toEqual(["kundin@example.ch", "shop@shop.test"]);
+    expect(mails.map((m: { to: string[] }) => m.to[0])).toEqual([
+      "kundin@example.ch",
+      "shop@shop.test",
+    ]);
     expect(mails[0]!.text).toContain("Bahnhofstrasse 1");
     expect(mails[0]!.text).toContain("TWINT");
 
