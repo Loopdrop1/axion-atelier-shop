@@ -1,1 +1,28 @@
 project_id = "kdfwmjudsuyrelbknfpx"
+
+# Alle Funktionen prüfen den Aufrufer selbst im Code (Anmelde-Token über Supabase Auth, Stripe-Signatur,
+# Standard-Webhooks-Signatur, Missbrauchsbremsen). Die eingebaute JWT-Prüfung versteht die neuen Schlüssel
+# (sb_publishable_…) nicht und würde Gäste an der Kasse und Stripe-Webhooks abweisen.
+# Lovable hat diese Abschnitte beim Verbinden von Cloud entfernt: nach jeder Änderung hier die Funktionen
+# neu veröffentlichen und prüfen, dass die Abschnitte noch da sind.
+
+[functions.checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.newsletter]
+verify_jwt = false
+
+[functions.admin-actions]
+verify_jwt = false
+
+[functions.account-delete]
+verify_jwt = false
+
+[functions.contact]
+verify_jwt = false
+
+[functions.auth-email-hook]
+verify_jwt = false
