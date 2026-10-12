@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { outfitKey } from "./outfit-key";
 import { Link } from "@tanstack/react-router";
 import { Heart, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,11 +44,14 @@ export function ProductPage({
   const [chosen, setChosen] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState<string[]>(outfit.map((p) => p.handle));
   const [outfitError, setOutfitError] = useState("");
+  // Nur bei anderem Produkt oder anderem Outfit zurücksetzen. Neu geladene, gleiche Daten kommen als neue
+  // Objekte; ein Vergleich über das Array selbst hat die gewählte Grösse dann wieder gelöscht.
+  const outfitHandles = outfitKey(outfit);
   useEffect(() => {
     setSize("");
     setChosen({});
-    setChecked(outfit.map((p) => p.handle));
-  }, [product.handle, outfit]);
+    setChecked(outfitHandles ? outfitHandles.split(",") : []);
+  }, [product.handle, outfitHandles]);
   useEffect(() => {
     const node = mainAdd.current;
     if (!node) return;
