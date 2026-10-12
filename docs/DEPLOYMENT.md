@@ -31,16 +31,19 @@ einschalten.
 ## 1. Code nach Lovable bringen (GitHub, ohne Credits)
 
 1. In Lovable: Projekt-Einstellungen → Git → **Connect GitHub**. Lovable legt ein neues Repository mit dem aktuellen
-   Stand an (Commit `e3800b2`, genau die Basis des Lieferpakets).
+   Stand an (Commit `e3800b2`, die Basis des Lieferpakets) und ergänzt die `README.md` (Commit «Add project README»).
+   Das Lieferpaket ändert die `README.md` nicht, es passt also trotzdem.
 2. Im Terminal auf deinem Computer (Ordner frei wählbar, Pfad zum Patch anpassen):
    ```bash
-   git clone https://github.com/<dein-konto>/<repository>.git axion-shop
+   git clone -c core.autocrlf=false https://github.com/<dein-konto>/<repository>.git axion-shop
    cd axion-shop
    git am --3way /pfad/zu/axion.patch
    git push
    ```
-   `git am` übernimmt alle Commits mit ihren Beschreibungen. Lovable zeigt die Änderung danach im Editor und baut die
-   Vorschau neu. **Nie force-pushen** (Lovable verliert sonst den Verlauf).
+   `core.autocrlf=false` verhindert unter Windows Probleme mit Zeilenenden. Fragt Git «Please tell me who you are»,
+   einmal `git config user.name "Ben Schmidt"` und `git config user.email "deine@adresse.ch"` eingeben und `git am`
+   wiederholen. `git am` übernimmt alle Commits mit ihren Beschreibungen. Lovable zeigt die Änderung danach im Editor
+   und baut die Vorschau neu. **Nie force-pushen** (Lovable verliert sonst den Verlauf).
 3. Erst jetzt Lovable Cloud aktivieren (Abschnitt 2). Umgekehrt gäbe es Konflikte beim Einspielen.
 
 ## 2. Lovable Cloud
