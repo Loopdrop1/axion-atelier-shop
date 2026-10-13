@@ -325,6 +325,7 @@ function seed() {
           gift_card_valid_years: 5,
           newsletter_welcome_percent: null,
           notify_email: "shop@example.ch",
+          hide_sold_out: false,
           updated_at: "2026-09-01T00:00:00Z",
         },
       ],

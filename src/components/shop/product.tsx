@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { outfitKey } from "./outfit-key";
+import { isSoldOut, sizesFor, useOutfit } from "./outfit";
 import { Link } from "@tanstack/react-router";
 import { Heart, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,6 @@ export function ProductPage({
   const fitLabel = useFitLabel();
   const settings = useShopSettings();
   const shipping = shippingLabel(settings, locale);
-  // Einstellung im Admin: ausverkaufte Grössen ausblenden statt durchgestrichen zeigen
-  const forSale = (p: Product) =>
-    settings.hideSoldOut ? p.variants.filter((v) => v.availableForSale) : p.variants;
   const [size, setSize] = useState("");
   const [guide, setGuide] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
@@ -48,17 +46,10 @@ export function ProductPage({
   const add = useCart((s) => s.add);
   const setCart = useShopUI((s) => s.setCart);
   const { handles, toggle } = useWishlist();
-  const [chosen, setChosen] = useState<Record<string, string>>({});
-  const [checked, setChecked] = useState<string[]>(outfit.map((p) => p.handle));
-  const [outfitError, setOutfitError] = useState("");
-  // Nur bei anderem Produkt oder anderem Outfit zurücksetzen. Neu geladene, gleiche Daten kommen als neue
-  // Objekte; ein Vergleich über das Array selbst hat die gewählte Grösse dann wieder gelöscht.
-  const outfitHandles = outfitKey(outfit);
+  // Nur bei anderem Produkt zurücksetzen. Neu geladene, gleiche Daten kommen als neue Objekte.
   useEffect(() => {
     setSize("");
-    setChosen({});
-    setChecked(outfitHandles ? outfitHandles.split(",") : []);
-  }, [product.handle, outfitHandles]);
+  }, [product.handle]);
   useEffect(() => {
     const node = mainAdd.current;
     if (!node) return;
@@ -110,9 +101,6 @@ export function ProductPage({
     add(variant.id);
     setCart(true);
   };
-  const outfitTotal = outfit
-    .filter((p) => checked.includes(p.handle))
-    .reduce((sum, p) => sum + p.priceRange.min.amount, 0);
   return (
     <>
       <div className="container page-body">
@@ -203,7 +191,7 @@ export function ProductPage({
               </Button>
             </div>
             <div className="size-grid" ref={sizeSelector}>
-              {forSale(product).map((v) => (
+              {sizesFor(product, settings.hideSoldOut).map((v) => (
                 <Button
                   variant="icon"
                   key={v.id}
@@ -269,72 +257,9 @@ export function ProductPage({
           </div>
         </div>
         {outfit.length > 0 && (
-          <section className="outfit-builder" id="outfit">
-            <p className="eyebrow">{t.product.outfitEyebrow}</p>
-            <h2>{t.product.outfitTitle}</h2>
-            {outfit.map((p) => (
-              <div key={p.handle} className="outfit-row">
-                <input
-                  type="checkbox"
-                  id={`outfit-check-${p.handle}`}
-                  aria-label={t.product.outfitSelect(`${p.title}, ${p.color.name}`)}
-                  checked={checked.includes(p.handle)}
-                  onChange={() =>
-                    setChecked((s) =>
-                      s.includes(p.handle) ? s.filter((h) => h !== p.handle) : [...s, p.handle],
-                    )
-                  }
-                />
-                <Link to="/{-$locale}/produkt/$handle" params={{ locale: lp, handle: p.handle }}>
-                  <Photo image={p.images[0]} />
-                </Link>
-                <div>
-                  <h3>{p.title}</h3>
-                  <p className="price m-0">{formatPrice(p.priceRange.min, locale)}</p>
-                </div>
-                <select
-                  className="form-select"
-                  id={`outfit-size-${p.handle}`}
-                  aria-label={t.product.outfitSize(`${p.title}, ${p.color.name}`)}
-                  value={chosen[p.handle] || ""}
-                  onChange={(e) => setChosen((s) => ({ ...s, [p.handle]: e.target.value }))}
-                >
-                  <option value="">{t.product.chooseSize}</option>
-                  {forSale(p).map((v) => (
-                    <option key={v.id} value={v.id} disabled={!v.availableForSale}>
-                      {v.title}
-                      {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-            <p className="price mt-6">
-              {t.product.outfitSelection(formatPrice(outfitTotal, locale))}
-            </p>
-            {outfitError && (
-              <p role="alert" className="size-hint">
-                {outfitError}
-              </p>
-            )}
-            <Button
-              disabled={!checked.length}
-              onClick={() => {
-                if (checked.some((h) => !chosen[h])) {
-                  setOutfitError(t.product.outfitError);
-                  return;
-                }
-                checked.forEach((h) => {
-                  const id = chosen[h];
-                  if (id) add(id);
-                });
-                setOutfitError("");
-                setCart(true);
-              }}
-            >
-              {t.product.outfitAdd}
-            </Button>
-          </section>
+          // Neu aufbauen bei anderem Produkt oder anderen Stücken: Auswahl und Grössen zurücksetzen.
+          // Der Schlüssel bleibt gleich, wenn dieselben Daten neu geladen werden (gewählte Grössen bleiben).
+          <OutfitBuilder key={`${product.handle}:${outfitKey(outfit)}`} outfit={outfit} />
         )}
         <section className="section pb-0">
           <div className="section-head">
@@ -464,5 +389,74 @@ export function ProductPage({
         </div>
       )}
     </>
+  );
+}
+
+/** «Komplettes Outfit» auf der Produktseite: passende Stücke mit Grösse zusammen in den Warenkorb. */
+function OutfitBuilder({ outfit }: { outfit: Product[] }) {
+  const t = useT();
+  const locale = useLocale();
+  const lp = useLocaleParam();
+  const settings = useShopSettings();
+  const state = useOutfit(outfit);
+  const addToCart = () => {
+    const missing = state.addToCart();
+    if (missing[0]) document.getElementById(`outfit-size-${missing[0]}`)?.focus();
+  };
+  return (
+    <section className="outfit-builder" id="outfit">
+      <p className="eyebrow">{t.product.outfitEyebrow}</p>
+      <h2>{t.product.outfitTitle}</h2>
+      {outfit.map((p) => {
+        const soldOut = isSoldOut(p);
+        const invalid = state.missing.includes(p.handle);
+        return (
+          <div key={p.handle} className="outfit-row">
+            <input
+              type="checkbox"
+              id={`outfit-check-${p.handle}`}
+              aria-label={t.product.outfitSelect(`${p.title}, ${p.color.name}`)}
+              checked={state.checked.includes(p.handle)}
+              disabled={soldOut}
+              onChange={() => state.toggle(p.handle)}
+            />
+            <Link to="/{-$locale}/produkt/$handle" params={{ locale: lp, handle: p.handle }}>
+              <Photo image={p.images[0]} />
+            </Link>
+            <div>
+              <h3>{p.title}</h3>
+              <p className="price m-0">{formatPrice(p.priceRange.min, locale)}</p>
+            </div>
+            <select
+              className="form-select"
+              id={`outfit-size-${p.handle}`}
+              aria-label={t.product.outfitSize(`${p.title}, ${p.color.name}`)}
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? "outfit-error" : undefined}
+              disabled={soldOut}
+              value={state.sizes[p.handle] ?? ""}
+              onChange={(e) => state.choose(p.handle, e.target.value)}
+            >
+              <option value="">{soldOut ? t.product.outfitSoldOut : t.product.chooseSize}</option>
+              {sizesFor(p, settings.hideSoldOut).map((v) => (
+                <option key={v.id} value={v.id} disabled={!v.availableForSale}>
+                  {v.title}
+                  {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      })}
+      <p className="price mt-6">{t.product.outfitSelection(formatPrice(state.total, locale))}</p>
+      {state.missing.length > 0 && (
+        <p role="alert" id="outfit-error" className="form-error">
+          {t.product.outfitError}
+        </p>
+      )}
+      <Button disabled={!state.checked.length} onClick={addToCart}>
+        {t.product.outfitAdd}
+      </Button>
+    </section>
   );
 }

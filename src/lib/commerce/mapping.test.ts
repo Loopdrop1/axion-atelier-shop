@@ -152,7 +152,7 @@ describe("Startseite und Laufband", () => {
     expect(home.look.hotspots).toEqual([
       { handle: "a", key: "sakko", label: "Jacket", x: 37, y: 25 },
     ]);
-    expect(home.look.ctaHandle).toBe("a");
+    expect(home.look.total).toBe("Complete outfit");
     expect(home.look.image.url).toBe(media.look.url);
     expect(home.story.image.url).toBe(media.fabric.url);
   });

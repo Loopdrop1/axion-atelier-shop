@@ -562,8 +562,7 @@ const LOOK_TEXTS: FieldDef[] = [
   { name: "eyebrow", label: "Kleine Zeile oben" },
   { name: "title", label: "Titel", multiline: true },
   { name: "text", label: "Text" },
-  { name: "total", label: "Text vor dem Gesamtpreis" },
-  { name: "cta", label: "Knopf" },
+  { name: "total", label: "Text vor dem Gesamtpreis (alle Stücke ausgewählt)" },
 ];
 
 interface Spot {
@@ -618,7 +617,7 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
   return (
     <Panel
       title="Komplettes Outfit (Bild mit Punkten)"
-      description="Punkte auf dem Bild führen zu den Produkten. Punkt auswählen, dann ins Bild klicken, um ihn zu setzen."
+      description="Punkte auf dem Bild führen zu den Produkten. Neben dem Bild wählt die Kundschaft die Grössen und legt den ganzen Look oder einzelne Stücke direkt in den Warenkorb. Punkt auswählen, dann ins Bild klicken, um ihn zu setzen."
     >
       <fieldset className="admin-lock admin-form" disabled={busy}>
         <ImageField value={draft} onChange={setDraft} onBusy={onBusy} folder="look" />
@@ -726,18 +725,6 @@ function LookBlock({ value, products }: { value: Obj; products: ProductListRow[]
             </Button>
           </div>
         </div>
-        <SelectField
-          label="Knopf «Outfit zusammenstellen» führt zu"
-          value={str(draft["cta_handle"])}
-          onChange={(e) => setDraft((d) => ({ ...d, cta_handle: e.target.value }))}
-          options={[
-            { value: "", label: "erstes Produkt der Punkte" },
-            ...active.map((p) => ({
-              value: p.handle,
-              label: `${p.title_de} · ${p.color_name_de}`,
-            })),
-          ]}
-        />
         <LocalizedFields
           value={draft}
           onChange={setDraft}
