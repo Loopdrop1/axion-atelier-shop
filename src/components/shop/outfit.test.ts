@@ -1,7 +1,14 @@
 // Komplettes Outfit (Produktseite und Look auf der Startseite): Auswahl, Summe und was in den Warenkorb kommt.
 import { describe, expect, it } from "vitest";
 import { testProduct as outfitProduct, testVariant as variant } from "@/test/products";
-import { defaultSelection, isSoldOut, planOutfit, selectionTotal, sizesFor } from "./outfit";
+import {
+  defaultSelection,
+  defaultSizes,
+  isSoldOut,
+  planOutfit,
+  selectionTotal,
+  sizesFor,
+} from "./outfit";
 
 const suit = outfitProduct("anzug", 489, [
   variant("anzug-46", true, 489),
@@ -16,6 +23,18 @@ describe("Outfit: Auswahl am Anfang", () => {
     expect(isSoldOut(shoes)).toBe(true);
     expect(isSoldOut(suit)).toBe(false);
     expect(defaultSelection(look)).toEqual(["anzug", "weste"]);
+  });
+
+  it("Einheitsgrösse ist gleich gewählt, eine einzelne echte Grösse nicht", () => {
+    const tie = outfitProduct("krawatte", 89, [
+      { ...variant("krawatte-os", true, 89), title: "One Size" },
+    ]);
+    const tieGone = outfitProduct("fliege", 79, [
+      { ...variant("fliege-os", false, 79), title: "One Size" },
+    ]);
+    // Lieferbar, aber nur eine echte Grösse (Weste nur in M, Schuh nur noch in 42): wählt die Kundschaft selbst
+    const lastShoe = outfitProduct("loafer", 259, [variant("loafer-42", true, 259)]);
+    expect(defaultSizes([...look, lastShoe, tie, tieGone])).toEqual({ krawatte: "krawatte-os" });
   });
 
   it("blendet ausverkaufte Grössen nur aus, wenn das im Admin eingestellt ist", () => {

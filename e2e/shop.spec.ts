@@ -160,6 +160,68 @@ test("Startseite: Look direkt kaufen – Grössen wählen, ganzer Look oder nur 
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
+test("Startseite und Menü: Neuheiten gleich nach dem Einstieg, alle Kategorien, Einheitsgrösse", async ({
+  page,
+}, info) => {
+  const errors = watchErrors(page);
+  await open(page, "/");
+  // Wie im Reel: direkt nach dem Einstieg die neuesten Stücke als Raster, dann die Kategorien zum Blättern
+  expect(await page.evaluate(() => document.querySelector(".hero")?.nextElementSibling?.id)).toBe(
+    "neuheiten",
+  );
+  const fresh = page.locator("#neuheiten .product-card");
+  await expect(fresh).toHaveCount(8);
+  await expect(fresh.first().getByRole("heading")).toHaveText("Mantel «Gotthard»");
+  await expect(page.locator("#kollektionen .category-card")).toHaveCount(9);
+  await expectNoHorizontalScroll(page);
+
+  // Alle Kategorien im Menü: am Computer unter «Kollektion», auf dem Handy im Menü
+  if (info.project.name === "desktop") {
+    await page.getByRole("button", { name: "Kollektion", exact: true }).click();
+    const menu = page.locator("#collection-navigation");
+    await expect(menu.getByRole("link")).toHaveText([
+      "Anzüge",
+      "Sakkos",
+      "Hosen",
+      "Hemden",
+      "Westen",
+      "Mäntel & Jacken",
+      "Strick",
+      "Schuhe",
+      "Accessoires",
+      "Alle Stücke",
+    ]);
+    await menu.getByRole("link", { name: "Accessoires" }).click();
+  } else {
+    await page.getByRole("button", { name: "Menü öffnen" }).click();
+    await page.getByRole("dialog").getByRole("link", { name: "Accessoires" }).click();
+  }
+  await expect(page).toHaveURL(/\/kollektion\/accessoires$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Accessoires");
+  await expect(page.locator(".product-card")).toHaveCount(8);
+
+  // Einheitsgrösse: nichts zu wählen, direkt in den Warenkorb; im Warenkorb «Einheitsgrösse», nicht «Grösse One Size»
+  await open(page, "/produkt/krawatte-morcote-bordeaux");
+  await expect(page.locator(".size-single")).toHaveText("Einheitsgrösse");
+  await expect(page.locator(".size-grid")).toHaveCount(0);
+  await expect(page.locator(".size-hint")).toHaveCount(0);
+  await page.locator(".add-row").getByRole("button", { name: "In den Warenkorb" }).click();
+  const line = page.getByRole("dialog").locator(".cart-line");
+  await expect(line).toHaveCount(1);
+  await expect(line).toContainText("Bordeaux · Einheitsgrösse");
+  await page.keyboard.press("Escape");
+
+  // Gürtel: echte Grössen, ohne Wahl kein Warenkorb
+  await open(page, "/produkt/guertel-chur-braun");
+  await expect(page.locator(".size-grid button")).toHaveCount(5);
+  await expect(page.locator(".size-hint")).toBeVisible();
+  await expect(
+    page.locator(".add-row").getByRole("button", { name: "In den Warenkorb" }),
+  ).toBeDisabled();
+  await shot(page, info, "accessoires-guertel");
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
 test("Produktseite: Komplettes Outfit legt die gewählten Stücke zusammen in den Warenkorb", async ({
   page,
 }) => {
@@ -184,7 +246,7 @@ test("Produktseite: Komplettes Outfit legt die gewählten Stücke zusammen in de
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Beratung", async ({
+test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Service", async ({
   page,
 }, info) => {
   const errors = watchErrors(page);
@@ -198,7 +260,7 @@ test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Beratun
   await open(page, "/produkt/anzug-limmat-anthrazit");
   await expect(page.locator(".sample-notice")).toBeVisible();
   await expect(page.locator(".product-gallery img")).toHaveCount(2);
-  await expect(page.locator(".product-facts")).toContainText("Gefertigt in Europa");
+  await expect(page.locator(".product-facts")).toContainText("Gefertigt in Italien");
   await expect(page.locator(".product-features li").first()).toBeVisible();
   // Hinweis auf knappen Bestand erst mit gewählter Grösse, ab 2 Stück; die Meldezone bleibt im Dokument
   const hint = page.getByRole("status").and(page.locator(".stock-hint"));
@@ -208,7 +270,7 @@ test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Beratun
   await page.locator(".size-grid").getByRole("button", { name: "48", exact: true }).click();
   await expect(hint).toBeEmpty();
   await expect(page.locator(".pay-hint")).toContainText("Klarna");
-  await expect(page.locator(".consult-card")).toContainText("Persönliche Beratung");
+  await expect(page.locator(".consult-card")).toContainText("Persönlicher Service");
   await expectNoHorizontalScroll(page);
   await shot(page, info, "produktseite");
   expect(errors, errors.join("\n")).toEqual([]);

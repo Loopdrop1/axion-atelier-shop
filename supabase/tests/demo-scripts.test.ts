@@ -55,7 +55,16 @@ describe("Muster-Sortiment (supabase/demo)", () => {
     );
     await db.query(read("supabase/demo/muster-einspielen.sql"));
     const first = await counts();
-    expect(first.muster).toBe(23);
+    expect(first.muster).toBe(51);
+    // Accessoires in Einheitsgrösse: genau eine Grösse «One Size» (daran erkennt der Shop, dass nichts zu wählen ist)
+    expect(
+      (
+        await db.query(
+          `select v.size from public.product_variants v join public.products p on p.id = v.product_id
+           where p.handle = 'krawatte-morcote-bordeaux'`,
+        )
+      ).rows,
+    ).toEqual([{ size: "One Size" }]);
     const real = await one<{ title_de: string; tags: string[]; variants: number; images: number }>(
       `select title_de, tags,
               (select count(*)::int from public.product_variants v where v.product_id = p.id) as variants,
@@ -93,6 +102,10 @@ describe("Muster-Sortiment (supabase/demo)", () => {
        values ($1, $2, $3, 'weste-limmat-marine', 'Weste «Limmat»', '48', 12900, 1, 12900)`,
       [order.id, variant.product_id, variant.id],
     );
+    // Das echte Produkt ist inzwischen im Shop: seine Kategorie bleibt eingeschaltet
+    await db.query(
+      "update public.products set status = 'active' where handle = 'anzug-limmat-marine'",
+    );
     await db.query(read("supabase/demo/muster-entfernen.sql"));
     expect(await counts()).toEqual({ products: 1, variants: 0, images: 0, muster: 0 });
     const item = await one(
@@ -100,15 +113,19 @@ describe("Muster-Sortiment (supabase/demo)", () => {
       [order.id],
     );
     expect(item).toEqual({ product_id: null, variant_id: null, title: "Weste «Limmat»" });
-    expect(
-      (await one<{ n: number }>("select count(*)::int as n from public.categories")).n,
-    ).toBeGreaterThanOrEqual(3);
+    // Kategorien bleiben, ohne Zeichnungen als Bild; ohne aktive Produkte ausgeschaltet
+    const categories = (
+      await db.query("select slug, active, image_path from public.categories order by slug")
+    ).rows as { slug: string; active: boolean; image_path: string | null }[];
+    expect(categories).toHaveLength(9);
+    expect(categories.filter((c) => c.image_path !== null)).toEqual([]);
+    expect(categories.filter((c) => c.active).map((c) => c.slug)).toEqual(["anzuege"]);
   });
 
   it("enthält dieselben Musterstücke wie seed.sql (Datenbank der Tests)", async () => {
     const handles = (q: string) => q.match(/select '([a-z0-9-]+)', c\.id/g)?.sort() ?? [];
     const demo = handles(read("supabase/demo/muster-einspielen.sql"));
-    expect(demo).toHaveLength(24);
+    expect(demo).toHaveLength(52);
     expect(demo).toEqual(handles(read("supabase/seed.sql")));
     const seeded = await sql<{ handle: string }>(
       "select handle from public.products where 'muster' = any (tags) order by handle",

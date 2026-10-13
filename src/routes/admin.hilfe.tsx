@@ -37,7 +37,9 @@ function HelpPage() {
           </li>
           <li>
             Unter «Grössen und Bestand» jede Grösse mit Anfangsbestand hinzufügen, auf Wunsch mit
-            Artikelnummer und Barcode.
+            Artikelnummer und Barcode. Stücke ohne Grösse (Krawatte, Einstecktuch,
+            Manschettenknöpfe) bekommen genau eine Grösse «One Size»: Dann gibt es im Shop nichts zu
+            wählen, das Stück geht direkt in den Warenkorb.
           </li>
           <li>
             Bilder hochladen: Hochformat 4:5, mindestens 2000 Pixel hoch, alle mit gleichem

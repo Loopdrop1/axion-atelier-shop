@@ -69,7 +69,7 @@ describe("QA regressions", () => {
   });
   it("preserves newest ordering and original sale prices in cart data", async () => {
     const newest = await listProducts({ collection: "neu" });
-    expect(newest).toHaveLength(10);
+    expect(newest).toHaveLength(19);
     expect(newest.every((p) => p.tags.includes("neu"))).toBe(true);
     expect(newest.map((p) => p.createdAt)).toEqual(
       [...newest.map((p) => p.createdAt)].sort().reverse(),

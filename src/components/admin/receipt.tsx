@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { shopConfig } from "@/config/shop";
+import { sizeText } from "@/lib/commerce/one-size";
 import type { AdminOrder } from "@/lib/admin/api";
 import { formatCents } from "@/lib/commerce/format";
 import { vatIncluded } from "@/lib/admin/vat";
@@ -25,6 +26,7 @@ const TEXT = {
     giftCard: "Bezahlt mit Geschenkgutschein",
     paidWith: "Bezahlt mit",
     size: "Grösse",
+    oneSize: "Einheitsgrösse",
     giftCardItem: "Geschenkgutschein",
     vat: (rate: number, amount: string) => `Im Total enthalten: MWST ${rate} % ${amount}`,
     vatNo: "MWST-Nr.",
@@ -48,6 +50,7 @@ const TEXT = {
     giftCard: "Paid with gift card",
     paidWith: "Paid with",
     size: "Size",
+    oneSize: "One size",
     giftCardItem: "Gift card",
     vat: (rate: number, amount: string) => `Included in the total: VAT ${rate}% ${amount}`,
     vatNo: "VAT no.",
@@ -143,8 +146,9 @@ function ReceiptContent({ order }: { order: AdminOrder }) {
               <tr key={item.id}>
                 <td>
                   {item.title}
-                  {[item.color, item.size && `${t.size} ${item.size}`].filter(Boolean).length > 0 &&
-                    ` (${[item.color, item.size && `${t.size} ${item.size}`].filter(Boolean).join(", ")})`}
+                  {[item.color, item.size && sizeText(item.size, t.size, t.oneSize)].filter(Boolean)
+                    .length > 0 &&
+                    ` (${[item.color, item.size && sizeText(item.size, t.size, t.oneSize)].filter(Boolean).join(", ")})`}
                 </td>
                 <td>{item.quantity}</td>
                 <td>{money(item.unit_price_cents)}</td>

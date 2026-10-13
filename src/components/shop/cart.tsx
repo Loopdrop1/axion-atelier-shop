@@ -4,6 +4,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { MAX_PER_LINE, useCart } from "@/lib/commerce/stores";
+import { sizeText } from "@/lib/commerce/one-size";
 import { resolveCart, type Cart as CartType } from "@/lib/commerce";
 import { formatPrice } from "@/lib/commerce/format";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -110,7 +111,7 @@ export function CartContents({
               >
                 <h3>{l.product.title}</h3>
               </Link>
-              <p>{t.cart.lineMeta(l.product.color.name, l.variant.title)}</p>
+              <p>{`${l.product.color.name} · ${sizeText(l.variant.title, t.product.size, t.product.oneSize)}`}</p>
               <span className="price">
                 {formatPrice(l.variant.price, locale)}
                 {l.variant.compareAtPrice && (

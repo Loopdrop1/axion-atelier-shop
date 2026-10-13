@@ -61,8 +61,10 @@ einschalten.
    `products`, `site-media` nimmt auch Videos (MP4/WebM bis 25 MB). Spätere Änderungen mit neuer Migration:
    **zuerst die Migration ausführen, dann den Code pushen** (Lovable übernimmt Code sofort).
    `supabase/seed.sql` **nicht** ausführen: Er enthält Platzhalterprodukte und Beispielwerte für die Vorschau.
-   Zum Vorzeigen stattdessen `supabase/demo/muster-einspielen.sql` ausführen: 24 Musterstücke mit Zeichnungen
-   (Kennzeichen «muster», im Shop als «Muster» markiert) samt Kategorien, Look der Startseite und Grössentabellen.
+   Zum Vorzeigen stattdessen `supabase/demo/muster-einspielen.sql` ausführen: 52 Musterstücke in neun Kategorien
+   (Anzüge, Sakkos, Hosen, Hemden, Westen, Mäntel und Jacken, Strick, Schuhe, Accessoires) mit Zeichnungen statt
+   Fotos (Kennzeichen «muster», im Shop als «Muster» markiert) samt Kategorien, Look der Startseite und
+   Grössentabellen.
    Das Skript überschreibt nichts, was schon da ist, und lässt sich gefahrlos wiederholen.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
@@ -150,9 +152,11 @@ einschalten.
 - Admin → Einstellungen: Versandkosten und «Gratisversand ab», ausverkaufte Grössen ausblenden, Gutscheinbeträge und
   Gültigkeit (Standard 5 Jahre; wählt Axion «unbegrenzt», 30 Jahre eintragen und die AGB anpassen),
   Willkommens-Rabatt für den Newsletter (leer = keiner), Adresse für Bestellmeldungen.
-- Admin → Kategorien (erscheinen in dieser Reihenfolge in den Menüs; am Computer höchstens fünf, die übrigen über
-  «Alle Stücke»), Produkte (echte Angaben und Fotos, dazu Herkunft und Ausstattung mit einem Merkmal pro Zeile; erstes
-  Bild freigestellt auf Weiss oder als PNG mit durchsichtigem Hintergrund, zweites Rückansicht, dann am Modell),
+- Admin → Kategorien (erscheinen in dieser Reihenfolge im Menü «Kollektion» und in der Kategorien-Reihe der
+  Startseite; Bild freigestellt wie bei den Produkten), Produkte (echte Angaben und Fotos, dazu Herkunft und
+  Ausstattung mit einem Merkmal pro Zeile; erstes Bild freigestellt auf Weiss oder als PNG mit durchsichtigem
+  Hintergrund, zweites Rückansicht, dann am Modell; Stücke ohne Grösse wie Krawatte oder Einstecktuch bekommen genau
+  eine Grösse «One Size», dann gibt es im Shop nichts zu wählen),
   Grössentabellen (Masse von Axion, pro Kategorie), Startseite und Laufband (Texte, Einstieg als Foto über die ganze
   Breite und auf Wunsch Video: MP4 ohne Ton, 8 bis 15 Sekunden, höchstens 25 MB, fürs Handy ein eigenes im
   Hochformat, ohne zeigt das Handy das Foto; Bild der Geschichte quer und fürs Handy hoch). Englisch entsteht beim
@@ -188,7 +192,10 @@ einschalten.
 
 0. Muster-Sortiment entfernen: `supabase/demo/muster-entfernen.sql` in Cloud ausführen. Es löscht alle Produkte mit
    dem Kennzeichen «muster» samt Grössen und Bildern; Bestellungen bleiben, ihre Positionen verlieren nur den Link aufs
-   Produkt. Danach prüfen, dass der Look der Startseite (Admin → Startseite) auf echte Produkte zeigt.
+   Produkt. Die Kategorien bleiben, verlieren aber die Zeichnungen als Bild (Admin → Kategorien: Foto hinterlegen,
+   erst dann erscheint die Kategorie in der Reihe auf der Startseite); Kategorien ohne aktive Produkte schaltet das
+   Skript aus (im Admin wieder einschalten, sobald Produkte darin sind). Danach prüfen, dass der Look der Startseite
+   (Admin → Startseite) auf echte Produkte zeigt, und die Grössentabellen mit den Massen von Axion ersetzen.
 1. Stripe live: Live-Schlüssel (`rk_live_…`) und Live-Webhook mit eigenem `whsec_…` in die Secrets.
 2. Domain in Lovable verbinden. `SITE_URL` und `ALLOWED_ORIGINS` (Secrets), Site URL und Redirect URLs (Cloud → Users)
    sowie `siteUrl` in `src/config/shop.ts` auf die Domain umstellen. Die Vorschau-Adresse aus `ALLOWED_ORIGINS`

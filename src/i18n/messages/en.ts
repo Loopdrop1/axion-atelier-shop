@@ -45,11 +45,18 @@ export const en: Messages = {
     labels: {
       neu: "New",
       anzuege: "Suits",
+      sakkos: "Blazers",
+      hosen: "Trousers",
+      hemden: "Shirts",
       westen: "Waistcoats",
+      "maentel-jacken": "Coats & jackets",
+      strick: "Knitwear",
       schuhe: "Shoes",
+      accessoires: "Accessories",
       alle: "All pieces",
       sale: "Sale",
     },
+    collection: "Collection",
     occasions: "Occasions",
     main: "Main navigation",
     mobile: "Mobile main navigation",
@@ -80,7 +87,7 @@ export const en: Messages = {
   pages: {
     "ueber-uns": {
       title: "About us",
-      description: "Clean cuts and pieces that go together. Discover Axion.",
+      description: "Carefully chosen menswear and accessories that go together. Discover Axion.",
     },
     "haeufige-fragen": {
       title: "Frequently asked questions",
@@ -92,7 +99,8 @@ export const en: Messages = {
     },
     groessenberatung: {
       title: "Size advice",
-      description: "Find your size for suits, waistcoats and shoes with the Axion size chart.",
+      description:
+        "Find your size for suits, shirts, knitwear, shoes and more with the Axion size charts.",
     },
     "versand-und-rueckgabe": {
       title: "Shipping and returns",
@@ -117,8 +125,8 @@ export const en: Messages = {
     draftNotice: "Draft: details in square brackets will be completed before launch.",
     termsLinkSentence: "The binding rules are set out in the",
     about: {
-      title: "Clean cuts. Your look.",
-      text: "Axion stands for clean cuts and pieces that go together. Combine suit, waistcoat and shoes into your look.",
+      title: "Carefully chosen. For your look.",
+      text: "Axion stands for carefully chosen menswear and accessories that go together. From the suit to the pocket square, ready to ship.",
     },
     contact: {
       intro:
@@ -148,20 +156,20 @@ export const en: Messages = {
     failed: "Your message could not be sent. Please try again or email us directly.",
   },
   seo: {
-    homeTitle: "Suits, waistcoats and shoes",
+    homeTitle: "Menswear, shoes and accessories",
     homeDescription:
-      "Discover Axion: suits, waistcoats and shoes for weddings, business and special moments. Free shipping in Switzerland.",
+      "Discover Axion: carefully chosen menswear, shoes and accessories, from suits and coats to cashmere and silk. Delivery throughout Switzerland.",
   },
   home: {
     hero: {
-      eyebrow: "Suits · Waistcoats · Shoes",
-      title: "Precisely cut.\nFor every occasion.",
-      text: "Suits, waistcoats and shoes for weddings, business and everything in between.",
+      eyebrow: "New collection",
+      title: "Timeless elegance.\nReady for you.",
+      text: "Suits, coats, knitwear and accessories, carefully chosen and ready to ship.",
       primary: "Discover the collection",
-      secondary: "View suits",
+      secondary: "View new arrivals",
       imageAlt: "Navy three-piece suit with black oxford shoes in a bright hallway",
     },
-    brand: { eyebrow: "Axion · Switzerland", title: "Considered,\ncut by cut." },
+    brand: { eyebrow: "Axion · Switzerland", title: "Quality\nyou can feel." },
     collections: { eyebrow: "The collections", title: "One look. Your style." },
     newArrivals: {
       eyebrow: "New in the collection",
@@ -188,7 +196,7 @@ export const en: Messages = {
     story: {
       eyebrow: "Axion",
       title: "It all starts\nwith the details.",
-      text: "Axion stands for clean cuts and pieces that go together. Combine suit, waistcoat and shoes into your look.",
+      text: "Axion stands for carefully chosen menswear and accessories that go together. From the suit to the pocket square, ready to ship.",
       link: "About us",
       imageAlt: "Close-up of dark suit fabric with a brass-coloured button",
     },
@@ -198,15 +206,16 @@ export const en: Messages = {
       returns: (days: number) => `Returns within ${days} days`,
     },
     discover: "Discover",
-    previous: "Previous products",
-    next: "Next products",
+    previousCategories: "Previous categories",
+    nextCategories: "Next categories",
     view: "View",
     viewHotspot: (label: string) => `View ${label.toLowerCase()}`,
     // Shop the look (home page)
     lookSelection: (count: number, total: number) =>
       `Selected: ${count} of ${total} ${total === 1 ? "piece" : "pieces"}`,
     lookAddAll: "Add the whole look to cart",
-    scrollCue: "To the collections",
+    scrollCue: "To the new arrivals",
+    scrollCueCollections: "To the collections",
     location: "Axion · Switzerland",
     videoPause: "Pause video",
     videoPlay: "Play video",
@@ -214,12 +223,12 @@ export const en: Messages = {
   collections: {
     all: {
       title: "The collection",
-      description: "Suits, waistcoats and shoes. Find the pieces for your look.",
+      description: "Menswear, shoes and accessories. Find the pieces for your look.",
     },
     new: { title: "New arrivals", description: "New pieces. New combinations." },
     sale: {
       title: "Selected pieces",
-      description: "Suits, waistcoats and shoes at reduced prices.",
+      description: "Selected pieces at reduced prices.",
     },
     eyebrow: "Axion collection",
     filters: {
@@ -282,8 +291,8 @@ export const en: Messages = {
     care: "Care",
     origin: "Origin",
     features: "Features",
-    consultTitle: "Personal advice",
-    consultText: "Questions about size, fabric or style? We are happy to help.",
+    consultTitle: "Personal service",
+    consultText: "Questions about size, delivery or returns? We are happy to help.",
     consultLink: "Get in touch",
     consultPhone: (phone: string) => `or call: ${phone}`,
     klarna: "Pay later or in interest-free instalments with Klarna (subject to Klarna's approval).",
@@ -299,6 +308,8 @@ export const en: Messages = {
     badgeNew: "New",
     badgeSale: "Sale",
     addSize: (name: string, size: string) => `Add ${name}, size ${size}`,
+    addOne: (name: string) => `Add to cart: ${name}`,
+    oneSize: "One size",
     sizeSoldOut: (name: string, size: string) => `${name}, size ${size}, sold out`,
     notFoundTitle: "Page not found",
     notFoundDescription: "This product was not found. Discover the pieces from Axion.",
@@ -314,13 +325,14 @@ export const en: Messages = {
     overlayTitle: "What are you looking for?",
     label: "Search products",
     pageLabel: "Search the collection",
-    placeholder: "Suits, waistcoats, shoes …",
+    placeholder: "Suit, coat, tie …",
     pagePlaceholder: "What are you looking for?",
     none: "No matching pieces found.",
     hint: "Search for a piece, a category or a colour.",
     all: "All results",
     for: (q: string) => ` for “${q}”`,
-    description: "Search for suits, waistcoats, shoes and colours in the Axion collection.",
+    description:
+      "Search for suits, coats, knitwear, shoes, accessories and colours in the Axion collection.",
   },
   wishlist: {
     title: "Your wishlist",
@@ -328,7 +340,7 @@ export const en: Messages = {
     loading: "Loading wishlist …",
     emptyTitle: "No pieces saved yet",
     emptyText: "Keep what you like here.",
-    description: "Keep your favourite suits, waistcoats and shoes from Axion in your wishlist.",
+    description: "Keep your favourite Axion pieces in your wishlist.",
   },
   errorPage: {
     title: "This page could not be loaded",
@@ -350,7 +362,6 @@ export const en: Messages = {
     decrease: "Decrease quantity",
     increase: "Increase quantity",
     remove: (name: string) => `Remove ${name}`,
-    lineMeta: (color: string, size: string) => `${color} · Size ${size}`,
     view: "View cart",
     maxPerLine: "At most 10 per size.",
     removedItems: "Some pieces are no longer available and were removed.",

@@ -2,6 +2,7 @@
 // Gleiche Regeln auf der Produktseite («Komplettes Outfit») und auf der Startseite (Look mit Bild).
 import { useState } from "react";
 import type { Product, Variant } from "@/lib/commerce/types";
+import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { useCart, useShopUI } from "@/lib/commerce/stores";
 
 /** Grössen zur Auswahl; ausverkaufte ausblenden, wenn das im Admin so eingestellt ist. */
@@ -17,6 +18,17 @@ export function isSoldOut(product: Product): boolean {
 /** Am Anfang ausgewählt: alle Stücke, die noch lieferbar sind. */
 export function defaultSelection(outfit: Product[]): string[] {
   return outfit.filter((p) => !isSoldOut(p)).map((p) => p.handle);
+}
+
+/** Stücke in Einheitsgrösse (z. B. Krawatte): diese Grösse ist gleich gewählt, wenn lieferbar.
+ *  Eine einzelne echte Grösse (Schuh nur noch in 42) wählt die Kundschaft selbst. */
+export function defaultSizes(outfit: Product[]): Record<string, string> {
+  return Object.fromEntries(
+    outfit.flatMap((p) => {
+      const only = oneSizeVariant(p);
+      return only?.availableForSale ? [[p.handle, only.id]] : [];
+    }),
+  );
 }
 
 /** Summe der ausgewählten Stücke: Preis der gewählten Grösse, sonst der Preis des Stücks. */
@@ -59,7 +71,7 @@ export function useOutfit(outfit: Product[]) {
   const add = useCart((s) => s.add);
   const openCart = useShopUI((s) => s.setCart);
   const [picked, setPicked] = useState<string[]>(() => defaultSelection(outfit));
-  const [sizes, setSizes] = useState<Record<string, string>>({});
+  const [sizes, setSizes] = useState<Record<string, string>>(() => defaultSizes(outfit));
   const [missing, setMissing] = useState<string[]>([]);
   // Ist ein ausgewähltes Stück inzwischen ganz ausverkauft (neu geladene Daten), zählt es nicht mehr mit.
   // Sonst bliebe es ausgewählt, liesse sich aber nicht mehr abwählen, und nichts käme in den Warenkorb.

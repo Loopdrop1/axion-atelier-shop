@@ -186,7 +186,7 @@ function Content() {
           { name: "title", label: "Titel", multiline: true, hint: "Zeilenumbruch mit Enter" },
           { name: "text", label: "Text", multiline: true },
           { name: "primary", label: "Knopf 1 (zur Kollektion)" },
-          { name: "secondary", label: "Knopf 2 (zu den Anzügen)" },
+          { name: "secondary", label: "Knopf 2 (zu den Neuheiten)" },
         ]}
         defaults={{ de: flatten(home.de.hero), en: flatten(home.en.hero) }}
       />

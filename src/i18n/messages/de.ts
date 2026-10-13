@@ -46,11 +46,18 @@ export const de = {
     labels: {
       neu: "Neu",
       anzuege: "Anzüge",
+      sakkos: "Sakkos",
+      hosen: "Hosen",
+      hemden: "Hemden",
       westen: "Westen",
+      "maentel-jacken": "Mäntel & Jacken",
+      strick: "Strick",
       schuhe: "Schuhe",
+      accessoires: "Accessoires",
       alle: "Alle Stücke",
       sale: "Sale",
     } as Record<string, string>,
+    collection: "Kollektion",
     occasions: "Anlässe",
     main: "Hauptnavigation",
     mobile: "Mobile Hauptnavigation",
@@ -81,7 +88,7 @@ export const de = {
   pages: {
     "ueber-uns": {
       title: "Über uns",
-      description: "Klare Schnitte und Stücke, die zusammenpassen. Entdecke Axion.",
+      description: "Ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Entdecke Axion.",
     },
     "haeufige-fragen": {
       title: "Häufige Fragen",
@@ -93,7 +100,8 @@ export const de = {
     },
     groessenberatung: {
       title: "Grössenberatung",
-      description: "Finde deine Grösse für Anzüge, Westen und Schuhe mit der Axion Grössentabelle.",
+      description:
+        "Finde deine Grösse für Anzüge, Hemden, Strick, Schuhe und mehr mit den Axion Grössentabellen.",
     },
     "versand-und-rueckgabe": {
       title: "Versand und Rückgabe",
@@ -119,8 +127,8 @@ export const de = {
     draftNotice: "Entwurf: Angaben in eckigen Klammern werden vor dem Livegang ergänzt.",
     termsLinkSentence: "Die verbindlichen Regeln stehen in den",
     about: {
-      title: "Klare Schnitte. Dein Auftritt.",
-      text: "Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste und Schuhe zu deinem Auftritt.",
+      title: "Ausgesucht. Für deinen Auftritt.",
+      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, sofort lieferbar.",
     },
     contact: {
       intro:
@@ -151,20 +159,20 @@ export const de = {
       "Die Nachricht konnte nicht gesendet werden. Bitte versuch es noch einmal oder schreib uns direkt per E-Mail.",
   },
   seo: {
-    homeTitle: "Anzüge, Westen und Schuhe",
+    homeTitle: "Herrenmode, Schuhe und Accessoires",
     homeDescription:
-      "Entdecke Axion: Anzüge, Westen und Schuhe für Hochzeit, Business und besondere Momente. Gratisversand in der Schweiz.",
+      "Entdecke Axion: ausgesuchte Herrenmode, Schuhe und Accessoires, vom Anzug und Mantel bis zu Kaschmir und Seide. Lieferung in der ganzen Schweiz.",
   },
   home: {
     hero: {
-      eyebrow: "Anzüge · Westen · Schuhe",
-      title: "Präzise geschnitten.\nFür jeden Auftritt.",
-      text: "Anzüge, Westen und Schuhe für Hochzeit, Business und alles dazwischen.",
+      eyebrow: "Neue Kollektion",
+      title: "Zeitlose Eleganz.\nBereit für dich.",
+      text: "Anzüge, Mäntel, Strick und Accessoires in ausgesuchter Qualität, sofort lieferbar.",
       primary: "Kollektion entdecken",
-      secondary: "Anzüge ansehen",
+      secondary: "Neuheiten ansehen",
       imageAlt: "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang",
     },
-    brand: { eyebrow: "Axion · Schweiz", title: "Schnitt für Schnitt\ndurchdacht." },
+    brand: { eyebrow: "Axion · Schweiz", title: "Qualität,\ndie man spürt." },
     collections: { eyebrow: "Die Kollektionen", title: "Ein Auftritt. Dein Stil." },
     newArrivals: {
       eyebrow: "Frisch in der Kollektion",
@@ -191,7 +199,7 @@ export const de = {
     story: {
       eyebrow: "Axion",
       title: "Das Ganze beginnt\nmit den Details.",
-      text: "Axion steht für klare Schnitte und Stücke, die zusammenpassen. Kombiniere Anzug, Weste und Schuhe zu deinem Auftritt.",
+      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, sofort lieferbar.",
       link: "Über uns",
       imageAlt: "Detail von dunklem Anzugstoff mit messingfarbenem Knopf",
     },
@@ -201,15 +209,16 @@ export const de = {
       returns: (days: number) => `Rückgabe innert ${days} Tagen`,
     },
     discover: "Entdecken",
-    previous: "Vorherige Produkte",
-    next: "Nächste Produkte",
+    previousCategories: "Vorherige Kategorien",
+    nextCategories: "Nächste Kategorien",
     view: "Ansehen",
     viewHotspot: (label: string) => `${label} ansehen`,
     // Look direkt kaufen (Startseite)
     lookSelection: (count: number, total: number) =>
       `Auswahl: ${count} von ${total} ${total === 1 ? "Stück" : "Stücken"}`,
     lookAddAll: "Ganzen Look in den Warenkorb",
-    scrollCue: "Zu den Kollektionen",
+    scrollCue: "Zu den Neuheiten",
+    scrollCueCollections: "Zu den Kollektionen",
     location: "Axion · Schweiz",
     videoPause: "Video anhalten",
     videoPlay: "Video abspielen",
@@ -217,12 +226,12 @@ export const de = {
   collections: {
     all: {
       title: "Die Kollektion",
-      description: "Anzüge, Westen und Schuhe. Finde die Stücke für deinen Auftritt.",
+      description: "Herrenmode, Schuhe und Accessoires. Finde die Stücke für deinen Auftritt.",
     },
     new: { title: "Neu eingetroffen", description: "Neue Stücke. Neue Kombinationen." },
     sale: {
       title: "Ausgewählte Stücke",
-      description: "Anzüge, Westen und Schuhe zu reduzierten Preisen.",
+      description: "Ausgesuchte Stücke zu reduzierten Preisen.",
     },
     eyebrow: "Axion Kollektion",
     filters: {
@@ -288,8 +297,8 @@ export const de = {
     care: "Pflege",
     origin: "Herkunft",
     features: "Ausstattung",
-    consultTitle: "Persönliche Beratung",
-    consultText: "Fragen zu Grösse, Stoff oder Stil? Wir helfen dir gerne weiter.",
+    consultTitle: "Persönlicher Service",
+    consultText: "Fragen zu Grösse, Lieferung oder Rückgabe? Wir helfen dir gerne weiter.",
     consultLink: "Kontakt aufnehmen",
     consultPhone: (phone: string) => `oder anrufen: ${phone}`,
     klarna: "Mit Klarna später oder in Raten ohne Zins bezahlen (nach Prüfung durch Klarna).",
@@ -306,6 +315,8 @@ export const de = {
     badgeNew: "Neu",
     badgeSale: "Sale",
     addSize: (name: string, size: string) => `${name}, Grösse ${size} hinzufügen`,
+    addOne: (name: string) => `In den Warenkorb: ${name}`,
+    oneSize: "Einheitsgrösse",
     sizeSoldOut: (name: string, size: string) => `${name}, Grösse ${size}, ausverkauft`,
     notFoundTitle: "Seite nicht gefunden",
     notFoundDescription: "Dieses Produkt wurde nicht gefunden. Entdecke die Stücke von Axion.",
@@ -321,13 +332,14 @@ export const de = {
     overlayTitle: "Was suchst du?",
     label: "Produkte suchen",
     pageLabel: "Kollektion durchsuchen",
-    placeholder: "Anzüge, Westen, Schuhe …",
+    placeholder: "Anzug, Mantel, Krawatte …",
     pagePlaceholder: "Was suchst du?",
     none: "Keine passenden Stücke gefunden.",
     hint: "Suche nach einem Stück, einer Kategorie oder einer Farbe.",
     all: "Alle Ergebnisse",
     for: (q: string) => ` für «${q}»`,
-    description: "Suche nach Anzügen, Westen, Schuhen und Farben in der Axion Kollektion.",
+    description:
+      "Suche nach Anzügen, Mänteln, Strick, Schuhen, Accessoires und Farben in der Axion Kollektion.",
   },
   wishlist: {
     title: "Deine Merkliste",
@@ -335,8 +347,7 @@ export const de = {
     loading: "Merkliste wird geladen …",
     emptyTitle: "Noch keine Stücke gemerkt",
     emptyText: "Bewahre hier auf, was dir gefällt.",
-    description:
-      "Bewahre deine liebsten Anzüge, Westen und Schuhe von Axion in deiner Merkliste auf.",
+    description: "Bewahre deine liebsten Stücke von Axion in deiner Merkliste auf.",
   },
   errorPage: {
     title: "Diese Seite konnte nicht geladen werden",
@@ -358,7 +369,6 @@ export const de = {
     decrease: "Anzahl reduzieren",
     increase: "Anzahl erhöhen",
     remove: (name: string) => `${name} entfernen`,
-    lineMeta: (color: string, size: string) => `${color} · Grösse ${size}`,
     view: "Warenkorb ansehen",
     maxPerLine: "Höchstens 10 Stück pro Grösse.",
     removedItems: "Einige Stücke sind nicht mehr verfügbar und wurden entfernt.",

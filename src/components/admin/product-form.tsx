@@ -441,7 +441,7 @@ export function ProductForm({
                   rows={5}
                   maxLength={1500}
                   placeholder={
-                    "Zweiknopf-Sakko mit Reverskragen\nHose ohne Bundfalte, mit Saumzugabe"
+                    "Zweiknopf-Sakko mit Reverskragen\nHose ohne Bundfalte, fertig gesäumt"
                   }
                   {...text("features_de")}
                 />

@@ -6,6 +6,7 @@ import { Heart, Plus, ArrowLeft, ArrowRight, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { formatPrice } from "@/lib/commerce/format";
+import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
@@ -34,7 +35,10 @@ export function ProductPage({
   const fitLabel = useFitLabel();
   const settings = useShopSettings();
   const shipping = shippingLabel(settings, locale);
-  const [size, setSize] = useState("");
+  // Einheitsgrösse (z. B. Krawatte): die Grösse ist gesetzt, es gibt nichts zu wählen
+  const onlyVariant = oneSizeVariant(product);
+  const presetSize = onlyVariant?.availableForSale ? onlyVariant.title : "";
+  const [size, setSize] = useState(presetSize);
   const [guide, setGuide] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
@@ -51,8 +55,8 @@ export function ProductPage({
   const { handles, toggle } = useWishlist();
   // Nur bei anderem Produkt zurücksetzen. Neu geladene, gleiche Daten kommen als neue Objekte.
   useEffect(() => {
-    setSize("");
-  }, [product.handle]);
+    setSize(presetSize);
+  }, [product.handle, presetSize]);
   useEffect(() => {
     const node = mainAdd.current;
     if (!node) return;
@@ -232,30 +236,41 @@ export function ProductPage({
                 />
               ))}
             </div>
-            <div className="size-label">
-              <span>
-                {t.product.chooseSize}
-                {product.category === "schuhe" ? t.product.euSizes : ""}
-              </span>
-              <Button variant="icon" onClick={() => setGuide(true)}>
-                {t.product.sizeGuide}
-              </Button>
-            </div>
-            <div className="size-grid" ref={sizeSelector}>
-              {sizesFor(product, settings.hideSoldOut).map((v) => (
-                <Button
-                  variant="icon"
-                  key={v.id}
-                  className={size === v.title ? "selected" : ""}
-                  disabled={!v.availableForSale}
-                  aria-pressed={size === v.title}
-                  onClick={() => setSize(v.title)}
-                >
-                  {v.title}
-                  {!v.availableForSale && <span className="sr-only">, {t.product.soldOut}</span>}
-                </Button>
-              ))}
-            </div>
+            {onlyVariant ? (
+              <p className="size-single">
+                {t.product.oneSize}
+                {!onlyVariant.availableForSale && ` · ${t.product.soldOut}`}
+              </p>
+            ) : (
+              <>
+                <div className="size-label">
+                  <span>
+                    {t.product.chooseSize}
+                    {product.category === "schuhe" ? t.product.euSizes : ""}
+                  </span>
+                  <Button variant="icon" onClick={() => setGuide(true)}>
+                    {t.product.sizeGuide}
+                  </Button>
+                </div>
+                <div className="size-grid" ref={sizeSelector}>
+                  {sizesFor(product, settings.hideSoldOut).map((v) => (
+                    <Button
+                      variant="icon"
+                      key={v.id}
+                      className={size === v.title ? "selected" : ""}
+                      disabled={!v.availableForSale}
+                      aria-pressed={size === v.title}
+                      onClick={() => setSize(v.title)}
+                    >
+                      {v.title}
+                      {!v.availableForSale && (
+                        <span className="sr-only">, {t.product.soldOut}</span>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
             {/* Immer vorhanden, damit Screenreader den Hinweis beim Wechsel der Grösse vorlesen */}
             <p className="stock-hint" role="status">
               {lowStock > 0 ? t.product.lowStock(lowStock) : ""}
@@ -274,7 +289,7 @@ export function ProductPage({
                 <Heart fill={handles.includes(product.handle) ? "currentColor" : "none"} />
               </Button>
             </div>
-            {!size && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
+            {!size && !onlyVariant && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
             <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
             {klarna && <p className="pay-hint">{t.product.klarna}</p>}
             <div className="accordion">
@@ -416,8 +431,9 @@ export function ProductPage({
       {bottom && (
         <div className="mobile-add-bar">
           <span className="price">{formatPrice(product.priceRange.min, locale)}</span>
-          <Button onClick={size ? addSelected : chooseSize}>
-            {size ? t.product.addToCart : t.product.chooseSize}
+          {/* Einheitsgrösse ausverkauft: nichts zu wählen, also auch kein «Grösse wählen» */}
+          <Button onClick={size ? addSelected : chooseSize} disabled={!size && !!onlyVariant}>
+            {size ? t.product.addToCart : onlyVariant ? t.product.soldOut : t.product.chooseSize}
           </Button>
         </div>
       )}
@@ -494,7 +510,7 @@ function OutfitBuilder({ outfit }: { outfit: Product[] }) {
   );
 }
 
-/** Persönliche Beratung: Kontakt, auf Wunsch mit Telefonnummer (nur wenn in der Konfiguration eingetragen). */
+/** Persönlicher Service: Kontakt, auf Wunsch mit Telefonnummer (nur wenn in der Konfiguration eingetragen). */
 function ConsultCard() {
   const t = useT();
   const lp = useLocaleParam();

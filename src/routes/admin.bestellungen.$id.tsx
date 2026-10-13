@@ -15,6 +15,7 @@ import {
   type AdminOrder,
 } from "@/lib/admin/api";
 import { imageUrl } from "@/lib/commerce/mapping";
+import { sizeText } from "@/lib/commerce/one-size";
 import { trackingUrl } from "@/lib/account/api";
 import {
   AreaField,
@@ -180,7 +181,10 @@ function OrderView({ order }: { order: AdminOrder }) {
                             <div>
                               {item.title}
                               <span className="admin-sub">
-                                {[item.color, item.size && `Grösse ${item.size}`]
+                                {[
+                                  item.color,
+                                  item.size && sizeText(item.size, "Grösse", "Einheitsgrösse"),
+                                ]
                                   .filter(Boolean)
                                   .join(" · ")}
                                 {item.restocked_quantity > 0 &&

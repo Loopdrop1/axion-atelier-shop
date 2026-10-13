@@ -212,7 +212,7 @@ The binding rules are set out in the terms and conditions; the German version is
 **Which size fits me?**
 Measure your chest and waist and compare the values with our size chart. If you are unsure, email us at {{email}}.
 **What do the numbers 46 to 56 mean?**
-They are the usual European sizes for suits and waistcoats. Shoes come in EU sizes.
+They are the usual European sizes for suits, jackets, waistcoats, coats and trousers. Shirts come in collar sizes (38 to 45), knitwear from S to XXL and shoes in EU sizes.
 **Can I exchange an item for another size?**
 Yes, within {{returnDays}} days, while the size is available. Email us at {{email}}.
 

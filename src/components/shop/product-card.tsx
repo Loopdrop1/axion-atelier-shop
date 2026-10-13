@@ -3,6 +3,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Photo } from "./primitives";
 import { formatPrice } from "@/lib/commerce/format";
+import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Product } from "@/lib/commerce";
@@ -21,6 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const setCart = useShopUI((s) => s.setCart);
   const saved = handles.includes(product.handle);
+  const single = oneSizeVariant(product);
   return (
     <article className="product-card">
       <div className="product-card-image">
@@ -54,27 +56,45 @@ export function ProductCard({ product }: { product: Product }) {
           <Heart fill={saved ? "currentColor" : "none"} />
         </Button>
         <div className="quick-add">
-          <span>{t.product.chooseSize}</span>
+          {/* Einheitsgrösse: direkt in den Warenkorb, ohne Grössenwahl */}
+          {!single && <span>{t.product.chooseSize}</span>}
           <div>
-            {product.variants.map((v) => (
-              <Button
-                variant="icon"
-                key={v.id}
-                disabled={!v.availableForSale}
-                onClick={() => {
-                  add(v.id);
-                  setCart(true);
-                }}
-                aria-label={
-                  v.availableForSale
-                    ? t.product.addSize(name, v.title)
-                    : t.product.sizeSoldOut(name, v.title)
-                }
-              >
-                {v.title}
-                {!v.availableForSale && <span className="sr-only">, {t.product.soldOut}</span>}
-              </Button>
-            ))}
+            {single ? (
+              single.availableForSale ? (
+                <Button
+                  variant="icon"
+                  onClick={() => {
+                    add(single.id);
+                    setCart(true);
+                  }}
+                  aria-label={t.product.addOne(name)}
+                >
+                  {t.product.addToCart}
+                </Button>
+              ) : (
+                <span>{t.product.outfitSoldOut}</span>
+              )
+            ) : (
+              product.variants.map((v) => (
+                <Button
+                  variant="icon"
+                  key={v.id}
+                  disabled={!v.availableForSale}
+                  onClick={() => {
+                    add(v.id);
+                    setCart(true);
+                  }}
+                  aria-label={
+                    v.availableForSale
+                      ? t.product.addSize(name, v.title)
+                      : t.product.sizeSoldOut(name, v.title)
+                  }
+                >
+                  {v.title}
+                  {!v.availableForSale && <span className="sr-only">, {t.product.soldOut}</span>}
+                </Button>
+              ))
+            )}
           </div>
         </div>
       </div>

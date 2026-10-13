@@ -7,6 +7,7 @@ import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { getMyOrder, trackingUrl, type OrderDetail, type ProfileAddress } from "@/lib/account/api";
 import { useGuestOrderClaim } from "@/lib/account/claim";
 import { formatCents, formatDate } from "@/lib/commerce/format";
+import { sizeText } from "@/lib/commerce/one-size";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { useRequireSession } from "@/components/account/use-require-session";
 import { Notice } from "@/components/account/form";
@@ -129,7 +130,10 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
                   <div>
                     <h3>{item.title}</h3>
                     <p>
-                      {[item.color, item.size && `${t.product.size} ${item.size}`]
+                      {[
+                        item.color,
+                        item.size && sizeText(item.size, t.product.size, t.product.oneSize),
+                      ]
                         .filter(Boolean)
                         .join(" · ")}
                     </p>

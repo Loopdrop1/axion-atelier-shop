@@ -289,7 +289,7 @@ Die verbindlichen Regeln stehen in den AGB.
 **Welche Grösse passt mir?**
 Miss Brust- und Taillenumfang und vergleiche die Werte mit unserer Grössentabelle. Bei Fragen helfen wir dir gerne per E-Mail an {{email}}.
 **Was bedeuten die Zahlen 46 bis 56?**
-Das sind die üblichen Konfektionsgrössen für Anzüge und Westen. Schuhe führen wir in EU-Grössen.
+Das sind die üblichen Konfektionsgrössen für Anzüge, Sakkos, Westen, Mäntel und Hosen. Hemden führen wir nach Kragenweite (38 bis 45), Strick von S bis XXL und Schuhe in EU-Grössen.
 **Kann ich eine andere Grösse tauschen?**
 Ja, innert {{returnDays}} Tagen, solange die Grösse verfügbar ist. Schreib uns an {{email}}.
 

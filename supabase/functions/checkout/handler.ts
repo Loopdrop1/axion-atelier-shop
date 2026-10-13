@@ -7,6 +7,7 @@ import { RpcError } from "../_shared/db.ts";
 import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
+import { sizeText } from "../_shared/size.ts";
 import { INTEGRATION_ID } from "../_shared/stripe.ts";
 
 interface ReservedLine {
@@ -194,6 +195,7 @@ async function cartCheckout(
 
   const expiresAt = Math.floor(deps.now().getTime() / 1000) + SESSION_MINUTES * 60;
   const sizeWord = locale === "en" ? "Size" : "Grösse";
+  const oneSizeWord = locale === "en" ? "One size" : "Einheitsgrösse";
   const metadata = {
     order_id: reservation.order_id,
     order_number: String(reservation.order_number),
@@ -220,7 +222,9 @@ async function cartCheckout(
           unit_amount: l.unit_price_cents,
           product_data: productData(
             l.title,
-            [l.color, l.size ? `${sizeWord} ${l.size}` : null].filter(Boolean).join(" · "),
+            [l.color, l.size ? sizeText(l.size, sizeWord, oneSizeWord) : null]
+              .filter(Boolean)
+              .join(" · "),
             imageUrl(deps, l.image),
           ),
         },

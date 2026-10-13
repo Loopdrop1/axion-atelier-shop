@@ -37,7 +37,6 @@
   --placeholder-foreground: #6b4e00;
   --shadow-cart: -10px 0 60px oklch(0.15 0 0 / 0.14);
   --backdrop: oklch(0.15 0.02 160 / 0.55);
-  --category-scrim: linear-gradient(to top, oklch(from #12261d l c h / 0.55), transparent);
   --mark-sweep: linear-gradient(
     110deg,
     transparent 30%,
@@ -606,10 +605,13 @@ svg {
 .section-head h2 {
   margin: 0;
 }
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+/* Kategorien als Reihe zum Blättern: Bild freigestellt auf Sand, Name darunter */
+.category-card {
+  display: block;
+}
+.carousel-track > .category-card {
+  flex: 0 0 calc((100% - 72px) / 4);
+  min-width: 0;
 }
 .category-tile {
   position: relative;
@@ -622,27 +624,25 @@ svg {
   height: 100%;
   transition: transform 0.9s;
 }
-.category-tile:hover img {
+.category-card:hover .category-tile img {
   transform: scale(1.035);
 }
 .category-label {
-  position: absolute;
-  bottom: 28px;
-  left: 28px;
-  right: 28px;
-  color: var(--paper);
   display: flex;
-  align-items: end;
+  align-items: baseline;
   justify-content: space-between;
-  z-index: 1;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--ink);
 }
 .category-label h3 {
-  font-size: 2rem;
+  font-size: 1.35rem;
   margin: 0;
 }
 .category-label span {
   font-size: 12px;
-  border-bottom: 1px solid var(--sand);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
 }
 .category-label h3::after {
   content: "";
@@ -653,7 +653,7 @@ svg {
   transform-origin: left;
   transition: transform 0.4s;
 }
-.category-tile:hover h3::after {
+.category-card:hover h3::after {
   transform: scaleX(1);
 }
 .new-section {
@@ -665,10 +665,6 @@ svg {
 .carousel-track {
   display: flex;
   gap: 24px;
-}
-.carousel-track > .product-card {
-  flex: 0 0 calc((100% - 72px) / 4);
-  min-width: 0;
 }
 .carousel-controls {
   display: flex;
@@ -750,6 +746,11 @@ svg {
 }
 .quick-add button:disabled {
   text-decoration: line-through;
+}
+.quick-add > div > span {
+  padding: 6px;
+  font-size: 11px;
+  color: var(--muted-foreground);
 }
 .product-card:hover .quick-add,
 .product-card:focus-within .quick-add {
@@ -1444,6 +1445,11 @@ svg {
   height: 1px;
   background: var(--gold);
 }
+/* Einheitsgrösse statt Grössenauswahl */
+.size-single {
+  font-size: 13px;
+  margin: 0 0 18px;
+}
 .stock-hint {
   display: flex;
   align-items: center;
@@ -1773,6 +1779,9 @@ svg {
   .product-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .carousel-track > .category-card {
+    flex-basis: calc((100% - 48px) / 3);
+  }
   .occasion-link h3 {
     font-size: 21px;
   }
@@ -1909,26 +1918,8 @@ svg {
   .scroll-cue {
     height: 24px;
   }
-  .category-grid {
-    display: flex;
-    gap: 14px;
-    overflow: auto;
-    scroll-snap-type: x mandatory;
-    margin-right: -20px;
-    padding-right: 20px;
-    scrollbar-width: none;
-  }
-  .category-grid > a {
-    flex: 0 0 84%;
-    scroll-snap-align: start;
-  }
-  .category-label {
-    bottom: 22px;
-    left: 22px;
-    right: 22px;
-  }
   .category-label h3 {
-    font-size: 1.7rem;
+    font-size: 1.15rem;
   }
   .section-head {
     margin-bottom: 28px;
@@ -1940,7 +1931,7 @@ svg {
   .carousel-track {
     gap: 14px;
   }
-  .carousel-track > .product-card {
+  .carousel-track > .category-card {
     flex-basis: calc((100% - 14px) / 1.6);
   }
   .carousel-controls {
@@ -2220,7 +2211,7 @@ svg {
     transition-duration: 0.2s !important;
   }
   .product-card:hover img,
-  .category-tile:hover img {
+  .category-card:hover .category-tile img {
     transform: none;
   }
 }
@@ -2330,6 +2321,11 @@ svg {
 .nav-popover {
   min-width: 210px;
 }
+/* Kollektion: Kategorien in zwei Spalten */
+.nav-popover-columns {
+  grid-template-columns: repeat(2, minmax(150px, auto));
+  column-gap: 40px;
+}
 .filter-popover {
   font-size: 13px;
   min-width: 200px;
@@ -2361,13 +2357,6 @@ svg {
   font-size: 13px;
   padding: 0;
   gap: 9px;
-}
-.category-tile::after {
-  content: "";
-  position: absolute;
-  inset: 60% 0 0;
-  background: var(--category-scrim);
-  pointer-events: none;
 }
 .occasion-grid {
   margin-top: 40px;
@@ -2656,10 +2645,7 @@ svg {
     gap: 8px;
   }
   .category-label h3 {
-    font-size: 1.7rem;
-  }
-  .category-label span {
-    white-space: nowrap;
+    font-size: 1.2rem;
   }
 }
 
@@ -2758,8 +2744,11 @@ input[type="radio"] {
 .carousel-controls button:disabled {
   opacity: 0.35;
 }
-.new-section .carousel-controls {
-  display: flex;
+/* Neuheiten auf dem Tablet: zwei volle Reihen à drei statt 3 + 3 + 2 */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .new-section .product-grid > :nth-child(n + 7) {
+    display: none;
+  }
 }
 @media (max-width: 767px) {
   .shipping-definitions > div {

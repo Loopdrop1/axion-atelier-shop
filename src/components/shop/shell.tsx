@@ -18,9 +18,17 @@ import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
 
 /** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
-const defaultCategories = ["anzuege", "westen", "schuhe"] as const;
-/** Im Kopfmenü am Computer höchstens so viele Kategorien; die übrigen über «Alle Stücke». */
-const DESKTOP_MAX = 5;
+const defaultCategories = [
+  "anzuege",
+  "sakkos",
+  "hosen",
+  "hemden",
+  "westen",
+  "maentel-jacken",
+  "strick",
+  "schuhe",
+  "accessoires",
+] as const;
 export const occasionHandles = ["hochzeit", "business", "abschlussfeier", "gala"] as const;
 const helpPages = [
   "versand-und-rueckgabe",
@@ -38,6 +46,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
   const home = pathname === "/" || pathname === "/en" || pathname === "/en/";
   const header = useRef<HTMLElement>(null);
   const [occasionOpen, setOccasionOpen] = useState(false);
+  const [collectionOpen, setCollectionOpen] = useState(false);
   const [headerTop, setHeaderTop] = useState<number | null>(null);
   const [scroll, setScroll] = useState({ solid: false, hidden: false });
   const [announcement, setAnnouncement] = useState(0);
@@ -52,8 +61,6 @@ export function ShopShell({ children }: { children: ReactNode }) {
   const wishes = useWishlist((s) => s.handles.length);
   const label = (handle: string) => t.nav.labels[handle] ?? handle;
   const categories = useNavCategories();
-  const desktop = categories.slice(0, DESKTOP_MAX);
-  const more = categories.length > DESKTOP_MAX;
   useEffect(() => {
     useCart.persist.rehydrate();
     useWishlist.persist.rehydrate();
@@ -106,6 +113,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenu(false);
     setOccasionOpen(false);
+    setCollectionOpen(false);
     setScroll((s) => ({ ...s, hidden: false }));
   }, [pathname, setMenu]);
   return (
@@ -142,20 +150,41 @@ export function ShopShell({ children }: { children: ReactNode }) {
             <Logo />
           </Link>
           <nav className="desktop-nav" aria-label={t.nav.main}>
-            {[{ handle: "neu", title: label("neu") }, ...desktop].map((c) => (
-              <Link
-                key={c.handle}
-                to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle: c.handle }}
-              >
-                {c.title}
-              </Link>
-            ))}
-            {more && (
-              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "alle" }}>
-                {label("alle")}
-              </Link>
-            )}
+            <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "neu" }}>
+              {label("neu")}
+            </Link>
+            {/* Alle Kategorien in einem Menü: bleibt ruhig, auch wenn das Sortiment wächst */}
+            <Popover.Root open={collectionOpen} onOpenChange={setCollectionOpen}>
+              <Popover.Trigger asChild>
+                <Button
+                  variant="icon"
+                  className="occasion-trigger"
+                  aria-expanded={collectionOpen}
+                  aria-controls="collection-navigation"
+                >
+                  {t.nav.collection} <ChevronDown />
+                </Button>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content
+                  id="collection-navigation"
+                  className="nav-popover nav-popover-columns"
+                  align="start"
+                  sideOffset={20}
+                >
+                  {[...categories, { handle: "alle", title: label("alle") }].map((c) => (
+                    <Link
+                      key={c.handle}
+                      to="/{-$locale}/kollektion/$handle"
+                      params={{ locale: lp, handle: c.handle }}
+                      onClick={() => setCollectionOpen(false)}
+                    >
+                      {c.title}
+                    </Link>
+                  ))}
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
             <Popover.Root open={occasionOpen} onOpenChange={setOccasionOpen}>
               <Popover.Trigger asChild>
                 <Button

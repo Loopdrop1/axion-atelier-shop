@@ -162,6 +162,23 @@ describe("Startseite: Look direkt kaufen", () => {
     expect(useCart.getState().lines).toEqual([{ variantId: "anzug-46", quantity: 1 }]);
   });
 
+  it("Einheitsgrösse (Krawatte) ist schon gewählt, nur der Anzug braucht eine Grösse", () => {
+    const tie = testProduct("krawatte-morcote-bordeaux", 89, [
+      { ...testVariant("krawatte-os", true, 89), title: "One Size" },
+    ]);
+    tie.title = "Seidenkrawatte «Morcote»";
+    tie.color = { name: "Bordeaux", hex: "#6B1E2E" };
+    render(<LookShop products={[suit, tie]} total="Ganzes Outfit" />);
+    expect(size("Seidenkrawatte «Morcote», Bordeaux")).toHaveValue("krawatte-os");
+    fireEvent.change(size(SUIT), { target: { value: "anzug-46" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ganzen Look in den Warenkorb" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(useCart.getState().lines).toEqual([
+      { variantId: "anzug-46", quantity: 1 },
+      { variantId: "krawatte-os", quantity: 1 },
+    ]);
+  });
+
   it("Einstellung «ausverkaufte Grössen ausblenden» gilt auch hier", () => {
     settings.hideSoldOut = true;
     render(<LookShop products={[suit]} total="Ganzes Outfit" />);

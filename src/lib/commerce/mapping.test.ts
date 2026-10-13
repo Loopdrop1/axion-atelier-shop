@@ -181,7 +181,7 @@ describe("Startseite und Laufband", () => {
     expect(home.hero.video).toBeUndefined();
     expect(home.brand).toEqual({
       eyebrow: "Axion · Switzerland",
-      title: "Considered,\ncut by cut.",
+      title: "Quality\nyou can feel.",
     });
   });
 

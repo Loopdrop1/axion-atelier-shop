@@ -1,5 +1,6 @@
 // Alle E-Mail-Vorlagen in Deutsch und Englisch. Jede liefert Betreff, HTML und Text.
 import { formatChf, type Locale } from "../money.ts";
+import { sizeText } from "../size.ts";
 import {
   button,
   codeBox,
@@ -142,6 +143,7 @@ function dateText(iso: string, locale: Locale): string {
 const T = {
   de: {
     size: "Grösse",
+    oneSize: "Einheitsgrösse",
     qty: "Menge",
     subtotal: "Zwischensumme",
     discount: "Rabatt",
@@ -156,6 +158,7 @@ const T = {
   },
   en: {
     size: "Size",
+    oneSize: "One size",
     qty: "Qty",
     subtotal: "Subtotal",
     discount: "Discount",
@@ -174,14 +177,14 @@ function itemsBlock(order: OrderData): { html: string; text: string } {
   const t = T[order.locale];
   const html = rows(
     order.items.map((i) => ({
-      left: `${esc(i.title)}<br><span style="color:#5F5F5F;font-size:13px;">${[i.color, i.size ? `${t.size} ${i.size}` : null].filter(Boolean).map(esc).join(" · ")}${i.quantity > 1 ? ` · ${i.quantity} × ${esc(formatChf(i.unit_price_cents, order.locale))}` : ""}</span>`,
+      left: `${esc(i.title)}<br><span style="color:#5F5F5F;font-size:13px;">${[i.color, i.size ? sizeText(i.size, t.size, t.oneSize) : null].filter(Boolean).map(esc).join(" · ")}${i.quantity > 1 ? ` · ${i.quantity} × ${esc(formatChf(i.unit_price_cents, order.locale))}` : ""}</span>`,
       right: esc(formatChf(i.line_total_cents, order.locale)),
     })),
   );
   const text = order.items
     .map(
       (i) =>
-        `${i.quantity} × ${i.title}${i.color ? `, ${i.color}` : ""}${i.size ? `, ${t.size} ${i.size}` : ""}: ${formatChf(i.line_total_cents, order.locale)}`,
+        `${i.quantity} × ${i.title}${i.color ? `, ${i.color}` : ""}${i.size ? `, ${sizeText(i.size, t.size, t.oneSize)}` : ""}: ${formatChf(i.line_total_cents, order.locale)}`,
     )
     .join("\n");
   return { html, text };

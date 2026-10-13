@@ -4,13 +4,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { backendConfigured } from "@/lib/backend";
 import { CATEGORY_SELECT, PRODUCT_SELECT, type CatalogData, type ProductRow } from "./rows";
-import { sampleCatalog } from "./sample-catalog";
+
+// Beispielkatalog (Vorschau ohne Backend, Tests) als eigener Teil: Der Shop mit Backend lädt ihn nie mit.
+const sampleCatalog = () => import("./sample-catalog").then((m) => m.sampleCatalog);
 
 const TTL_MS = 30_000;
 let cache: { at: number; data: Promise<CatalogData> } | null = null;
 
 async function fetchCatalog(): Promise<CatalogData> {
-  if (!supabase) return sampleCatalog;
+  if (!supabase) return sampleCatalog();
   const [categories, products, content] = await Promise.all([
     supabase.from("categories").select(CATEGORY_SELECT).order("sort").order("slug"),
     supabase
@@ -32,7 +34,7 @@ async function fetchCatalog(): Promise<CatalogData> {
 }
 
 export function loadCatalog(): Promise<CatalogData> {
-  if (!backendConfigured) return Promise.resolve(sampleCatalog);
+  if (!backendConfigured) return sampleCatalog();
   const now = Date.now();
   if (cache && now - cache.at < TTL_MS) return cache.data;
   const data = fetchCatalog();

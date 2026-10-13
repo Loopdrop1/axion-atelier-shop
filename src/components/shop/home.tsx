@@ -56,88 +56,97 @@ export function HomePage({
   const newProducts = products
     .filter((p) => p.tags.includes("neu"))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const categories = collections.filter((c) => c.image);
+  // Der Pfeil im Einstieg führt zum ersten Abschnitt, der etwas zeigt
+  const next = newProducts.length
+    ? { id: "neuheiten", label: t.home.scrollCue }
+    : categories.length
+      ? { id: "kollektionen", label: t.home.scrollCueCollections }
+      : undefined;
   const active = lookProducts.find((p) => p.handle === hotspot);
   const activeSpot = look.hotspots.find((h) => h.handle === active?.handle);
   return (
     <>
-      <Hero content={content.hero} />
-      <section className="section container" id="kollektionen">
-        <Reveal>
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">{content.collections.eyebrow}</p>
-              <h2>{content.collections.title}</h2>
-            </div>
-          </div>
-        </Reveal>
-        <div className="category-grid">
-          {collections
-            .filter((c) => c.image)
-            .map((c) => (
+      <Hero content={content.hero} next={next} />
+      {/* Wie im Reel: direkt nach dem Einstieg die Stücke, gross und freigestellt */}
+      {newProducts.length > 0 && (
+        <section className="section container new-section" id="neuheiten">
+          <Reveal>
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">{content.newArrivals.eyebrow}</p>
+                <h2>{content.newArrivals.title}</h2>
+              </div>
               <Link
+                className="text-link"
                 to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle: c.handle }}
-                key={c.handle}
+                params={{ locale: lp, handle: "neu" }}
               >
-                <Reveal image>
-                  <div className="category-tile">
-                    {c.image && <Photo image={c.image} />}
-                    <div className="category-label">
-                      <h3>{c.title}</h3>
-                      <span>{t.home.discover} ↗</span>
-                    </div>
-                  </div>
-                </Reveal>
+                {content.newArrivals.link} <ArrowRight />
               </Link>
-            ))}
-        </div>
-      </section>
-      <section className="section container new-section">
-        <Reveal>
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">{content.newArrivals.eyebrow}</p>
-              <h2>{content.newArrivals.title}</h2>
             </div>
-            <Link
-              className="text-link"
-              to="/{-$locale}/kollektion/$handle"
-              params={{ locale: lp, handle: "neu" }}
-            >
-              {content.newArrivals.link} <ArrowRight />
-            </Link>
-          </div>
-        </Reveal>
-        <div className="carousel-viewport" ref={embla}>
-          <div className="carousel-track">
-            {newProducts.map((p) => (
+          </Reveal>
+          <div className="product-grid">
+            {newProducts.slice(0, 8).map((p) => (
               <ProductCard key={p.handle} product={p} />
             ))}
           </div>
-        </div>
-        {carousel.overflow && (
-          <div className="carousel-controls justify-end mt-6">
-            <Button
-              variant="icon"
-              size="icon"
-              aria-label={t.home.previous}
-              disabled={!carousel.previous}
-              onClick={() => api?.scrollPrev()}
-            >
-              <ArrowLeft />
-            </Button>
-            <Button
-              variant="icon"
-              size="icon"
-              aria-label={t.home.next}
-              disabled={!carousel.next}
-              onClick={() => api?.scrollNext()}
-            >
-              <ArrowRight />
-            </Button>
+        </section>
+      )}
+      {categories.length > 0 && (
+        <section className="section container" id="kollektionen">
+          <Reveal>
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">{content.collections.eyebrow}</p>
+                <h2>{content.collections.title}</h2>
+              </div>
+              {carousel.overflow && (
+                <div className="carousel-controls">
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    aria-label={t.home.previousCategories}
+                    disabled={!carousel.previous}
+                    onClick={() => api?.scrollPrev()}
+                  >
+                    <ArrowLeft />
+                  </Button>
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    aria-label={t.home.nextCategories}
+                    disabled={!carousel.next}
+                    onClick={() => api?.scrollNext()}
+                  >
+                    <ArrowRight />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Reveal>
+          <div className="carousel-viewport" ref={embla}>
+            <div className="carousel-track">
+              {categories.map((c) => (
+                <Link
+                  className="category-card"
+                  to="/{-$locale}/kollektion/$handle"
+                  params={{ locale: lp, handle: c.handle }}
+                  key={c.handle}
+                >
+                  <div className="category-tile">
+                    <Photo image={c.image} />
+                  </div>
+                  <div className="category-label">
+                    <h3>{c.title}</h3>
+                    <span>{t.home.discover} ↗</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
       {lookProducts.length > 0 && (
         <section className="section look-section">
           <div className="container look-layout">

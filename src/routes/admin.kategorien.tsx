@@ -1,4 +1,4 @@
-// Kategorien (Anzüge, Westen, Schuhe …): Namen DE/EN, Beschreibung, Bild für die Startseite, Reihenfolge.
+// Kategorien (Anzüge, Sakkos, Accessoires …): Namen DE/EN, Beschreibung, Bild für die Startseite, Reihenfolge.
 import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

@@ -52,7 +52,14 @@ function useHeroVideo(video: HeroVideoSource) {
   return { ref, src, playing, paused, toggle, onPlaying: () => setPlaying(true) };
 }
 
-export function Hero({ content }: { content: HomeContent["hero"] }) {
+export function Hero({
+  content,
+  next,
+}: {
+  content: HomeContent["hero"];
+  /** Erster Abschnitt nach dem Einstieg (Ziel des Pfeils); ohne: Linie nur als Schmuck */
+  next?: { id: string; label: string } | undefined;
+}) {
   const t = useT();
   const lp = useLocaleParam();
   const video = useHeroVideo(content.video);
@@ -90,7 +97,7 @@ export function Hero({ content }: { content: HomeContent["hero"] }) {
               </Link>
             </Button>
             <Button variant="tailored" asChild>
-              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "anzuege" }}>
+              <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "neu" }}>
                 {content.secondary}
               </Link>
             </Button>
@@ -98,7 +105,11 @@ export function Hero({ content }: { content: HomeContent["hero"] }) {
         </div>
       </div>
       <div className="hero-bottom">
-        <a className="scroll-cue" href="#kollektionen" aria-label={t.home.scrollCue} />
+        {next ? (
+          <a className="scroll-cue" href={`#${next.id}`} aria-label={next.label} />
+        ) : (
+          <span className="scroll-cue" aria-hidden="true" />
+        )}
         <div className="hero-bottom-end">
           {video.src && (
             <button
