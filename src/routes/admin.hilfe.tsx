@@ -27,11 +27,13 @@ function HelpPage() {
           </li>
           <li>
             Texte auf Deutsch ergänzen: Beschreibung in zwei bis vier Sätzen, Material in Prozent,
-            Pflege, Hinweis zur Passform. Die englischen Felder füllt das Admin beim Speichern
-            automatisch aus und übersetzt sie neu, wenn sich das Deutsch ändert. Kurz prüfen, bei
-            Bedarf anpassen: Englisch, das ihr selbst schreibt oder ändert, bleibt immer stehen;
-            ändert sich danach das Deutsch, erscheint der Hinweis «bitte prüfen». Soll das Admin ein
-            Feld wieder selbst übersetzen, das englische Feld leeren und speichern.
+            Pflege, Hinweis zur Passform, Herkunft (zum Beispiel «Gefertigt in Italien») und
+            Ausstattung mit einem Merkmal pro Zeile (zum Beispiel «Zweiknopf-Sakko»). Die englischen
+            Felder füllt das Admin beim Speichern automatisch aus und übersetzt sie neu, wenn sich
+            das Deutsch ändert. Kurz prüfen, bei Bedarf anpassen: Englisch, das ihr selbst schreibt
+            oder ändert, bleibt immer stehen; ändert sich danach das Deutsch, erscheint der Hinweis
+            «bitte prüfen». Soll das Admin ein Feld wieder selbst übersetzen, das englische Feld
+            leeren und speichern.
           </li>
           <li>
             Unter «Grössen und Bestand» jede Grösse mit Anfangsbestand hinzufügen, auf Wunsch mit
@@ -39,8 +41,10 @@ function HelpPage() {
           </li>
           <li>
             Bilder hochladen: Hochformat 4:5, mindestens 2000 Pixel hoch, alle mit gleichem
-            Hintergrund und Licht. Das Admin verkleinert sie automatisch. Mit den Pfeilen die
-            Reihenfolge festlegen, das erste Bild erscheint in der Übersicht.
+            Hintergrund und Licht. Am edelsten wirkt die Reihenfolge Vorderansicht freigestellt (auf
+            Weiss oder als PNG mit durchsichtigem Hintergrund), Rückansicht, dann am Modell. Das
+            Admin verkleinert die Bilder automatisch. Mit den Pfeilen die Reihenfolge festlegen, das
+            erste Bild erscheint in der Übersicht.
           </li>
           <li>
             Unter «Komplettes Outfit» passende Stücke wählen, zum Beispiel Weste und Schuhe zum
@@ -127,6 +131,18 @@ function HelpPage() {
               Grössentabellen
             </Link>
             : Texte auf Deutsch ändern und speichern, Englisch entsteht automatisch.
+          </li>
+          <li>
+            Einstieg der Startseite: Foto über die ganze Breite (quer, mindestens 2000 Pixel breit)
+            und auf Wunsch ein Video (MP4 ohne Ton, 8 bis 15 Sekunden, höchstens 25 MB; fürs Handy
+            ein eigenes im Hochformat). Ohne Video zeigt der Shop das Foto, ebenso das Handy ohne
+            eigenes Video.
+          </li>
+          <li>
+            Stücke mit dem Kennzeichen «Muster» sind Vorführware mit Zeichnungen statt Fotos. Sie
+            verschwinden vor dem Start; eure echten Produkte legt ihr wie oben beschrieben an. Wollt
+            ihr ein Musterstück mit echten Fotos und Texten weiterführen, beim Produkt das Häkchen
+            «Muster» entfernen.
           </li>
         </ul>
       </Panel>

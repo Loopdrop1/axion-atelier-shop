@@ -1,4 +1,4 @@
-// Produktdaten: Titel, Adresse, Kategorie, Preis, Farbe, Texte DE/EN, Anlässe, Neu/Sale, Outfit.
+// Produktdaten: Titel, Adresse, Kategorie, Preis, Farbe, Texte DE/EN, Anlässe, Neu/Sale/Muster, Outfit.
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { translateTexts, type Category, type Product, type ProductListRow } from "@/lib/admin/api";
@@ -45,10 +45,15 @@ interface FormState {
   care_en: string;
   fit_note_de: string;
   fit_note_en: string;
+  origin_de: string;
+  origin_en: string;
+  features_de: string;
+  features_en: string;
   fit: string;
   occasions: string[];
   neu: boolean;
   sale: boolean;
+  muster: boolean;
   otherTags: string[];
   outfit_handles: string[];
 }
@@ -76,11 +81,16 @@ function initial(product: Product | null, categories: Category[]): FormState {
     care_en: p?.care_en ?? "",
     fit_note_de: p?.fit_note_de ?? "",
     fit_note_en: p?.fit_note_en ?? "",
+    origin_de: p?.origin_de ?? "",
+    origin_en: p?.origin_en ?? "",
+    features_de: p?.features_de ?? "",
+    features_en: p?.features_en ?? "",
     fit: p?.fit ?? "",
     occasions: p?.occasions ?? [],
     neu: p?.tags.includes("neu") ?? true,
     sale: p?.tags.includes("sale") ?? false,
-    otherTags: (p?.tags ?? []).filter((t) => t !== "neu" && t !== "sale"),
+    muster: p?.tags.includes("muster") ?? false,
+    otherTags: (p?.tags ?? []).filter((t) => t !== "neu" && t !== "sale" && t !== "muster"),
     outfit_handles: p?.outfit_handles ?? [],
   };
 }
@@ -88,7 +98,16 @@ function initial(product: Product | null, categories: Category[]): FormState {
 const orNull = (v: string) => v.trim() || null;
 
 /** Texte mit englischer Fassung; beim Speichern übersetzt das Admin leere und veraltete maschinelle automatisch. */
-const TEXTS = ["title", "color_name", "description", "material", "care", "fit_note"] as const;
+const TEXTS = [
+  "title",
+  "color_name",
+  "description",
+  "material",
+  "care",
+  "fit_note",
+  "origin",
+  "features",
+] as const;
 /** Bezeichnungen für den Hinweis «Englisch prüfen» */
 const TEXT_LABELS: Record<(typeof TEXTS)[number], string> = {
   title: "Titel",
@@ -97,6 +116,8 @@ const TEXT_LABELS: Record<(typeof TEXTS)[number], string> = {
   material: "Material",
   care: "Pflege",
   fit_note: "Hinweis zur Passform",
+  origin: "Herkunft",
+  features: "Ausstattung",
 };
 const MAX_EN: Record<(typeof TEXTS)[number], number> = {
   title: 120,
@@ -105,6 +126,8 @@ const MAX_EN: Record<(typeof TEXTS)[number], number> = {
   material: 500,
   care: 500,
   fit_note: 500,
+  origin: 120,
+  features: 1500,
 };
 
 /** auto: Felder, deren Englisch aus der automatischen Übersetzung stammt (Spalte en_auto) */
@@ -219,9 +242,18 @@ export function ProductForm({
           care_en: orNull(f.care_en),
           fit_note_de: orNull(f.fit_note_de),
           fit_note_en: orNull(f.fit_note_en),
+          origin_de: orNull(f.origin_de),
+          origin_en: orNull(f.origin_en),
+          features_de: orNull(f.features_de),
+          features_en: orNull(f.features_en),
           fit: orNull(f.fit),
           occasions: f.occasions,
-          tags: [...(f.neu ? ["neu"] : []), ...(f.sale ? ["sale"] : []), ...f.otherTags],
+          tags: [
+            ...(f.neu ? ["neu"] : []),
+            ...(f.sale ? ["sale"] : []),
+            ...(f.muster ? ["muster"] : []),
+            ...f.otherTags,
+          ],
           outfit_handles: f.outfit_handles,
           en_auto: enAuto,
         },
@@ -391,6 +423,38 @@ export function ProductForm({
               }
               en={<TextField label="Fit note" maxLength={500} {...text("fit_note_en")} />}
             />
+            <Bilingual
+              de={
+                <TextField
+                  label="Herkunft"
+                  placeholder="z. B. Gefertigt in Italien"
+                  maxLength={120}
+                  {...text("origin_de")}
+                />
+              }
+              en={<TextField label="Origin" maxLength={120} {...text("origin_en")} />}
+            />
+            <Bilingual
+              de={
+                <AreaField
+                  label="Ausstattung (ein Merkmal pro Zeile)"
+                  rows={5}
+                  maxLength={1500}
+                  placeholder={
+                    "Zweiknopf-Sakko mit Reverskragen\nHose ohne Bundfalte, mit Saumzugabe"
+                  }
+                  {...text("features_de")}
+                />
+              }
+              en={
+                <AreaField
+                  label="Features (one per line)"
+                  rows={5}
+                  maxLength={1500}
+                  {...text("features_en")}
+                />
+              }
+            />
             <SelectField
               label="Passform (Filter im Shop)"
               value={form.fit}
@@ -420,6 +484,14 @@ export function ProductForm({
                 onChange={(v) => set("sale", v)}
               />
             </div>
+            {product?.tags.includes("muster") && (
+              <CheckField
+                label="Muster (Vorführware)"
+                hint="Trägt im Shop das Kennzeichen «Muster» und wird vor dem Start mit dem ganzen Muster-Sortiment gelöscht. Häkchen entfernen, wenn ihr dieses Stück mit echten Fotos und Texten weiterführt."
+                checked={form.muster}
+                onChange={(v) => set("muster", v)}
+              />
+            )}
             <fieldset className="admin-fieldset">
               <legend>Anlässe (Filter und Menü «Anlässe»)</legend>
               <div className="admin-checks">

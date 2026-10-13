@@ -24,6 +24,9 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Weicher Wechsel zwischen den Seiten (wo der Browser es kann; bei «weniger Bewegung» ohne Animation).
+    // Nur bei neuer Seite: Suche, Filter und Sortierung ändern nur die Adresse und blenden nicht über.
+    defaultViewTransition: { types: ({ pathChanged }) => (pathChanged ? ["seite"] : false) },
   });
 
   return router;

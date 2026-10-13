@@ -53,13 +53,17 @@ einschalten.
 1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern, und
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
-2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die sieben Dateien in `supabase/migrations/` werden der
-   Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die acht Migrationen (in Cloud die Fassung aus
+   `drizzle/migrations/`, lokal `supabase/migrations/`) werden der Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
    Danach prüfen: 16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`, Funktionen
-   `contact_guard`, `translate_guard` und `prune_rate_limits`, Spalte `en_auto` in `products`. Spätere Änderungen mit neuer Migration:
+   `contact_guard`, `translate_guard` und `prune_rate_limits`, Spalten `en_auto`, `origin_de` und `features_de` in
+   `products`, `site-media` nimmt auch Videos (MP4/WebM bis 25 MB). Spätere Änderungen mit neuer Migration:
    **zuerst die Migration ausführen, dann den Code pushen** (Lovable übernimmt Code sofort).
    `supabase/seed.sql` **nicht** ausführen: Er enthält Platzhalterprodukte und Beispielwerte für die Vorschau.
+   Zum Vorzeigen stattdessen `supabase/demo/muster-einspielen.sql` ausführen: 24 Musterstücke mit Zeichnungen
+   (Kennzeichen «muster», im Shop als «Muster» markiert) samt Kategorien, Look der Startseite und Grössentabellen.
+   Das Skript überschreibt nichts, was schon da ist, und lässt sich gefahrlos wiederholen.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
    > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact and account-delete
@@ -147,8 +151,11 @@ einschalten.
   Gültigkeit (Standard 5 Jahre; wählt Axion «unbegrenzt», 30 Jahre eintragen und die AGB anpassen),
   Willkommens-Rabatt für den Newsletter (leer = keiner), Adresse für Bestellmeldungen.
 - Admin → Kategorien (erscheinen in dieser Reihenfolge in den Menüs; am Computer höchstens fünf, die übrigen über
-  «Alle Stücke»), Produkte (die drei Beispielprodukte mit echten Angaben und Fotos), Grössentabellen (Masse von Axion,
-  pro Kategorie), Startseite und Laufband (Texte, Bild der Geschichte quer und fürs Handy hoch). Englisch entsteht beim
+  «Alle Stücke»), Produkte (echte Angaben und Fotos, dazu Herkunft und Ausstattung mit einem Merkmal pro Zeile; erstes
+  Bild freigestellt auf Weiss oder als PNG mit durchsichtigem Hintergrund, zweites Rückansicht, dann am Modell),
+  Grössentabellen (Masse von Axion, pro Kategorie), Startseite und Laufband (Texte, Einstieg als Foto über die ganze
+  Breite und auf Wunsch Video: MP4 ohne Ton, 8 bis 15 Sekunden, höchstens 25 MB, fürs Handy ein eigenes im
+  Hochformat, ohne zeigt das Handy das Foto; Bild der Geschichte quer und fürs Handy hoch). Englisch entsteht beim
   Speichern automatisch und folgt dem Deutschen; Ben prüft die Übersetzungen zum Start einmal durch. Was Ben auf
   Englisch selbst korrigiert, gilt als eigenes Englisch: Das Admin überschreibt es nie, sondern meldet «bitte prüfen»,
   wenn sich das Deutsch dazu ändert. Englisches Feld leeren und speichern = wieder automatisch übersetzen.
@@ -179,6 +186,9 @@ einschalten.
 
 ## 8. Livegang
 
+0. Muster-Sortiment entfernen: `supabase/demo/muster-entfernen.sql` in Cloud ausführen. Es löscht alle Produkte mit
+   dem Kennzeichen «muster» samt Grössen und Bildern; Bestellungen bleiben, ihre Positionen verlieren nur den Link aufs
+   Produkt. Danach prüfen, dass der Look der Startseite (Admin → Startseite) auf echte Produkte zeigt.
 1. Stripe live: Live-Schlüssel (`rk_live_…`) und Live-Webhook mit eigenem `whsec_…` in die Secrets.
 2. Domain in Lovable verbinden. `SITE_URL` und `ALLOWED_ORIGINS` (Secrets), Site URL und Redirect URLs (Cloud → Users)
    sowie `siteUrl` in `src/config/shop.ts` auf die Domain umstellen. Die Vorschau-Adresse aus `ALLOWED_ORIGINS`

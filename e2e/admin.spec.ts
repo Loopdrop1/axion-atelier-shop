@@ -176,6 +176,20 @@ test("Admin: Produkt anlegen mit Grösse, Anfangsbestand und Bild; danach im Sho
     en_auto: ["color_name"],
   });
 
+  // Herkunft und Ausstattung (ein Merkmal pro Zeile) für die Produktseite
+  await page.getByLabel("Herkunft", { exact: true }).fill("Gefertigt in Italien");
+  await page
+    .getByLabel("Ausstattung (ein Merkmal pro Zeile)")
+    .fill("- Zweiknopf-Sakko\n\nFlanell aus Biella");
+  await save.click();
+  await expect(async () => {
+    const last = (await fakeLog(request)).filter((e) => e.path === "products:update").at(-1);
+    expect(last?.body).toMatchObject({
+      origin_de: "Gefertigt in Italien",
+      features_de: "- Zweiknopf-Sakko\n\nFlanell aus Biella",
+    });
+  }).toPass({ timeout: 10_000 });
+
   const sizes = page.locator(".admin-panel", { hasText: "Grössen und Bestand" });
   await sizes.getByLabel("Neue Grösse").fill("50");
   await sizes.getByLabel("Anfangsbestand").fill("4");
@@ -212,7 +226,13 @@ test("Admin: Produkt anlegen mit Grösse, Anfangsbestand und Bild; danach im Sho
       timeout: 1000,
     });
   }).toPass({ timeout: 45_000, intervals: [2_000, 5_000, 10_000] });
-  await expect(page.locator(".product-info .price").first()).toContainText("399.00");
+  await expect(page.locator(".product-buy .price").first()).toContainText("399.00");
+  await expect(page.locator(".product-facts")).toContainText("Gefertigt in Italien");
+  await expect(page.locator(".product-features li")).toHaveText([
+    "Zweiknopf-Sakko",
+    "Flanell aus Biella",
+  ]);
+  await expect(page.locator(".sample-notice")).toHaveCount(0);
 
   // Gleiche Adresse ein zweites Mal geht nicht
   await open(page, "/admin/produkte/neu");
@@ -222,6 +242,24 @@ test("Admin: Produkt anlegen mit Grösse, Anfangsbestand und Bild; danach im Sho
   await page.getByRole("button", { name: "Produkt anlegen" }).click();
   await toast(page, "Diesen Wert gibt es schon");
   expect(errors, errors.join("\n")).toEqual([]);
+});
+
+test("Admin: Musterstück weiterführen – Kennzeichen «Muster» entfernen", async ({
+  page,
+  request,
+}) => {
+  await adminSignIn(page, "/admin/anmelden?weiter=/admin/produkte");
+  const row = page.locator(".admin-table tbody tr", { hasText: "/weste-limmat-marine" });
+  await expect(row.locator(".admin-badge", { hasText: "Muster" })).toBeVisible();
+  await row.getByRole("link", { name: "Weste «Limmat»" }).click();
+  const sample = page.getByLabel("Muster (Vorführware)");
+  await expect(sample).toBeChecked();
+  await sample.uncheck();
+  await page.getByRole("button", { name: "Änderungen speichern" }).click();
+  await expect(async () => {
+    const last = (await fakeLog(request)).filter((e) => e.path === "products:update").at(-1);
+    expect(last?.body["tags"]).toEqual(["neu"]);
+  }).toPass({ timeout: 10_000 });
 });
 
 test("Admin: Lager – Verkauf im Laden und Korrektur nur mit Grund", async ({
@@ -316,11 +354,34 @@ test("Admin: Gutschein ausstellen und sperren", async ({ page, request }) => {
   await expect(row).toContainText("Gesperrt");
 });
 
-test("Admin: Startseite und Laufband ändern, im Shop sichtbar", async ({ page }) => {
+test("Admin: Startseite (mit Video) und Laufband ändern, im Shop sichtbar", async ({
+  page,
+  request,
+}, info) => {
   test.setTimeout(120_000);
   await adminSignIn(page, "/admin/anmelden?weiter=/admin/inhalte");
-  const hero = page.locator(".admin-panel", { hasText: "Einstieg (oben, mit 3D-Logo)" });
+  const hero = page.locator(".admin-panel", { hasText: "Einstieg (oben" });
   await hero.getByLabel("Titel").first().fill("Herbst bei Axion.");
+  // Videos über dem Bild, quer und fürs Handy (der Nachbau speichert die Dateien nur, abgespielt wird nichts)
+  const videoInputs = hero.locator('input[type=file][accept^="video"]');
+  await videoInputs.nth(0).setInputFiles({
+    name: "einstieg.mp4",
+    mimeType: "video/mp4",
+    buffer: Buffer.from("kein echtes Video"),
+  });
+  await expect(hero.locator(".admin-image-field video")).toHaveCount(1);
+  await videoInputs.nth(1).setInputFiles({
+    name: "einstieg-handy.webm",
+    mimeType: "video/webm",
+    buffer: Buffer.from("kein echtes Video"),
+  });
+  await expect(hero.locator(".admin-image-field video")).toHaveCount(2);
+  const uploads = (await fakeLog(request))
+    .filter((e) => e.path === "storage:upload")
+    .map((e) => String(e.body["path"]));
+  expect(uploads).toHaveLength(2);
+  expect(uploads[0]).toMatch(/^site-media\/hero\/[0-9a-f-]{36}\.mp4$/);
+  expect(uploads[1]).toMatch(/^site-media\/hero\/[0-9a-f-]{36}\.webm$/);
   await hero.getByRole("button", { name: "Speichern" }).click();
   // Englisch aus dem Seed gilt als von Hand geschrieben: bleibt stehen, Hinweis zum Prüfen
   await toast(page, "Ein deutscher Text hat sich geändert (Titel)");
@@ -330,7 +391,11 @@ test("Admin: Startseite und Laufband ändern, im Shop sichtbar", async ({ page }
   await ticker.getByRole("button", { name: "Laufband speichern" }).click();
   await toast(page, "Ein deutscher Text hat sich geändert (Satz 1)");
 
-  // Der Server hält Inhalte bis zu 30 Sekunden im Zwischenspeicher: neu laden, bis beides sichtbar ist
+  // Am Computer das quere Video, auf dem Handy das eigene (Bild bleibt als Vorschau darunter)
+  const expected = info.project.name === "handy" ? uploads[1] : uploads[0];
+  const video = page.locator(".hero-media video");
+  // Der Server hält Inhalte bis zu 30 Sekunden im Zwischenspeicher (auch aus dem Lauf davor):
+  // neu laden, bis Titel, Laufband und die Videos dieses Laufs da sind
   await expect(async () => {
     await open(page, "/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Herbst bei Axion.", {
@@ -339,7 +404,20 @@ test("Admin: Startseite und Laufband ändern, im Shop sichtbar", async ({ page }
     await expect(page.locator(".announcement")).toContainText("Neue Herbstkollektion ist da", {
       timeout: 1000,
     });
+    await expect(video).toHaveAttribute(
+      "src",
+      new RegExp(`/storage/v1/object/public/${expected!.replace(/[.]/g, "\\.")}$`),
+      { timeout: 1000 },
+    );
   }).toPass({ timeout: 60_000, intervals: [2_000, 5_000, 10_000] });
+  await expect(page.locator(".hero-media img")).toHaveCount(1);
+  // Anhalten und wieder abspielen (WCAG 2.2.2)
+  await page.getByRole("button", { name: "Video anhalten" }).click();
+  await expect(page.getByRole("button", { name: "Video abspielen" })).toBeVisible();
+  expect(await video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+  await page.getByRole("button", { name: "Video abspielen" }).click();
+  await expect(page.getByRole("button", { name: "Video anhalten" })).toBeVisible();
+  await shot(page, info, "startseite-video");
 });
 
 test("Admin: Zugänge geben und entfernen, Versandkosten im Warenkorb", async ({ page }) => {

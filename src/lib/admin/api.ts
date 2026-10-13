@@ -76,6 +76,9 @@ export function adminErrorText(error: unknown): string {
     UNSUPPORTED_TYPE: "Bitte ein Bild im Format JPEG, PNG, WebP oder AVIF wählen.",
     UNREADABLE_IMAGE: "Dieses Bild konnte nicht gelesen werden.",
     UPLOAD_FAILED: "Das Bild konnte nicht hochgeladen werden. Bitte erneut versuchen.",
+    UNSUPPORTED_VIDEO: "Bitte ein Video im Format MP4 oder WebM wählen.",
+    VIDEO_TOO_LARGE:
+      "Das Video ist grösser als 25 MB. Bitte kürzer oder stärker komprimiert exportieren (z. B. 10 bis 15 Sekunden in Full HD).",
     INVALID_SIZE: "Bitte eine Grösse angeben.",
     INVALID_RANGE: "Bitte gültige Daten wählen.",
     SPOT_WITHOUT_PRODUCT: "Jeder Punkt braucht ein Produkt.",
@@ -544,14 +547,30 @@ export async function deleteImage(image: Pick<ProductImage, "id" | "path">) {
 }
 
 /** Bild für Startseite oder Kategorie (Bucket site-media). Gibt den Pfad zurück. */
-export async function uploadSiteImage(file: File, folder: string) {
-  const image = await prepareImage(file);
+export async function uploadSiteImage(file: File, folder: string, maxSide?: number) {
+  const image = await prepareImage(file, maxSide);
   const path = `${folder}/${crypto.randomUUID()}.${image.extension}`;
   const upload = await db()
     .storage.from("site-media")
     .upload(path, image.blob, { contentType: image.blob.type, cacheControl: "31536000" });
   if (upload.error) throw new AdminError("UPLOAD_FAILED", upload.error.message);
   return { path, width: image.width, height: image.height };
+}
+
+/** Höchstgrösse eines Videos für den Einstieg (gleich wie im Speicher site-media) */
+export const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+
+/** Video für den Einstieg der Startseite (MP4 oder WebM, unverändert hochgeladen). Gibt den Pfad zurück. */
+export async function uploadSiteVideo(file: File, folder: string): Promise<string> {
+  if (file.type !== "video/mp4" && file.type !== "video/webm")
+    throw new AdminError("UNSUPPORTED_VIDEO");
+  if (file.size > MAX_VIDEO_BYTES) throw new AdminError("VIDEO_TOO_LARGE");
+  const path = `${folder}/${crypto.randomUUID()}.${file.type === "video/webm" ? "webm" : "mp4"}`;
+  const upload = await db()
+    .storage.from("site-media")
+    .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (upload.error) throw new AdminError("UPLOAD_FAILED", upload.error.message);
+  return path;
 }
 
 // Lager ---------------------------------------------------------------------------------------------

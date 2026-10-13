@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { mapAnnouncements, mapHomeContent, mapProduct, mapSizeGuides, pick } from "./mapping";
+import {
+  featureList,
+  mapAnnouncements,
+  mapHomeContent,
+  mapProduct,
+  mapSizeGuides,
+  pick,
+} from "./mapping";
 import { media } from "./media";
 import type { CategoryRow, ProductRow } from "./rows";
 import { estimateTotals, DEFAULT_SETTINGS } from "./source";
@@ -30,6 +37,10 @@ function row(extra: Partial<ProductRow> = {}): ProductRow {
     care_en: null,
     fit_note_de: null,
     fit_note_en: null,
+    origin_de: "Gefertigt in Italien",
+    origin_en: null,
+    features_de: "- Zweiknopf-Sakko\n\n• Hose ohne Bundfalte  ",
+    features_en: null,
     fit: "Slim Fit",
     color_name_de: "Marine",
     color_name_en: "Navy",
@@ -117,6 +128,18 @@ describe("mapProduct", () => {
     });
     expect(p.options[0]).toEqual({ name: "size", values: ["48", "50"] });
     expect(p.occasions).toEqual(["hochzeit"]);
+    expect(p.variants.map((v) => v.stock)).toEqual([2, 0]);
+  });
+
+  it("Herkunft und Ausstattung: eine Zeile pro Merkmal, ohne Aufzählungszeichen und Leerzeilen", () => {
+    const p = mapProduct(row(), "en", categories)!;
+    expect(p.details.origin).toBe("Gefertigt in Italien");
+    expect(p.details.features).toEqual(["Zweiknopf-Sakko", "Hose ohne Bundfalte"]);
+    expect(featureList(null)).toEqual([]);
+    expect(featureList("  \n * Futter aus Viskose\r\n· Innentasche")).toEqual([
+      "Futter aus Viskose",
+      "Innentasche",
+    ]);
   });
 
   it("Bilder sortiert, eingebaute Bilder über media.ts, Storage-Bilder nur mit Supabase-URL", () => {
@@ -155,6 +178,27 @@ describe("Startseite und Laufband", () => {
     expect(home.look.total).toBe("Complete outfit");
     expect(home.look.image.url).toBe(media.look.url);
     expect(home.story.image.url).toBe(media.fabric.url);
+    expect(home.hero.video).toBeUndefined();
+    expect(home.brand).toEqual({
+      eyebrow: "Axion · Switzerland",
+      title: "Considered,\ncut by cut.",
+    });
+  });
+
+  it("Video im Einstieg: Computer und Handy getrennt, auch nur eines von beiden", () => {
+    const video = (block: Record<string, unknown>) =>
+      mapHomeContent({ "home.hero": block } as never, "de").hero.video;
+    // Ohne Backend in den Tests: volle Adressen statt Pfaden im Speicher
+    const base = "https://media.example.ch/hero/";
+    expect(video({ video: `${base}quer.mp4`, video_mobile: `${base}hoch.webm` })).toEqual({
+      url: `${base}quer.mp4`,
+      mobileUrl: `${base}hoch.webm`,
+    });
+    expect(video({ video_mobile: `${base}hoch.mp4` })).toEqual({
+      url: undefined,
+      mobileUrl: `${base}hoch.mp4`,
+    });
+    expect(video({ video: "" })).toBeUndefined();
   });
 
   it("Laufband: leere Einträge fallen weg, ganz leer gibt die Standardtexte", () => {

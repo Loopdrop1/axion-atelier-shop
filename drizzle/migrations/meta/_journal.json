@@ -50,6 +50,13 @@
       "when": 1791845711306,
       "tag": "0006_axion_contact_and_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791856000000,
+      "tag": "0007_axion_produktseite_und_hero",
+      "breakpoints": true
     }
   ]
 }

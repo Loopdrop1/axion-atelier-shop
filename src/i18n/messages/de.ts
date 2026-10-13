@@ -159,10 +159,12 @@ export const de = {
     hero: {
       eyebrow: "Anzüge · Westen · Schuhe",
       title: "Präzise geschnitten.\nFür jeden Auftritt.",
-      text: "Anzüge, Westen und Schuhe für Hochzeit, Business und alles dazwischen. Gratisversand in der ganzen Schweiz.",
+      text: "Anzüge, Westen und Schuhe für Hochzeit, Business und alles dazwischen.",
       primary: "Kollektion entdecken",
       secondary: "Anzüge ansehen",
+      imageAlt: "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang",
     },
+    brand: { eyebrow: "Axion · Schweiz", title: "Schnitt für Schnitt\ndurchdacht." },
     collections: { eyebrow: "Die Kollektionen", title: "Ein Auftritt. Dein Stil." },
     newArrivals: {
       eyebrow: "Frisch in der Kollektion",
@@ -209,6 +211,8 @@ export const de = {
     lookAddAll: "Ganzen Look in den Warenkorb",
     scrollCue: "Zu den Kollektionen",
     location: "Axion · Schweiz",
+    videoPause: "Video anhalten",
+    videoPlay: "Video abspielen",
   },
   collections: {
     all: {
@@ -261,8 +265,6 @@ export const de = {
     deliveryNote: (shipping: string) => `${shipping} · Lieferung in 2 bis 5 Arbeitstagen`,
     vatIncluded: "inkl. MWST",
     description: "Beschreibung",
-    materialAndCare: "Material und Pflege",
-    materialCare: (material: string, care: string) => `Material: ${material}. Pflege: ${care}.`,
     detailsFollow: "Angaben folgen",
     fit: "Passform",
     fits: { "Slim Fit": "Schmale Passform", "Regular Fit": "Gerade Passform" } as Record<
@@ -280,6 +282,20 @@ export const de = {
     outfitError: "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
     outfitAdd: "Auswahl in den Warenkorb",
     outfitSoldOut: "Ausverkauft",
+    lowStock: (n: number) => `Nur noch ${n} an Lager`,
+    detailsTitle: "Passform & Ausstattung",
+    material: "Material",
+    care: "Pflege",
+    origin: "Herkunft",
+    features: "Ausstattung",
+    consultTitle: "Persönliche Beratung",
+    consultText: "Fragen zu Grösse, Stoff oder Stil? Wir helfen dir gerne weiter.",
+    consultLink: "Kontakt aufnehmen",
+    consultPhone: (phone: string) => `oder anrufen: ${phone}`,
+    klarna: "Mit Klarna später oder in Raten ohne Zins bezahlen (nach Prüfung durch Klarna).",
+    badgeSample: "Muster",
+    sampleNotice:
+      "Musterprodukt: Bilder und Texte sind Platzhalter, bis die echten Stücke da sind.",
     recommendations: "Das könnte dir auch gefallen",
     zoomImage: (n: number) => `Bild ${n} vergrössern`,
     image: (n: number) => `Bild ${n}`,

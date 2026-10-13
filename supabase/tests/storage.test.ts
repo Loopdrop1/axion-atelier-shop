@@ -16,7 +16,7 @@ afterAll(async () => {
 const insert = "insert into storage.objects (bucket_id, name) values ($1, $2) returning id";
 
 describe("Speicher", () => {
-  it("die zwei Buckets sind öffentlich und auf Bilder bis 8 MB beschränkt", async () => {
+  it("die zwei Buckets sind öffentlich: Produktbilder bis 8 MB, Seitenmedien mit Video bis 25 MB", async () => {
     const rows = await sql<{
       id: string;
       public: boolean;
@@ -27,9 +27,13 @@ describe("Speicher", () => {
     );
     expect(rows.map((r) => [r.id, r.public, r.file_size_limit])).toEqual([
       ["product-images", true, "8388608"],
-      ["site-media", true, "8388608"],
+      ["site-media", true, "26214400"],
     ]);
     expect(rows[0]!.allowed_mime_types).toContain("image/webp");
+    expect(rows[0]!.allowed_mime_types).not.toContain("video/mp4");
+    expect(rows[1]!.allowed_mime_types).toEqual(
+      expect.arrayContaining(["image/webp", "image/png", "video/mp4", "video/webm"]),
+    );
   });
 
   it("anon und Kundschaft dürfen nicht hochladen", async () => {

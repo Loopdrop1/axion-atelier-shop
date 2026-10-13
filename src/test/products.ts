@@ -6,6 +6,7 @@ export function testVariant(id: string, availableForSale = true, amount = 100): 
     id,
     title: id.split("-").at(-1) ?? id,
     availableForSale,
+    stock: availableForSale ? 3 : 0,
     price: { amount, currencyCode: "CHF" },
     selectedOptions: [],
   };
@@ -28,7 +29,7 @@ export function testProduct(
     tags: [],
     occasions: [],
     description: "",
-    details: {},
+    details: { features: [] },
     images: [],
     options: [],
     variants,

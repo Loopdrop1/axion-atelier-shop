@@ -46,6 +46,7 @@ export function CollectionPage({
       search: { ...search, [key]: value },
       replace: true,
       resetScroll: false,
+      viewTransition: false,
     });
   };
   const toggle = (key: GroupKey, value: string) => {
@@ -249,6 +250,7 @@ export function CollectionPage({
                 params: { locale: lp, handle: collection.handle },
                 search: {},
                 replace: true,
+                viewTransition: false,
               })
             }
           >

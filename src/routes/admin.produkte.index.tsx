@@ -123,6 +123,7 @@ function Products() {
                       <Badge tone={s.tone}>{s.label}</Badge>
                       {p.tags.includes("neu") && <Badge>Neu</Badge>}
                       {p.tags.includes("sale") && <Badge>Sale</Badge>}
+                      {p.tags.includes("muster") && <Badge tone="muted">Muster</Badge>}
                     </td>
                     <td className="num">
                       {chf(p.price_cents)}

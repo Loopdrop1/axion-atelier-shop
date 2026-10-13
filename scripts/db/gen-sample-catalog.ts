@@ -20,7 +20,8 @@ export async function renderSampleCatalog(client: pg.Client | pg.PoolClient): Pr
   const products = (
     await client.query(
       `select p.handle as id, p.handle, p.model, p.title_de, p.title_en, p.description_de, p.description_en,
-         p.material_de, p.material_en, p.care_de, p.care_en, p.fit_note_de, p.fit_note_en, p.fit,
+         p.material_de, p.material_en, p.care_de, p.care_en, p.fit_note_de, p.fit_note_en,
+         p.origin_de, p.origin_en, p.features_de, p.features_en, p.fit,
          p.color_name_de, p.color_name_en, p.color_hex, p.tags, p.occasions, p.outfit_handles,
          p.price_cents, p.compare_at_cents, p.sort,
          to_char(p.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,

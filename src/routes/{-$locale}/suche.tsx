@@ -44,6 +44,8 @@ function SearchPage() {
             params: { locale: lp },
             search: { q: e.target.value },
             replace: true,
+            // Bei jedem Tastendruck: ohne Überblendung (auch in Browsern ohne Übergangstypen)
+            viewTransition: false,
           })
         }
       />

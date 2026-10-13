@@ -184,6 +184,36 @@ test("Produktseite: Komplettes Outfit legt die gewählten Stücke zusammen in de
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
+test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Beratung", async ({
+  page,
+}, info) => {
+  const errors = watchErrors(page);
+  await open(page, "/kollektion/anzuege");
+  const cards = page.locator(".product-card");
+  await expect(cards).toHaveCount(10);
+  await expect(page.locator(".product-badge.is-sample")).toHaveCount(10);
+  await expect(page.locator(".product-badge").first()).toHaveText("Muster");
+
+  // Bestand der Grössen 46–56: 2, 3, 3, 2, 1, 0
+  await open(page, "/produkt/anzug-limmat-anthrazit");
+  await expect(page.locator(".sample-notice")).toBeVisible();
+  await expect(page.locator(".product-gallery img")).toHaveCount(2);
+  await expect(page.locator(".product-facts")).toContainText("Gefertigt in Europa");
+  await expect(page.locator(".product-features li").first()).toBeVisible();
+  // Hinweis auf knappen Bestand erst mit gewählter Grösse, ab 2 Stück; die Meldezone bleibt im Dokument
+  const hint = page.getByRole("status").and(page.locator(".stock-hint"));
+  await expect(hint).toBeEmpty();
+  await page.locator(".size-grid").getByRole("button", { name: "46", exact: true }).click();
+  await expect(hint).toHaveText("Nur noch 2 an Lager");
+  await page.locator(".size-grid").getByRole("button", { name: "48", exact: true }).click();
+  await expect(hint).toBeEmpty();
+  await expect(page.locator(".pay-hint")).toContainText("Klarna");
+  await expect(page.locator(".consult-card")).toContainText("Persönliche Beratung");
+  await expectNoHorizontalScroll(page);
+  await shot(page, info, "produktseite");
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
 test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer Warenkorb", async ({
   page,
   request,
@@ -478,6 +508,9 @@ test("Newsletter: Anmeldung im Footer, Bestätigen und Abmelden erst per Klick",
   page,
   request,
 }, info) => {
+  // Ohne weiches Scrollen und 3D-Szene: Software-WebGL im Testbrowser bremst sonst das Scrollen zum Footer so stark,
+  // dass der Klick auf ein noch fahrendes Feld fällt
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await open(page, "/");
   const form = page.locator(".footer-newsletter .newsletter-form");
   await form.getByLabel("E-Mail-Adresse für den Newsletter").fill("leser@example.ch");

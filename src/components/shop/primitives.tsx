@@ -23,10 +23,13 @@ export function Photo({
   image,
   className = "",
   eager = false,
+  priority = false,
 }: {
   image: ShopImage | undefined;
   className?: string;
   eager?: boolean;
+  /** Wichtigstes Bild der Seite (z. B. Einstieg): zuerst laden */
+  priority?: boolean;
 }) {
   if (!image) return null;
   const img = (
@@ -36,7 +39,8 @@ export function Photo({
       alt={image.altText}
       width={image.width}
       height={image.height}
-      loading={eager ? "eager" : "lazy"}
+      loading={eager || priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : undefined}
     />
   );
   if (!image.mobile) return img;

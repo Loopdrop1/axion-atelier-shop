@@ -34,6 +34,10 @@ export type ProductRow = Pick<
   | "care_en"
   | "fit_note_de"
   | "fit_note_en"
+  | "origin_de"
+  | "origin_en"
+  | "features_de"
+  | "features_en"
   | "fit"
   | "color_name_de"
   | "color_name_en"
@@ -60,7 +64,7 @@ export interface CatalogData {
 
 /** Spalten für die Supabase-Abfrage, passend zu ProductRow. */
 export const PRODUCT_SELECT =
-  "id, handle, model, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, fit_note_de, fit_note_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at, category:categories(slug), product_variants(id, size, price_cents, compare_at_cents, stock, sort, active), product_images(path, alt_de, alt_en, width, height, sort)";
+  "id, handle, model, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, fit_note_de, fit_note_en, origin_de, origin_en, features_de, features_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at, category:categories(slug), product_variants(id, size, price_cents, compare_at_cents, stock, sort, active), product_images(path, alt_de, alt_en, width, height, sort)";
 
 export const CATEGORY_SELECT =
   "slug, name_de, name_en, description_de, description_en, image_path, sort";

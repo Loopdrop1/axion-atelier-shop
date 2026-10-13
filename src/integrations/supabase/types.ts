@@ -608,6 +608,8 @@ export type Database = {
           description_de: string
           description_en: string | null
           en_auto: string[]
+          features_de: string | null
+          features_en: string | null
           fit: string | null
           fit_note_de: string | null
           fit_note_en: string | null
@@ -617,6 +619,8 @@ export type Database = {
           material_en: string | null
           model: string
           occasions: string[]
+          origin_de: string | null
+          origin_en: string | null
           outfit_handles: string[]
           price_cents: number
           sort: number
@@ -638,6 +642,8 @@ export type Database = {
           description_de?: string
           description_en?: string | null
           en_auto?: string[]
+          features_de?: string | null
+          features_en?: string | null
           fit?: string | null
           fit_note_de?: string | null
           fit_note_en?: string | null
@@ -647,6 +653,8 @@ export type Database = {
           material_en?: string | null
           model: string
           occasions?: string[]
+          origin_de?: string | null
+          origin_en?: string | null
           outfit_handles?: string[]
           price_cents: number
           sort?: number
@@ -668,6 +676,8 @@ export type Database = {
           description_de?: string
           description_en?: string | null
           en_auto?: string[]
+          features_de?: string | null
+          features_en?: string | null
           fit?: string | null
           fit_note_de?: string | null
           fit_note_en?: string | null
@@ -677,6 +687,8 @@ export type Database = {
           material_en?: string | null
           model?: string
           occasions?: string[]
+          origin_de?: string | null
+          origin_en?: string | null
           outfit_handles?: string[]
           price_cents?: number
           sort?: number

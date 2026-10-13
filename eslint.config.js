@@ -19,6 +19,7 @@ export default tseslint.config(
       "src/integrations/supabase/cron-auth.ts",
       "src/integrations/supabase/previewAuthStorage.ts",
       "src/integrations/supabase/types.ts",
+      "drizzle/schema.ts",
     ],
   },
   {

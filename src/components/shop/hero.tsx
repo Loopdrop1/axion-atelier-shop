@@ -1,97 +1,88 @@
-import { lazy, Suspense, useEffect, useRef, useState, Component, type ReactNode } from "react";
+// Einstieg der Startseite: Bild oder Video über die ganze Breite, Text unten links.
+// Bild und Video kommen aus dem Admin (Startseite → Einstieg); ohne eigenes Bild das Look-Foto.
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocaleParam, useT } from "@/i18n";
 import type { HomeContent } from "@/lib/commerce";
-import { Mark } from "./logo";
-import { Lines } from "./primitives";
-const Scene = lazy(() => import("./hero-scene"));
-class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  override state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  override render() {
-    return this.state.failed ? null : this.props.children;
-  }
-}
-export function Hero({ content }: { content: HomeContent["hero"] }) {
-  const t = useT();
-  const lp = useLocaleParam();
-  const ref = useRef<HTMLElement>(null);
-  const [reduced, setReduced] = useState(false);
-  const [enabled, setEnabled] = useState(false);
-  const [active, setActive] = useState(true);
-  const [ready, setReady] = useState(false);
-  const [progress, setProgress] = useState(0);
+import { Lines, Photo } from "./primitives";
+
+type HeroVideoSource = HomeContent["hero"]["video"];
+
+/** Stummes Video in Schleife über dem Bild. Nicht bei «weniger Bewegung» oder Datensparmodus; aufs Handy
+ *  nur ein eigenes Hochformat-Video (spart Daten, ein Querformat wäre stark beschnitten). Pausiert
+ *  ausserhalb des Bildschirms und lässt sich anhalten. Erst sichtbar, wenn es läuft (kein schwarzes Bild). */
+function useHeroVideo(video: HeroVideoSource) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const stopped = useRef(false);
+  const [src, setSrc] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const url = video?.url;
+  const mobileUrl = video?.mobileUrl;
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(media.matches);
-    if (media.matches) return;
-    const node = ref.current;
-    if (!node) return;
-    let visible = true;
-    let scheduled = false;
-    let loaded = false;
-    let idle: number | undefined;
-    let fallback: number | undefined;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const device = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (reduced || device.connection?.saveData) return;
     const phone = window.matchMedia("(max-width: 767px)").matches;
-    const device = navigator as Navigator & {
-      connection?: { saveData?: boolean };
-      deviceMemory?: number;
-    };
-    const permitted = !phone || (!device.connection?.saveData && (device.deviceMemory ?? 4) >= 4);
-    const enable = () => {
-      if (!permitted || scheduled) return;
-      scheduled = true;
-      const load = () => {
-        if (loaded) return;
-        loaded = true;
-        if (idle !== undefined) window.cancelIdleCallback(idle);
-        if (fallback !== undefined) window.clearTimeout(fallback);
-        const canvas = document.createElement("canvas");
-        try {
-          if (canvas.getContext("webgl2") || canvas.getContext("webgl")) setEnabled(true);
-        } catch {
-          setEnabled(false);
-        }
-      };
-      if (phone) {
-        if ("requestIdleCallback" in window)
-          idle = window.requestIdleCallback(load, { timeout: 2000 });
-        fallback = window.setTimeout(load, 2000);
-      } else requestAnimationFrame(load);
-    };
-    const update = () => setActive(visible && !document.hidden);
+    setSrc((phone ? mobileUrl : url) ?? null);
+  }, [url, mobileUrl]);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || !src) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        visible = Boolean(entry?.isIntersecting);
-        update();
-        if (visible) enable();
+        if (entry?.isIntersecting && !stopped.current) void node.play().catch(() => undefined);
+        else node.pause();
       },
       { threshold: 0.05 },
     );
     observer.observe(node);
-    document.addEventListener("visibilitychange", update);
-    const scroll = () => setProgress(Math.min(window.scrollY / node.offsetHeight, 1));
-    window.addEventListener("scroll", scroll, { passive: true });
-    return () => {
-      observer.disconnect();
-      if (idle !== undefined) window.cancelIdleCallback(idle);
-      if (fallback !== undefined) window.clearTimeout(fallback);
-      document.removeEventListener("visibilitychange", update);
-      window.removeEventListener("scroll", scroll);
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [src]);
+  const toggle = () => {
+    const node = ref.current;
+    if (!node) return;
+    stopped.current = !stopped.current;
+    setPaused(stopped.current);
+    if (stopped.current) node.pause();
+    else void node.play().catch(() => undefined);
+  };
+  return { ref, src, playing, paused, toggle, onPlaying: () => setPlaying(true) };
+}
+
+export function Hero({ content }: { content: HomeContent["hero"] }) {
+  const t = useT();
+  const lp = useLocaleParam();
+  const video = useHeroVideo(content.video);
   return (
-    <section className="hero" ref={ref}>
+    <section className="hero">
+      <div className="hero-media">
+        <Photo image={content.image} eager priority className="hero-image" />
+        {video.src && (
+          <video
+            ref={video.ref}
+            className={`hero-video ${video.playing ? "playing" : ""}`}
+            src={video.src}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="auto"
+            aria-hidden="true"
+            tabIndex={-1}
+            onPlaying={video.onPlaying}
+          />
+        )}
+      </div>
       <div className="container hero-inner">
         <div className="hero-copy">
           <p className="eyebrow">{content.eyebrow}</p>
           <h1>
             <Lines text={content.title} />
           </h1>
-          <p>{content.text}</p>
+          {content.text && <p>{content.text}</p>}
           <div className="hero-buttons">
             <Button variant="dark" asChild>
               <Link to="/{-$locale}/kollektion/$handle" params={{ locale: lp, handle: "alle" }}>
@@ -105,20 +96,22 @@ export function Hero({ content }: { content: HomeContent["hero"] }) {
             </Button>
           </div>
         </div>
-        <div className={`hero-mark ${ready ? "scene-ready" : ""}`}>
-          <Mark className="flat-mark" aria-hidden="true" />
-          {enabled && !reduced && (
-            <SceneBoundary>
-              <Suspense fallback={null}>
-                <Scene active={active} progress={progress} onReady={() => setReady(true)} />
-              </Suspense>
-            </SceneBoundary>
-          )}
-        </div>
       </div>
       <div className="hero-bottom">
         <a className="scroll-cue" href="#kollektionen" aria-label={t.home.scrollCue} />
-        <span>{t.home.location}</span>
+        <div className="hero-bottom-end">
+          {video.src && (
+            <button
+              type="button"
+              className="hero-video-toggle"
+              aria-label={video.paused ? t.home.videoPlay : t.home.videoPause}
+              onClick={video.toggle}
+            >
+              {video.paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+            </button>
+          )}
+          <span className="hero-location">{t.home.location}</span>
+        </div>
       </div>
     </section>
   );

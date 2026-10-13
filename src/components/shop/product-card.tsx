@@ -32,9 +32,15 @@ export function ProductCard({ product }: { product: Product }) {
           <Photo image={product.images[0]} />
           {product.images[1] && <Photo image={product.images[1]} className="second-image" />}
         </Link>
-        {(product.tags.includes("sale") || product.tags.includes("neu")) && (
-          <span className="product-badge">
-            {product.tags.includes("sale") ? t.product.badgeSale : t.product.badgeNew}
+        {(product.tags.includes("muster") ||
+          product.tags.includes("sale") ||
+          product.tags.includes("neu")) && (
+          <span className={`product-badge ${product.tags.includes("muster") ? "is-sample" : ""}`}>
+            {product.tags.includes("muster")
+              ? t.product.badgeSample
+              : product.tags.includes("sale")
+                ? t.product.badgeSale
+                : t.product.badgeNew}
           </span>
         )}
         <Button

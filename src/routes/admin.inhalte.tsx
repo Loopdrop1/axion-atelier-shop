@@ -10,6 +10,7 @@ import {
   saveContent,
   translateTexts,
   uploadSiteImage,
+  uploadSiteVideo,
   type ProductListRow,
 } from "@/lib/admin/api";
 import { autoTranslate, type AutoTranslateResult } from "@/lib/admin/auto-translate";
@@ -174,9 +175,12 @@ function Content() {
       />
       <Announcements value={obj("announcements")} />
       <TextBlock
-        title="Einstieg (oben, mit 3D-Logo)"
+        title="Einstieg (oben, Bild oder Video über die ganze Breite)"
+        description="Ohne eigenes Bild zeigt der Shop das Foto vom «Kompletten Outfit». Am besten ein Querformat-Foto oder -Video, auf dem die Kleidung gut zu sehen ist; der Text steht unten links."
         contentKey="home.hero"
         value={obj("home.hero")}
+        image="hero"
+        video="hero"
         fields={[
           { name: "eyebrow", label: "Kleine Zeile oben" },
           { name: "title", label: "Titel", multiline: true, hint: "Zeilenumbruch mit Enter" },
@@ -185,6 +189,16 @@ function Content() {
           { name: "secondary", label: "Knopf 2 (zu den Anzügen)" },
         ]}
         defaults={{ de: flatten(home.de.hero), en: flatten(home.en.hero) }}
+      />
+      <TextBlock
+        title="Marken-Abschnitt (mit 3D-Logo)"
+        contentKey="home.brand"
+        value={obj("home.brand")}
+        fields={[
+          { name: "eyebrow", label: "Kleine Zeile oben" },
+          { name: "title", label: "Titel", multiline: true, hint: "Zeilenumbruch mit Enter" },
+        ]}
+        defaults={{ de: flatten(home.de.brand), en: flatten(home.en.brand) }}
       />
       <TextBlock
         title="Kollektionen"
@@ -367,6 +381,7 @@ function ImageUpload({
   label,
   hint,
   onBusy,
+  maxSide,
 }: {
   value: Obj;
   /** Änderung als Funktion des aktuellen Stands: Ein Upload, der während anderer Eingaben endet, setzt sie nicht zurück. */
@@ -377,6 +392,8 @@ function ImageUpload({
   hint: string;
   /** Meldet laufende Uploads (Speichern ist solange gesperrt). */
   onBusy: (busy: boolean) => void;
+  /** Längere Bildseite höchstens (Standard 2000 px) */
+  maxSide?: number | undefined;
 }) {
   const file = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -396,7 +413,7 @@ function ImageUpload({
             setBusy(true);
             onBusy(true);
             try {
-              const image = await uploadSiteImage(f, folder);
+              const image = await uploadSiteImage(f, folder, maxSide);
               onChange((current) => ({
                 ...current,
                 [name]: image.path,
@@ -439,12 +456,123 @@ function ImageUpload({
   );
 }
 
+function VideoUpload({
+  value,
+  onChange,
+  folder,
+  name,
+  label,
+  hint,
+  onBusy,
+}: {
+  value: Obj;
+  onChange: (update: (current: Obj) => Obj) => void;
+  folder: string;
+  name: "video" | "video_mobile";
+  label: string;
+  hint: string;
+  onBusy: (busy: boolean) => void;
+}) {
+  const file = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const src = imageUrl(str(value[name]), "site-media");
+  return (
+    <div className="admin-image-field">
+      {src ? (
+        <video src={src} muted playsInline preload="metadata" aria-hidden="true" />
+      ) : (
+        <span className="admin-thumb" />
+      )}
+      <div>
+        <input
+          ref={file}
+          type="file"
+          accept="video/mp4,video/webm"
+          hidden
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (!f) return;
+            setBusy(true);
+            onBusy(true);
+            try {
+              const path = await uploadSiteVideo(f, folder);
+              onChange((current) => ({ ...current, [name]: path }));
+            } catch (err) {
+              notify.error(err);
+            } finally {
+              setBusy(false);
+              onBusy(false);
+            }
+          }}
+        />
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => file.current?.click()}>
+          <Upload /> {busy ? "Wird hochgeladen …" : label}
+        </Button>
+        {src && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              onChange((current) => {
+                const next = { ...current };
+                delete next[name];
+                return next;
+              })
+            }
+          >
+            <Trash2 /> Video entfernen
+          </Button>
+        )}
+        <p className="admin-hint">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Video für den Einstieg: läuft stumm in Schleife über dem Bild (das Bild bleibt Vorschau und Rückfall). */
+function VideoField({
+  value,
+  onChange,
+  folder,
+  onBusy,
+}: {
+  value: Obj;
+  onChange: (update: (current: Obj) => Obj) => void;
+  folder: string;
+  onBusy: (busy: boolean) => void;
+}) {
+  return (
+    <div className="admin-form">
+      <VideoUpload
+        value={value}
+        onChange={onChange}
+        onBusy={onBusy}
+        folder={folder}
+        name="video"
+        label="Video hochladen"
+        hint="Freiwillig: MP4 oder WebM, höchstens 25 MB, ohne Ton, am besten 8 bis 15 Sekunden im Querformat. Das Bild oben bleibt Vorschau und erscheint, wo kein Video läuft."
+      />
+      <VideoUpload
+        value={value}
+        onChange={onChange}
+        onBusy={onBusy}
+        folder={folder}
+        name="video_mobile"
+        label="Video fürs Handy"
+        hint="Freiwillig, im Hochformat (zum Beispiel 1080 × 1920). Ohne eigenes Video zeigt das Handy das Bild; so lädt es keine grosse Querformat-Datei."
+      />
+    </div>
+  );
+}
+
 function ImageField({
   value,
   onChange,
   folder,
   onBusy,
   mobile = false,
+  maxSide,
 }: {
   value: Obj;
   onChange: (update: (current: Obj) => Obj) => void;
@@ -452,6 +580,7 @@ function ImageField({
   onBusy: (busy: boolean) => void;
   /** Zusätzlich ein eigenes Bild fürs Handy (hoch) */
   mobile?: boolean;
+  maxSide?: number | undefined;
 }) {
   const alt = isObj(value["image_alt"]) ? (value["image_alt"] as Obj) : {};
   const setAlt = (lang: "de" | "en", text: string) =>
@@ -466,6 +595,7 @@ function ImageField({
         onChange={onChange}
         onBusy={onBusy}
         folder={folder}
+        maxSide={maxSide}
         name="image"
         label="Bild ersetzen"
         hint={
@@ -480,6 +610,7 @@ function ImageField({
           onChange={onChange}
           onBusy={onBusy}
           folder={folder}
+          maxSide={maxSide}
           name="image_mobile"
           label="Bild fürs Handy"
           hint="Freiwillig, im Hochformat. Ohne eigenes Bild zeigt das Handy das Bild oben."
@@ -514,13 +645,19 @@ function TextBlock({
   fields,
   defaults,
   image,
+  video,
+  description,
 }: {
   title: string;
   contentKey: string;
   value: Obj;
   fields: FieldDef[];
   defaults: Record<Lang, Record<string, string>>;
+  /** Ordner für ein Bild (mit Handy-Bild) */
   image?: string;
+  /** Ordner für ein Video (Einstieg der Startseite) */
+  video?: string;
+  description?: string;
 }) {
   const save = useSave();
   const [draft, setDraft] = useState<Obj>(value);
@@ -529,11 +666,19 @@ function TextBlock({
   const [uploads, setUploads] = useState(0);
   const onBusy = (b: boolean) => setUploads((n) => n + (b ? 1 : -1));
   return (
-    <Panel title={title}>
+    <Panel title={title} {...(description ? { description } : {})}>
       <fieldset className="admin-lock admin-form" disabled={busy}>
         {image && (
-          <ImageField value={draft} onChange={setDraft} onBusy={onBusy} folder={image} mobile />
+          <ImageField
+            value={draft}
+            onChange={setDraft}
+            onBusy={onBusy}
+            folder={image}
+            mobile
+            maxSide={image === "hero" ? 2560 : undefined}
+          />
         )}
+        {video && <VideoField value={draft} onChange={setDraft} onBusy={onBusy} folder={video} />}
         <LocalizedFields value={draft} fields={fields} defaults={defaults} onChange={setDraft} />
         <Button
           variant="admin"

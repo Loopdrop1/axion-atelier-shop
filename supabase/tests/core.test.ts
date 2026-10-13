@@ -63,8 +63,9 @@ describe("Katalog lesen", () => {
       "select i.path from public.product_images i join public.products p on p.id = i.product_id where p.handle = any($1)",
       [SEED],
     );
-    expect(images.length).toBe(9);
-    expect(images.every((i) => i.path.startsWith("asset:"))).toBe(true);
+    // Muster-Sortiment: je Produkt Vorder- und Rückansicht
+    expect(images.length).toBe(SEED.length * 2);
+    expect(images.every((i) => i.path.startsWith("asset:muster/"))).toBe(true);
   });
 
   it("Admin sieht auch Entwürfe", async () => {
@@ -184,6 +185,26 @@ describe("Katalog schreiben", () => {
       ),
     );
     expect(err.message).toMatch(/check constraint/);
+  });
+
+  it("Herkunft und Ausstattung haben Längengrenzen", async () => {
+    const origin = await expectPgError(
+      sql("update public.products set origin_de = repeat('x', 121) where handle = $1", [
+        draftHandle,
+      ]),
+    );
+    expect(origin.message).toMatch(/check constraint/);
+    const features = await expectPgError(
+      sql("update public.products set features_en = repeat('x', 1501) where handle = $1", [
+        draftHandle,
+      ]),
+    );
+    expect(features.message).toMatch(/check constraint/);
+    const ok = await sql(
+      "update public.products set origin_de = 'Gefertigt in Italien', features_de = $2 where handle = $1 returning id",
+      [draftHandle, "Zweiknopf-Sakko\nHose ohne Bundfalte"],
+    );
+    expect(ok).toHaveLength(1);
   });
 
   it("anon kann keine Inhalte ändern, Admin schon", async () => {

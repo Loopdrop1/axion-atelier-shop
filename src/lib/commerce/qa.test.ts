@@ -31,6 +31,19 @@ describe("QA regressions", () => {
     expect(stringify?.({ groesse: "48", sort: undefined })).toBe("?groesse=48");
     expect(stringify?.({ groesse: "48,50" })).toBe("?groesse=48,50");
   });
+  it("cross-fades only between pages, not when search, filters or sorting change", () => {
+    const transition = getRouter().options.defaultViewTransition;
+    if (typeof transition !== "object" || typeof transition.types !== "function")
+      throw new Error("View transition types missing");
+    const change = (pathChanged: boolean) => ({
+      toLocation: {} as never,
+      pathChanged,
+      hrefChanged: true,
+      hashChanged: false,
+    });
+    expect(transition.types(change(true))).toEqual(["seite"]);
+    expect(transition.types(change(false))).toBe(false);
+  });
   it("provides one self-referencing canonical, language alternates and summary card", () => {
     const head = pageHead("Westen", "Westen von Axion", "/kollektion/westen");
     expect(head.links).toEqual([
@@ -56,12 +69,14 @@ describe("QA regressions", () => {
   });
   it("preserves newest ordering and original sale prices in cart data", async () => {
     const newest = await listProducts({ collection: "neu" });
-    expect(newest).toHaveLength(4);
+    expect(newest).toHaveLength(10);
     expect(newest.every((p) => p.tags.includes("neu"))).toBe(true);
     expect(newest.map((p) => p.createdAt)).toEqual(
       [...newest.map((p) => p.createdAt)].sort().reverse(),
     );
-    const sale = (await listProducts({ collection: "sale" }))[0];
+    const sale = (await listProducts({ collection: "sale" })).find(
+      (p) => p.handle === "weste-limmat-salbeigruen",
+    );
     const variant = sale?.variants.find((v) => v.availableForSale);
     if (!sale || !variant) throw new Error("Sale fixture missing");
     const cart = await resolveCart([{ variantId: variant.id, quantity: 1 }]);

@@ -15,13 +15,14 @@ function ObjectMark({ progress }: { progress: number }) {
     const geos = paths.flatMap((path) =>
       SVGLoader.createShapes(path).map(
         (shape) =>
+          // Flach wie ein gegossenes Emblem, mit feiner Fase (wirkt edler als ein dicker Block)
           new ExtrudeGeometry(shape, {
-            depth: 120,
+            depth: 38,
             bevelEnabled: true,
-            bevelThickness: 10,
-            bevelSize: 10,
-            bevelSegments: 6,
-            curveSegments: 48,
+            bevelThickness: 5,
+            bevelSize: 4,
+            bevelSegments: 10,
+            curveSegments: 64,
           }),
       ),
     );
@@ -46,29 +47,19 @@ function ObjectMark({ progress }: { progress: number }) {
     return geos;
   }, []);
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries]);
+  // Langsam: Beim Scrollen dreht sich das Zeichen von links nach rechts, dazu ein leichtes Atmen.
   useFrame(({ clock, pointer }, delta) => {
     const group = ref.current;
     if (!group) return;
     const t = clock.elapsedTime;
     if (start.current === null) start.current = t;
-    const intro = Math.min((t - start.current) / 1.6, 1);
+    const intro = Math.min((t - start.current) / 2.2, 1);
     const ease = 1 - Math.pow(1 - intro, 3);
-    group.rotation.y = MathUtils.damp(
-      group.rotation.y,
-      MathUtils.degToRad(
-        -25 * (1 - ease) + Math.sin((t * Math.PI * 2) / 9) * 14 * ease + pointer.x * 10,
-      ),
-      5,
-      delta,
-    );
-    group.rotation.x = MathUtils.damp(group.rotation.x, -pointer.y * 0.12, 4, delta);
-    group.position.y = MathUtils.damp(
-      group.position.y,
-      -0.31 * (1 - ease) + progress * 0.18,
-      5,
-      delta,
-    );
-    group.scale.setScalar(1 - progress * 0.1);
+    const turn = -30 + progress * 60 + Math.sin((t * Math.PI * 2) / 14) * 3 + pointer.x * 5;
+    group.rotation.y = MathUtils.damp(group.rotation.y, MathUtils.degToRad(turn), 2.5, delta);
+    group.rotation.x = MathUtils.damp(group.rotation.x, -pointer.y * 0.06, 2.5, delta);
+    group.position.y = MathUtils.damp(group.position.y, -0.12 * (1 - ease), 3, delta);
+    group.scale.setScalar(0.9 + 0.1 * ease);
   });
   const brass = useMemo(
     () =>
@@ -84,10 +75,11 @@ function ObjectMark({ progress }: { progress: number }) {
         <mesh key={i} geometry={geometry}>
           <meshPhysicalMaterial
             color={brass}
-            envMapIntensity={2}
-            metalness={0.9}
-            roughness={0.3}
-            clearcoat={0.2}
+            metalness={1}
+            roughness={0.34}
+            anisotropy={0.6}
+            anisotropyRotation={Math.PI / 2}
+            envMapIntensity={1.25}
           />
         </mesh>
       ))}
@@ -116,13 +108,14 @@ export default function HeroScene({
       }}
     >
       <FitCamera />
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[-4, 5, 4]} color="#F5E4C1" intensity={4} />
-      <Environment resolution={128}>
-        <Lightformer intensity={8} position={[-3, 3, 4]} scale={[5, 5, 1]} />
-        <Lightformer intensity={4} position={[0, 0, 5]} scale={[5, 5, 1]} />
-        <Lightformer intensity={2} position={[4, 1, 2]} scale={[2, 4, 1]} />
-        <Lightformer intensity={1.5} position={[0, -3, 3]} scale={[5, 1, 1]} />
+      <ambientLight intensity={0.08} />
+      <directionalLight position={[-3, 4, 5]} color="#F3E2BF" intensity={1.6} />
+      {/* Studiolicht: weiches Streiflicht oben links, schmale Kante rechts, wenig Fülllicht */}
+      <Environment resolution={256}>
+        <Lightformer form="rect" intensity={5} position={[-4, 3, 3]} scale={[8, 1.2, 1]} />
+        <Lightformer form="rect" intensity={3.5} position={[4.5, 0.5, 1]} scale={[0.6, 7, 1]} />
+        <Lightformer form="rect" intensity={2.2} position={[-5, -0.5, 2]} scale={[0.8, 6, 1]} />
+        <Lightformer form="rect" intensity={1.4} position={[0, -2, 4]} scale={[6, 2, 1]} />
       </Environment>
       <ObjectMark progress={progress} />
     </Canvas>

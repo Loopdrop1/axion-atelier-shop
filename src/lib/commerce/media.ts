@@ -41,3 +41,18 @@ export const media = {
 };
 
 export type MediaKey = keyof typeof media;
+
+// Muster-Sortiment: freigestellte Illustrationen als «asset:muster/<handle>-1» (vorne) und «-2» (hinten, Innenseite).
+// Platzhalter bis zu den echten Produktfotos; sie verschwinden mit supabase/demo/muster-entfernen.sql aus dem Shop.
+// «no-inline»: immer als eigene Datei, sonst landen die kleinen Zeichnungen im JavaScript jeder Seite.
+const musterFiles = import.meta.glob<string>("../../assets/muster/*.svg", {
+  eager: true,
+  query: "?url&no-inline",
+  import: "default",
+});
+export const musterMedia: Record<string, string> = Object.fromEntries(
+  Object.entries(musterFiles).map(([file, url]) => [
+    `muster/${file.slice(file.lastIndexOf("/") + 1).replace(/\.svg$/, "")}`,
+    url,
+  ]),
+);

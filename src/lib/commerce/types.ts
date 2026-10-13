@@ -14,6 +14,8 @@ export interface Variant {
   id: string;
   title: string;
   availableForSale: boolean;
+  /** Bestand dieser Grösse (für «Nur noch 2 an Lager») */
+  stock: number;
   price: Money;
   compareAtPrice?: Money | undefined;
   selectedOptions: { name: string; value: string }[];
@@ -34,7 +36,15 @@ export interface Product {
   tags: string[];
   occasions: Occasion[];
   description: string;
-  details: { material?: string | undefined; care?: string | undefined; fit?: string | undefined };
+  details: {
+    material?: string | undefined;
+    care?: string | undefined;
+    fit?: string | undefined;
+    /** Herkunft, z. B. «Gefertigt in Italien» */
+    origin?: string | undefined;
+    /** Ausstattung, ein Merkmal pro Eintrag */
+    features: string[];
+  };
   images: ShopImage[];
   options: { name: "size" | "color"; values: string[] }[];
   variants: Variant[];
@@ -79,7 +89,20 @@ export interface Hotspot {
 }
 /** Texte und Bilder der Startseite (im Admin bearbeitbar), bereits in der aktuellen Sprache. */
 export interface HomeContent {
-  hero: { eyebrow: string; title: string; text: string; primary: string; secondary: string };
+  hero: {
+    eyebrow: string;
+    title: string;
+    text: string;
+    primary: string;
+    secondary: string;
+    /** Bild über die ganze Breite (mit eigenem Handy-Bild, falls im Admin hinterlegt) */
+    image: ShopImage;
+    /** Video statt Bild (läuft stumm in Schleife; das Bild ist Vorschau und Rückfall) */
+    /** Mindestens eine Adresse; aufs Handy nur `mobileUrl`, am Computer nur `url` */
+    video?: { url?: string | undefined; mobileUrl?: string | undefined } | undefined;
+  };
+  /** Marken-Abschnitt mit dem 3D-Logo */
+  brand: { eyebrow: string; title: string };
   collections: { eyebrow: string; title: string };
   newArrivals: { eyebrow: string; title: string; link: string };
   look: {

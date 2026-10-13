@@ -9,6 +9,7 @@ import { useShopSettings } from "@/lib/commerce/use-settings";
 import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Collection, HomeContent, Product } from "@/lib/commerce";
+import { BrandMoment } from "./brand-moment";
 import { Hero } from "./hero";
 import { LookShop } from "./look-shop";
 import { outfitKey } from "./outfit-key";
@@ -219,6 +220,7 @@ export function HomePage({
           ))}
         </div>
       </section>
+      <BrandMoment content={content.brand} />
       <div className="container">
         <div className="benefits">
           {[

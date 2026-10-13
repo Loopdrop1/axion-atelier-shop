@@ -4,7 +4,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { supabaseUrl } from "@/lib/backend";
 import type { Locale } from "@/i18n/locale";
 import { messages } from "@/i18n/messages";
-import { media, type MediaKey } from "./media";
+import { media, musterMedia, type MediaKey } from "./media";
 import type { CategoryRow, ProductRow } from "./rows";
 import type {
   Collection,
@@ -34,10 +34,21 @@ export function pick(de: string | null | undefined, en: string | null | undefine
   return de ?? undefined;
 }
 
+/** Ausstattung aus dem Admin: ein Merkmal pro Zeile; Aufzählungszeichen und leere Zeilen fallen weg. */
+export function featureList(text: string | null | undefined): string[] {
+  return (text ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*(?:[-–•*·]\s*)?/, "").trim())
+    .filter(Boolean);
+}
+
 /** Bildpfad aus der Datenbank → URL: «asset:…» = eingebautes Bild, sonst Supabase Storage oder volle URL. */
 export function imageUrl(path: string | null | undefined, bucket: Bucket): string | null {
   if (!path) return null;
-  if (path.startsWith("asset:")) return media[path.slice(6) as MediaKey]?.url ?? null;
+  if (path.startsWith("asset:")) {
+    const key = path.slice(6);
+    return media[key as MediaKey]?.url ?? musterMedia[key] ?? null;
+  }
   if (/^https:\/\//.test(path)) return path;
   if (!supabaseUrl) return null;
   const clean = path.replace(/^\/+/, "").split("/").map(encodeURIComponent).join("/");
@@ -121,6 +132,8 @@ export function mapProduct(
       material: pick(row.material_de, row.material_en, locale),
       care: pick(row.care_de, row.care_en, locale),
       fit: pick(row.fit_note_de, row.fit_note_en, locale),
+      origin: pick(row.origin_de, row.origin_en, locale),
+      features: featureList(pick(row.features_de, row.features_en, locale)),
     },
     images,
     options: [
@@ -133,6 +146,7 @@ export function mapProduct(
         id: v.id,
         title: v.size,
         availableForSale: v.stock > 0,
+        stock: Math.max(0, v.stock),
         price: money(v.price_cents ?? row.price_cents),
         compareAtPrice: compare ? money(compare) : undefined,
         selectedOptions: [
@@ -200,10 +214,19 @@ function contentImage(block: Json | undefined, locale: Locale, fallback: ShopIma
     : image;
 }
 
+/** Video für den Einstieg (Speicher site-media); ohne Video oder ohne Backend: keins. */
+function heroVideo(block: Json | undefined): HomeContent["hero"]["video"] {
+  if (!isObj(block)) return undefined;
+  const url = imageUrl(str(block["video"]), "site-media") ?? undefined;
+  const mobileUrl = imageUrl(str(block["video_mobile"]), "site-media") ?? undefined;
+  return url || mobileUrl ? { url, mobileUrl } : undefined;
+}
+
 /** Startseite: Werte aus site_content, fehlende Felder aus den Übersetzungen. */
 export function mapHomeContent(content: Record<string, Json>, locale: Locale): HomeContent {
   const d = messages[locale].home;
   const hero = content["home.hero"];
+  const brand = content["home.brand"];
   const collections = content["home.collections"];
   const fresh = content["home.new"];
   const look = content["home.look"];
@@ -230,6 +253,12 @@ export function mapHomeContent(content: Record<string, Json>, locale: Locale): H
       text: f(hero, "text", d.hero.text),
       primary: f(hero, "primary", d.hero.primary),
       secondary: f(hero, "secondary", d.hero.secondary),
+      image: contentImage(hero, locale, { ...media.look, altText: d.hero.imageAlt }),
+      video: heroVideo(hero),
+    },
+    brand: {
+      eyebrow: f(brand, "eyebrow", d.brand.eyebrow),
+      title: f(brand, "title", d.brand.title),
     },
     collections: {
       eyebrow: f(collections, "eyebrow", d.collections.eyebrow),

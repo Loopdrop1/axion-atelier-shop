@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { outfitKey } from "./outfit-key";
 import { isSoldOut, sizesFor, useOutfit } from "./outfit";
 import { Link } from "@tanstack/react-router";
-import { Heart, Plus, ArrowLeft, ArrowRight } from "lucide-react";
+import { Heart, Plus, ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { formatPrice } from "@/lib/commerce/format";
@@ -14,6 +14,9 @@ import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
 import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
+/** Bis zu diesem Bestand zeigt die Seite «Nur noch … an Lager» (bei 3 wäre es bei kleinen Beständen fast immer) */
+const LOW_STOCK = 2;
+
 export function ProductPage({
   product,
   siblings,
@@ -95,6 +98,22 @@ export function ProductPage({
       block: "center",
     });
   };
+  const sample = product.tags.includes("muster");
+  const klarna = (shopConfig.paymentMethods as readonly string[]).includes("Klarna");
+  // «Nur noch 2 an Lager» erst, wenn eine knappe Grösse gewählt ist
+  const chosen = product.variants.find((v) => v.title === size && v.availableForSale);
+  const lowStock = chosen && chosen.stock <= LOW_STOCK ? chosen.stock : 0;
+  const fitNote =
+    product.details.fit && product.details.fit !== product.fit ? product.details.fit : "";
+  const facts = [
+    {
+      label: t.product.fit,
+      value: [product.fit ? fitLabel(product.fit) : "", fitNote].filter(Boolean).join(". "),
+    },
+    { label: t.product.material, value: product.details.material ?? "" },
+    { label: t.product.origin, value: product.details.origin ?? "" },
+    { label: t.product.care, value: product.details.care ?? "" },
+  ].filter((f) => f.value.trim());
   const addSelected = () => {
     const variant = product.variants.find((v) => v.title === size && v.availableForSale);
     if (!variant) return;
@@ -116,6 +135,7 @@ export function ProductPage({
               <Button
                 variant="icon"
                 key={image.url}
+                style={{ "--i": i } as CSSProperties}
                 onClick={() => {
                   setZoom(i);
                   setZoomed(false);
@@ -142,24 +162,55 @@ export function ProductPage({
               />
             ))}
           </div>
-          <div className="product-info">
-            <nav className="breadcrumb" aria-label={t.product.breadcrumb}>
-              <Link to="/{-$locale}" params={{ locale: lp }}>
-                {t.product.home}
-              </Link>
-              <span>/</span>
-              <Link
-                to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle: product.category }}
-              >
-                {product.categoryTitle}
-              </Link>
-            </nav>
-            <h1>{product.title}</h1>
-            <p className="text-muted text-sm">
-              {product.color.name}
-              {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
-            </p>
+          <div className="product-text">
+            <div className="product-head">
+              <nav className="breadcrumb" aria-label={t.product.breadcrumb}>
+                <Link to="/{-$locale}" params={{ locale: lp }}>
+                  {t.product.home}
+                </Link>
+                <span>/</span>
+                <Link
+                  to="/{-$locale}/kollektion/$handle"
+                  params={{ locale: lp, handle: product.category }}
+                >
+                  {product.categoryTitle}
+                </Link>
+              </nav>
+              <h1>{product.title}</h1>
+              <p className="text-muted text-sm">
+                {product.color.name}
+                {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
+              </p>
+              {sample && <p className="sample-notice">{t.product.sampleNotice}</p>}
+            </div>
+            <div className="product-details">
+              {product.description && (
+                <p className="product-text-description">{product.description}</p>
+              )}
+              <h2 className="details-title">{t.product.detailsTitle}</h2>
+              {facts.length > 0 && (
+                <dl className="product-facts">
+                  {facts.map((f) => (
+                    <div key={f.label}>
+                      <dt>{f.label}</dt>
+                      <dd>{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {product.details.features.length > 0 && (
+                <ul className="product-features" aria-label={t.product.features}>
+                  {product.details.features.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+              )}
+              {facts.length === 0 && product.details.features.length === 0 && (
+                <p className="text-muted">{t.product.detailsFollow}.</p>
+              )}
+            </div>
+          </div>
+          <div className="product-buy">
             <div className="price">
               {formatPrice(product.priceRange.min, locale)}
               {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
@@ -205,6 +256,10 @@ export function ProductPage({
                 </Button>
               ))}
             </div>
+            {/* Immer vorhanden, damit Screenreader den Hinweis beim Wechsel der Grösse vorlesen */}
+            <p className="stock-hint" role="status">
+              {lowStock > 0 ? t.product.lowStock(lowStock) : ""}
+            </p>
             <div ref={mainAdd} className="add-row">
               <Button disabled={!size} onClick={addSelected}>
                 {t.product.addToCart}
@@ -221,39 +276,17 @@ export function ProductPage({
             </div>
             {!size && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
             <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
+            {klarna && <p className="pay-hint">{t.product.klarna}</p>}
             <div className="accordion">
-              {[
-                { title: t.product.description, text: product.description },
-                {
-                  title: t.product.materialAndCare,
-                  text: t.product.materialCare(
-                    product.details.material || t.product.detailsFollow,
-                    product.details.care || t.product.detailsFollow,
-                  ),
-                },
-                {
-                  title: t.product.fit,
-                  text:
-                    product.details.fit && product.details.fit !== product.fit
-                      ? product.details.fit
-                      : product.fit
-                        ? `${fitLabel(product.fit)}.`
-                        : `${t.product.detailsFollow}.`,
-                },
-                {
-                  title: t.product.shippingAndReturns,
-                  text: t.product.shippingText(shipping, shopConfig.returnDays),
-                },
-              ].map((a) => (
-                <details key={a.title}>
-                  <summary>
-                    {a.title}
-                    <Plus size={16} />
-                  </summary>
-                  <p>{a.text}</p>
-                </details>
-              ))}
+              <details>
+                <summary>
+                  {t.product.shippingAndReturns}
+                  <Plus size={16} />
+                </summary>
+                <p>{t.product.shippingText(shipping, shopConfig.returnDays)}</p>
+              </details>
             </div>
+            <ConsultCard />
           </div>
         </div>
         {outfit.length > 0 && (
@@ -458,5 +491,26 @@ function OutfitBuilder({ outfit }: { outfit: Product[] }) {
         {t.product.outfitAdd}
       </Button>
     </section>
+  );
+}
+
+/** Persönliche Beratung: Kontakt, auf Wunsch mit Telefonnummer (nur wenn in der Konfiguration eingetragen). */
+function ConsultCard() {
+  const t = useT();
+  const lp = useLocaleParam();
+  const phone = shopConfig.contact.phone;
+  const showPhone = phone.trim() !== "" && !phone.startsWith("[");
+  return (
+    <div className="consult-card">
+      <MessageCircle aria-hidden="true" />
+      <div>
+        <p className="consult-title">{t.product.consultTitle}</p>
+        <p>{t.product.consultText}</p>
+        <Link className="text-link" to="/{-$locale}/kontakt" params={{ locale: lp }}>
+          {t.product.consultLink} <ArrowRight />
+        </Link>
+        {showPhone && <p className="consult-phone">{t.product.consultPhone(phone)}</p>}
+      </div>
+    </div>
   );
 }
