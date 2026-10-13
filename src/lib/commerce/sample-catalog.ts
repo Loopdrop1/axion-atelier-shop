@@ -703,17 +703,15 @@ export const sampleCatalog: CatalogData = {
     },
     "home.look": {
       de: {
-        cta: "Outfit zusammenstellen",
         text: "Vom ersten Knopf bis zum letzten Schritt.",
         title: "Komplettes Outfit.\nGanz du.",
-        total: "Ganzes Outfit ab",
+        total: "Ganzes Outfit",
         eyebrow: "Stücke, die zusammenpassen",
       },
       en: {
-        cta: "Build your outfit",
         text: "From the first button to the last step.",
         title: "The complete outfit.\nAll you.",
-        total: "Complete outfit from",
+        total: "Complete outfit",
         eyebrow: "Pieces that go together",
       },
       image: "asset:look",
@@ -753,7 +751,6 @@ export const sampleCatalog: CatalogData = {
         de: "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang",
         en: "Navy three-piece suit with black oxford shoes in a bright hallway",
       },
-      cta_handle: "anzug-limmat-marine",
       image_width: 960,
       image_height: 1280,
     },

@@ -243,12 +243,10 @@ export function mapHomeContent(content: Record<string, Json>, locale: Locale): H
     look: {
       image: contentImage(look, locale, { ...media.look, altText: d.look.imageAlt }),
       hotspots,
-      ctaHandle: (isObj(look) && str(look["cta_handle"])) || hotspots[0]?.handle || "",
       eyebrow: f(look, "eyebrow", d.look.eyebrow),
       title: f(look, "title", d.look.title),
       text: f(look, "text", d.look.text),
       total: f(look, "total", d.look.total),
-      cta: f(look, "cta", d.look.cta),
     },
     occasions: {
       eyebrow: f(occasions, "eyebrow", d.occasions.eyebrow),

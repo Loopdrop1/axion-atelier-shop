@@ -90,6 +90,100 @@ test("Startseite auf Deutsch und Englisch mit hreflang und Sprachwechsel", async
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
+/** Positionen im Warenkorb (wie im Browser gespeichert). */
+async function cartLines(page: Page): Promise<{ variantId: string; quantity: number }[]> {
+  return page.evaluate(
+    () =>
+      (JSON.parse(localStorage.getItem("axion-cart") ?? "{}") as { state?: { lines?: [] } }).state
+        ?.lines ?? [],
+  );
+}
+
+/** Erste lieferbare Grösse in einer Auswahlliste wählen; gibt die Variante zurück. */
+async function chooseFirstSize(select: ReturnType<Page["locator"]>): Promise<string> {
+  const value = await select
+    .locator("option:not([disabled]):not([value=''])")
+    .first()
+    .getAttribute("value");
+  expect(value).toBeTruthy();
+  await select.selectOption(value!);
+  return value!;
+}
+
+test("Startseite: Look direkt kaufen – Grössen wählen, ganzer Look oder nur die Auswahl", async ({
+  page,
+}, info) => {
+  const errors = watchErrors(page);
+  await open(page, "/");
+  const look = page.locator(".look-section");
+  const addAll = look.getByRole("button", { name: "Ganzen Look in den Warenkorb" });
+  await expect(look.locator(".look-item")).toHaveCount(3);
+  await expect(look.locator(".look-total")).toContainText("Ganzes Outfit");
+
+  // Ohne Grössen: Hinweis, erste fehlende Grösse im Fokus, Warenkorb bleibt zu und leer
+  await addAll.click();
+  await expect(look.getByRole("alert")).toHaveText(
+    "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
+  );
+  await expect(look.getByLabel("Grösse für Anzug «Limmat», Marine")).toBeFocused();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(await cartLines(page)).toEqual([]);
+
+  const chosen: string[] = [];
+  for (const select of await look.locator(".look-size").all())
+    chosen.push(await chooseFirstSize(select));
+  await expect(look.getByRole("alert")).toHaveCount(0);
+  await expectNoHorizontalScroll(page);
+  await look.screenshot({ path: `.local/e2e-shots/${info.project.name}-look.png` });
+  await addAll.click();
+  const drawer = page.getByRole("dialog");
+  await expect(drawer.getByRole("heading", { name: "Dein Warenkorb" })).toBeVisible();
+  await expect(drawer.locator(".cart-line")).toHaveCount(3);
+  expect(await cartLines(page)).toEqual(chosen.map((variantId) => ({ variantId, quantity: 1 })));
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+
+  // Englisch: Weste abwählen, nur Anzug und Schuhe dazulegen
+  await open(page, "/en");
+  const lookEn = page.locator(".look-section");
+  await lookEn.getByRole("checkbox", { name: "Select Limmat Waistcoat, Navy" }).uncheck();
+  await expect(lookEn.locator(".look-total")).toContainText("Selected: 2 of 3 pieces");
+  await chooseFirstSize(lookEn.getByLabel("Size for Limmat Suit, Navy"));
+  await chooseFirstSize(lookEn.getByLabel("Size for Nero Oxford, Black"));
+  await lookEn.getByRole("button", { name: "Add selection to cart" }).click();
+  await expect(page.getByRole("dialog").locator(".cart-line")).toHaveCount(3);
+  expect(await cartLines(page)).toEqual([
+    { variantId: chosen[0], quantity: 2 },
+    { variantId: chosen[1], quantity: 1 },
+    { variantId: chosen[2], quantity: 2 },
+  ]);
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
+test("Produktseite: Komplettes Outfit legt die gewählten Stücke zusammen in den Warenkorb", async ({
+  page,
+}) => {
+  const errors = watchErrors(page);
+  await open(page, "/produkt/anzug-limmat-marine");
+  const builder = page.locator("#outfit");
+  await expect(builder.locator(".outfit-row")).toHaveCount(2);
+  const add = builder.getByRole("button", { name: "Auswahl in den Warenkorb" });
+  await add.click();
+  await expect(builder.getByRole("alert")).toHaveText(
+    "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
+  );
+  await expect(builder.getByLabel("Grösse für Weste «Limmat», Marine")).toBeFocused();
+  expect(await cartLines(page)).toEqual([]);
+
+  // Schuhe abwählen, nur die Weste mit Grösse
+  await builder.getByRole("checkbox", { name: "Oxford «Nero», Schwarz auswählen" }).uncheck();
+  const vest = await chooseFirstSize(builder.getByLabel("Grösse für Weste «Limmat», Marine"));
+  await add.click();
+  await expect(page.getByRole("dialog").locator(".cart-line")).toHaveCount(1);
+  expect(await cartLines(page)).toEqual([{ variantId: vest, quantity: 1 }]);
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
 test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer Warenkorb", async ({
   page,
   request,

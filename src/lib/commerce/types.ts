@@ -85,12 +85,11 @@ export interface HomeContent {
   look: {
     image: ShopImage;
     hotspots: Hotspot[];
-    ctaHandle: string;
     eyebrow: string;
     title: string;
     text: string;
+    /** Text vor der Summe, wenn alle Stücke des Looks ausgewählt sind */
     total: string;
-    cta: string;
   };
   occasions: { eyebrow: string; title: string; texts: Record<string, string> };
   story: { image: ShopImage; eyebrow: string; title: string; text: string; link: string };

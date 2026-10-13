@@ -10,6 +10,8 @@ import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Collection, HomeContent, Product } from "@/lib/commerce";
 import { Hero } from "./hero";
+import { LookShop } from "./look-shop";
+import { outfitKey } from "./outfit-key";
 import { Lines, Photo, Reveal } from "./primitives";
 import { ProductCard } from "./product-card";
 import { occasionHandles } from "./shell";
@@ -44,7 +46,9 @@ export function HomePage({
   }, [api]);
   const [hotspot, setHotspot] = useState<string | null>(null);
   const { look } = content;
-  const lookProducts = look.hotspots.flatMap((h) => {
+  // Jedes Stück nur einmal, auch wenn zwei Punkte auf dasselbe Produkt zeigen
+  const lookProducts = look.hotspots.flatMap((h, i, spots) => {
+    if (spots.findIndex((s) => s.handle === h.handle) !== i) return [];
     const p = products.find((p) => p.handle === h.handle);
     return p ? [p] : [];
   });
@@ -186,43 +190,8 @@ export function HomePage({
                 <Lines text={look.title} />
               </h2>
               <p className="text-muted">{look.text}</p>
-              <div className="look-items">
-                {lookProducts.map((p) => (
-                  <Link
-                    className="look-item"
-                    key={p.handle}
-                    to="/{-$locale}/produkt/$handle"
-                    params={{ locale: lp, handle: p.handle }}
-                  >
-                    <Photo image={p.images[0]} />
-                    <div>
-                      <h3>{p.title}</h3>
-                      <p>{p.color.name}</p>
-                    </div>
-                    <span className="price">{formatPrice(p.priceRange.min, locale)}</span>
-                  </Link>
-                ))}
-              </div>
-              <div className="look-total">
-                <span>{look.total}</span>
-                <strong>
-                  {formatPrice(
-                    lookProducts.reduce((s, p) => s + p.priceRange.min.amount, 0),
-                    locale,
-                  )}
-                </strong>
-              </div>
-              {look.ctaHandle && (
-                <Button asChild>
-                  <Link
-                    to="/{-$locale}/produkt/$handle"
-                    params={{ locale: lp, handle: look.ctaHandle }}
-                    hash="outfit"
-                  >
-                    {look.cta}
-                  </Link>
-                </Button>
-              )}
+              {/* Neu aufbauen, wenn andere Stücke im Look sind (Auswahl und Grössen zurücksetzen) */}
+              <LookShop key={outfitKey(lookProducts)} products={lookProducts} total={look.total} />
             </Reveal>
           </div>
         </section>

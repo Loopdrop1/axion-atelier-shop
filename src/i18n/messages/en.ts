@@ -170,8 +170,7 @@ export const en: Messages = {
       eyebrow: "Pieces that go together",
       title: "The complete outfit.\nAll you.",
       text: "From the first button to the last step.",
-      total: "Complete outfit from",
-      cta: "Build your outfit",
+      total: "Complete outfit",
       imageAlt: "Navy three-piece suit with black oxford shoes in a bright hallway",
     },
     occasions: {
@@ -201,6 +200,10 @@ export const en: Messages = {
     next: "Next products",
     view: "View",
     viewHotspot: (label: string) => `View ${label.toLowerCase()}`,
+    // Shop the look (home page)
+    lookSelection: (count: number, total: number) =>
+      `Selected: ${count} of ${total} ${total === 1 ? "piece" : "pieces"}`,
+    lookAddAll: "Add the whole look to cart",
     scrollCue: "To the collections",
     location: "Axion · Switzerland",
   },
@@ -270,6 +273,7 @@ export const en: Messages = {
     outfitSelection: (price: string) => `Selection: ${price}`,
     outfitError: "Please choose a size for each selected piece.",
     outfitAdd: "Add selection to cart",
+    outfitSoldOut: "Sold out",
     recommendations: "You might also like",
     zoomImage: (n: number) => `Enlarge image ${n}`,
     image: (n: number) => `Image ${n}`,

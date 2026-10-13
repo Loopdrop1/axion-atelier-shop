@@ -173,8 +173,7 @@ export const de = {
       eyebrow: "Stücke, die zusammenpassen",
       title: "Komplettes Outfit.\nGanz du.",
       text: "Vom ersten Knopf bis zum letzten Schritt.",
-      total: "Ganzes Outfit ab",
-      cta: "Outfit zusammenstellen",
+      total: "Ganzes Outfit",
       imageAlt: "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang",
     },
     occasions: {
@@ -204,6 +203,10 @@ export const de = {
     next: "Nächste Produkte",
     view: "Ansehen",
     viewHotspot: (label: string) => `${label} ansehen`,
+    // Look direkt kaufen (Startseite)
+    lookSelection: (count: number, total: number) =>
+      `Auswahl: ${count} von ${total} ${total === 1 ? "Stück" : "Stücken"}`,
+    lookAddAll: "Ganzen Look in den Warenkorb",
     scrollCue: "Zu den Kollektionen",
     location: "Axion · Schweiz",
   },
@@ -276,6 +279,7 @@ export const de = {
     outfitSelection: (price: string) => `Auswahl: ${price}`,
     outfitError: "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
     outfitAdd: "Auswahl in den Warenkorb",
+    outfitSoldOut: "Ausverkauft",
     recommendations: "Das könnte dir auch gefallen",
     zoomImage: (n: number) => `Bild ${n} vergrössern`,
     image: (n: number) => `Bild ${n}`,

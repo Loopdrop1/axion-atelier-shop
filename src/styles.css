@@ -730,34 +730,93 @@ svg {
   aspect-ratio: 4/5;
 }
 .look-items {
-  margin-top: 36px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
 }
+/* Ein Stück des Looks: Häkchen, Bild, Name und Preis, darunter die Grösse */
 .look-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 57px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "check thumb info price"
+    "check thumb size size";
   align-items: center;
-  justify-content: space-between;
+  column-gap: 15px;
+  row-gap: 10px;
   padding: 20px 0;
   border-bottom: 1px solid var(--line);
-  gap: 15px;
+}
+.look-check {
+  grid-area: check;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.look-check:disabled {
+  cursor: not-allowed;
+}
+.look-thumb {
+  grid-area: thumb;
+  align-self: center;
 }
 .look-item img {
+  display: block;
   height: 72px;
   width: 57px;
+  object-fit: cover;
 }
-.look-item > div {
-  flex: 1;
+.look-info {
+  grid-area: info;
+  min-width: 0;
 }
 .look-item h3 {
   font-size: 16px;
   margin: 0;
+}
+.look-item h3 a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .look-item p {
   font-size: 12px;
   color: var(--muted);
   margin: 0;
 }
+.look-item > .price {
+  grid-area: price;
+  justify-self: end;
+  white-space: nowrap;
+}
+.look-size {
+  grid-area: size;
+  justify-self: start;
+  width: 100%;
+  max-width: 260px;
+  min-height: 40px;
+  cursor: pointer;
+}
+.look-size:disabled {
+  cursor: not-allowed;
+}
+.look-size[aria-invalid="true"],
+.outfit-row select[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+/* Abgewählt oder ausverkauft: Stück tritt zurück */
+.look-item.is-off .look-thumb,
+.look-item.is-off .look-info,
+.look-item.is-off > .price {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
 .look-total {
   margin: 28px 0;
+}
+.look-copy .look-error {
+  margin: -12px 0 18px;
 }
 .look-total span {
   font-size: 12px;
@@ -1641,7 +1700,22 @@ svg {
     margin-top: 25px;
   }
   .look-item {
+    grid-template-columns: auto 50px minmax(0, 1fr) auto;
+    column-gap: 12px;
     padding: 15px 0;
+  }
+  .look-item img {
+    width: 50px;
+    height: 63px;
+  }
+  .look-item h3 {
+    font-size: 15px;
+  }
+  .look-size {
+    max-width: none;
+  }
+  .look-add {
+    width: 100%;
   }
   .look-copy h2 {
     font-size: 2.4rem;
@@ -2023,6 +2097,9 @@ svg {
 }
 .outfit-builder > .price {
   margin-bottom: 16px;
+}
+.outfit-builder > .form-error {
+  margin: -4px 0 16px;
 }
 .cart-summary > p:last-of-type {
   margin-bottom: 20px;
