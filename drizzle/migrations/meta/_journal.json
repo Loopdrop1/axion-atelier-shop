@@ -64,6 +64,13 @@
       "when": 1792600000000,
       "tag": "0008_axion_stock_alerts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792610000000,
+      "tag": "0009_axion_search_assist",
+      "breakpoints": true
     }
   ]
 }

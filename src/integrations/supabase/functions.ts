@@ -9,7 +9,13 @@ export type FunctionResult<T> =
   | { ok: false; status: number; error: string; body: Record<string, unknown> };
 
 export type FunctionName =
-  "checkout" | "newsletter" | "admin-actions" | "account-delete" | "contact" | "stock-alert";
+  | "checkout"
+  | "newsletter"
+  | "admin-actions"
+  | "account-delete"
+  | "contact"
+  | "stock-alert"
+  | "search-assist";
 
 export async function callFunction<T>(
   name: FunctionName,

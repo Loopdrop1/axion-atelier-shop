@@ -5124,3 +5124,100 @@ button.text-link {
     transform: scaleX(0.9);
   }
 }
+
+/* Kluge Suche: verstandene Begriffe, Vorschläge, Hinweise */
+.search-understood {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+button.search-chip {
+  cursor: pointer;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+button.search-chip:hover {
+  border-color: var(--gold);
+}
+.search-chip svg {
+  width: 12px;
+  height: 12px;
+}
+.search-note {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.search-ai::before {
+  content: "✦ ";
+  color: var(--gold);
+}
+.search-fix {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--gold);
+  cursor: pointer;
+}
+.search-start {
+  display: grid;
+  gap: 26px;
+  margin-top: 26px;
+}
+.search-start h3 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.search-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.search-pills > button,
+.search-pills > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.search-pills > button:hover,
+.search-pills > a:hover {
+  border-color: var(--gold);
+  background: color-mix(in oklab, var(--sand) 40%, transparent);
+}
+.search-pills svg {
+  width: 14px;
+  height: 14px;
+}

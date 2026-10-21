@@ -2,6 +2,12 @@
 // Quelle ist Supabase (wenn eingerichtet) oder der Beispielkatalog, siehe source.ts.
 import type { Locale } from "@/i18n/locale";
 import {
+  searchWithIntent,
+  smartSearch,
+  type SearchIntent,
+  type SearchResult,
+} from "./smart-search";
+import {
   mapAnnouncements,
   mapCategory,
   mapHomeContent,
@@ -15,6 +21,7 @@ import { loadCatalog } from "./source";
 import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
 
 export type * from "./types";
+export type { SearchIntent, SearchResult } from "./smart-search";
 export type { SizeGuideTable } from "./mapping";
 export { backendConfigured } from "@/lib/backend";
 
@@ -110,19 +117,26 @@ export async function getProductsByHandles(
   });
 }
 
-const normalize = (text: string) =>
-  text.toLocaleLowerCase("de-CH").normalize("NFD").replace(/[̀-ͯ]/g, "");
-
 export async function searchProducts(query: string, locale: Locale = "de"): Promise<Product[]> {
-  const words = normalize(query.trim()).split(/\s+/).filter(Boolean);
-  if (!words.length) return [];
+  return (await searchCatalog(query, locale)).products;
+}
+
+/** Kluge Suche mit erkannter Absicht (Filter), Lockerung und «Meintest du» (smart-search.ts). */
+export async function searchCatalog(
+  query: string,
+  locale: Locale = "de",
+  extra?: Partial<SearchIntent>,
+): Promise<SearchResult> {
   const { products } = await catalog(locale);
-  return products.filter((p) => {
-    const haystack = normalize(
-      `${p.title} ${p.categoryTitle} ${p.category} ${p.color.name} ${p.model}`,
-    );
-    return words.every((w) => haystack.includes(w));
-  });
+  return smartSearch(products, query, extra);
+}
+
+export async function searchCatalogWith(
+  intent: SearchIntent,
+  locale: Locale = "de",
+): Promise<SearchResult> {
+  const { products } = await catalog(locale);
+  return searchWithIntent(products, intent);
 }
 
 export async function getRecommendations(

@@ -8,7 +8,7 @@ export const sampleCatalog: CatalogData = {
       slug: "anzuege",
       name_de: "Anzüge",
       name_en: "Suits",
-      description_de: "Zweiteiler und Dreiteiler aus feiner Schurwolle, sofort lieferbar.",
+      description_de: "Zweiteiler und Dreiteiler aus feiner Schurwolle, ab Lager lieferbar.",
       description_en: "Two- and three-piece suits in fine wool, ready to ship.",
       image_path: "asset:muster/anzug-limmat-marine-1",
       sort: 10,
@@ -5680,7 +5680,7 @@ export const sampleCatalog: CatalogData = {
     },
     "home.hero": {
       de: {
-        text: "Anzüge, Mäntel, Strick und Accessoires in ausgesuchter Qualität, sofort lieferbar.",
+        text: "Anzüge, Mäntel, Strick und Accessoires in ausgesuchter Qualität, ab Lager lieferbar.",
         title: "Zeitlose Eleganz.\nBereit für dich.",
         eyebrow: "Neue Kollektion",
         primary: "Kollektion entdecken",
@@ -5780,7 +5780,7 @@ export const sampleCatalog: CatalogData = {
     "home.story": {
       de: {
         link: "Über uns",
-        text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, sofort lieferbar.",
+        text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, ab Lager lieferbar.",
         title: "Das Ganze beginnt\nmit den Details.",
         eyebrow: "Axion",
       },
