@@ -29,7 +29,12 @@ export function HomePage({
   const locale = useLocale();
   const lp = useLocaleParam();
   const settings = useShopSettings();
-  const [embla, api] = useEmblaCarousel({ align: "start", dragFree: true });
+  // Auf Handys natives Wischen (scroll-snap) statt Embla, das dort nicht zuverlässig zieht
+  const [embla, api] = useEmblaCarousel({
+    align: "start",
+    dragFree: true,
+    breakpoints: { "(max-width: 767px)": { active: false } },
+  });
   const [carousel, setCarousel] = useState({ previous: false, next: false, overflow: false });
   useEffect(() => {
     if (!api) return;
