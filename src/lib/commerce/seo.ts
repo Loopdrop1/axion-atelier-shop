@@ -20,6 +20,8 @@ export function pageHead(
   options: { noindex?: boolean; image?: string | undefined } = {},
 ) {
   const url = pageUrl(path, locale);
+  // Ohne eigenes Bild: Markenbild (public/og.jpg), damit geteilte Links immer eine Vorschau haben
+  const image = options.image ?? new URL("/og.jpg", shopConfig.siteUrl).href;
   const robots = !shopConfig.launched || options.noindex;
   return {
     links: [
@@ -40,13 +42,9 @@ export function pageHead(
       { property: "og:url", content: url },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: locale === "en" ? "en_GB" : "de_CH" },
-      ...(options.image
-        ? [
-            { property: "og:image", content: options.image },
-            { name: "twitter:image", content: options.image },
-          ]
-        : []),
-      { name: "twitter:card", content: options.image ? "summary_large_image" : "summary" },
+      { property: "og:image", content: image },
+      { name: "twitter:image", content: image },
+      { name: "twitter:card", content: "summary_large_image" },
       ...(robots ? [{ name: "robots", content: "noindex, nofollow" }] : []),
     ],
   };

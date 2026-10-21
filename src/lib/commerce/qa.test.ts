@@ -44,7 +44,7 @@ describe("QA regressions", () => {
     expect(transition.types(change(true))).toEqual(["seite"]);
     expect(transition.types(change(false))).toBe(false);
   });
-  it("provides one self-referencing canonical, language alternates and summary card", () => {
+  it("provides one self-referencing canonical, language alternates and a large preview card", () => {
     const head = pageHead("Westen", "Westen von Axion", "/kollektion/westen");
     expect(head.links).toEqual([
       { rel: "canonical", href: "https://www.axion-shop.ch/kollektion/westen" },
@@ -56,7 +56,12 @@ describe("QA regressions", () => {
         href: "https://www.axion-shop.ch/kollektion/westen",
       },
     ]);
-    expect(head.meta).toContainEqual({ name: "twitter:card", content: "summary" });
+    expect(head.meta).toContainEqual({ name: "twitter:card", content: "summary_large_image" });
+    // Ohne eigenes Bild: Markenbild als Vorschau
+    expect(head.meta).toContainEqual({
+      property: "og:image",
+      content: "https://www.axion-shop.ch/og.jpg",
+    });
     const en = pageHead("Waistcoats", "Waistcoats by Axion", "/kollektion/westen", "en");
     expect(en.links[0]).toEqual({
       rel: "canonical",
