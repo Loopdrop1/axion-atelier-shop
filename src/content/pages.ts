@@ -273,7 +273,7 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
     "Versand und Rückgabe",
     `
 - **Liefergebiet:** Schweiz [und Liechtenstein]
-- **Versand:** mit der Schweizerischen Post, die Kosten siehst du im Warenkorb
+- **Versand:** mit der Schweizerischen Post. {{shipping}}
 - **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
 - **Rücksendung:** [gratis / CHF …], [Etikett liegt bei / auf Anfrage]
@@ -308,7 +308,7 @@ Schreib uns möglichst schnell an {{email}}. Solange das Paket noch nicht unterw
 **Wie lange dauert die Lieferung?**
 In der Regel 2 bis 5 Arbeitstage nach Zahlungseingang.
 **Was kostet der Versand?**
-Die Versandkosten siehst du im Warenkorb, bevor du bestellst.
+{{shipping}}. Den genauen Betrag siehst du im Warenkorb, bevor du bestellst.
 **Liefert ihr ins Ausland?**
 Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 

@@ -196,7 +196,7 @@ We may change these terms and conditions at any time. Your order is governed by 
     "Shipping and returns",
     `
 - **Delivery area:** Switzerland [and Liechtenstein]
-- **Shipping:** with Swiss Post, you see the cost in your cart
+- **Shipping:** with Swiss Post. {{shipping}}
 - **Delivery time:** 2 to 5 working days after payment, tracking number by email
 - **Returns:** within {{returnDays}} days of receipt, unworn and with all tags
 - **Return shipping:** [free / CHF …], [label included / on request]
@@ -231,7 +231,7 @@ Email us as soon as possible at {{email}}. As long as the parcel has not been sh
 **How long does delivery take?**
 Usually 2 to 5 working days after payment.
 **How much is shipping?**
-You see the shipping cost in your cart before you order.
+{{shipping}}. You see the exact amount in your cart before you order.
 **Do you ship abroad?**
 At the moment we only ship within Switzerland [and to Liechtenstein].
 

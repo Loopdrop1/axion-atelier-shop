@@ -9,7 +9,9 @@ import {
 import { shopConfig } from "@/config/shop";
 import { pages, type PageBlock, type WrittenPage } from "@/content/pages";
 import { pagesEn } from "@/content/pages-en";
-import { useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { shippingLabel } from "@/lib/commerce/shipping-text";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 
 const variables = {
   brand: shopConfig.brand,
@@ -41,6 +43,12 @@ export function pageHasPlaceholder(page: WrittenPage) {
   return strings.some((text) => /\[/.test(resolvePageVariables(text)));
 }
 
+/** {{shipping}}: Versandangabe aus den Einstellungen im Admin (wie die Versandleiste), nie fest im Text. */
+function ShippingText() {
+  const settings = useShopSettings();
+  const locale = useLocale();
+  return <>{shippingLabel(settings, locale)}</>;
+}
 export function InlineText({
   text,
   marked = false,
@@ -85,7 +93,14 @@ export function InlineText({
       const key = value.slice(2, -2) as keyof typeof variables;
       const resolved = key in variables ? String(variables[key]) : value;
       const content = <InlineText text={resolved} marked={marked} variablesEnabled={false} />;
-      node = key === "email" ? <a href={`mailto:${resolved}`}>{content}</a> : content;
+      node =
+        value === "{{shipping}}" ? (
+          <ShippingText />
+        ) : key === "email" ? (
+          <a href={`mailto:${resolved}`}>{content}</a>
+        ) : (
+          content
+        );
     } else if (value.startsWith("**")) {
       node = (
         <strong>
