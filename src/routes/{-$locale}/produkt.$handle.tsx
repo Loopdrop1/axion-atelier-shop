@@ -5,6 +5,7 @@ import { shopConfig } from "@/config/shop";
 import { MissingPage } from "@/components/shop/missing-page";
 import { productQuery } from "@/lib/commerce/queries";
 import { pageHead, pageUrl } from "@/lib/commerce/seo";
+import { breadcrumbLd } from "@/lib/seo/structured";
 import { ProductPage } from "@/components/shop/product";
 import { jsonLd } from "@/lib/seo/json-ld";
 export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
@@ -33,6 +34,9 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
                 name: `${p.title}, ${p.color.name}`,
                 brand: { "@type": "Brand", name: shopConfig.brand },
                 sku: p.handle,
+                color: p.color.name,
+                ...(p.details.material ? { material: p.details.material } : {}),
+                category: p.categoryTitle,
                 image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href),
                 description: p.description,
                 url: pageUrl(path, locale),
@@ -45,8 +49,29 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
                   availability: p.variants.some((v) => v.availableForSale)
                     ? "https://schema.org/InStock"
                     : "https://schema.org/OutOfStock",
+                  itemCondition: "https://schema.org/NewCondition",
+                  hasMerchantReturnPolicy: {
+                    "@type": "MerchantReturnPolicy",
+                    applicableCountry: "CH",
+                    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+                    merchantReturnDays: shopConfig.returnDays,
+                    returnMethod: "https://schema.org/ReturnByMail",
+                  },
                 },
               }),
+            },
+            {
+              type: "application/ld+json",
+              children: jsonLd(
+                breadcrumbLd(
+                  [
+                    { name: t.home, path: "/" },
+                    { name: p.categoryTitle, path: `/kollektion/${p.category}` },
+                    { name: `${p.title}, ${p.color.name}`, path },
+                  ],
+                  locale,
+                ),
+              ),
             },
           ]
         : [],
