@@ -4911,3 +4911,49 @@ button.text-link {
     transform: translateY(12px);
   }
 }
+
+/* Produktseite: «Benachrichtigen, wenn wieder da» */
+.stock-alert {
+  margin: 4px 0 18px;
+  font-size: 14px;
+}
+.stock-alert summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--gold);
+  list-style: none;
+}
+.stock-alert summary::-webkit-details-marker {
+  display: none;
+}
+.stock-alert form {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.stock-alert label {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.stock-alert select,
+.stock-alert input[type="email"] {
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  min-width: 0;
+}
+.stock-alert-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.stock-alert .newsletter-row {
+  flex-direction: column;
+}
+.stock-alert .newsletter-row input {
+  flex: none;
+}

@@ -43,6 +43,7 @@ import { Route as AdminBestellungenIndexRouteImport } from './routes/admin.beste
 import { Route as AdminBestellungenIdRouteImport } from './routes/admin.bestellungen.$id'
 import { Route as AdminProdukteIndexRouteImport } from './routes/admin.produkte.index'
 import { Route as AdminProdukteIdRouteImport } from './routes/admin.produkte.$id'
+import { Route as Char123LocaleChar125BenachrichtigungBestaetigenRouteImport } from './routes/{-$locale}/benachrichtigung.bestaetigen'
 import { Route as Char123LocaleChar125BestellungTokenRouteImport } from './routes/{-$locale}/bestellung.$token'
 import { Route as Char123LocaleChar125KollektionHandleRouteImport } from './routes/{-$locale}/kollektion.$handle'
 import { Route as Char123LocaleChar125KontoIndexRouteImport } from './routes/{-$locale}/konto.index'
@@ -242,6 +243,12 @@ const AdminProdukteIdRoute = AdminProdukteIdRouteImport.update({
   path: '/produkte/$id',
   getParentRoute: () => AdminRoute,
 } as any)
+const Char123LocaleChar125BenachrichtigungBestaetigenRoute =
+  Char123LocaleChar125BenachrichtigungBestaetigenRouteImport.update({
+    id: '/benachrichtigung/bestaetigen',
+    path: '/benachrichtigung/bestaetigen',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 const Char123LocaleChar125BestellungTokenRoute =
   Char123LocaleChar125BestellungTokenRouteImport.update({
     id: '/bestellung/$token',
@@ -354,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -400,6 +408,7 @@ export interface FileRoutesByTo {
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -450,6 +459,7 @@ export interface FileRoutesById {
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/{-$locale}'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -596,6 +608,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
@@ -859,6 +872,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProdukteIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/{-$locale}/benachrichtigung/bestaetigen': {
+      id: '/{-$locale}/benachrichtigung/bestaetigen'
+      path: '/benachrichtigung/bestaetigen'
+      fullPath: '/{-$locale}/benachrichtigung/bestaetigen'
+      preLoaderRoute: typeof Char123LocaleChar125BenachrichtigungBestaetigenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
     '/{-$locale}/bestellung/$token': {
       id: '/{-$locale}/bestellung/$token'
       path: '/bestellung/$token'
@@ -1003,6 +1023,7 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125VersandUndRueckgabeRoute: typeof Char123LocaleChar125VersandUndRueckgabeRoute
   Char123LocaleChar125WarenkorbRoute: typeof Char123LocaleChar125WarenkorbRoute
   Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
+  Char123LocaleChar125BenachrichtigungBestaetigenRoute: typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   Char123LocaleChar125BestellungTokenRoute: typeof Char123LocaleChar125BestellungTokenRoute
   Char123LocaleChar125KollektionHandleRoute: typeof Char123LocaleChar125KollektionHandleRoute
   Char123LocaleChar125NewsletterAbmeldenRoute: typeof Char123LocaleChar125NewsletterAbmeldenRoute
@@ -1031,6 +1052,8 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
       Char123LocaleChar125VersandUndRueckgabeRoute,
     Char123LocaleChar125WarenkorbRoute: Char123LocaleChar125WarenkorbRoute,
     Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
+    Char123LocaleChar125BenachrichtigungBestaetigenRoute:
+      Char123LocaleChar125BenachrichtigungBestaetigenRoute,
     Char123LocaleChar125BestellungTokenRoute:
       Char123LocaleChar125BestellungTokenRoute,
     Char123LocaleChar125KollektionHandleRoute:

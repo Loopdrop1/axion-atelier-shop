@@ -55,6 +55,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Customer account (optional):** email address, password (stored only as an encrypted hash that we cannot read), first and last name, phone number, address, language and your orders.
 - **Gift cards:** code, value, remaining balance and expiry date, the purchaser's email address and, if provided, the recipient's name and email address, the sender's name and the personal message.
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
+- **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
 - **Technical data:** When you visit the website, technical data is generated, such as your IP address, date and time, the page you open, your browser and device. We use it to run the website and keep it secure, for example to protect the forms against misuse.
 - **Data on your device:** Your browser stores your cart, your wishlist and, if you are signed in, your login (section 6).
@@ -65,6 +66,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - to manage your customer account if you open one;
 - to issue and redeem gift cards and keep track of the remaining balance;
 - to send you the newsletter if you have subscribed and confirmed your subscription by email;
+- to notify you once by email when a sold-out size is back, if you have requested this and confirmed it by email;
 - to answer your questions;
 - to run the website securely and reliably and to prevent misuse;
 - to comply with legal obligations, in particular the retention of business records.
@@ -100,6 +102,7 @@ We keep personal data for as long as we need it for the purposes described:
 - **Orders and receipts:** ten years, as the law requires for business records.
 - **Customer account:** until you delete it. You can do this yourself in your customer account at any time. We then keep your orders, no longer linked to the account, for the statutory period.
 - **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence.
+- **Back-in-stock alert:** we delete your address once the alert has been sent; unconfirmed requests after 30 days.
 - **Gift cards:** until they expire and then for the statutory period for business records.
 - **Messages sent through the contact form:** The shop does not store them; they reach our mailbox as emails. We keep them for as long as we need them for your enquiry.
 - **Protection against misuse:** To stop anyone from using the forms, checkout or gift card check on a massive scale, we count requests per IP address and email address. For this, we store only a hash of the address, not the address itself, together with the count and the time. We delete expired counters on an ongoing basis, usually after two days.

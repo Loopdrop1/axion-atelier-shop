@@ -8,7 +8,7 @@ export type FunctionResult<T> =
   | { ok: false; status: number; error: string; body: Record<string, unknown> };
 
 export type FunctionName =
-  "checkout" | "newsletter" | "admin-actions" | "account-delete" | "contact";
+  "checkout" | "newsletter" | "admin-actions" | "account-delete" | "contact" | "stock-alert";
 
 export async function callFunction<T>(
   name: FunctionName,
