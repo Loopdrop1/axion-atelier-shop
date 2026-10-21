@@ -4859,3 +4859,55 @@ button.text-link {
     transform: translateY(-40px);
   }
 }
+
+/* Warenkorb: Fortschritt bis Gratisversand */
+.free-shipping {
+  margin: 4px 0 18px;
+  font-size: 13px;
+}
+.free-shipping p {
+  margin: 0 0 10px;
+}
+.free-shipping-track {
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.free-shipping-track span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Seitenwechsel: alte Seite blendet aus, neue steigt leicht auf; Kategorie-Bilder mit ruhigerem Zoom */
+@media (prefers-reduced-motion: no-preference) {
+  /* Kopfzeile bleibt stehen, nur der Inhalt wechselt */
+  .site-header {
+    view-transition-name: site-header;
+  }
+  ::view-transition-old(root) {
+    animation: vt-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+  }
+  .category-tile img {
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .category-card:hover .category-tile img {
+    transform: scale(1.06);
+  }
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

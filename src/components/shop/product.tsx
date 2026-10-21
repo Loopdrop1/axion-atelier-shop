@@ -9,8 +9,9 @@ import { formatPrice } from "@/lib/commerce/format";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
-import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
-import type { Product } from "@/lib/commerce";
+import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
+import { getProductsByHandles, type Product } from "@/lib/commerce";
+import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
 import { ProductCard, useFitLabel } from "./product-card";
@@ -320,6 +321,7 @@ export function ProductPage({
             ))}
           </div>
         </section>
+        <RecentlyViewed current={product.handle} />
       </div>
       <Panel open={guide} onOpenChange={setGuide} title={t.product.sizeGuide}>
         <SizeGuide category={product.category} />
@@ -529,5 +531,42 @@ function ConsultCard() {
         {showPhone && <p className="consult-phone">{t.product.consultPhone(phone)}</p>}
       </div>
     </div>
+  );
+}
+
+/** Merkt sich das Produkt (nach dem Laden des Speichers) und zeigt die zuvor angesehenen Stücke. */
+function RecentlyViewed({ current }: { current: string }) {
+  const t = useT();
+  const locale = useLocale();
+  const hydrated = useStoreHydrated(useRecentlyViewed.persist);
+  const add = useRecentlyViewed((s) => s.add);
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    if (!hydrated) return;
+    // Vor dem Merken lesen, damit das aktuelle Stück nicht in der eigenen Liste steht
+    const handles = useRecentlyViewed
+      .getState()
+      .handles.filter((h) => h !== current)
+      .slice(0, 4);
+    add(current);
+    let alive = true;
+    if (handles.length) getProductsByHandles(handles, locale).then((p) => alive && setProducts(p));
+    else setProducts([]);
+    return () => {
+      alive = false;
+    };
+  }, [hydrated, current, locale, add]);
+  if (!products.length) return null;
+  return (
+    <section className="section pb-0 recently-viewed">
+      <div className="section-head">
+        <h2>{t.product.recentlyViewed}</h2>
+      </div>
+      <div className="product-grid">
+        {products.map((p) => (
+          <ProductCard key={p.handle} product={p} />
+        ))}
+      </div>
+    </section>
   );
 }

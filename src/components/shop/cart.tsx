@@ -6,7 +6,8 @@ import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { MAX_PER_LINE, useCart } from "@/lib/commerce/stores";
 import { sizeText } from "@/lib/commerce/one-size";
 import { resolveCart, type Cart as CartType } from "@/lib/commerce";
-import { formatPrice } from "@/lib/commerce/format";
+import { formatCents, formatPrice } from "@/lib/commerce/format";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
 import { CheckoutSummary } from "./checkout-summary";
@@ -152,6 +153,7 @@ export function CartContents({
           </div>
         ))}
       </div>
+      <FreeShippingBar subtotal={cart.subtotal} />
       {page ? (
         <CheckoutSummary cart={cart} onNotice={setNotice} />
       ) : (
@@ -171,6 +173,28 @@ export function CartContents({
           <span className="checkout-note">{t.checkout.estimateNote}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Fortschritt bis «Gratisversand ab» aus den Einstellungen; ohne Schwelle oder bei Gratisversand nichts. */
+function FreeShippingBar({ subtotal }: { subtotal: CartType["subtotal"] }) {
+  const t = useT();
+  const locale = useLocale();
+  const { shippingCents, freeShippingFromCents: from } = useShopSettings();
+  if (!shippingCents || from === null || from <= 0) return null;
+  const cents = Math.round(subtotal.amount * 100);
+  const left = Math.max(0, from - cents);
+  return (
+    <div className="free-shipping" role="status">
+      <p>
+        {left > 0
+          ? t.checkout.freeShippingLeft(formatCents(left, locale))
+          : t.checkout.freeShippingReached}
+      </p>
+      <div className="free-shipping-track" aria-hidden="true">
+        <span style={{ transform: `scaleX(${Math.min(1, cents / from)})` }} />
+      </div>
     </div>
   );
 }

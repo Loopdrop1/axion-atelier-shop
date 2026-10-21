@@ -65,6 +65,20 @@ export const useWishlist = create<{ handles: string[]; toggle: (handle: string) 
     { name: "axion-wishlist", storage: createJSONStorage(() => localStorage), skipHydration: true },
   ),
 );
+/** Zuletzt angesehene Produkte (nur Handles, neueste zuerst). */
+export const RECENT_MAX = 12;
+export const useRecentlyViewed = create<{ handles: string[]; add: (handle: string) => void }>()(
+  persist(
+    (set) => ({
+      handles: [],
+      add: (handle) =>
+        set((s) => ({
+          handles: [handle, ...s.handles.filter((h) => h !== handle)].slice(0, RECENT_MAX),
+        })),
+    }),
+    { name: "axion-recent", storage: createJSONStorage(() => localStorage), skipHydration: true },
+  ),
+);
 export const useShopUI = create<{
   cartOpen: boolean;
   searchOpen: boolean;
