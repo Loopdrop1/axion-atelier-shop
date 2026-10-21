@@ -12,7 +12,7 @@ export function useFitLabel() {
   const t = useT();
   return (fit: string) => t.product.fits[fit] ?? fit;
 }
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, eager = false }: { product: Product; eager?: boolean }) {
   const t = useT();
   const locale = useLocale();
   const lp = useLocaleParam();
@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
             e.currentTarget.classList.add("vt-product-image");
           }}
         >
-          <Photo image={product.images[0]} />
+          <Photo image={product.images[0]} eager={eager} />
           {product.images[1] && <Photo image={product.images[1]} className="second-image" />}
         </Link>
         {(product.tags.includes("muster") ||

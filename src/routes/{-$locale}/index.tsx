@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { jsonLd } from "@/lib/seo/json-ld";
+import { organizationLd } from "@/lib/seo/structured";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { messages, toLocale, useLocale } from "@/i18n";
 import { homeQuery } from "@/lib/commerce/queries";
@@ -9,12 +11,18 @@ export const Route = createFileRoute("/{-$locale}/")({
     context.queryClient.ensureQueryData(homeQuery(toLocale(params.locale))),
   head: ({ params }) => {
     const locale = toLocale(params.locale);
-    return pageHead(
-      messages[locale].seo.homeTitle,
-      messages[locale].seo.homeDescription,
-      "/",
-      locale,
-    );
+    return {
+      ...pageHead(
+        messages[locale].seo.homeTitle,
+        messages[locale].seo.homeDescription,
+        "/",
+        locale,
+      ),
+      scripts: organizationLd(locale).map((ld) => ({
+        type: "application/ld+json",
+        children: jsonLd(ld),
+      })),
+    };
   },
   component: Index,
 });

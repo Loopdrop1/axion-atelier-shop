@@ -5,6 +5,8 @@ import { searchString } from "@/lib/commerce/presentation";
 import { collectionQuery, type CollectionSearch } from "@/lib/commerce/queries";
 import { MissingPage } from "@/components/shop/missing-page";
 import { pageHead } from "@/lib/commerce/seo";
+import { jsonLd } from "@/lib/seo/json-ld";
+import { breadcrumbLd } from "@/lib/seo/structured";
 import { CollectionPage } from "@/components/shop/collection";
 export const Route = createFileRoute("/{-$locale}/kollektion/$handle")({
   validateSearch: (s: Record<string, unknown>): CollectionSearch => ({
@@ -28,12 +30,31 @@ export const Route = createFileRoute("/{-$locale}/kollektion/$handle")({
   head: ({ loaderData, params }) => {
     const locale = toLocale(params.locale);
     const t = messages[locale].collections;
-    return pageHead(
-      loaderData?.collection.title || t.notFoundTitle,
-      loaderData?.collection.description || t.notFoundDescription,
-      `/kollektion/${params.handle}`,
-      locale,
-    );
+    const c = loaderData?.collection;
+    return {
+      ...pageHead(
+        c?.title || t.notFoundTitle,
+        c?.description || t.notFoundDescription,
+        `/kollektion/${params.handle}`,
+        locale,
+      ),
+      scripts: c
+        ? [
+            {
+              type: "application/ld+json",
+              children: jsonLd(
+                breadcrumbLd(
+                  [
+                    { name: messages[locale].product.home, path: "/" },
+                    { name: c.title, path: `/kollektion/${params.handle}` },
+                  ],
+                  locale,
+                ),
+              ),
+            },
+          ]
+        : [],
+    };
   },
   notFoundComponent: MissingPage,
   component: Collection,

@@ -33,6 +33,13 @@ export function CollectionPage({
   const [open, setOpen] = useState(false);
   const [dropdown, setDropdown] = useState<string | null>(null);
   const labels = t.collections.filters;
+  const occasion =
+    collection.handle === "alle" &&
+    search.anlass &&
+    !search.anlass.includes(",") &&
+    t.occasions[search.anlass]
+      ? search.anlass
+      : undefined;
   const label = (key: string, v: string) =>
     key === "passform"
       ? fitLabel(v)
@@ -197,9 +204,20 @@ export function CollectionPage({
   );
   return (
     <div className="container page-body">
-      <p className="eyebrow">{t.collections.eyebrow}</p>
-      <h1 className="page-title">{collection.title}</h1>
-      <p className="page-intro">{collection.description}</p>
+      {/* Ein einzelner Anlass auf «Alle Stücke» bekommt eigene Überschrift und Einleitung (wie auf der Startseite) */}
+      {occasion ? (
+        <>
+          <p className="eyebrow">{t.home.occasions.eyebrow}</p>
+          <h1 className="page-title">{t.occasions[occasion]}</h1>
+          <p className="page-intro">{t.home.occasions.texts[occasion] ?? collection.description}</p>
+        </>
+      ) : (
+        <>
+          <p className="eyebrow">{t.collections.eyebrow}</p>
+          <h1 className="page-title">{collection.title}</h1>
+          <p className="page-intro">{collection.description}</p>
+        </>
+      )}
       <div className="filters-bar">
         <div className="filter-controls desktop-filter-controls">{desktop}</div>
         <Button variant="tailored" className="mobile-filters" onClick={() => setOpen(true)}>
@@ -253,8 +271,9 @@ export function CollectionPage({
       </div>
       {products.length ? (
         <div className="product-grid">
-          {products.map((p) => (
-            <ProductCard key={p.handle} product={p} />
+          {products.map((p, i) => (
+            // Erste Reihe sofort laden (LCP), den Rest erst beim Scrollen
+            <ProductCard key={p.handle} product={p} eager={i < 4} />
           ))}
         </div>
       ) : (

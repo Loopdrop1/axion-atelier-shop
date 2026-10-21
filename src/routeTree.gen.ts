@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$locale}/route'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -61,6 +62,11 @@ import { Route as Char123LocaleChar125KontoBestellungenNumberRouteImport } from 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -331,6 +337,7 @@ const Char123LocaleChar125KontoBestellungenNumberRoute =
 export interface FileRoutesByFullPath {
   '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesByTo {
+  '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
@@ -481,6 +490,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/{-$locale}'
     | '/admin'
+    | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
@@ -529,6 +539,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
@@ -578,6 +589,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/{-$locale}'
     | '/admin'
+    | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
@@ -629,6 +641,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   Char123LocaleChar125RouteRoute: typeof Char123LocaleChar125RouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -639,6 +652,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1114,6 +1134,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   Char123LocaleChar125RouteRoute: Char123LocaleChar125RouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport

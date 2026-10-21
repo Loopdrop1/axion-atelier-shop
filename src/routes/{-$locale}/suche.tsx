@@ -13,7 +13,7 @@ export const Route = createFileRoute("/{-$locale}/suche")({
   head: ({ params }) => {
     const locale = toLocale(params.locale);
     const t = messages[locale].search;
-    return pageHead(t.title, t.description, "/suche", locale);
+    return pageHead(t.title, t.description, "/suche", locale, { noindex: true });
   },
   component: SearchPage,
 });
