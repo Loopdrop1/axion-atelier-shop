@@ -128,7 +128,7 @@ export const de = {
     termsLinkSentence: "Die verbindlichen Regeln stehen in den",
     about: {
       title: "Ausgesucht. Für deinen Auftritt.",
-      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, sofort lieferbar.",
+      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, ab Lager lieferbar.",
     },
     contact: {
       intro:
@@ -152,11 +152,11 @@ export const de = {
     messageTooShort: "Bitte schreib uns mindestens ein paar Worte.",
     messageTooLong: "Die Nachricht ist zu lang (höchstens 4000 Zeichen).",
     rateLimited:
-      "Du hast gerade mehrere Nachrichten geschickt. Bitte versuch es später wieder oder schreib uns direkt per E-Mail.",
+      "Du hast gerade mehrere Nachrichten geschickt. Bitte versuche es später wieder oder schreib uns direkt per E-Mail.",
     notConfigured: "Das Formular ist noch nicht aktiv. Bitte schreib uns direkt per E-Mail.",
-    busy: "Gerade kommen sehr viele Nachrichten an. Bitte versuch es später wieder oder schreib uns direkt per E-Mail.",
+    busy: "Gerade kommen sehr viele Nachrichten an. Bitte versuche es später wieder oder schreib uns direkt per E-Mail.",
     failed:
-      "Die Nachricht konnte nicht gesendet werden. Bitte versuch es noch einmal oder schreib uns direkt per E-Mail.",
+      "Die Nachricht konnte nicht gesendet werden. Bitte versuche es noch einmal oder schreib uns direkt per E-Mail.",
   },
   seo: {
     homeTitle: "Herrenmode, Schuhe und Accessoires",
@@ -167,7 +167,7 @@ export const de = {
     hero: {
       eyebrow: "Neue Kollektion",
       title: "Zeitlose Eleganz.\nBereit für dich.",
-      text: "Anzüge, Mäntel, Strick und Accessoires in ausgesuchter Qualität, sofort lieferbar.",
+      text: "Anzüge, Mäntel, Strick und Accessoires in ausgesuchter Qualität, ab Lager lieferbar.",
       primary: "Kollektion entdecken",
       secondary: "Neuheiten ansehen",
       imageAlt: "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang",
@@ -199,7 +199,7 @@ export const de = {
     story: {
       eyebrow: "Axion",
       title: "Das Ganze beginnt\nmit den Details.",
-      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, sofort lieferbar.",
+      text: "Axion steht für ausgesuchte Herrenmode und Accessoires, die zusammenpassen. Vom Anzug bis zum Einstecktuch, ab Lager lieferbar.",
       link: "Über uns",
       imageAlt: "Detail von dunklem Anzugstoff mit messingfarbenem Knopf",
     },
@@ -230,7 +230,7 @@ export const de = {
     },
     new: { title: "Neu eingetroffen", description: "Neue Stücke. Neue Kombinationen." },
     sale: {
-      title: "Ausgewählte Stücke",
+      title: "Sale",
       description: "Ausgesuchte Stücke zu reduzierten Preisen.",
     },
     eyebrow: "Axion Kollektion",
@@ -343,6 +343,12 @@ export const de = {
       "Die Grössentabelle für dieses Stück folgt. Bei Fragen zur Grösse helfen wir dir gerne, schreib uns einfach.",
     howTo:
       "Miss den Brustumfang an der breitesten Stelle und die Taille an der schmalsten Stelle. Miss deine Fusslänge von der Ferse bis zum längsten Zeh.",
+    howToBody:
+      "Miss den Brustumfang an der breitesten Stelle und die Taille an der schmalsten Stelle, locker und ohne Jacke.",
+    howToFeet:
+      "Miss deine Fusslänge abends von der Ferse bis zum längsten Zeh. Liegst du zwischen zwei Grössen, wähle die grössere.",
+    between: "Zwischen zwei Grössen? Schreib uns, wir helfen gern.",
+    exchange: (days: number) => `Passt es nicht, gibst du es innert ${days} Tagen zurück.`,
   },
   search: {
     title: "Suche",

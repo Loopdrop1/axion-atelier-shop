@@ -227,11 +227,29 @@ export function CollectionPage({
                 aria-label={t.collections.remove(`${labels[key] ?? key} ${text}`)}
                 onClick={() => change(key as keyof CollectionSearch, undefined)}
               >
-                {text}
+                {key === "preis" ? text : `${labels[key] ?? key}: ${text}`}
                 <X />
               </Button>
             );
           })}
+        {Object.entries(search).filter(([key, value]) => key !== "sort" && value).length > 1 && (
+          <Button
+            variant="link"
+            className="filters-reset"
+            onClick={() =>
+              navigate({
+                to: "/{-$locale}/kollektion/$handle",
+                params: { locale: lp, handle: collection.handle },
+                search: { sort: search.sort },
+                replace: true,
+                resetScroll: false,
+                viewTransition: false,
+              })
+            }
+          >
+            {t.collections.reset}
+          </Button>
+        )}
       </div>
       {products.length ? (
         <div className="product-grid">

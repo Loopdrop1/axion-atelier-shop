@@ -1,5 +1,6 @@
 // Kasse, Rabattcodes, Gutscheine und Bestellstatus aus Sicht des Browsers.
 import { supabase } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import type { Locale } from "@/i18n/locale";
 
@@ -21,7 +22,7 @@ export interface GiftCardCheck {
 }
 
 export async function checkDiscount(code: string, subtotalCents: number): Promise<DiscountCheck> {
-  if (!supabase) return { valid: false, reason: "invalid" };
+  if (!backendConfigured) return { valid: false, reason: "invalid" };
   const { data, error } = await supabase.rpc("check_discount", {
     p_code: code,
     p_subtotal_cents: subtotalCents,
@@ -31,7 +32,7 @@ export async function checkDiscount(code: string, subtotalCents: number): Promis
 }
 
 export async function checkGiftCard(code: string): Promise<GiftCardCheck> {
-  if (!supabase) return { valid: false, reason: "invalid" };
+  if (!backendConfigured) return { valid: false, reason: "invalid" };
   const { data, error } = await supabase.rpc("check_gift_card", { p_code: code });
   if (error) throw error;
   return data as unknown as GiftCardCheck;

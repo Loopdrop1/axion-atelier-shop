@@ -21,6 +21,7 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
         p?.description || t.notFoundDescription,
         path,
         locale,
+        { image: p?.images[0] ? new URL(p.images[0].url, shopConfig.siteUrl).href : undefined },
       ),
       scripts: p
         ? [
@@ -30,6 +31,8 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
                 "@context": "https://schema.org",
                 "@type": "Product",
                 name: `${p.title}, ${p.color.name}`,
+                brand: { "@type": "Brand", name: shopConfig.brand },
+                sku: p.handle,
                 image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href),
                 description: p.description,
                 url: pageUrl(path, locale),

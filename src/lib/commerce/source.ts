@@ -12,7 +12,7 @@ const TTL_MS = 30_000;
 let cache: { at: number; data: Promise<CatalogData> } | null = null;
 
 async function fetchCatalog(): Promise<CatalogData> {
-  if (!supabase) return sampleCatalog();
+  if (!backendConfigured) return sampleCatalog();
   const [categories, products, content] = await Promise.all([
     supabase.from("categories").select(CATEGORY_SELECT).order("sort").order("slug"),
     supabase
@@ -71,7 +71,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
 };
 
 export async function loadSettings(): Promise<ShopSettings> {
-  if (!supabase) return DEFAULT_SETTINGS;
+  if (!backendConfigured) return DEFAULT_SETTINGS;
   const full = await supabase
     .from("shop_settings")
     .select(

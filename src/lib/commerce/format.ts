@@ -7,6 +7,12 @@ const price = {
 };
 
 /** Franken-Betrag (Money oder Zahl in CHF) im Schweizer Format: CHF 1’299.00 */
+/** Rabatt in ganzen Prozent gegenüber dem Streichpreis (0, wenn kein echter Abschlag). */
+export const discountPercent = (price: Money, compareAt: Money | undefined) =>
+  compareAt && compareAt.amount > price.amount
+    ? Math.round((1 - price.amount / compareAt.amount) * 100)
+    : 0;
+
 export const formatPrice = (value: Money | number, locale: Locale = "de") =>
   price[locale].format(typeof value === "number" ? value : value.amount);
 

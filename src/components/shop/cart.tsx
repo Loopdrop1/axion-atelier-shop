@@ -8,6 +8,8 @@ import { sizeText } from "@/lib/commerce/one-size";
 import { resolveCart, type Cart as CartType } from "@/lib/commerce";
 import { formatCents, formatPrice } from "@/lib/commerce/format";
 import { useShopSettings } from "@/lib/commerce/use-settings";
+import { shippingLabel } from "@/lib/commerce/shipping-text";
+import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
 import { CheckoutSummary } from "./checkout-summary";
@@ -37,6 +39,7 @@ export function CartContents({
   onNavigate?: () => void;
 }) {
   const t = useT();
+  const settings = useShopSettings();
   const locale = useLocale();
   const lp = useLocaleParam();
   const navigate = useNavigate();
@@ -171,6 +174,12 @@ export function CartContents({
             {t.checkout.toCheckout}
           </Button>
           <span className="checkout-note">{t.checkout.estimateNote}</span>
+          <p className="cart-trust">
+            {shippingLabel(settings, locale)} · {t.home.benefits.returns(shopConfig.returnDays)}
+          </p>
+          <Button variant="link" className="cart-continue" onClick={onNavigate}>
+            {t.order.continueShopping}
+          </Button>
         </div>
       )}
     </div>
