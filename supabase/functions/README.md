@@ -40,6 +40,14 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "invalid" }`.
 - Versand nach dem Aufstocken: `admin-actions` → `notify_restock` (unten). Nach dem Versand wird die Adresse entfernt; unbestätigte und benachrichtigte Einträge nach 30 Tagen gelöscht.
 
+## search-assist
+
+KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (Kategorien, Farbgruppen, Anlässe, Passform, Preis, Stichworte). Gleiches Gateway wie `translate` (`LOVABLE_API_KEY`).
+
+- `{ q, locale }` → `200 { intent: {...} | null }`. Die Antwort des Modells wird auf bekannte Werte beschränkt (`_shared/search-intent.ts`); ist die KI nicht verfügbar, kommt `intent: null` und der Shop zeigt die lokalen Ergebnisse.
+- Ratenlimit `search_assist_guard` (Migration `20261021001000_search_assist.sql` bzw. Cloud `0009`): 20 pro IP und Stunde, 2000 pro Tag gesamt → `429 RATE_LIMITED`. `400 BAD_REQUEST` bei Anfragen unter 8 Zeichen.
+- Der Shop fragt nur, wenn die lokale Suche einen Satz ab drei Wörtern nicht sicher versteht, und merkt sich Antworten pro Sitzung.
+
 ## admin-actions (nur Admin)
 
 - `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`

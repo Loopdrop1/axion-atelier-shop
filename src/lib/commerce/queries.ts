@@ -13,7 +13,7 @@ import {
   getSizeGuides,
   listCollections,
   listProducts,
-  searchProducts,
+  searchCatalog,
 } from "./index";
 import { loadSettings } from "./source";
 import type { ProductFilters } from "./types";
@@ -76,7 +76,7 @@ export const productQuery = (handle: string, locale: Locale) =>
   });
 
 export const searchQuery = (q: string, locale: Locale) =>
-  queryOptions({ queryKey: ["search", locale, q], queryFn: () => searchProducts(q, locale) });
+  queryOptions({ queryKey: ["search", locale, q], queryFn: () => searchCatalog(q, locale) });
 
 export const announcementsQuery = (locale: Locale) =>
   queryOptions({

@@ -9,7 +9,7 @@
 begin;
 
 insert into public.categories (slug, name_de, name_en, description_de, description_en, image_path, sort) values
-  ('anzuege', 'Anzüge', 'Suits', 'Zweiteiler und Dreiteiler aus feiner Schurwolle, sofort lieferbar.', 'Two- and three-piece suits in fine wool, ready to ship.', 'asset:muster/anzug-limmat-marine-1', 10),
+  ('anzuege', 'Anzüge', 'Suits', 'Zweiteiler und Dreiteiler aus feiner Schurwolle, ab Lager lieferbar.', 'Two- and three-piece suits in fine wool, ready to ship.', 'asset:muster/anzug-limmat-marine-1', 10),
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),

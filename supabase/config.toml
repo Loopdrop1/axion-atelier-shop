@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.stock-alert]
 verify_jwt = false
+
+[functions.search-assist]
+verify_jwt = false

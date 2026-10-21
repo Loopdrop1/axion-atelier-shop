@@ -1,10 +1,16 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
+import { searchCatalog, searchCatalogWith, type SearchResult } from "@/lib/commerce";
 import { searchString } from "@/lib/commerce/presentation";
 import { searchQuery } from "@/lib/commerce/queries";
 import { pageHead } from "@/lib/commerce/seo";
+import { askSearchAssist, wantsAssist } from "@/lib/commerce/search-assist";
 import { ProductCard } from "@/components/shop/product-card";
+import { IntentChips } from "@/components/shop/search-intent";
+import { rememberSearch } from "@/lib/commerce/recent-searches";
+
 export const Route = createFileRoute("/{-$locale}/suche")({
   validateSearch: (s: Record<string, unknown>) => ({ q: searchString(s["q"]) }),
   loaderDeps: ({ search }) => search,
@@ -17,6 +23,7 @@ export const Route = createFileRoute("/{-$locale}/suche")({
   },
   component: SearchPage,
 });
+
 function SearchPage() {
   const t = useT();
   const locale = useLocale();
@@ -29,34 +36,98 @@ function SearchPage() {
     ...searchQuery(q ?? "", locale),
     initialData: Route.useLoaderData(),
   });
+  // Angepasste Ergebnisse: ein Begriff entfernt oder von der KI verstanden (gilt bis zur nächsten Eingabe)
+  const [override, setOverride] = useState<{ q: string; result: SearchResult; ai: boolean } | null>(
+    null,
+  );
+  const [thinking, setThinking] = useState(false);
+  const current = override?.q === (q ?? "") ? override : null;
+  const result = current?.result ?? data;
+
+  // Längere Sätze («Outfit für eine Sommerhochzeit am See») einmal von der KI in Filter übersetzen lassen
+  useEffect(() => {
+    const query = q ?? "";
+    if (!wantsAssist(query, data)) return;
+    let live = true;
+    const timer = setTimeout(() => {
+      setThinking(true);
+      askSearchAssist(query, locale)
+        .then(async (extra) => {
+          if (!live || !extra) return;
+          const next = await searchCatalog(query, locale, extra);
+          if (live && next.products.length) setOverride({ q: query, result: next, ai: true });
+        })
+        .finally(() => live && setThinking(false));
+    }, 700);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [q, locale, data]);
+
+  const go = (next: string) =>
+    navigate({
+      to: "/{-$locale}/suche",
+      params: { locale: lp },
+      search: { q: next },
+      replace: true,
+      // Bei jedem Tastendruck: ohne Überblendung (auch in Browsern ohne Übergangstypen)
+      viewTransition: false,
+    });
+
   return (
     <div className="container page-body">
       <h1 className="page-title">{t.search.title}</h1>
       <input
         id="page-search"
-        className="search-input mb-10"
+        className="search-input mb-6"
         aria-label={t.search.pageLabel}
         placeholder={t.search.pagePlaceholder}
         value={q ?? ""}
-        onChange={(e) =>
-          navigate({
-            to: "/{-$locale}/suche",
-            params: { locale: lp },
-            search: { q: e.target.value },
-            replace: true,
-            // Bei jedem Tastendruck: ohne Überblendung (auch in Browsern ohne Übergangstypen)
-            viewTransition: false,
-          })
+        onChange={(e) => go(e.target.value)}
+        onBlur={() => rememberSearch(q ?? "")}
+      />
+      <IntentChips
+        intent={result.intent}
+        onChange={(intent) =>
+          searchCatalogWith(intent, locale).then((next) =>
+            setOverride({ q: q ?? "", result: next, ai: Boolean(current?.ai) }),
+          )
         }
       />
+      {current?.ai && <p className="search-note search-ai">{t.search.ai}</p>}
+      {thinking && !current && (
+        <p className="search-note" role="status">
+          {t.search.aiWorking}
+        </p>
+      )}
+      {result.didYouMean && (
+        <p className="search-note">
+          {t.search.didYouMean}{" "}
+          <button type="button" className="search-fix" onClick={() => go(result.didYouMean!)}>
+            «{result.didYouMean}»
+          </button>
+          ?
+        </p>
+      )}
+      {result.relaxed && result.products.length > 0 && (
+        <p className="search-note">{t.search.relaxed}</p>
+      )}
+      {result.intent.gift && (
+        <p className="search-note">
+          <Link to="/{-$locale}/geschenkgutschein" params={{ locale: lp }}>
+            {t.search.giftCard}
+          </Link>
+        </p>
+      )}
       <p className="text-muted mb-8">
-        {t.common.results(data.length)}
+        {t.common.results(result.products.length)}
         {q ? t.search.for(q) : ""}
       </p>
-      {data.length ? (
+      {result.products.length ? (
         <div className="product-grid">
-          {data.map((p) => (
-            <ProductCard key={p.handle} product={p} />
+          {result.products.map((p, i) => (
+            <ProductCard key={p.handle} product={p} eager={i < 4} />
           ))}
         </div>
       ) : (
