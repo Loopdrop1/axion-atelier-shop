@@ -1,12 +1,12 @@
 // Einstieg der Startseite: Bild oder Video über die ganze Breite, Text unten links.
 // Bild und Video kommen aus dem Admin (Startseite → Einstieg); ohne eigenes Bild das Look-Foto.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocaleParam, useT } from "@/i18n";
 import type { HomeContent } from "@/lib/commerce";
-import { Lines, Photo } from "./primitives";
+import { Photo } from "./primitives";
 
 type HeroVideoSource = HomeContent["hero"]["video"];
 
@@ -86,8 +86,13 @@ export function Hero({
       <div className="container hero-inner">
         <div className="hero-copy">
           <p className="eyebrow">{content.eyebrow}</p>
-          <h1>
-            <Lines text={content.title} />
+          <h1 className="hero-title">
+            {content.title.split("\n").map((line, i) => (
+              <span className="hero-line" key={i} style={{ "--i": i } as CSSProperties}>
+                {i > 0 && " "}
+                <span>{line}</span>
+              </span>
+            ))}
           </h1>
           {content.text && <p>{content.text}</p>}
           <div className="hero-buttons">

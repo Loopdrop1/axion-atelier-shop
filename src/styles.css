@@ -4695,3 +4695,147 @@ button.text-link {
 .product-badge.is-sample {
   color: #5a5952;
 }
+
+/* Motion: Einstieg, Parallaxe, Bild-Enthüllung, Raster-Staffelung, Bildflug Karte → Produktseite.
+   Alles nur ohne «weniger Bewegung»; ohne JS bzw. ohne Browser-Unterstützung bleibt der Inhalt ruhig sichtbar. */
+.hero-line {
+  display: block;
+}
+.hero-line > span {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  img.hero-image {
+    animation: hero-settle 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero-line {
+    overflow: clip;
+    overflow-clip-margin: 0.12em;
+    padding-bottom: 0.06em;
+  }
+  .hero-line > span {
+    animation: line-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(0.25s + var(--i, 0) * 0.12s);
+  }
+  .hero-copy .eyebrow,
+  .hero-copy > p,
+  .hero-buttons {
+    animation: fade-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero-copy .eyebrow {
+    animation-delay: 0.15s;
+  }
+  .hero-copy > p {
+    animation-delay: 0.6s;
+  }
+  .hero-buttons {
+    animation-delay: 0.75s;
+  }
+  .hero-copy {
+    animation: none;
+  }
+
+  /* Parallaxe beim Wegscrollen, rein in CSS (Scroll-Timeline) */
+  @supports (animation-timeline: scroll()) {
+    .hero-media {
+      animation: hero-parallax linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    .hero-inner {
+      animation: hero-copy-out linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 70%;
+    }
+  }
+
+  /* Bilder: Vorhang öffnet sich, Bild setzt sich */
+  html.js .reveal-image:not(.revealed) {
+    clip-path: inset(12% 0 0 0);
+    opacity: 1;
+    transform: none;
+  }
+  html.js .reveal-image {
+    transition: clip-path 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.js .reveal-image img {
+    transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.js .reveal-image:not(.revealed) img {
+    transform: scale(1.12);
+  }
+
+  /* Raster: Karten nacheinander */
+  html.js .reveal .product-grid > * {
+    transition:
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.js .reveal:not(.revealed) .product-grid > * {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  .product-grid > :nth-child(2) {
+    transition-delay: 0.07s;
+  }
+  .product-grid > :nth-child(3) {
+    transition-delay: 0.14s;
+  }
+  .product-grid > :nth-child(4) {
+    transition-delay: 0.21s;
+  }
+  .product-grid > :nth-child(5) {
+    transition-delay: 0.1s;
+  }
+  .product-grid > :nth-child(6) {
+    transition-delay: 0.17s;
+  }
+  .product-grid > :nth-child(7) {
+    transition-delay: 0.24s;
+  }
+  .product-grid > :nth-child(8) {
+    transition-delay: 0.31s;
+  }
+
+  /* Seitenwechsel: angeklicktes Produktbild fliegt an seinen Platz */
+  .vt-product-image {
+    view-transition-name: product-image;
+  }
+  ::view-transition-group(product-image) {
+    animation-duration: 0.55s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  ::view-transition-old(product-image),
+  ::view-transition-new(product-image) {
+    height: 100%;
+    object-fit: cover;
+  }
+}
+@keyframes hero-settle {
+  from {
+    transform: scale(1.1);
+    filter: brightness(0.7);
+  }
+}
+@keyframes line-rise {
+  from {
+    transform: translateY(105%);
+  }
+}
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes hero-parallax {
+  to {
+    transform: translateY(22%) scale(1.06);
+  }
+}
+@keyframes hero-copy-out {
+  to {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}

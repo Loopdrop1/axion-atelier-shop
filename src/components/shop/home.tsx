@@ -86,11 +86,13 @@ export function HomePage({
               </Link>
             </div>
           </Reveal>
-          <div className="product-grid">
-            {newProducts.slice(0, 8).map((p) => (
-              <ProductCard key={p.handle} product={p} />
-            ))}
-          </div>
+          <Reveal>
+            <div className="product-grid">
+              {newProducts.slice(0, 8).map((p) => (
+                <ProductCard key={p.handle} product={p} />
+              ))}
+            </div>
+          </Reveal>
         </section>
       )}
       {categories.length > 0 && (
