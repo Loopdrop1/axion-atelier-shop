@@ -801,6 +801,50 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_alerts: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          email: string
+          id: string
+          locale: string
+          notified_at: string | null
+          status: string
+          token_hash: string | null
+          variant_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string
+          notified_at?: string | null
+          status?: string
+          token_hash?: string | null
+          variant_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string
+          notified_at?: string | null
+          status?: string
+          token_hash?: string | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_alerts_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -1021,6 +1065,18 @@ export type Database = {
         }
         Returns: Json
       }
+      stock_alert_confirm: { Args: { p_token: string }; Returns: Json }
+      stock_alert_request: {
+        Args: {
+          p_email: string
+          p_ip?: string
+          p_locale: string
+          p_variant_id: string
+        }
+        Returns: Json
+      }
+      stock_alerts_done: { Args: { p_ids: string[] }; Returns: number }
+      stock_alerts_pending: { Args: { p_variant_id: string }; Returns: Json }
       translate_guard: { Args: { p_user_id: string }; Returns: boolean }
       user_is_admin: { Args: { p_user_id: string }; Returns: boolean }
     }
