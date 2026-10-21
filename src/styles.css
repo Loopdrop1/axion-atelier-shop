@@ -1928,11 +1928,31 @@ svg {
     font-size: 10px;
     gap: 6px;
   }
+  .carousel-viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 20px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: -20px;
+    padding-inline: 20px;
+    touch-action: pan-x pan-y;
+  }
+  .carousel-viewport::-webkit-scrollbar {
+    display: none;
+  }
   .carousel-track {
     gap: 14px;
   }
+  .carousel-track::after {
+    content: "";
+    flex: 0 0 6px;
+  }
   .carousel-track > .category-card {
     flex-basis: calc((100% - 14px) / 1.6);
+    scroll-snap-align: start;
   }
   .carousel-controls {
     display: none;
