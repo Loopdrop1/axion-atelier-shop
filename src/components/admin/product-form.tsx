@@ -1,7 +1,13 @@
 // Produktdaten: Titel, Adresse, Kategorie, Preis, Farbe, Texte DE/EN, Anlässe, Neu/Sale/Muster, Outfit.
 import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { translateTexts, type Category, type Product, type ProductListRow } from "@/lib/admin/api";
+import {
+  draftProductCopy,
+  translateTexts,
+  type Category,
+  type Product,
+  type ProductListRow,
+} from "@/lib/admin/api";
 import {
   autoList,
   autoSet,
@@ -11,7 +17,7 @@ import {
 } from "@/lib/admin/auto-translate";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { slugify } from "@/lib/admin/slug";
-import { AreaField, Bilingual, CheckField, Panel, SelectField, TextField } from "./ui";
+import { AreaField, Bilingual, CheckField, notify, Panel, SelectField, TextField } from "./ui";
 
 const OCCASIONS = [
   { value: "hochzeit", label: "Hochzeit" },
@@ -271,6 +277,42 @@ export function ProductForm({
     }
   }
 
+  const [drafting, setDrafting] = useState(false);
+  /** KI schreibt Beschreibung und Ausstattung aus Titel, Kategorie, Farbe, Material und Passform. */
+  async function suggestCopy() {
+    const category = categories.find((c) => c.id === form.category_id)?.name_de ?? "";
+    if (!form.title_de.trim() || !form.color_name_de.trim() || !category) {
+      notify.error(new Error("MISSING_COPY_FACTS"));
+      return;
+    }
+    if (
+      (form.description_de.trim() || form.features_de.trim()) &&
+      !window.confirm("Beschreibung und Ausstattung durch den Vorschlag ersetzen?")
+    )
+      return;
+    setDrafting(true);
+    try {
+      const draft = await draftProductCopy({
+        title: form.title_de,
+        category,
+        color: form.color_name_de,
+        material: form.material_de,
+        fit: form.fit,
+        notes: form.fit_note_de,
+      });
+      setForm((f) => ({
+        ...f,
+        description_de: draft.description,
+        features_de: draft.features.join("\n"),
+      }));
+      notify.ok("Vorschlag eingesetzt. Bitte prüfen und speichern; Englisch folgt beim Speichern.");
+    } catch (error) {
+      notify.error(error);
+    } finally {
+      setDrafting(false);
+    }
+  }
+
   return (
     <form onSubmit={submit} noValidate className="admin-product-form">
       {/* Während Übersetzung und Speichern gesperrt: Eingaben in dieser Zeit gingen sonst verloren. */}
@@ -389,7 +431,14 @@ export function ProductForm({
           </div>
         </Panel>
 
-        <Panel title="Texte">
+        <Panel
+          title="Texte"
+          actions={
+            <Button type="button" variant="outline" disabled={drafting} onClick={suggestCopy}>
+              {drafting ? "Schreibt …" : "Text vorschlagen (KI)"}
+            </Button>
+          }
+        >
           <div className="admin-form">
             <Bilingual
               de={
