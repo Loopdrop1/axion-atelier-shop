@@ -20,7 +20,14 @@ function AccountLayout() {
   const t = useT();
   return (
     <div className="container page-body account-page">
-      {backendConfigured ? <Outlet /> : <Notice>{t.account.notConfigured}</Notice>}
+      {backendConfigured ? (
+        <Outlet />
+      ) : (
+        <>
+          <h1 className="page-title">{t.account.title}</h1>
+          <Notice>{t.account.notConfigured}</Notice>
+        </>
+      )}
     </div>
   );
 }

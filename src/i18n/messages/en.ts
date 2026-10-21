@@ -227,7 +227,7 @@ export const en: Messages = {
     },
     new: { title: "New arrivals", description: "New pieces. New combinations." },
     sale: {
-      title: "Selected pieces",
+      title: "Sale",
       description: "Selected pieces at reduced prices.",
     },
     eyebrow: "Axion collection",
@@ -336,6 +336,12 @@ export const en: Messages = {
       "The size chart for this piece will follow. If you have questions about sizing, we are happy to help, just write to us.",
     howTo:
       "Measure your chest at the widest point and your waist at the narrowest point. Measure your foot from the heel to the longest toe.",
+    howToBody:
+      "Measure your chest at the widest point and your waist at the narrowest point, loosely and without a jacket.",
+    howToFeet:
+      "Measure your foot in the evening from the heel to the longest toe. If you are between two sizes, choose the larger one.",
+    between: "Between two sizes? Write to us, we are happy to help.",
+    exchange: (days: number) => `If it does not fit, you can return it within ${days} days.`,
   },
   search: {
     title: "Search",

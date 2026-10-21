@@ -1,13 +1,15 @@
 // Grössentabellen aus dem Admin (Admin → Grössentabellen). Ohne passende Tabelle ein Hinweis statt Beispielwerten.
 import { useQuery } from "@tanstack/react-query";
-import { useMatch } from "@tanstack/react-router";
+import { Link, useMatch } from "@tanstack/react-router";
+import { shopConfig } from "@/config/shop";
 import { sizeGuideQuery } from "@/lib/commerce/queries";
-import { useLocale, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT } from "@/i18n";
 
 /** category: Slug der Kategorie des Produkts; ohne Angabe alle Tabellen (Seite «Grössenberatung»). */
 export function SizeGuide({ category }: { category?: string }) {
   const t = useT().sizeGuide;
   const locale = useLocale();
+  const lp = useLocaleParam();
   // Auf der Seite «Grössenberatung» kommen die Tabellen vom Server mit (sonst Unterschied beim Hydrieren).
   const initial = useMatch({
     from: "/{-$locale}/groessenberatung",
@@ -58,7 +60,22 @@ export function SizeGuide({ category }: { category?: string }) {
           {tb.note && <p className="size-notice">{tb.note}</p>}
         </section>
       ))}
-      <p className="size-notice mt-6">{t.howTo}</p>
+      {/* Messanleitung passend zur Kategorie: Schuhe nur Fuss, Accessoires keine, Grössenberatung beides */}
+      {category !== "accessoires" && (
+        <p className="size-notice mt-6">
+          {category === "schuhe"
+            ? t.howToFeet
+            : category
+              ? t.howToBody
+              : `${t.howToBody} ${t.howToFeet}`}
+        </p>
+      )}
+      <p className="size-notice">
+        <Link to="/{-$locale}/kontakt" params={{ locale: lp }}>
+          {t.between}
+        </Link>{" "}
+        {t.exchange(shopConfig.returnDays)}
+      </p>
     </>
   );
 }

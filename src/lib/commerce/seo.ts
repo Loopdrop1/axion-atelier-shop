@@ -17,7 +17,7 @@ export function pageHead(
   description: string,
   path: string,
   locale: Locale = "de",
-  options: { noindex?: boolean } = {},
+  options: { noindex?: boolean; image?: string | undefined } = {},
 ) {
   const url = pageUrl(path, locale);
   const robots = !shopConfig.launched || options.noindex;
@@ -40,7 +40,13 @@ export function pageHead(
       { property: "og:url", content: url },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: locale === "en" ? "en_GB" : "de_CH" },
-      { name: "twitter:card", content: "summary" },
+      ...(options.image
+        ? [
+            { property: "og:image", content: options.image },
+            { name: "twitter:image", content: options.image },
+          ]
+        : []),
+      { name: "twitter:card", content: options.image ? "summary_large_image" : "summary" },
       ...(robots ? [{ name: "robots", content: "noindex, nofollow" }] : []),
     ],
   };

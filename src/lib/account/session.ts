@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 
 interface SessionState {
   /** true, sobald der gespeicherte Anmeldestatus gelesen ist */
@@ -22,7 +23,7 @@ let started = false;
 export function startSessionSync() {
   if (started || typeof window === "undefined") return;
   started = true;
-  if (!supabase) {
+  if (!backendConfigured) {
     useSessionStore.setState({ ready: true });
     return;
   }

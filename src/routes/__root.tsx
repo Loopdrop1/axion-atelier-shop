@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import {
   Outlet,
   createRootRouteWithContext,
@@ -29,32 +30,28 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  // Sprache aus dem Pfad, damit «Zur Startseite» nicht von Englisch auf Deutsch springt
+  const home =
+    typeof window !== "undefined" && /^\/en(\/|$)/.test(window.location.pathname) ? "/en" : "/";
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {t.errorPage.title}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t.errorPage.text}</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            {t.common.retry}
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            {t.common.toHome}
-          </a>
-        </div>
+    <main className="error-page">
+      <p className="eyebrow">Axion</p>
+      <h1>{t.errorPage.title}</h1>
+      <p>{t.errorPage.text}</p>
+      <div className="error-page-actions">
+        <Button
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+        >
+          {t.common.retry}
+        </Button>
+        <Button variant="tailored" asChild>
+          <a href={home}>{t.common.toHome}</a>
+        </Button>
       </div>
-    </div>
+    </main>
   );
 }
 

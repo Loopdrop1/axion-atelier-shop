@@ -1,6 +1,7 @@
 // Daten fürs Admin. Rechte prüft die Datenbank (RLS, require_admin in den RPCs); hier nur Abfragen und Fehlertexte.
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import type {
   Enums,
@@ -15,7 +16,7 @@ export type OrderStatus = Enums<"order_status">;
 export type StockReason = "sale_store" | "return" | "correction";
 
 function db() {
-  if (!supabase) throw new AdminError("NOT_CONFIGURED");
+  if (!backendConfigured) throw new AdminError("NOT_CONFIGURED");
   return supabase;
 }
 

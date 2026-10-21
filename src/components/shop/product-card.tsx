@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Photo } from "./primitives";
-import { formatPrice } from "@/lib/commerce/format";
+import { formatPrice, discountPercent } from "@/lib/commerce/format";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -116,6 +116,11 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="price">
         {formatPrice(product.priceRange.min, locale)}{" "}
         {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
+        {discountPercent(product.priceRange.min, product.compareAtPrice) > 0 && (
+          <span className="price-off">
+            −{discountPercent(product.priceRange.min, product.compareAtPrice)} %
+          </span>
+        )}
       </div>
     </article>
   );

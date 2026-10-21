@@ -1,6 +1,7 @@
 // Kundenkonto: Anmeldung, Registrierung, Passwort, Bestellungen und Daten über Supabase Auth und RLS.
 import type { AuthError, EmailOtpType } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { localePrefix, type Locale } from "@/i18n/locale";
 
@@ -51,7 +52,7 @@ const url = (locale: Locale, path: string) => `${origin()}${localePrefix(locale)
 export const MIN_PASSWORD = 10;
 
 export async function signIn(email: string, password: string): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
   return error ? { ok: false, problem: authProblem(error) } : { ok: true };
 }
@@ -64,7 +65,7 @@ export async function signUp(input: {
   lastName: string;
   locale: Locale;
 }): Promise<{ ok: true; signedIn: boolean } | { ok: false; problem: AuthProblem }> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { data, error } = await supabase.auth.signUp({
     email: input.email.trim(),
     password: input.password,
@@ -89,7 +90,7 @@ export async function signOut(): Promise<void> {
 }
 
 export async function requestPasswordReset(email: string, locale: Locale): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
     redirectTo: url(locale, "/konto/passwort-neu"),
   });
@@ -113,19 +114,19 @@ export function isOtpType(value: unknown): value is EmailOtpType {
 
 /** Link aus einer Konto-E-Mail bestätigen (token_hash aus dem Send Email Hook). */
 export async function verifyEmailLink(tokenHash: string, type: EmailOtpType): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
   return error ? { ok: false, problem: authProblem(error) } : { ok: true };
 }
 
 export async function updatePassword(password: string): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase.auth.updateUser({ password });
   return error ? { ok: false, problem: authProblem(error) } : { ok: true };
 }
 
 export async function changeEmail(email: string, locale: Locale): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase.auth.updateUser(
     { email: email.trim() },
     { emailRedirectTo: url(locale, "/konto/daten") },
@@ -135,7 +136,7 @@ export async function changeEmail(email: string, locale: Locale): Promise<Result
 
 /** Gastbestellungen mit derselben bestätigten E-Mail dem Konto zuordnen. Gibt die Anzahl zurück. */
 export async function claimGuestOrders(): Promise<number> {
-  if (!supabase) return 0;
+  if (!backendConfigured) return 0;
   const { data, error } = await supabase.rpc("claim_guest_orders");
   if (error) return 0;
   return Number(data) || 0;
@@ -151,7 +152,7 @@ export interface OrderSummary {
 }
 
 export async function listMyOrders(): Promise<OrderSummary[]> {
-  if (!supabase) return [];
+  if (!backendConfigured) return [];
   const { data, error } = await supabase
     .from("orders")
     .select("id, number, status, kind, total_cents, created_at")
@@ -165,7 +166,7 @@ const ORDER_DETAIL =
   "id, number, status, kind, created_at, paid_at, shipped_at, email, subtotal_cents, discount_cents, discount_code, gift_card_cents, shipping_cents, total_cents, refunded_cents, shipping_name, shipping_address, payment_method, tracking_number, gift_card_purchase, order_items(id, title, size, color, image, handle, unit_price_cents, quantity, line_total_cents)";
 
 export async function getMyOrder(number: number) {
-  if (!supabase) return null;
+  if (!backendConfigured) return null;
   const { data, error } = await supabase
     .from("orders")
     .select(ORDER_DETAIL)
@@ -194,7 +195,7 @@ export interface Profile {
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {
-  if (!supabase) return null;
+  if (!backendConfigured) return null;
   const { data, error } = await supabase
     .from("profiles")
     .select("first_name, last_name, phone, address, locale")
@@ -205,7 +206,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 }
 
 export async function updateProfile(userId: string, profile: Profile): Promise<Result> {
-  if (!supabase) return { ok: false, problem: "not_configured" };
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
   const { error } = await supabase
     .from("profiles")
     .update({

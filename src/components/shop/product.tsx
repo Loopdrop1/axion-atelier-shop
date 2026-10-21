@@ -5,8 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { Heart, Plus, ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
-import { formatPrice } from "@/lib/commerce/format";
-import { oneSizeVariant } from "@/lib/commerce/one-size";
+import { formatPrice, discountPercent } from "@/lib/commerce/format";
+import { oneSizeVariant, isOneSizeTitle } from "@/lib/commerce/one-size";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
@@ -97,6 +97,10 @@ export function ProductPage({
   }, [product.handle]);
   const chooseSize = () => {
     const target = sizeSelector.current;
+    // Kurz hervorheben, wohin es geht (Animation nur ohne «weniger Bewegung», siehe styles.css)
+    target?.classList.remove("attention");
+    void target?.offsetWidth;
+    target?.classList.add("attention");
     const first = target?.querySelector<HTMLButtonElement>("button:not(:disabled)");
     first?.focus({ preventScroll: true });
     target?.scrollIntoView({
@@ -104,6 +108,8 @@ export function ProductPage({
       block: "center",
     });
   };
+  // Hervorhebung endet, sobald eine Grösse gewählt ist
+  useEffect(() => sizeSelector.current?.classList.remove("attention"), [size]);
   const sample = product.tags.includes("muster");
   const klarna = (shopConfig.paymentMethods as readonly string[]).includes("Klarna");
   // «Nur noch 2 an Lager» erst, wenn eine knappe Grösse gewählt ist
@@ -221,6 +227,11 @@ export function ProductPage({
             <div className="price">
               {formatPrice(product.priceRange.min, locale)}
               {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
+              {discountPercent(product.priceRange.min, product.compareAtPrice) > 0 && (
+                <span className="price-off">
+                  −{discountPercent(product.priceRange.min, product.compareAtPrice)} %
+                </span>
+              )}
             </div>
             {shopConfig.vatRegistered && (
               <p className="text-xs text-muted">{t.product.vatIncluded}</p>
@@ -279,7 +290,11 @@ export function ProductPage({
               {lowStock > 0 ? t.product.lowStock(lowStock) : ""}
             </p>
             <div ref={mainAdd} className="add-row">
-              <Button disabled={!size} onClick={addSelected}>
+              <Button
+                aria-disabled={!size}
+                className={size ? "" : "needs-size"}
+                onClick={size ? addSelected : chooseSize}
+              >
                 {t.product.addToCart}
               </Button>
               <Button
@@ -491,10 +506,14 @@ function OutfitBuilder({ outfit }: { outfit: Product[] }) {
               value={state.sizes[p.handle] ?? ""}
               onChange={(e) => state.choose(p.handle, e.target.value)}
             >
-              <option value="">{soldOut ? t.product.outfitSoldOut : t.product.chooseSize}</option>
+              <option value="">
+                {soldOut
+                  ? t.product.outfitSoldOut
+                  : `${t.product.chooseSize}${p.category === "schuhe" ? t.product.euSizes : ""}`}
+              </option>
               {sizesFor(p, settings.hideSoldOut).map((v) => (
                 <option key={v.id} value={v.id} disabled={!v.availableForSale}>
-                  {v.title}
+                  {isOneSizeTitle(v.title) ? t.product.oneSize : v.title}
                   {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
                 </option>
               ))}
