@@ -512,6 +512,23 @@ export async function adjustStock(
   return data as number;
 }
 
+/** Bestätigte «Wieder da»-Wünsche pro Grösse (nur Admin liest die Tabelle). */
+export async function waitingForVariant(variantId: string): Promise<number> {
+  // stock_alerts fehlt in den generierten Typen, bis Lovable sie nach der Migration neu erzeugt
+  const { count, error } = await (db() as unknown as import("@supabase/supabase-js").SupabaseClient)
+    .from("stock_alerts")
+    .select("id", { count: "exact", head: true })
+    .eq("variant_id", variantId)
+    .eq("status", "confirmed");
+  fail(error);
+  return count ?? 0;
+}
+
+/** Wartende einer wieder vorrätigen Grösse per E-Mail benachrichtigen (Edge Function admin-actions). */
+export function notifyRestock(variantId: string): Promise<{ notified: number; failed: number }> {
+  return action({ action: "notify_restock", variantId });
+}
+
 /** Bild verkleinern, hochladen und als letztes Bild anhängen. */
 export async function uploadProductImage(
   product: Pick<Product, "id" | "handle" | "title_de" | "title_en" | "en_auto">,

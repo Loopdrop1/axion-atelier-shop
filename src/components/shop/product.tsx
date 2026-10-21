@@ -16,6 +16,7 @@ import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
 import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
+import { StockAlertForm } from "./stock-alert-form";
 /** Bis zu diesem Bestand zeigt die Seite «Nur noch … an Lager» (bei 3 wäre es bei kleinen Beständen fast immer) */
 const LOW_STOCK = 2;
 
@@ -292,6 +293,7 @@ export function ProductPage({
               </Button>
             </div>
             {!size && !onlyVariant && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
+            <StockAlertForm product={product} />
             <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
             {klarna && <p className="pay-hint">{t.product.klarna}</p>}
             <div className="accordion">

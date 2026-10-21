@@ -531,6 +531,69 @@ export function newsletterConfirm(
   };
 }
 
+export interface StockAlertItem {
+  title: string;
+  color: string;
+  size: string;
+}
+
+const itemLine = (item: StockAlertItem, de: boolean) =>
+  `${item.title}, ${item.color}, ${de ? "Grösse" : "size"} ${item.size}`;
+
+/** Double Opt-in für «Benachrichtigen, wenn wieder da» (eine einzige Mail bei Wiederverfügbarkeit). */
+export function stockAlertConfirm(
+  data: { locale: Locale; confirmUrl: string; item: StockAlertItem },
+  shop: ShopInfo,
+): EmailContent {
+  const de = data.locale !== "en";
+  const subject = de ? "Bitte bestätige deine Benachrichtigung" : "Please confirm your alert";
+  const intro = de
+    ? `Du möchtest einmalig per E-Mail erfahren, wenn dieses Stück wieder verfügbar ist: ${itemLine(data.item, de)}. Bitte bestätige mit einem Klick. Ohne Bestätigung erhältst du keine Nachricht.`
+    : `You would like a one-time email when this piece is back in stock: ${itemLine(data.item, de)}. Please confirm with one click. Without confirmation you will not receive any message.`;
+  const ignore = de
+    ? "Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach."
+    : "Didn't request this? Simply ignore this email.";
+  const body = [
+    h1(subject),
+    p(esc(intro)),
+    button(de ? "Benachrichtigung bestätigen" : "Confirm alert", data.confirmUrl),
+    p(esc(ignore), { muted: true, size: 13 }),
+  ].join("\n");
+  const text = [subject, "", intro, "", data.confirmUrl, "", ignore].join("\n");
+  return {
+    subject,
+    html: layout({ locale: data.locale, subject, preheader: subject, body, shop }),
+    text,
+  };
+}
+
+/** Einmalige Nachricht, sobald die gewünschte Grösse wieder an Lager ist. */
+export function backInStock(
+  data: { locale: Locale; productUrl: string; item: StockAlertItem },
+  shop: ShopInfo,
+): EmailContent {
+  const de = data.locale !== "en";
+  const subject = de ? `Wieder da: ${data.item.title}` : `Back in stock: ${data.item.title}`;
+  const intro = de
+    ? `Gute Nachricht: ${itemLine(data.item, de)} ist wieder verfügbar. Die Menge ist begrenzt.`
+    : `Good news: ${itemLine(data.item, de)} is available again. Quantities are limited.`;
+  const once = de
+    ? "Diese Benachrichtigung erhältst du nur einmal; deine Adresse ist damit wieder gelöscht."
+    : "You receive this alert only once; your address has now been removed.";
+  const body = [
+    h1(subject),
+    p(esc(intro)),
+    button(de ? "Jetzt ansehen" : "View now", data.productUrl),
+    p(esc(once), { muted: true, size: 13 }),
+  ].join("\n");
+  const text = [subject, "", intro, "", data.productUrl, "", once].join("\n");
+  return {
+    subject,
+    html: layout({ locale: data.locale, subject, preheader: subject, body, shop }),
+    text,
+  };
+}
+
 export function newsletterWelcome(
   data: {
     locale: Locale;

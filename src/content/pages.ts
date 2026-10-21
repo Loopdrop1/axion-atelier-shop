@@ -132,6 +132,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - **Kundenkonto (freiwillig):** E-Mail-Adresse, Passwort (nur als verschlüsselter Prüfwert gespeichert, wir können es nicht lesen), Vor- und Nachname, Telefonnummer, Adresse, Sprache und deine Bestellungen.
 - **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
 - **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie, wenn wir einen Willkommensrabatt anbieten, dein persönlicher Rabattcode.
+- **Benachrichtigung bei Wiederverfügbarkeit (freiwillig):** E-Mail-Adresse, Sprache, gewünschtes Stück und Grösse sowie Zeitpunkt von Anfrage und Bestätigung.
 - **Kommunikation:** Name, E-Mail-Adresse, Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns über das Kontaktformular, per E-Mail oder per Telefon kontaktierst.
 - **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website, zum Beispiel dem Schutz der Formulare vor Missbrauch.
 - **Daten auf deinem Gerät:** Warenkorb, Merkliste und, wenn du angemeldet bist, deine Anmeldung speichert dein Browser (Ziffer 6).
@@ -142,6 +143,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - um dein Kundenkonto zu führen, wenn du eines eröffnest;
 - um Geschenkgutscheine auszustellen, einzulösen und das Restguthaben zu führen;
 - um dir den Newsletter zu senden, wenn du dich angemeldet und die Anmeldung per E-Mail bestätigt hast;
+- um dich einmalig per E-Mail zu informieren, wenn eine ausverkaufte Grösse wieder da ist, sofern du das angefordert und per E-Mail bestätigt hast;
 - um deine Fragen zu beantworten;
 - um die Website sicher und funktionsfähig zu betreiben und Missbrauch zu verhindern;
 - um gesetzliche Pflichten zu erfüllen, insbesondere die Aufbewahrung von Geschäftsunterlagen.
@@ -177,6 +179,7 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Bestellungen und Belege:** zehn Jahre, wie es das Gesetz für Geschäftsunterlagen verlangt.
 - **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
 - **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
+- **Benachrichtigung bei Wiederverfügbarkeit:** Nach dem Versand der Benachrichtigung löschen wir deine Adresse; unbestätigte Anfragen nach 30 Tagen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
 - **Schutz vor Missbrauch:** Damit niemand Formulare, Kasse oder Gutscheinprüfung massenhaft benutzt, zählen wir Anfragen pro IP-Adresse und E-Mail-Adresse. Gespeichert wird dafür nur ein Prüfwert (Hash), nicht die Adresse selbst, zusammen mit der Anzahl und dem Zeitpunkt. Abgelaufene Zähler löschen wir laufend, in der Regel nach zwei Tagen.

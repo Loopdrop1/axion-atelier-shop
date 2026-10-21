@@ -5,7 +5,12 @@ import { requireAdmin } from "../_shared/auth.ts";
 import type { Deps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
 import { sendEmail } from "../_shared/email/send.ts";
-import { giftCardEmail, orderConfirmation, type GiftCardInfo } from "../_shared/email/templates.ts";
+import {
+  backInStock,
+  giftCardEmail,
+  orderConfirmation,
+  type GiftCardInfo,
+} from "../_shared/email/templates.ts";
 import { HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
@@ -165,6 +170,49 @@ async function translate(
   }
 }
 
+/** Nach dem Aufstocken: bestätigte «Wieder da»-Wünsche der Grösse lesen, je eine E-Mail schicken und nur die
+ *  verschickten abhaken (gescheiterte bleiben für das nächste Aufstocken stehen). */
+async function notifyRestock(deps: Deps, body: Record<string, unknown>): Promise<Response> {
+  const alerts = await deps.rpc<
+    {
+      id: string;
+      email: string;
+      locale: string;
+      handle: string;
+      title: string;
+      color: string;
+      size: string;
+    }[]
+  >("stock_alerts_pending", { p_variant_id: uuid(body["variantId"]) });
+  const sent: string[] = [];
+  let failed = 0;
+  for (const a of alerts) {
+    const locale = toLocale(a.locale);
+    const prefix = locale === "en" ? "/en" : "";
+    try {
+      await sendEmail(
+        a.email,
+        backInStock(
+          {
+            locale,
+            productUrl: `${deps.env.siteUrl}${prefix}/produkt/${a.handle}`,
+            item: { title: a.title, color: a.color, size: a.size },
+          },
+          deps.shop,
+        ),
+        deps.mail,
+        `restock-${a.id}`,
+      );
+      sent.push(a.id);
+    } catch (error) {
+      failed++;
+      console.error("Wieder-da-E-Mail fehlgeschlagen", error);
+    }
+  }
+  if (sent.length) await deps.rpc<number>("stock_alerts_done", { p_ids: sent });
+  return json(200, { notified: sent.length, failed });
+}
+
 /** Textvorschlag (Deutsch) für ein Produkt; zählt auf dasselbe Tageslimit wie die Übersetzung. */
 async function draftCopy(
   deps: Deps,
@@ -216,6 +264,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return resendGiftCard(deps, body);
       case "translate":
         return translate(deps, admin.id, body);
+      case "notify_restock":
+        return notifyRestock(deps, body);
       case "draft_copy":
         return draftCopy(deps, admin.id, body);
       default:
