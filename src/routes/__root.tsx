@@ -63,6 +63,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Axion" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "theme-color", content: "#1E3A2F" },
       ...(!shopConfig.launched ? [{ name: "robots", content: "noindex, nofollow" }] : []),
     ],
     links: [
@@ -71,6 +72,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -106,8 +110,12 @@ function RootComponent() {
     document.documentElement.dataset["hydrated"] = "true";
   }, []);
 
+  // Ladebalken, solange ein Seitenwechsel auf Daten wartet (erscheint erst nach kurzer Verzögerung, siehe CSS)
+  const loading = useRouterState({ select: (s) => s.status === "pending" });
+
   return (
     <QueryClientProvider client={queryClient}>
+      {loading && <div className="route-progress" role="progressbar" aria-label="Lädt" />}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       {admin ? (
         <Outlet />
