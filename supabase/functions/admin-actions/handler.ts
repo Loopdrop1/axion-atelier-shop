@@ -9,6 +9,7 @@ import { giftCardEmail, orderConfirmation, type GiftCardInfo } from "../_shared/
 import { HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
+import { COPY_LIMITS, draftProductCopy } from "../_shared/copywrite.ts";
 import { TRANSLATE_LIMITS, TranslateError, translateToEnglish } from "../_shared/translate.ts";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -164,6 +165,40 @@ async function translate(
   }
 }
 
+/** Textvorschlag (Deutsch) für ein Produkt; zählt auf dasselbe Tageslimit wie die Übersetzung. */
+async function draftCopy(
+  deps: Deps,
+  adminId: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  const field = (key: string) => str(body[key], COPY_LIMITS.maxFieldChars);
+  const title = field("title");
+  const category = field("category");
+  const color = field("color");
+  if (!title || !category || !color) throw new HttpError(400, "BAD_REQUEST");
+  if (!(await deps.rpc<boolean>("translate_guard", { p_user_id: adminId })))
+    throw new HttpError(429, "DAILY_LIMIT");
+  try {
+    const draft = await draftProductCopy(
+      {
+        title,
+        category,
+        color,
+        material: field("material"),
+        fit: field("fit"),
+        notes: str(body["notes"], COPY_LIMITS.maxNotesChars),
+      },
+      deps.env.translate,
+    );
+    return json(200, draft);
+  } catch (error) {
+    if (!(error instanceof TranslateError)) throw error;
+    if (error.code === "UNAVAILABLE") throw new HttpError(503, "TRANSLATION_UNAVAILABLE");
+    if (error.code === "RATE_LIMITED") throw new HttpError(429, "RATE_LIMITED");
+    throw new HttpError(502, "COPY_FAILED");
+  }
+}
+
 export function createAdminActionsHandler(deps: Deps) {
   return withHttp(deps.env.allowedOrigins, async (req) => {
     const admin = await requireAdmin(req, deps.authClient, deps.rpc);
@@ -181,6 +216,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return resendGiftCard(deps, body);
       case "translate":
         return translate(deps, admin.id, body);
+      case "draft_copy":
+        return draftCopy(deps, admin.id, body);
       default:
         throw new HttpError(400, "BAD_REQUEST");
     }

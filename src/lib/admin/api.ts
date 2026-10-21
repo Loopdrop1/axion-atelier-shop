@@ -87,6 +87,8 @@ export function adminErrorText(error: unknown): string {
     RATE_LIMITED: "Zu viele Anfragen. Bitte kurz warten und erneut versuchen.",
     TOO_MANY_TEXTS: "Zu viele Texte auf einmal.",
     TEXT_TOO_LONG: "Der Text ist zu lang für die automatische Übersetzung.",
+    MISSING_COPY_FACTS: "Für einen Vorschlag zuerst Titel, Kategorie und Farbe ausfüllen.",
+    COPY_FAILED: "Der Textvorschlag hat nicht geklappt. Bitte erneut versuchen.",
     DAILY_LIMIT:
       "Das Tageslimit der automatischen Übersetzung ist erreicht (500 Anfragen). Morgen geht es wieder; Englisch bis dahin von Hand.",
   };
@@ -143,6 +145,18 @@ export async function translateTexts(texts: string[]): Promise<string[]> {
     });
   }
   return out;
+}
+
+/** KI-Textvorschlag (Deutsch) aus den Eckdaten; das Admin prüft ihn vor dem Speichern. */
+export function draftProductCopy(input: {
+  title: string;
+  category: string;
+  color: string;
+  material?: string;
+  fit?: string;
+  notes?: string;
+}): Promise<{ description: string; features: string[] }> {
+  return action({ action: "draft_copy", ...input });
 }
 
 // Zugang --------------------------------------------------------------------------------------------
