@@ -37,21 +37,26 @@ export interface CollectionSearch {
   sort?: "newest" | "price-asc" | "price-desc" | undefined;
 }
 
+/** Filter aus der Adresse (?groesse=48,50&farbe=Marine …) für filterProducts. */
+export function filtersFromSearch(handle: string, s: CollectionSearch): ProductFilters {
+  return {
+    collection: handle,
+    occasion: s.anlass,
+    sizes: s.groesse?.split(","),
+    colors: s.farbe?.split(","),
+    fits: s.passform?.split(","),
+    priceMax: s.preis,
+    sort: s.sort,
+  };
+}
+
 export const collectionQuery = (handle: string, s: CollectionSearch, locale: Locale) =>
   queryOptions({
     queryKey: ["collection", locale, handle, s],
     queryFn: async () => {
       const collection = await getCollection(handle, locale);
       if (!collection) throw notFound();
-      const filters: ProductFilters = {
-        collection: handle,
-        occasion: s.anlass,
-        sizes: s.groesse?.split(","),
-        colors: s.farbe?.split(","),
-        fits: s.passform?.split(","),
-        priceMax: s.preis,
-        sort: s.sort,
-      };
+      const filters = filtersFromSearch(handle, s);
       return {
         collection,
         catalogue: await listProducts({ collection: handle }, locale),

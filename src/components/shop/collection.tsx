@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Panel } from "./primitives";
 import { ProductCard, useFitLabel } from "./product-card";
 import { formatPrice } from "@/lib/commerce/format";
-import type { CollectionSearch } from "@/lib/commerce/queries";
-import type { Collection, Product } from "@/lib/commerce";
+import { filtersFromSearch, type CollectionSearch } from "@/lib/commerce/queries";
+import { filterProducts, type Collection, type Product } from "@/lib/commerce";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { occasionHandles } from "./shell";
 export type { CollectionSearch };
 type GroupKey = "groesse" | "farbe" | "passform" | "anlass";
+// Adress-Parameter → Feld in ProductFilters
+const FACET = { groesse: "sizes", farbe: "colors", passform: "fits", anlass: "occasion" } as const;
 const bySize = (a: string, b: string) => Number(a) - Number(b) || a.localeCompare(b);
 export function CollectionPage({
   collection,
@@ -93,20 +95,36 @@ export function CollectionPage({
     Math.ceil(Math.max(0, ...catalogue.map((p) => p.priceRange.min.amount)) / 10) * 10,
   );
   const priceValue = Math.min(search.preis ?? maxPrice, maxPrice);
+  // Kluge Filter: Treffer je Option zusammen mit den übrigen aktiven Filtern; Sackgassen (0) gesperrt
+  const facetCount = (key: GroupKey, value: string) =>
+    filterProducts(catalogue, {
+      ...filtersFromSearch("alle", search),
+      [FACET[key]]: key === "anlass" ? value : [value],
+    }).length;
   const options = (g: (typeof groups)[number], location: string) => {
     const choices = (values: string[], section = "") =>
       values.map((v) => {
         const controlId = `${id}-${location}-${g.key}-${section}-${v}`;
+        const checked = Boolean(search[g.key]?.split(",").includes(v));
+        const count = facetCount(g.key, v);
         return (
-          <label key={controlId} htmlFor={controlId}>
+          <label
+            key={controlId}
+            htmlFor={controlId}
+            className={!checked && !count ? "filter-empty" : undefined}
+          >
             <input
               id={controlId}
               type={g.key === "anlass" ? "radio" : "checkbox"}
               name={`${id}-${location}-${g.key}`}
-              checked={Boolean(search[g.key]?.split(",").includes(v))}
+              checked={checked}
+              disabled={!checked && !count}
               onChange={() => toggle(g.key, v)}
             />
             {label(g.key, v)}
+            <span className="filter-count" aria-label={t.common.results(count)}>
+              {count}
+            </span>
           </label>
         );
       });

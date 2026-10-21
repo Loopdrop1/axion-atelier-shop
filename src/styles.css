@@ -5221,3 +5221,16 @@ button.search-chip:hover {
   width: 14px;
   height: 14px;
 }
+
+/* Kluge Filter: Trefferzahl je Option, Sackgassen gedämpft */
+.filter-count {
+  margin-left: auto;
+  padding-left: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.filter-empty {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
