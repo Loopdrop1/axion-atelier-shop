@@ -56,7 +56,7 @@ export function faqLd(page: WrittenPage, resolve: (text: string) => string) {
   );
   const entities = items
     .map((item) => ({ q: resolve(item.question), a: resolve(item.answer).replace(/\*\*/g, "") }))
-    .filter((item) => filled(item.q) && filled(item.a))
+    .filter((item) => filled(item.q) && filled(item.a) && !/\{\{/.test(item.q + item.a))
     .map((item) => ({
       "@type": "Question",
       name: item.q,
