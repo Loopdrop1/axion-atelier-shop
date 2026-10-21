@@ -306,6 +306,7 @@ export const de = {
     sampleNotice:
       "Musterprodukt: Bilder und Texte sind Platzhalter, bis die echten Stücke da sind.",
     recommendations: "Das könnte dir auch gefallen",
+    recentlyViewed: "Zuletzt angesehen",
     zoomImage: (n: number) => `Bild ${n} vergrössern`,
     image: (n: number) => `Bild ${n}`,
     previousImage: "Vorheriges Bild",
@@ -393,6 +394,8 @@ export const de = {
     pay: "Weiter zur Zahlung",
     placeOrder: "Bestellung abschliessen",
     estimateNote: "Der Endbetrag wird in der Kasse bestätigt.",
+    freeShippingLeft: (amount: string) => `Noch ${amount} bis zum Gratisversand`,
+    freeShippingReached: "Dein Versand ist gratis",
     tooManyAttempts:
       "Zu viele Versuche in kurzer Zeit. Bitte warte ein paar Minuten und versuche es dann erneut.",
     paymentError:

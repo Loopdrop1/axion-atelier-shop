@@ -5,7 +5,7 @@ import { Search, Heart, ShoppingBag, Menu, ChevronDown, User } from "lucide-reac
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
-import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
+import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { announcementsQuery, navQuery } from "@/lib/commerce/queries";
 import { useLocaleLoaderData } from "@/lib/commerce/locale-data";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -64,6 +64,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     useCart.persist.rehydrate();
     useWishlist.persist.rehydrate();
+    useRecentlyViewed.persist.rehydrate();
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
