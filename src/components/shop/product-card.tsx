@@ -30,6 +30,14 @@ export function ProductCard({ product }: { product: Product }) {
           to="/{-$locale}/produkt/$handle"
           params={{ locale: lp, handle: product.handle }}
           aria-label={name}
+          onClick={(e) => {
+            // Nur das angeklickte Bild fliegt auf die Produktseite (Namen müssen eindeutig sein)
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            document
+              .querySelectorAll(".vt-product-image")
+              .forEach((el) => el.classList.remove("vt-product-image"));
+            e.currentTarget.classList.add("vt-product-image");
+          }}
         >
           <Photo image={product.images[0]} />
           {product.images[1] && <Photo image={product.images[1]} className="second-image" />}

@@ -139,6 +139,7 @@ export function ProductPage({
               <Button
                 variant="icon"
                 key={image.url}
+                className={i === 0 ? "vt-product-image" : undefined}
                 style={{ "--i": i } as CSSProperties}
                 onClick={() => {
                   setZoom(i);
