@@ -86,7 +86,7 @@ als interner Pfad geprüft werden (beginnt mit `/`, nicht mit `//`). Sprache: au
 ## Secrets (Supabase → Edge Functions → Secrets)
 
 `SITE_URL`, `STRIPE_SECRET_KEY` (eingeschränkter Schlüssel `rk_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
-`SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (auch Empfänger des Kontaktformulars), `SHOP_ADDRESS`; nur mit eigenem
+`SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (auch Empfänger des Kontaktformulars), `SHOP_ADDRESS`, `SHOP_RETURN_DAYS` (Rückgabefrist in Mails, Standard 14, gleich wie `returnDays` in `src/config/shop.ts`); nur mit eigenem
 Supabase-Projekt `SEND_EMAIL_HOOK_SECRET`. Für die Übersetzung `LOVABLE_API_KEY` (legt Lovable Cloud selbst an),
 optional `TRANSLATE_MODEL` (Standard `google/gemini-2.5-flash`), `TRANSLATE_API_BASE` und `TRANSLATE_API_KEY` für einen
 anderen Dienst mit OpenAI-Schnittstelle. Optional `ALLOWED_ORIGINS`

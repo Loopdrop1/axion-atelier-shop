@@ -357,6 +357,7 @@ export const en: Messages = {
     placeholder: "Suit, coat, tie …",
     pagePlaceholder: "What are you looking for?",
     none: "No matching pieces found.",
+    noneText: "Try a shorter term or have a look at the new arrivals.",
     hint: "Search for a piece, a category or a colour.",
     all: "All results",
     for: (q: string) => ` for “${q}”`,

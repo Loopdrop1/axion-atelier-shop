@@ -21,6 +21,8 @@ export interface FunctionEnv {
   shopName: string;
   shopContactEmail: string;
   shopAddress: string;
+  /** Rückgabefrist in Tagen für Mails (SHOP_RETURN_DAYS, Standard 14) */
+  shopReturnDays: number;
   shopNotifyEmail: string;
   sendEmailHookSecret: string;
   allowedOrigins: string[];
@@ -63,6 +65,12 @@ function firstKey(json: string | undefined): string | undefined {
   }
 }
 
+/** Ganze Zahl über 0, sonst der Standardwert (falsch gesetzte Variable soll keine Mail unbrauchbar machen). */
+function positiveInt(value: string | undefined, fallback: number): number {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 export function readEnv(get: EnvSource): FunctionEnv {
   const siteUrl = (get("SITE_URL") ?? "http://localhost:5174").replace(/\/+$/, "");
   return {
@@ -80,6 +88,7 @@ export function readEnv(get: EnvSource): FunctionEnv {
     shopName: get("SHOP_NAME") ?? "Axion",
     shopContactEmail: get("SHOP_CONTACT_EMAIL") ?? "",
     shopAddress: get("SHOP_ADDRESS") ?? "",
+    shopReturnDays: positiveInt(get("SHOP_RETURN_DAYS"), 14),
     shopNotifyEmail: get("SHOP_NOTIFY_EMAIL") ?? "",
     sendEmailHookSecret: get("SEND_EMAIL_HOOK_SECRET") ?? "",
     allowedOrigins: [

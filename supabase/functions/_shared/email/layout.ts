@@ -33,6 +33,8 @@ export interface ShopInfo {
   siteUrl: string;
   contactEmail: string;
   address: string;
+  /** Rückgabefrist in Tagen (src/config/shop.ts `returnDays`; hier per SHOP_RETURN_DAYS, Standard 14) */
+  returnDays: number;
 }
 
 export function h1(text: string): string {

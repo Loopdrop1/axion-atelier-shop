@@ -20,6 +20,15 @@ describe("readEnv: Liefergebiet", () => {
   });
 });
 
+describe("readEnv: Rückgabefrist", () => {
+  it("Standard 14 Tage, eigener Wert nur als positive Zahl", () => {
+    expect(env({}).shopReturnDays).toBe(14);
+    expect(env({ SHOP_RETURN_DAYS: "30" }).shopReturnDays).toBe(30);
+    expect(env({ SHOP_RETURN_DAYS: "abc" }).shopReturnDays).toBe(14);
+    expect(env({ SHOP_RETURN_DAYS: "0" }).shopReturnDays).toBe(14);
+  });
+});
+
 describe("readEnv: erlaubte Domains", () => {
   it("Vorschau und localhost nur mit ALLOW_PREVIEW_ORIGINS=1", () => {
     const strict = env({ SITE_URL: "https://shop.test" }).allowedOrigins;

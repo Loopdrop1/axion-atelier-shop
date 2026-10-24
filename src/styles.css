@@ -5040,9 +5040,11 @@ button.text-link {
 }
 .stock-alert summary {
   cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: var(--gold);
+  text-decoration-color: var(--line);
   list-style: none;
 }
 .stock-alert summary::-webkit-details-marker {

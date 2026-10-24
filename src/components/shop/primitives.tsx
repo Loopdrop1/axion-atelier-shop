@@ -24,14 +24,17 @@ export function Photo({
   className = "",
   eager = false,
   priority = false,
+  fallback = null,
 }: {
   image: ShopImage | undefined;
   className?: string;
   eager?: boolean;
   /** Wichtigstes Bild der Seite (z. B. Einstieg): zuerst laden */
   priority?: boolean;
+  /** Wird gezeigt, wenn kein Bild vorhanden ist (Standard: nichts) */
+  fallback?: ReactNode;
 }) {
-  if (!image) return null;
+  if (!image) return <>{fallback}</>;
   const img = (
     <img
       className={className}

@@ -76,7 +76,7 @@ export function Hero({
             loop
             playsInline
             autoPlay
-            preload="auto"
+            preload="metadata"
             aria-hidden="true"
             tabIndex={-1}
             onPlaying={video.onPlaying}

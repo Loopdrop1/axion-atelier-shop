@@ -5,7 +5,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { adjustStock, listMovements, listStock, type MovementRow } from "@/lib/admin/api";
+import {
+  adjustStock,
+  listMovements,
+  listStock,
+  MOVEMENTS_LIMIT,
+  STOCK_LIST_LIMIT,
+  type MovementRow,
+} from "@/lib/admin/api";
 import { downloadCsv } from "@/lib/admin/csv";
 import { invalidateCatalog } from "@/lib/commerce/source";
 import { StockDialog, type StockTarget } from "@/components/admin/stock-dialog";
@@ -36,7 +43,10 @@ const REASON: Record<MovementRow["reason"], string> = {
 function Stock() {
   const queryClient = useQueryClient();
   const stock = useQuery({ queryKey: ["admin", "stock"], queryFn: listStock });
-  const moves = useQuery({ queryKey: ["admin", "movements"], queryFn: () => listMovements(200) });
+  const moves = useQuery({
+    queryKey: ["admin", "movements"],
+    queryFn: () => listMovements(MOVEMENTS_LIMIT),
+  });
   const [term, setTerm] = useState("");
   const [lowOnly, setLowOnly] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
@@ -67,12 +77,24 @@ function Stock() {
     setBusy(id);
     try {
       const left = await adjustStock(id, -1, "sale_store");
-      notify.ok(`Verkauf gebucht: ${label}, ${size}. Noch ${left} an Lager.`);
+      notify.undo(`Verkauf gebucht: ${label}, ${size}. Noch ${left} an Lager.`, () => {
+        void undoSale(id, label, size);
+      });
       refresh();
     } catch (error) {
       notify.error(error);
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function undoSale(id: string, label: string, size: string) {
+    try {
+      const left = await adjustStock(id, 1, "correction", "Verkauf im Laden rückgängig");
+      notify.ok(`Verkauf rückgängig: ${label}, ${size}. Wieder ${left} an Lager.`);
+      refresh();
+    } catch (error) {
+      notify.error(error);
     }
   }
 
@@ -115,6 +137,12 @@ function Stock() {
         <CheckField label="Nur 0 oder 1 Stück" checked={lowOnly} onChange={setLowOnly} />
         <CheckField label="Auch ausgeblendete" checked={showInactive} onChange={setShowInactive} />
       </div>
+      {(stock.data?.length ?? 0) >= STOCK_LIST_LIMIT && (
+        <p className="admin-hint">
+          Die Liste zeigt höchstens {STOCK_LIST_LIMIT} Grössen. Weitere Grössen fehlen hier und in
+          der CSV-Datei.
+        </p>
+      )}
       {stock.isLoading ? (
         <Loading />
       ) : stock.isError ? (
@@ -184,7 +212,14 @@ function Stock() {
         </div>
       )}
 
-      <Panel title="Letzte Bewegungen" description="Die letzten 200 Änderungen am Bestand.">
+      <Panel
+        title="Letzte Bewegungen"
+        description={
+          (moves.data?.length ?? 0) >= MOVEMENTS_LIMIT
+            ? `Nur die letzten ${MOVEMENTS_LIMIT} Änderungen am Bestand; ältere stehen nicht in dieser Liste.`
+            : `Die letzten ${MOVEMENTS_LIMIT} Änderungen am Bestand.`
+        }
+      >
         {moves.isLoading ? (
           <Loading />
         ) : moves.isError ? (

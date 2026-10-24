@@ -32,6 +32,7 @@ import {
   Panel,
   StatusBadge,
   TextField,
+  UnsavedChangesGuard,
 } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/admin/bestellungen/$id")({
@@ -591,6 +592,7 @@ function NotePanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
   const dirty = note !== (order.admin_note ?? "") || attention !== order.needs_attention;
   return (
     <Panel title="Interne Notiz" description="Nur im Admin sichtbar, nie für die Kundschaft.">
+      <UnsavedChangesGuard active={dirty && !busy} />
       <div className="admin-form">
         <AreaField
           label="Notiz"

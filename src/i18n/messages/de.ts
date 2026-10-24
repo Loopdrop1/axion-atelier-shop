@@ -363,6 +363,7 @@ export const de = {
     placeholder: "Anzug, Mantel, Krawatte …",
     pagePlaceholder: "Was suchst du?",
     none: "Keine passenden Stücke gefunden.",
+    noneText: "Versuche einen kürzeren Begriff oder sieh dir die Neuheiten an.",
     hint: "Suche nach einem Stück, einer Kategorie oder einer Farbe.",
     all: "Alle Ergebnisse",
     for: (q: string) => ` für «${q}»`,

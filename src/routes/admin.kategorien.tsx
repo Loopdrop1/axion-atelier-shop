@@ -305,7 +305,9 @@ function CategoryDialog({
           <div className="admin-image-field">
             {src ? <img src={src} alt="" /> : <span className="admin-thumb" />}
             <div>
-              <p className="admin-hint">Bild für die Kachel auf der Startseite (Hochformat 4:5).</p>
+              <p className="admin-hint">
+                Bild für die Kachel auf der Startseite (Hochformat 4:5, mindestens 2000 px hoch).
+              </p>
               <input
                 ref={file}
                 type="file"

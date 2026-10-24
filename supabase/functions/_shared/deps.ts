@@ -38,6 +38,7 @@ export function createDeps(env: FunctionEnv, overrides: Partial<Deps> = {}): Dep
       siteUrl: env.siteUrl,
       contactEmail: env.shopContactEmail,
       address: env.shopAddress,
+      returnDays: env.shopReturnDays,
     },
     now: () => new Date(),
     ...overrides,

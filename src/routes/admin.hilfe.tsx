@@ -135,10 +135,10 @@ function HelpPage() {
             : Texte auf Deutsch ändern und speichern, Englisch entsteht automatisch.
           </li>
           <li>
-            Einstieg der Startseite: Foto über die ganze Breite (quer, mindestens 2000 Pixel breit)
-            und auf Wunsch ein Video (MP4 ohne Ton, 8 bis 15 Sekunden, höchstens 25 MB; fürs Handy
-            ein eigenes im Hochformat). Ohne Video zeigt der Shop das Foto, ebenso das Handy ohne
-            eigenes Video.
+            Einstieg der Startseite: Foto über die ganze Breite (quer, am besten 2560 Pixel breit,
+            mindestens 2000) und auf Wunsch ein Video (MP4 ohne Ton, 8 bis 15 Sekunden, höchstens 25
+            MB; fürs Handy ein eigenes im Hochformat). Ohne Video zeigt der Shop das Foto, ebenso
+            das Handy ohne eigenes Video.
           </li>
           <li>
             Stücke mit dem Kennzeichen «Muster» sind Vorführware mit Zeichnungen statt Fotos. Sie

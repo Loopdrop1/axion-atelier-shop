@@ -8,6 +8,12 @@ vi.mock("@/lib/admin/api", async (orig) => ({
   translateTexts: vi.fn(async (texts: string[]) => texts.map((t) => (t.trim() ? `MT(${t})` : ""))),
 }));
 
+// Der Wächter für ungespeicherte Änderungen braucht einen Router; das Formular selbst wird hier ohne geprüft.
+vi.mock("@tanstack/react-router", async (orig) => ({
+  ...((await orig()) as Record<string, unknown>),
+  useBlocker: () => ({ status: "idle" }),
+}));
+
 import { ProductForm, type ProductValues } from "./product-form";
 
 const category = { id: "c1", slug: "anzuege", name_de: "Anzüge" } as never;

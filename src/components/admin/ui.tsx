@@ -1,5 +1,6 @@
 // Bausteine fürs Admin: Seitenkopf, Bereiche, Felder, Statusanzeigen, Bestätigungsdialog.
-import { useId, useState, type ReactNode } from "react";
+import { useBlocker } from "@tanstack/react-router";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { needsReview, translationNote, type AutoTranslateResult } from "@/lib/admin/auto-translate";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,10 @@ export function dateOnly(iso: string | null | undefined): string {
 export const notify = {
   ok: (text: string): void => {
     toast.success(text);
+  },
+  /** Gebucht, mit Knopf zum Rückgängigmachen (Toast bleibt etwas länger stehen). */
+  undo: (text: string, onUndo: () => void): void => {
+    toast.success(text, { duration: 10_000, action: { label: "Rückgängig", onClick: onUndo } });
   },
   warn: (text: string): void => {
     toast.warning(text, { duration: 12_000 });
@@ -344,6 +349,41 @@ export function ConfirmButton({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/**
+ * Warnt vor ungespeicherten Änderungen: Seitenwechsel im Admin fragt nach (Dialog), Neuladen und Tab-Schliessen
+ * über die Browser-Warnung. `active` = Änderungen vorhanden und nicht gerade am Speichern.
+ */
+export function UnsavedChangesGuard({ active }: { active: boolean }) {
+  // Ref statt Closure: Das Speichern navigiert selbst (neues Produkt), das darf nie blockiert werden.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const blocker = useBlocker({
+    shouldBlockFn: () => activeRef.current,
+    enableBeforeUnload: () => activeRef.current,
+    withResolver: true,
+  });
+  return (
+    <Dialog open={blocker.status === "blocked"} onOpenChange={(v) => !v && blocker.reset?.()}>
+      <DialogContent className="admin-dialog">
+        <DialogHeader>
+          <DialogTitle>Ungespeicherte Änderungen</DialogTitle>
+          <DialogDescription>
+            Wenn du die Seite verlässt, gehen die Änderungen verloren.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => blocker.reset?.()}>
+            Hier bleiben
+          </Button>
+          <Button variant="destructive" onClick={() => blocker.proceed?.()}>
+            Verwerfen und verlassen
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
