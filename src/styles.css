@@ -5234,3 +5234,38 @@ button.search-chip:hover {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* Leerer Warenkorb und leere Merkliste: Neuheiten als Anregung */
+.empty-suggestions {
+  margin-top: 56px;
+  text-align: left;
+}
+.empty-suggestions h3 {
+  margin: 0 0 20px;
+  font-size: 1.3rem;
+}
+/* Merkliste auf dem Handy: Grössenwahl direkt unter der Karte statt nur beim Darüberfahren */
+@media (max-width: 767px) {
+  .wishlist-grid .product-card-image {
+    aspect-ratio: auto;
+    overflow: visible;
+    background: none;
+  }
+  .wishlist-grid .product-card-image > a {
+    aspect-ratio: 4/5;
+    height: auto;
+    overflow: hidden;
+    background: var(--sand);
+  }
+  .wishlist-grid .quick-add {
+    display: block;
+    position: static;
+    transform: none;
+    padding: 8px 0 0;
+    background: transparent;
+  }
+  .wishlist-grid .quick-add > div {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+}

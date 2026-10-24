@@ -45,13 +45,13 @@ function Wishlist() {
           {t.wishlist.loading}
         </p>
       ) : products.length ? (
-        <div className="product-grid">
+        <div className="product-grid wishlist-grid">
           {products.map((p) => (
             <ProductCard key={p.handle} product={p} />
           ))}
         </div>
       ) : (
-        <EmptyState title={t.wishlist.emptyTitle} text={t.wishlist.emptyText} />
+        <EmptyState title={t.wishlist.emptyTitle} text={t.wishlist.emptyText} suggest />
       )}
     </div>
   );
