@@ -75,6 +75,8 @@ export async function startFakeSupabase(): Promise<FakeServer & { rpcCalls: stri
         const names = Object.keys(args);
         const params = names.map((n) => {
           const v = args[n];
+          // Reine Textlisten (z. B. uuid[]) reicht pg als Postgres-Array weiter, alles andere geht als JSON.
+          if (Array.isArray(v) && v.every((x) => typeof x === "string")) return v;
           return v !== null && typeof v === "object" ? JSON.stringify(v) : v;
         });
         const call = `public.${fn}(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")})`;

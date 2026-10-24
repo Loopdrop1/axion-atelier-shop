@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
+import { consentRecord } from "../_shared/consent.ts";
 import { pool, sql, uniq } from "../../tests/helpers.ts";
 import {
   ANON_KEY,
@@ -52,7 +53,8 @@ function post(body: unknown, ip = `10.0.0.${++ipCounter}`) {
   );
 }
 
-const CONSENT = "Ja, ich möchte den Axion-Newsletter erhalten. Abmelden ist jederzeit möglich.";
+// Der Client schickt nur die Bestätigung; gespeichert wird der versionierte Servertext.
+const CONSENT = true;
 
 function tokenFrom(text: string, page: "bestaetigen" | "abmelden"): string {
   const m = text.match(new RegExp(`/newsletter/${page}\\?token=([0-9a-f]{48})`));
@@ -84,7 +86,9 @@ describe("newsletter: anmelden", () => {
       "select status, consent_text, source from public.newsletter_subscribers where email = $1",
       [email.toLowerCase()],
     );
-    expect(row[0]).toEqual({ status: "pending", consent_text: CONSENT, source: "footer" });
+    expect(row[0]).toMatchObject({ status: "pending", source: "footer" });
+    expect(row[0]!.consent_text).toBe(consentRecord("de"));
+    expect(row[0]!.consent_text).toMatch(/^\[newsletter-v\d+\] Ja, ich möchte/);
   });
 
   it("englisch: Link mit /en und englischer Betreff", async () => {
@@ -135,6 +139,12 @@ describe("newsletter: anmelden", () => {
       email: `${uniq("x")}@example.ch`,
       consent: "  ",
     });
+    const falseConsent = await post({
+      action: "subscribe",
+      email: `${uniq("y")}@example.ch`,
+      consent: false,
+    });
+    expect(falseConsent.status).toBe(400);
     expect(noConsent.status).toBe(400);
     expect(await noConsent.json()).toEqual({ error: "CONSENT_REQUIRED" });
     const badMail = await post({ action: "subscribe", email: "keine-adresse", consent: CONSENT });

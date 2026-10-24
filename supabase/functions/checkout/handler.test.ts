@@ -278,6 +278,17 @@ describe("checkout: Geschenkgutschein", () => {
     expect(session["metadata"].kind).toBe("gift_card");
   });
 
+  it("ungültige Empfängeradresse: 400 INVALID_RECIPIENT_EMAIL", async () => {
+    const res = await post({
+      kind: "gift_card",
+      email: "tom@example.ch",
+      amountCents: 15000,
+      recipientEmail: "lea@",
+    });
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe("INVALID_RECIPIENT_EMAIL");
+  });
+
   it("Betrag ausserhalb der Grenzen: 400", async () => {
     const res = await post({ kind: "gift_card", email: "tom@example.ch", amountCents: 500 });
     expect(res.status).toBe(400);

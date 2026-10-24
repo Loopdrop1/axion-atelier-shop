@@ -5,6 +5,8 @@ import { supabaseUrl } from "@/lib/backend";
 import type { Locale } from "@/i18n/locale";
 import { messages } from "@/i18n/messages";
 import { media, musterMedia, type MediaKey } from "./media";
+import { defaultAnnouncements } from "./shipping-text";
+import type { ShopSettings } from "./source";
 import type { CategoryRow, ProductRow } from "./rows";
 import type {
   Collection,
@@ -337,12 +339,19 @@ export function mapSizeGuides(content: Record<string, Json>, locale: Locale): Si
 }
 
 /** Laufband oben auf jeder Seite. */
-export function mapAnnouncements(content: Record<string, Json>, locale: Locale): string[] {
+export function mapAnnouncements(
+  content: Record<string, Json>,
+  locale: Locale,
+  settings: Pick<ShopSettings, "shippingCents" | "freeShippingFromCents"> = {
+    shippingCents: 0,
+    freeShippingFromCents: null,
+  },
+): string[] {
   const block = content["announcements"];
   const items = isObj(block) && Array.isArray(block["items"]) ? block["items"] : [];
   const texts = items.flatMap((item) => {
     const text = localized(item, locale, null, "");
     return text ? [text] : [];
   });
-  return texts.length ? texts : [...messages[locale].announcements];
+  return texts.length ? texts : defaultAnnouncements(settings, locale);
 }

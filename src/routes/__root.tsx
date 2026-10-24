@@ -19,7 +19,15 @@ import { htmlLang, useLocale, useT } from "@/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
-  return <MissingPage />;
+  const t = useT();
+  // Pfade ohne eigene Seite (z. B. /gibt-es-nicht) haben keine Seiten-Metadaten: Titel und noindex setzen
+  return (
+    <>
+      <title>{`${t.notFound.metaTitle} · Axion`}</title>
+      <meta name="robots" content="noindex, nofollow" />
+      <MissingPage />
+    </>
+  );
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
@@ -103,6 +111,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const t = useT();
   // Das Admin hat ein eigenes Layout (src/routes/admin.tsx), der Shop den ShopShell mit Kopf- und Fusszeile.
   const admin = useRouterState({ select: (s) => /^\/admin(\/|$)/.test(s.location.pathname) });
   // Merker für Browser-Tests (e2e/): Seite ist hydriert und reagiert auf Eingaben.
@@ -115,7 +124,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {loading && <div className="route-progress" role="progressbar" aria-label="Lädt" />}
+      {loading && (
+        <div className="route-progress" role="progressbar" aria-label={t.common.loading} />
+      )}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       {admin ? (
         <Outlet />

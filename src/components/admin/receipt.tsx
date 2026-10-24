@@ -19,6 +19,8 @@ const TEXT = {
     qty: "Menge",
     price: "Preis",
     total: "Total",
+    refunded: "Rückerstattet",
+    netTotal: "Total nach Rückerstattung",
     subtotal: "Zwischensumme",
     discount: "Rabatt",
     shipping: "Versand",
@@ -43,6 +45,8 @@ const TEXT = {
     qty: "Qty",
     price: "Price",
     total: "Total",
+    refunded: "Refunded",
+    netTotal: "Total after refund",
     subtotal: "Subtotal",
     discount: "Discount",
     shipping: "Shipping",
@@ -86,8 +90,15 @@ function ReceiptContent({ order }: { order: AdminOrder }) {
   );
   const a = order.shipping_address;
   // MWST-Basis: Warenwert nach Rabatt plus Versand. Ein Gutschein ist nur ein Zahlungsmittel.
-  const vatBase = order.subtotal_cents - order.discount_cents + order.shipping_cents;
-  const showVat = shopConfig.vatRegistered && order.kind === "cart";
+  // Rückerstattungen (Karte über Stripe, Gutscheinanteil als Gutschrift) mindern die MWST-Basis.
+  const refunded = order.refunded_cents + (order.gift_card_credited_cents ?? 0);
+  const vatBase = Math.max(
+    0,
+    order.subtotal_cents - order.discount_cents + order.shipping_cents - refunded,
+  );
+  // Der Satz stammt aus der Bestellung; Altbestellungen fallen auf den Satz der Shop-Konfiguration zurück.
+  const vatRate = order.vat_rate ?? shopConfig.vatRate;
+  const showVat = (order.vat_rate != null || shopConfig.vatRegistered) && order.kind === "cart";
   return (
     <section className="admin-receipt" aria-hidden="true">
       <header>
@@ -188,10 +199,20 @@ function ReceiptContent({ order }: { order: AdminOrder }) {
           <dt>{t.total}</dt>
           <dd>{money(order.total_cents)}</dd>
         </div>
+        {order.refunded_cents > 0 && (
+          <>
+            <div>
+              <dt>{t.refunded}</dt>
+              <dd>−{money(order.refunded_cents)}</dd>
+            </div>
+            <div className="total">
+              <dt>{t.netTotal}</dt>
+              <dd>{money(Math.max(0, order.total_cents - order.refunded_cents))}</dd>
+            </div>
+          </>
+        )}
       </dl>
-      {showVat && (
-        <p>{t.vat(shopConfig.vatRate, money(vatIncluded(vatBase, shopConfig.vatRate)))}</p>
-      )}
+      {showVat && <p>{t.vat(vatRate, money(vatIncluded(vatBase, vatRate)))}</p>}
       {order.payment_method && PAYMENT[order.payment_method] && (
         <p>
           {t.paidWith} {PAYMENT[order.payment_method]}

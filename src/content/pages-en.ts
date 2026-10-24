@@ -232,7 +232,7 @@ Email us as soon as possible at {{email}}. As long as the parcel has not been sh
 Usually 2 to 5 working days after payment.
 **How much is shipping?**
 {{shipping}}. You see the exact amount in your cart before you order.
-**Do you ship abroad?**
+**Does Axion ship abroad?**
 At the moment we only ship within Switzerland [and to Liechtenstein].
 
 ### Returns

@@ -24,6 +24,13 @@ describe("parseQuery", () => {
     expect(en.colors).toEqual(["blau"]);
     expect(en.occasions).toEqual(["business"]);
   });
+  it("«fit» und «passform» sind nur Begleiter der Passform", () => {
+    for (const q of ["slim fit", "schmale passform", "passform regular", "regular fit"]) {
+      const i = parseQuery(q);
+      expect(i.terms, q).toEqual([]);
+      expect(i.fit, q).toBe(q.includes("regular") ? "Regular Fit" : "Slim Fit");
+    }
+  });
   it("Tippfehler-Abstand", () => {
     expect(distance("anzgu", "anzug")).toBe(1);
     expect(distance("kaschmier", "kaschmir")).toBe(1);
@@ -58,6 +65,20 @@ describe("smartSearch auf dem Musterkatalog", () => {
     expect(r.relaxed).toBe(true);
     const typo = await searchCatalog("limmatt");
     expect(typo.products.map((p) => p.handle)).toContain("anzug-limmat-marine");
+  });
+  it("«slim fit» liefert Treffer", async () => {
+    const r = await searchCatalog("slim fit");
+    expect(r.products.length).toBeGreaterThan(0);
+    expect(r.products.every((p) => p.fit === "Slim Fit")).toBe(true);
+  });
+  it("nennt die gelockerten Bedingungen", async () => {
+    const size = await searchCatalog("schwarzer Anzug in Grösse 60");
+    expect(size.relaxed).toBe(true);
+    expect(size.relaxedChecks).toContain("size");
+    const price = await searchCatalog("anzug unter 10");
+    expect(price.relaxed).toBe(true);
+    expect(price.relaxedChecks).toContain("maxPrice");
+    expect((await searchCatalog("blauer Anzug")).relaxedChecks).toBeUndefined();
   });
   it("findet auf Englisch", async () => {
     expect(await handles("black oxford shoes", "en")).toContain("oxford-nero-schwarz");

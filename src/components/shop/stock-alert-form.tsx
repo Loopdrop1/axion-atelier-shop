@@ -3,6 +3,7 @@
 import { useId, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { focusFirstInvalid } from "@/components/account/form";
 import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import type { Product } from "@/lib/commerce";
@@ -29,8 +30,14 @@ export function StockAlertForm({ product }: { product: Product }) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!variantId) return setError(s.chooseSize);
-    if (!EMAIL.test(email.trim())) return setError(t.common.invalidEmail);
+    if (!variantId) {
+      focusFirstInvalid();
+      return setError(s.chooseSize);
+    }
+    if (!EMAIL.test(email.trim())) {
+      focusFirstInvalid();
+      return setError(t.common.invalidEmail);
+    }
     if (!backendConfigured) return setError(s.notConfigured);
     setState("sending");
     const result = await callFunction<{ ok: true }>("stock-alert", {
@@ -44,7 +51,7 @@ export function StockAlertForm({ product }: { product: Product }) {
     setState("idle");
     setError(
       result.status === 429
-        ? t.newsletter.rateLimited
+        ? s.rateLimited
         : result.error === "IN_STOCK"
           ? s.inStock
           : result.error === "INVALID_EMAIL"
@@ -70,6 +77,7 @@ export function StockAlertForm({ product }: { product: Product }) {
               <select
                 id={`${id}-size`}
                 value={variantId}
+                aria-invalid={Boolean(error) && !variantId}
                 onChange={(e) => setVariantId(e.target.value)}
               >
                 <option value="">{s.chooseSize}</option>

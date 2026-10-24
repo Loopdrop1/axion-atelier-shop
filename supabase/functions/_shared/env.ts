@@ -26,6 +26,8 @@ export interface FunctionEnv {
   allowedOrigins: string[];
   /** Liefergebiet in der Kasse. SHIPPING_COUNTRIES, z. B. "CH,LI"; Standard nur CH. */
   shippingCountries: ShippingCountry[];
+  /** MWST-Satz in Prozent (SHOP_VAT_RATE), nur setzen, wenn der Shop MWST-pflichtig ist. Wird pro Bestellung gespeichert. */
+  vatRate: number | null;
   /** Automatische Übersetzung (OpenAI-Schnittstelle). Standard: Lovable AI Gateway mit LOVABLE_API_KEY. */
   translate: { apiBase: string; apiKey: string; model: string };
 }
@@ -42,6 +44,11 @@ function shippingCountries(value: string | undefined): ShippingCountry[] {
   const wanted = (value ?? "").split(",").map((s) => s.trim().toUpperCase());
   const list = SHIPPING_COUNTRIES.filter((c) => wanted.includes(c));
   return list.length ? [...list] : ["CH"];
+}
+
+function vatRate(value: string | undefined): number | null {
+  const n = Number((value ?? "").replace(",", "."));
+  return value?.trim() && Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
 }
 
 export type EnvSource = (key: string) => string | undefined;
@@ -84,6 +91,7 @@ export function readEnv(get: EnvSource): FunctionEnv {
       ...(get("ALLOW_PREVIEW_ORIGINS") === "1" ? [PREVIEW_ORIGINS] : []),
     ],
     shippingCountries: shippingCountries(get("SHIPPING_COUNTRIES")),
+    vatRate: vatRate(get("SHOP_VAT_RATE")),
     translate: {
       apiBase: get("TRANSLATE_API_BASE") || DEFAULT_TRANSLATE_API,
       apiKey: get("TRANSLATE_API_KEY") || get("LOVABLE_API_KEY") || "",

@@ -21,21 +21,23 @@ function Wishlist() {
   const hydrated = useStoreHydrated(useWishlist.persist);
   const [loaded, setLoaded] = useState(false);
   const handles = useWishlist((s) => s.handles);
+  const prune = useWishlist((s) => s.prune);
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
     if (!hydrated) return;
-    setLoaded(false);
     let live = true;
     getProductsByHandles(handles, locale).then((p) => {
       if (live) {
         setProducts(p);
         setLoaded(true);
+        // Handles, die es nicht mehr gibt (gelöscht, deaktiviert), aus der Merkliste räumen: der Zähler stimmt dann
+        if (p.length < handles.length) prune(p.map((x) => x.handle));
       }
     });
     return () => {
       live = false;
     };
-  }, [handles, hydrated, locale]);
+  }, [handles, hydrated, locale, prune]);
   return (
     <div className="container page-body">
       <p className="eyebrow">{t.wishlist.eyebrow}</p>

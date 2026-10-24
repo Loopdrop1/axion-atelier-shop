@@ -309,7 +309,7 @@ Schreib uns möglichst schnell an {{email}}. Solange das Paket noch nicht unterw
 In der Regel 2 bis 5 Arbeitstage nach Zahlungseingang.
 **Was kostet der Versand?**
 {{shipping}}. Den genauen Betrag siehst du im Warenkorb, bevor du bestellst.
-**Liefert ihr ins Ausland?**
+**Liefert Axion ins Ausland?**
 Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 
 ### Rückgabe

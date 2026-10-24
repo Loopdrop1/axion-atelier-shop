@@ -8,7 +8,7 @@ import { searchQuery } from "@/lib/commerce/queries";
 import { pageHead } from "@/lib/commerce/seo";
 import { askSearchAssist, wantsAssist } from "@/lib/commerce/search-assist";
 import { ProductCard } from "@/components/shop/product-card";
-import { IntentChips } from "@/components/shop/search-intent";
+import { IntentChips, RelaxedNotes } from "@/components/shop/search-intent";
 import { rememberSearch } from "@/lib/commerce/recent-searches";
 
 export const Route = createFileRoute("/{-$locale}/suche")({
@@ -89,6 +89,7 @@ function SearchPage() {
       />
       <IntentChips
         intent={result.intent}
+        relaxed={result.relaxedChecks}
         onChange={(intent) =>
           searchCatalogWith(intent, locale).then((next) =>
             setOverride({ q: q ?? "", result: next, ai: Boolean(current?.ai) }),
@@ -110,9 +111,7 @@ function SearchPage() {
           ?
         </p>
       )}
-      {result.relaxed && result.products.length > 0 && (
-        <p className="search-note">{t.search.relaxed}</p>
-      )}
+      <RelaxedNotes result={result} />
       {result.intent.gift && (
         <p className="search-note">
           <Link to="/{-$locale}/geschenkgutschein" params={{ locale: lp }}>
@@ -127,7 +126,7 @@ function SearchPage() {
       {result.products.length ? (
         <div className="product-grid">
           {result.products.map((p, i) => (
-            <ProductCard key={p.handle} product={p} eager={i < 4} />
+            <ProductCard key={p.handle} product={p} eager={i < 4} headingLevel={2} />
           ))}
         </div>
       ) : (

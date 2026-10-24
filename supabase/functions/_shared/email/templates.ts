@@ -400,13 +400,16 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
   const intro = de
     ? "Gute Nachricht: Wir haben deine Bestellung der Post übergeben. Sie ist in der Regel in 1 bis 3 Arbeitstagen bei dir."
     : "Good news: we have handed your order to Swiss Post. It usually arrives within 1 to 3 working days.";
+  const noTracking = de
+    ? "Eine Sendungsnummer liegt uns für diese Sendung nicht vor. Schreib uns gern, wenn du den Stand wissen möchtest."
+    : "We do not have a tracking number for this parcel. Get in touch if you would like an update.";
   const body = [
     h1(de ? "Deine Bestellung ist unterwegs" : "Your order is on its way"),
     p(esc(intro)),
     tracking
       ? codeBox(tracking, de ? "Sendungsnummer" : "Tracking number") +
         button(de ? "Sendung verfolgen" : "Track parcel", trackingUrl(tracking))
-      : "",
+      : p(esc(noTracking), { muted: true, size: 13 }),
     label(`${de ? "Bestellung" : "Order"} ${no}`),
     items.html,
     address.length
@@ -421,7 +424,7 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
     intro,
     tracking
       ? `\n${de ? "Sendungsnummer" : "Tracking number"}: ${tracking}\n${trackingUrl(tracking)}`
-      : "",
+      : `\n${noTracking}`,
     "",
     `${de ? "Bestellung" : "Order"} ${no}`,
     items.text,

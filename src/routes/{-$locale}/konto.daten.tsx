@@ -266,7 +266,7 @@ function PasswordForm() {
     setError("");
     const next: typeof errors = {};
     if (password.length < MIN_PASSWORD) next.password = t.account.passwordTooShort;
-    else if (password !== repeat) next.repeat = t.account.passwordMismatch;
+    if (password !== repeat) next.repeat = t.account.passwordMismatch;
     setErrors(next);
     if (Object.keys(next).length) return;
     setState("busy");
@@ -287,6 +287,7 @@ function PasswordForm() {
         <Field
           label={t.common.password}
           type="password"
+          maxLength={72}
           autoComplete="new-password"
           minLength={MIN_PASSWORD}
           hint={t.account.passwordHint}
@@ -300,6 +301,7 @@ function PasswordForm() {
         <Field
           label={t.account.passwordRepeat}
           type="password"
+          maxLength={72}
           autoComplete="new-password"
           value={repeat}
           onChange={(e) => setRepeat(e.target.value)}

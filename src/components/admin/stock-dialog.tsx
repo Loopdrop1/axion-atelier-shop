@@ -8,7 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { adjustStock, notifyRestock, waitingForVariant, type StockReason } from "@/lib/admin/api";
+import {
+  AdminError,
+  adjustStock,
+  notifyRestock,
+  setStock,
+  waitingForVariant,
+  type StockReason,
+} from "@/lib/admin/api";
 import { notify, SelectField, TextField } from "./ui";
 
 export interface StockTarget {
@@ -39,6 +46,8 @@ export function StockDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [waiting, setWaiting] = useState(0);
+  // Bestand, den der Server zuletzt gemeldet hat (nach STOCK_CHANGED); sonst der Bestand beim Öffnen.
+  const [seen, setSeen] = useState<number | null>(null);
 
   useEffect(() => {
     if (!target) return;
@@ -47,6 +56,7 @@ export function StockDialog({
     setNote("");
     setError("");
     setWaiting(0);
+    setSeen(null);
     let alive = true;
     waitingForVariant(target.id).then(
       (n) => alive && setWaiting(n),
@@ -73,29 +83,45 @@ export function StockDialog({
   }
 
   if (!target) return null;
+  const current = seen ?? target.stock;
   const value = /^\d{1,5}$/.test(amount.trim()) ? Number(amount.trim()) : NaN;
   const delta =
-    reason === "correction" ? value - target.stock : reason === "sale_store" ? -value : value;
-  const after = target.stock + delta;
+    reason === "correction" ? value - current : reason === "sale_store" ? -value : value;
+  const after = current + delta;
 
   async function save() {
     if (!target) return;
     setError("");
     if (!Number.isFinite(delta) || delta === 0)
       return setError("Bitte eine Menge angeben, die den Bestand ändert.");
-    if (after < 0) return setError(`Es sind nur ${target.stock} Stück an Lager.`);
+    if (after < 0) return setError(`Es sind nur ${current} Stück an Lager.`);
     if (reason === "correction" && !note.trim())
       return setError("Bitte einen Grund für die Korrektur angeben.");
     setBusy(true);
     try {
-      const stock = await adjustStock(target.id, delta, reason, note.trim() || undefined);
+      // Inventur: der Server rechnet das Delta unter Sperre und meldet STOCK_CHANGED, wenn inzwischen verkauft wurde.
+      const stock =
+        reason === "correction"
+          ? await setStock(target.id, value, current, note.trim() || undefined)
+          : await adjustStock(target.id, delta, reason, note.trim() || undefined);
       notify.ok(`Bestand ${target.label}, ${target.size}: ${stock}`);
       // Von ausverkauft auf vorrätig: Wartende automatisch benachrichtigen
-      if (target.stock <= 0 && stock > 0 && waiting > 0) await notifyWaiting(target.id);
+      if (current <= 0 && stock > 0 && waiting > 0) await notifyWaiting(target.id);
       onDone(stock);
       onClose();
     } catch (e) {
-      notify.error(e);
+      if (e instanceof AdminError && e.code === "STOCK_CHANGED") {
+        const available = (e.detail as { available?: number } | undefined)?.available;
+        if (typeof available === "number") {
+          setSeen(available);
+          setAmount(String(available));
+        }
+        setError(
+          `Der Bestand hat sich geändert${typeof available === "number" ? ` (jetzt ${available})` : ""}. Bitte neu zählen.`,
+        );
+      } else {
+        notify.error(e);
+      }
     } finally {
       setBusy(false);
     }
@@ -109,11 +135,11 @@ export function StockDialog({
             Bestand ändern: {target.label}, Grösse {target.size}
           </DialogTitle>
         </DialogHeader>
-        <p className="admin-muted">Aktuell an Lager: {target.stock}</p>
+        <p className="admin-muted">Aktuell an Lager: {current}</p>
         {waiting > 0 && (
           <p className="admin-muted">
             {waiting} {waiting === 1 ? "Person wartet" : "Personen warten"} auf diese Grösse
-            {target.stock > 0 ? (
+            {current > 0 ? (
               <>
                 {" · "}
                 <Button
@@ -137,7 +163,7 @@ export function StockDialog({
             value={reason}
             onChange={(e) => {
               setReason(e.target.value as StockReason);
-              setAmount(e.target.value === "correction" ? String(target.stock) : "1");
+              setAmount(e.target.value === "correction" ? String(current) : "1");
             }}
             options={REASONS}
           />

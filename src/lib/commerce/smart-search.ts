@@ -1,6 +1,7 @@
 // Kluge Suche ohne Server: versteht Synonyme (DE/EN), Tippfehler, zusammengesetzte Wörter («Hochzeitsanzug»),
 // Farbe, Kategorie, Anlass, Passform, Preis («unter 500»), Grösse, Sale und Neu. Ergebnis nach Relevanz sortiert;
 // ohne exakte Treffer werden Bedingungen schrittweise gelockert statt «keine Treffer» zu zeigen.
+import { isOnSale } from "./sale";
 import type { Occasion, Product } from "./types";
 
 export interface SearchIntent {
@@ -21,11 +22,16 @@ export interface SearchIntent {
   terms: string[];
 }
 
+export type RelaxedCheck =
+  "size" | "maxPrice" | "minPrice" | "colors" | "fit" | "occasions" | "sale" | "neu" | "terms";
+
 export interface SearchResult {
   products: Product[];
   intent: SearchIntent;
   /** true: keine exakten Treffer, Bedingungen wurden gelockert */
   relaxed: boolean;
+  /** Bei relaxed: die Bedingungen, die nicht berücksichtigt wurden («terms» = unbekannte Wörter) */
+  relaxedChecks?: RelaxedCheck[] | undefined;
   /** Korrigierte Anfrage bei Tippfehlern («Meintest du …») */
   didYouMean?: string | undefined;
 }
@@ -244,7 +250,7 @@ const OCCASION_WORDS: Record<Occasion, string[]> = {
 };
 
 const FIT_WORDS: Record<"Slim Fit" | "Regular Fit", string[]> = {
-  "Slim Fit": ["slim", "schmal", "tailliert", "eng", "fitted"],
+  "Slim Fit": ["slim", "schmal", "schmale", "tailliert", "eng", "fitted"],
   "Regular Fit": ["regular", "gerade", "bequem", "klassisch", "classic", "relaxed"],
 };
 
@@ -265,9 +271,9 @@ const CONTEXT_WORDS = new Set([
   "matching",
 ]);
 const CHEAP_WORDS = ["guenstig", "billig", "preiswert", "cheap", "affordable"];
-// Füllwörter ohne Bedeutung für die Suche
+// Füllwörter ohne Bedeutung für die Suche; «fit»/«passform» sind nur Begleiter von «slim»/«regular»
 const STOP = new Set(
-  "fuer fur ein eine einen einem der die das den dem mit und oder in im am an zu zum zur von ich suche brauche moechte mir mein meine was passt passend outfit look kombi style stil zu grosse groesse gr size for a an the with and or in on to my i need looking want something etwas chf fr franken".split(
+  "fuer fur ein eine einen einem der die das den dem mit und oder in im am an zu zum zur von ich suche brauche moechte mir mein meine was passt passend outfit look kombi style stil zu grosse groesse gr size for a an the with and or in on to my i need looking want something etwas chf fr franken fit passform schnitt cut".split(
     " ",
   ),
 );
@@ -475,8 +481,7 @@ function passes(p: Product, intent: SearchIntent, skip: Set<Check>): boolean {
     !p.variants.some((v) => v.availableForSale && normalize(v.title) === normalize(intent.size!))
   )
     return false;
-  if (!skip.has("sale") && intent.sale && !(p.tags.includes("sale") || p.compareAtPrice))
-    return false;
+  if (!skip.has("sale") && intent.sale && !isOnSale(p)) return false;
   if (!skip.has("neu") && intent.neu && !p.tags.includes("neu")) return false;
   return true;
 }
@@ -562,24 +567,38 @@ export function searchWithIntent(
     if (fixed.products.length && !fixed.relaxed) return { ...fixed, didYouMean };
   }
   const skip = new Set<Check>();
+  const dropped = (terms: boolean): RelaxedCheck[] => {
+    const active = (c: Check) =>
+      c === "size" || c === "fit" || c === "sale" || c === "neu"
+        ? Boolean(intent[c])
+        : c === "maxPrice" || c === "minPrice"
+          ? intent[c] !== undefined
+          : c === "colors" || c === "occasions"
+            ? intent[c].length > 0
+            : false;
+    const list = [...skip].filter(active) as RelaxedCheck[];
+    return terms && intent.terms.length ? [...list, "terms"] : list;
+  };
   for (const check of RELAX) {
     skip.add(check);
     const loose = rank(products, intent, skip, true);
-    if (loose.length) return { products: loose, intent, relaxed: true, didYouMean };
+    if (loose.length)
+      return { products: loose, intent, relaxed: true, relaxedChecks: dropped(false), didYouMean };
   }
   // Dann unbekannte Wörter ignorieren und nur die erkannten Begriffe zählen, zuletzt auch Sale und Anlass lockern
   const known = { ...intent, terms: [] };
   if (intent.terms.length && (intent.categories.length || intent.occasions.length || intent.sale)) {
     const loose = rank(products, known, skip, true);
-    if (loose.length) return { products: loose, intent, relaxed: true, didYouMean };
+    if (loose.length)
+      return { products: loose, intent, relaxed: true, relaxedChecks: dropped(true), didYouMean };
   }
   for (const check of RELAX_LAST) {
     skip.add(check);
     const loose = rank(products, known, skip, true);
     if (loose.length && (intent.categories.length || !intent.terms.length))
-      return { products: loose, intent, relaxed: true, didYouMean };
+      return { products: loose, intent, relaxed: true, relaxedChecks: dropped(true), didYouMean };
   }
-  return { products: [], intent, relaxed: true, didYouMean };
+  return { products: [], intent, relaxed: true, relaxedChecks: dropped(true), didYouMean };
 }
 
 /** «Meintest du»: unbekannte Wörter durch das nächste Wort aus dem Katalog ersetzen. */

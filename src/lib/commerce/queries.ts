@@ -75,7 +75,7 @@ export const productQuery = (handle: string, locale: Locale) =>
         product,
         siblings: await getSiblings(product, locale),
         outfit: await getProductsByHandles(product.outfitHandles, locale),
-        recommendations: await getRecommendations(handle, 4, locale),
+        recommendations: await getRecommendations(product, 4, locale),
       };
     },
   });

@@ -1,5 +1,5 @@
 // Geschenkgutschein kaufen (Stripe-Kasse) und Guthaben prüfen. Beträge und Gültigkeit kommen aus den Shop-Einstellungen.
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { pageHead } from "@/lib/commerce/seo";
 import { DEFAULT_SETTINGS } from "@/lib/commerce/source";
 import { useCart } from "@/lib/commerce/stores";
 import { useSession } from "@/lib/account/session";
-import { Field, Notice, TextAreaField } from "@/components/account/form";
+import { Field, Notice, TextAreaField, focusFirstInvalid } from "@/components/account/form";
 import { normalizeGiftCode } from "@/components/shop/checkout-summary";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -102,8 +102,21 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
   }>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Sperre gegen Doppelklick (state ist erst nach dem Rendern gesetzt)
+  const paying = useRef(false);
 
   useEffect(() => setEmail((current) => current || storedEmail), [storedEmail]);
+
+  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: Knopf wieder freigeben.
+  useEffect(() => {
+    const show = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      paying.current = false;
+      setBusy(false);
+    };
+    window.addEventListener("pageshow", show);
+    return () => window.removeEventListener("pageshow", show);
+  }, []);
 
   const customFrancs = /^\d{1,6}$/.test(custom.trim()) ? Number(custom.trim()) : NaN;
   const amountCents = choice === "custom" ? customFrancs * 100 : choice * 100;
@@ -112,6 +125,7 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (paying.current) return;
     setError("");
     const next: typeof errors = {};
     if (!amountValid) next.amount = t.giftCard.invalidAmount;
@@ -119,8 +133,12 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
       next.recipientEmail = t.common.invalidEmail;
     if (!user && !EMAIL.test(email.trim())) next.email = t.common.invalidEmail;
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      focusFirstInvalid();
+      return;
+    }
     if (!user) setStoredEmail(email.trim());
+    paying.current = true;
     setBusy(true);
     const result = await startCheckout({
       kind: "gift_card",
@@ -136,9 +154,12 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
       window.location.assign(result.url);
       return;
     }
+    paying.current = false;
     setBusy(false);
     if (result.error === "INVALID_AMOUNT") setErrors({ amount: t.giftCard.invalidAmount });
     else if (result.error === "INVALID_EMAIL") setErrors({ email: t.common.invalidEmail });
+    else if (result.error === "INVALID_RECIPIENT_EMAIL")
+      setErrors({ recipientEmail: t.common.invalidEmail });
     else if (result.error === "RATE_LIMITED" || result.error === "TOO_MANY_CHECKOUTS")
       setError(t.checkout.tooManyAttempts);
     else setError(result.error === "NETWORK" ? t.common.networkError : t.checkout.paymentError);

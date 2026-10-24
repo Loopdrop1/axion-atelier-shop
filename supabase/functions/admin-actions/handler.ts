@@ -55,10 +55,13 @@ async function loadOrder(deps: Deps, orderId: string): Promise<OrderRecord> {
 
 async function ship(deps: Deps, body: Record<string, unknown>): Promise<Response> {
   const orderId = uuid(body["orderId"]);
+  const tracking = str(body["trackingNumber"], 60) ?? null;
+  // Wer die Kundschaft benachrichtigt, muss auch die Sendungsnummer angeben (sonst bleibt die Mail ohne Verfolgung).
+  if (body["notify"] !== false && !tracking) throw new HttpError(400, "TRACKING_REQUIRED");
   const order = await deps
     .rpc<OrderRecord>("mark_order_shipped", {
       p_order_id: orderId,
-      p_tracking: str(body["trackingNumber"], 60) ?? null,
+      p_tracking: tracking,
     })
     .catch(mapRpcError);
   const result = { status: order.status, trackingNumber: order.tracking_number };

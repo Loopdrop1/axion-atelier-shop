@@ -2,9 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Photo } from "./primitives";
-import { formatPrice, discountPercent } from "@/lib/commerce/format";
+import { useAddToCart } from "./use-add-to-cart";
+import { formatPrice, formatDiscount, discountPercent } from "@/lib/commerce/format";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
-import { useCart, useWishlist, useShopUI } from "@/lib/commerce/stores";
+import { isOnSale } from "@/lib/commerce/sale";
+import { useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Product } from "@/lib/commerce";
 /** Passform-Code («Slim Fit») als Text in der aktuellen Sprache. */
@@ -12,16 +14,26 @@ export function useFitLabel() {
   const t = useT();
   return (fit: string) => t.product.fits[fit] ?? fit;
 }
-export function ProductCard({ product, eager = false }: { product: Product; eager?: boolean }) {
+export function ProductCard({
+  product,
+  eager = false,
+  headingLevel = 3,
+}: {
+  product: Product;
+  eager?: boolean;
+  headingLevel?: 2 | 3;
+}) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const t = useT();
   const locale = useLocale();
   const lp = useLocaleParam();
   const fitLabel = useFitLabel();
   const name = `${product.title}, ${product.color.name}`;
-  const { handles, toggle } = useWishlist();
-  const add = useCart((s) => s.add);
+  const saved = useWishlist((s) => s.handles.includes(product.handle));
+  const toggle = useWishlist((s) => s.toggle);
+  const addToCart = useAddToCart();
   const setCart = useShopUI((s) => s.setCart);
-  const saved = handles.includes(product.handle);
+  const onSale = isOnSale(product);
   const single = oneSizeVariant(product);
   return (
     <article className="product-card">
@@ -42,13 +54,11 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
           <Photo image={product.images[0]} eager={eager} />
           {product.images[1] && <Photo image={product.images[1]} className="second-image" />}
         </Link>
-        {(product.tags.includes("muster") ||
-          product.tags.includes("sale") ||
-          product.tags.includes("neu")) && (
+        {(product.tags.includes("muster") || onSale || product.tags.includes("neu")) && (
           <span className={`product-badge ${product.tags.includes("muster") ? "is-sample" : ""}`}>
             {product.tags.includes("muster")
               ? t.product.badgeSample
-              : product.tags.includes("sale")
+              : onSale
                 ? t.product.badgeSale
                 : t.product.badgeNew}
           </span>
@@ -72,7 +82,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
                 <Button
                   variant="icon"
                   onClick={() => {
-                    add(single.id);
+                    addToCart([single]);
                     setCart(true);
                   }}
                   aria-label={t.product.addOne(name)}
@@ -89,7 +99,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
                   key={v.id}
                   disabled={!v.availableForSale}
                   onClick={() => {
-                    add(v.id);
+                    addToCart([v]);
                     setCart(true);
                   }}
                   aria-label={
@@ -107,18 +117,23 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
         </div>
       </div>
       <Link to="/{-$locale}/produkt/$handle" params={{ locale: lp, handle: product.handle }}>
-        <h3>{product.title}</h3>
+        <Heading>{product.title}</Heading>
       </Link>
       <p className="product-description">
         {product.color.name}
         {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
       </p>
       <div className="price">
-        {formatPrice(product.priceRange.min, locale)}{" "}
+        {product.priceRange.min.amount < product.priceRange.max.amount
+          ? t.product.from(formatPrice(product.priceRange.min, locale))
+          : formatPrice(product.priceRange.min, locale)}{" "}
         {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
         {discountPercent(product.priceRange.min, product.compareAtPrice) > 0 && (
           <span className="price-off">
-            −{discountPercent(product.priceRange.min, product.compareAtPrice)} %
+            {formatDiscount(
+              discountPercent(product.priceRange.min, product.compareAtPrice),
+              locale,
+            )}
           </span>
         )}
       </div>

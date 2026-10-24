@@ -10,6 +10,8 @@ import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 import { sizeText } from "../_shared/size.ts";
 import { INTEGRATION_ID } from "../_shared/stripe.ts";
 
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
 interface ReservedLine {
   variant_id: string;
   title: string;
@@ -94,6 +96,14 @@ function mapReserveError(error: unknown): never {
     }
   }
   throw error;
+}
+
+/** MWST-Satz (SHOP_VAT_RATE) an der Bestellung festhalten; fehlt er, nutzt der Beleg den Satz der Shop-Konfiguration. */
+async function storeVatRate(deps: Deps, orderId: string): Promise<void> {
+  if (deps.env.vatRate === null) return;
+  await deps
+    .rpc("set_order_vat_rate", { p_order_id: orderId, p_rate: deps.env.vatRate })
+    .catch((e) => console.error("MWST-Satz nicht gespeichert", e));
 }
 
 function parseLines(value: unknown): { variant_id: string; quantity: number }[] {
@@ -253,6 +263,7 @@ async function cartCheckout(
     },
     reservation.order_id,
   );
+  await storeVatRate(deps, reservation.order_id);
   await deps.rpc("attach_checkout_session", {
     p_order_id: reservation.order_id,
     p_session_id: session.id,
@@ -271,6 +282,10 @@ async function giftCardCheckout(
   const amount = body["amountCents"];
   if (typeof amount !== "number" || !Number.isInteger(amount))
     throw new HttpError(400, "INVALID_AMOUNT");
+  // Die Gutschein-Mail geht an diese Adresse: leer ist erlaubt, ungültig nicht.
+  const recipientEmail = str(body["recipientEmail"], 254) ?? null;
+  if (recipientEmail && !EMAIL.test(recipientEmail))
+    throw new HttpError(400, "INVALID_RECIPIENT_EMAIL");
   const reservation = await deps
     .rpc<GiftReservation>("reserve_gift_card_purchase", {
       p_amount_cents: amount,
@@ -278,7 +293,7 @@ async function giftCardCheckout(
       p_locale: locale,
       p_purchase: {
         recipient_name: str(body["recipientName"], 100) ?? null,
-        recipient_email: str(body["recipientEmail"], 254) ?? null,
+        recipient_email: recipientEmail,
         sender_name: str(body["senderName"], 100) ?? null,
         message: str(body["message"], 500) ?? null,
       },
@@ -328,6 +343,7 @@ async function giftCardCheckout(
     },
     reservation.order_id,
   );
+  await storeVatRate(deps, reservation.order_id);
   await deps.rpc("attach_checkout_session", {
     p_order_id: reservation.order_id,
     p_session_id: session.id,

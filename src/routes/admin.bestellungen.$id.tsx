@@ -6,7 +6,9 @@ import { ArrowLeft, ExternalLink, Printer } from "lucide-react";
 import { Receipt } from "@/components/admin/receipt";
 import { Button } from "@/components/ui/button";
 import {
+  creditGiftCard,
   getOrder,
+  notifyRestock,
   resendGiftCard,
   resendOrderEmail,
   restockOrder,
@@ -240,6 +242,11 @@ function OrderView({ order }: { order: AdminOrder }) {
           {order.kind === "cart" && ["paid", "shipped", "refunded"].includes(order.status) && (
             <RestockPanel order={order} onDone={refresh} />
           )}
+          {order.kind === "cart" &&
+            order.gift_card_cents > 0 &&
+            ["paid", "shipped", "refunded"].includes(order.status) && (
+              <GiftCreditPanel order={order} onDone={refresh} />
+            )}
         </div>
         <div>
           <Panel title="Kundschaft">
@@ -288,6 +295,13 @@ function OrderView({ order }: { order: AdminOrder }) {
               Rückerstattungen im Stripe-Dashboard auslösen. Der Betrag erscheint danach automatisch
               hier. Ware, die zurückkommt, unter «Retoure einbuchen» an Lager nehmen.
             </p>
+            {order.gift_card_cents > 0 && (
+              <p className="admin-hint">
+                Achtung: {chf(order.gift_card_cents)} wurden mit Geschenkgutschein bezahlt. Stripe
+                erstattet nur den Kartenanteil. Den Gutscheinanteil unter «Gutscheinanteil
+                gutschreiben» auf den Gutschein zurückbuchen.
+              </p>
+            )}
             {order.status === "cancelled" && (
               <p className="admin-hint">
                 Abgebrochen {dateTime(order.cancelled_at)}{" "}
@@ -344,6 +358,7 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
   const [tracking, setTracking] = useState(order.tracking_number ?? "");
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [trackingMissing, setTrackingMissing] = useState(false);
   if (order.status === "shipped")
     return (
       <Panel title="Versand">
@@ -391,11 +406,16 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
       <div className="admin-form">
         <TextField
           label="Sendungsnummer"
-          hint="Bitte immer eintragen: AGB und Häufige Fragen sagen der Kundschaft die Sendungsnummer zu."
+          hint="Bitte immer eintragen: AGB und Häufige Fragen sagen der Kundschaft die Sendungsnummer zu. Pflicht, wenn die Kundschaft benachrichtigt wird."
+          required={notifyCustomer}
+          error={trackingMissing ? "Bitte die Sendungsnummer eintragen." : undefined}
           placeholder="z. B. 99.00.123456.12345678"
           value={tracking}
           maxLength={60}
-          onChange={(e) => setTracking(e.target.value)}
+          onChange={(e) => {
+            setTracking(e.target.value);
+            setTrackingMissing(false);
+          }}
         />
         <CheckField
           label="Kundschaft per E-Mail informieren"
@@ -407,6 +427,8 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
           variant="admin"
           disabled={busy}
           onClick={async () => {
+            // Mit Benachrichtigung ist die Sendungsnummer Pflicht (der Server prüft es ebenfalls).
+            if (notifyCustomer && !tracking.trim()) return setTrackingMissing(true);
             setBusy(true);
             try {
               const r = await shipOrder(order.id, tracking, notifyCustomer);
@@ -473,6 +495,8 @@ function RestockPanel({ order, onDone }: { order: AdminOrder; onDone: () => void
             const r = await restockOrder(order.id, items);
             notify.ok(`${r.restocked} ${r.restocked === 1 ? "Stück" : "Stücke"} wieder an Lager.`);
             setQty({});
+            // Grössen, die von ausverkauft auf vorrätig gingen: Wartende benachrichtigen
+            await notifyBackInStock(r.back_in_stock ?? []);
             onDone();
           } catch (error) {
             notify.error(error);
@@ -483,6 +507,75 @@ function RestockPanel({ order, onDone }: { order: AdminOrder; onDone: () => void
       >
         An Lager nehmen
       </Button>
+    </Panel>
+  );
+}
+
+/** Wartende («Benachrichtigen, wenn wieder da») der wieder vorrätigen Grössen informieren; Fehler bleiben vorgemerkt. */
+async function notifyBackInStock(variantIds: string[]) {
+  let notified = 0;
+  let failed = 0;
+  for (const id of variantIds) {
+    try {
+      const r = await notifyRestock(id);
+      notified += r.notified;
+      failed += r.failed;
+    } catch (error) {
+      notify.error(error);
+    }
+  }
+  if (notified) notify.ok(`${notified} wartende Kundschaft benachrichtigt.`);
+  if (failed)
+    notify.warn(
+      `${failed} E-Mail(s) nicht verschickt (E-Mail-Versand eingerichtet?). Sie bleiben vorgemerkt.`,
+    );
+}
+
+/** Die Rückerstattung läuft über Stripe und deckt nur den Kartenanteil; der Gutscheinanteil wird hier gutgeschrieben. */
+function GiftCreditPanel({ order, onDone }: { order: AdminOrder; onDone: () => void }) {
+  const open = Math.max(0, order.gift_card_cents - order.gift_card_credited_cents);
+  const [amount, setAmount] = useState((open / 100).toFixed(2));
+  const [busy, setBusy] = useState(false);
+  useEffect(() => setAmount((open / 100).toFixed(2)), [open]);
+  const cents = Math.round(Number(amount.replace(",", ".")) * 100);
+  const valid = Number.isFinite(cents) && cents >= 1 && cents <= open;
+  return (
+    <Panel
+      title="Gutscheinanteil gutschreiben"
+      description={`${chf(order.gift_card_cents)} wurden mit Geschenkgutschein bezahlt${order.gift_card_credited_cents > 0 ? `, davon ${chf(order.gift_card_credited_cents)} schon gutgeschrieben` : ""}. Stripe erstattet nur den Kartenanteil.`}
+    >
+      {open > 0 ? (
+        <div className="admin-form">
+          <TextField
+            label="Betrag (CHF)"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            hint={`Höchstens ${chf(open)}. Der Betrag kommt auf den Gutschein zurück.`}
+            error={amount && !valid ? `Bitte einen Betrag bis ${chf(open)} angeben.` : undefined}
+          />
+          <Button
+            variant="outline"
+            disabled={busy || !valid}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const r = await creditGiftCard(order.id, cents);
+                notify.ok(`Gutschein: ${chf(r.balance_cents)} Guthaben.`);
+                onDone();
+              } catch (error) {
+                notify.error(error);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Auf den Gutschein buchen
+          </Button>
+        </div>
+      ) : (
+        <p className="admin-muted">Der ganze Gutscheinanteil ist gutgeschrieben.</p>
+      )}
     </Panel>
   );
 }

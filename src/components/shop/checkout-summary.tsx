@@ -1,6 +1,6 @@
 // Kasse auf der Warenkorbseite: Rabattcode, Gutschein, E-Mail, Beträge und Weiterleitung zu Stripe.
 // Die Beträge hier sind eine Vorschau; verbindlich rechnet der Server (reserve_checkout).
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
@@ -14,11 +14,12 @@ import {
   startCheckout,
   type DiscountCheck,
 } from "@/lib/commerce/checkout";
-import { formatCents } from "@/lib/commerce/format";
+import { formatCents, formatDiscount } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";
 import { DEFAULT_SETTINGS, estimateTotals } from "@/lib/commerce/source";
 import { useCart } from "@/lib/commerce/stores";
 import { useSession } from "@/lib/account/session";
+import { FreeShippingBar } from "./free-shipping-bar";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -133,7 +134,20 @@ export function CheckoutSummary({
   const [email, setEmail] = useState(storedEmail);
   const [emailError, setEmailError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Sperre gegen Doppelklick (state ist erst nach dem Rendern gesetzt)
+  const paying = useRef(false);
   const [error, setError] = useState("");
+
+  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: Knopf wieder freigeben.
+  useEffect(() => {
+    const show = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      paying.current = false;
+      setBusy(false);
+    };
+    window.addEventListener("pageshow", show);
+    return () => window.removeEventListener("pageshow", show);
+  }, []);
 
   const discountMessage = (r: DiscountCheck) =>
     r.reason === "min_subtotal" && r.min_subtotal_cents
@@ -161,7 +175,7 @@ export function CheckoutSummary({
             // «−10 %» oder «−CHF 20.00» unter dem Code
             label:
               r.kind === "percent"
-                ? `−${r.value ?? 0} %`
+                ? formatDiscount(r.value ?? 0, locale)
                 : r.kind === "amount"
                   ? `−${formatCents(r.value ?? 0, locale)}`
                   : "",
@@ -213,6 +227,7 @@ export function CheckoutSummary({
   const blocked = cart.lines.some((l) => !l.variant.availableForSale);
 
   async function pay() {
+    if (paying.current) return;
     setError("");
     setEmailError("");
     const mail = (user?.email ?? email).trim();
@@ -221,6 +236,7 @@ export function CheckoutSummary({
       return;
     }
     if (!user) setStoredEmail(mail);
+    paying.current = true;
     setBusy(true);
     const result = await startCheckout({
       kind: "cart",
@@ -235,6 +251,7 @@ export function CheckoutSummary({
       window.location.assign(result.url);
       return;
     }
+    paying.current = false;
     setBusy(false);
     switch (result.error) {
       case "OUT_OF_STOCK":
@@ -323,6 +340,11 @@ export function CheckoutSummary({
           </>
         )}
       </div>
+      <FreeShippingBar
+        subtotalCents={totals.subtotalCents}
+        discountCents={totals.discountCents}
+        settings={settings}
+      />
       <div className="checkout-totals">
         {row(t.checkout.subtotal, formatCents(totals.subtotalCents, locale))}
         {totals.discountCents > 0 &&

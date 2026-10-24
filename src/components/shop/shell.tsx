@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Heart, ShoppingBag, Menu, ChevronDown, User } from "lucide-react";
+import { Search, Heart, ShoppingBag, Menu, ChevronDown, User, Pause, Play } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { announcementsQuery, navQuery } from "@/lib/commerce/queries";
+import { defaultAnnouncements } from "@/lib/commerce/shipping-text";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useLocaleLoaderData } from "@/lib/commerce/locale-data";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Logo } from "./logo";
@@ -50,8 +52,12 @@ export function ShopShell({ children }: { children: ReactNode }) {
   const [headerTop, setHeaderTop] = useState<number | null>(null);
   const [scroll, setScroll] = useState({ solid: false, hidden: false });
   const [announcement, setAnnouncement] = useState(0);
+  // Wechsel der Ankündigungen: pausierbar (WCAG 2.2.2), pausiert bei Hover, Fokus und im Hintergrund-Tab
+  const [announcementPaused, setAnnouncementPaused] = useState(false);
+  const [announcementHeld, setAnnouncementHeld] = useState(false);
   const initialAnnouncements = useLocaleLoaderData()?.announcements;
-  const { data: announcements = t.announcements } = useQuery({
+  const settings = useShopSettings();
+  const { data: announcements = defaultAnnouncements(settings, locale) } = useQuery({
     ...announcementsQuery(locale),
     ...(initialAnnouncements ? { initialData: initialAnnouncements } : {}),
   });
@@ -71,8 +77,17 @@ export function ShopShell({ children }: { children: ReactNode }) {
         setSearch(true);
       }
     };
+    // Warenkorb und Merkliste in mehreren Tabs gleich halten
+    const sync = (e: StorageEvent) => {
+      if (e.key === "axion-cart") useCart.persist.rehydrate();
+      if (e.key === "axion-wishlist") useWishlist.persist.rehydrate();
+    };
     window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("storage", sync);
+    };
   }, [setSearch]);
   useEffect(() => {
     let last = window.scrollY;
@@ -104,13 +119,14 @@ export function ShopShell({ children }: { children: ReactNode }) {
     };
   }, []);
   useEffect(() => {
-    if (announcements.length < 2) return;
-    const timer = window.setInterval(
-      () => setAnnouncement((n) => (n + 1) % announcements.length),
-      6500,
-    );
+    if (announcements.length < 2 || announcementPaused || announcementHeld) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      setAnnouncement((n) => (n + 1) % announcements.length);
+    }, 6500);
     return () => clearInterval(timer);
-  }, [announcements.length]);
+  }, [announcements.length, announcementPaused, announcementHeld]);
   useEffect(() => {
     setMenu(false);
     setOccasionOpen(false);
@@ -122,11 +138,29 @@ export function ShopShell({ children }: { children: ReactNode }) {
       <a href="#main-content" className="skip-link">
         {t.common.skipToContent}
       </a>
-      <div className="announcement">
+      <section
+        className="announcement"
+        aria-label={t.common.announcements}
+        onMouseEnter={() => setAnnouncementHeld(true)}
+        onMouseLeave={() => setAnnouncementHeld(false)}
+        onFocus={() => setAnnouncementHeld(true)}
+        onBlur={() => setAnnouncementHeld(false)}
+      >
         <span key={`${locale}-${announcement}`}>
           {announcements[announcement % announcements.length]}
         </span>
-      </div>
+        {announcements.length > 1 && (
+          <button
+            type="button"
+            className="announcement-toggle"
+            aria-label={t.common.announcementsPause}
+            aria-pressed={announcementPaused}
+            onClick={() => setAnnouncementPaused((p) => !p)}
+          >
+            {announcementPaused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+          </button>
+        )}
+      </section>
       <header
         ref={header}
         style={headerTop === null ? undefined : { top: headerTop }}
@@ -360,7 +394,7 @@ function Footer() {
             <Logo vertical />
           </Link>
           <div className="footer-column">
-            <h3>{t.footer.shop}</h3>
+            <h2>{t.footer.shop}</h2>
             {[{ handle: "neu", title: t.nav.labels["neu"] ?? "Neu" }, ...categories].map((c) => (
               <Link
                 to="/{-$locale}/kollektion/$handle"
@@ -383,7 +417,7 @@ function Footer() {
             </Link>
           </div>
           <div className="footer-column">
-            <h3>{t.footer.help}</h3>
+            <h2>{t.footer.help}</h2>
             {helpPages.map((page) => (
               <Link to={`/{-$locale}/${page}` as const} params={{ locale: lp }} key={page}>
                 {t.pages[page].title}
@@ -396,7 +430,7 @@ function Footer() {
             )}
           </div>
           <div className="footer-column">
-            <h3>{t.footer.legal}</h3>
+            <h2>{t.footer.legal}</h2>
             {legalPages.map((page) => (
               <Link to={`/{-$locale}/${page}` as const} params={{ locale: lp }} key={page}>
                 {t.pages[page].title}
@@ -408,7 +442,7 @@ function Footer() {
         {shopConfig.features.newsletter && (
           <div className="footer-newsletter">
             <div>
-              <h3>{t.footer.newsletterTitle}</h3>
+              <h2>{t.footer.newsletterTitle}</h2>
               <p>{t.footer.newsletterText}</p>
             </div>
             <NewsletterForm dark />

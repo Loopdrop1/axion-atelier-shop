@@ -4,6 +4,7 @@ import type { Deps } from "../_shared/deps.ts";
 import { RpcError } from "../_shared/db.ts";
 import { sendEmail } from "../_shared/email/send.ts";
 import { newsletterConfirm, newsletterWelcome } from "../_shared/email/templates.ts";
+import { consentRecord } from "../_shared/consent.ts";
 import { clientIp, HttpError, json, readJson, str, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
@@ -49,14 +50,18 @@ async function subscribe(
   if (str(body["website"])) return json(200, { ok: true });
   const email = str(body["email"], 254);
   if (!email || !EMAIL.test(email)) throw new HttpError(400, "INVALID_EMAIL");
-  const consent = str(body["consent"], 1000);
-  if (!consent) throw new HttpError(400, "CONSENT_REQUIRED");
+  // Der Client bestätigt nur (consent:true); Wortlaut und Version bestimmt der Server.
+  // Übergangsweise zählt auch ein nicht leerer Text, gespeichert wird trotzdem der Servertext.
+  const consentGiven =
+    body["consent"] === true || (typeof body["consent"] === "string" && body["consent"].trim());
+  if (!consentGiven) throw new HttpError(400, "CONSENT_REQUIRED");
+  const locale = toLocale(body["locale"]);
   const source = str(body["source"], 20);
   const result = await deps
     .rpc<SubscribeResult>("newsletter_subscribe", {
       p_email: email,
-      p_locale: toLocale(body["locale"]),
-      p_consent: consent,
+      p_locale: locale,
+      p_consent: consentRecord(locale),
       p_source: source && SOURCES.has(source) ? source : "footer",
       p_ip: clientIp(req),
     })

@@ -5765,7 +5765,7 @@ export const sampleCatalog: CatalogData = {
         title: "Der Anlass ist deiner.",
         eyebrow: "Für deine Momente",
         business: "Klar auftreten. Jeden Tag.",
-        hochzeit: "Für euren besonderen Tag.",
+        hochzeit: "Für den grossen Tag.",
         abschlussfeier: "Ein neuer Abschnitt beginnt.",
       },
       en: {
@@ -5803,7 +5803,7 @@ export const sampleCatalog: CatalogData = {
         {
           id: "anzuege-sakkos",
           note: {
-            de: "Beispielwerte für die Vorschau. Die echten Masse ersetzt ihr im Admin unter «Grössentabellen».",
+            de: "Beispielwerte für die Vorschau. Die echten Masse werden im Admin unter «Grössentabellen» eingetragen.",
             en: "Sample values for the preview.",
           },
           rows: [

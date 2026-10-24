@@ -7,6 +7,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
 import { backendConfigured } from "@/lib/backend";
+import { trackingUrl } from "@/lib/account/api";
 import { getOrderStatus, type OrderStatus } from "@/lib/commerce/checkout";
 import { formatCents } from "@/lib/commerce/format";
 import { pageHead } from "@/lib/commerce/seo";
@@ -37,7 +38,7 @@ function OrderStatusPage() {
   const { token } = Route.useParams();
   const { bezahlt } = Route.useSearch();
   const clearCart = useCart((s) => s.clear);
-  const [startedAt] = useState(() => Date.now());
+  const [startedAt, setStartedAt] = useState(() => Date.now());
   const [timedOut, setTimedOut] = useState(false);
   const handled = useRef(false);
 
@@ -45,6 +46,8 @@ function OrderStatusPage() {
     queryKey: ["order-status", token],
     queryFn: () => getOrderStatus(token),
     enabled: backendConfigured,
+    // Kurze Netzstörungen nach der Rückkehr von Stripe abfangen, bevor «Fehler» erscheint
+    retry: 3,
     refetchInterval: (query) =>
       query.state.data?.status === "pending" && Date.now() - startedAt < WAIT_MS ? POLL_MS : false,
   });
@@ -79,21 +82,47 @@ function OrderStatusPage() {
       ) : status.isLoading ? (
         <p role="status">{t.common.loading}</p>
       ) : status.isError ? (
-        <Notice kind="error">{t.common.error}</Notice>
+        <>
+          <Notice kind="error">{t.common.error}</Notice>
+          <div className="empty-links justify-start">
+            <Button variant="tailored" onClick={() => void status.refetch()}>
+              {t.common.retry}
+            </Button>
+          </div>
+          <Help />
+        </>
       ) : !status.data ? (
         <>
           <h1 className="page-title">{t.order.notFoundTitle}</h1>
           <p className="page-intro">{t.order.notFoundText}</p>
           <Actions />
+          <Help />
         </>
       ) : (
-        <StatusView order={status.data} timedOut={timedOut} />
+        <StatusView
+          order={status.data}
+          timedOut={timedOut}
+          onRefresh={() => {
+            // Polling neu starten: frische Wartezeit, sofort neu abfragen
+            setTimedOut(false);
+            setStartedAt(Date.now());
+            void status.refetch();
+          }}
+        />
       )}
     </div>
   );
 }
 
-function StatusView({ order, timedOut }: { order: OrderStatus; timedOut: boolean }) {
+function StatusView({
+  order,
+  timedOut,
+  onRefresh,
+}: {
+  order: OrderStatus;
+  timedOut: boolean;
+  onRefresh: () => void;
+}) {
   const t = useT();
   const locale = useLocale();
   const total = (
@@ -110,8 +139,16 @@ function StatusView({ order, timedOut }: { order: OrderStatus; timedOut: boolean
             {timedOut ? t.order.waitingLong : t.order.waiting}
           </p>
           {!timedOut && <span className="order-spinner" aria-hidden="true" />}
+          {timedOut && (
+            <div className="empty-links justify-start">
+              <Button variant="tailored" onClick={onRefresh}>
+                {t.order.refresh}
+              </Button>
+            </div>
+          )}
           {total}
           <Actions />
+          {timedOut && <Help />}
         </>
       );
     case "paid":
@@ -137,6 +174,19 @@ function StatusView({ order, timedOut }: { order: OrderStatus; timedOut: boolean
           {head}
           <h1 className="page-title">{t.order.shippedTitle}</h1>
           <p className="page-intro">{t.order.shippedText}</p>
+          {order.tracking_number && (
+            <Notice>
+              {t.account.trackingNumber}: <strong>{order.tracking_number}</strong>{" "}
+              <a
+                className="text-link"
+                href={trackingUrl(order.tracking_number)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.account.trackParcel}
+              </a>
+            </Notice>
+          )}
           {total}
           <Actions />
         </>
@@ -148,6 +198,7 @@ function StatusView({ order, timedOut }: { order: OrderStatus; timedOut: boolean
           <h1 className="page-title">{t.order.refundedTitle}</h1>
           <p className="page-intro">{t.order.refundedText}</p>
           <Actions />
+          <Help />
         </>
       );
     default:
@@ -157,9 +208,28 @@ function StatusView({ order, timedOut }: { order: OrderStatus; timedOut: boolean
           <h1 className="page-title">{t.order.cancelledTitle}</h1>
           <p className="page-intro">{t.order.cancelledText}</p>
           <Actions />
+          <Help />
         </>
       );
   }
+}
+
+/** Weiterführende Hilfe, wenn etwas nicht wie erwartet läuft: Kontakt und Versand/Rückgabe. */
+function Help() {
+  const t = useT();
+  const lp = useLocaleParam();
+  return (
+    <p className="text-muted order-help">
+      {t.order.helpText}{" "}
+      <Link className="text-link" to="/{-$locale}/kontakt" params={{ locale: lp }}>
+        {t.order.helpContact}
+      </Link>
+      {" · "}
+      <Link className="text-link" to="/{-$locale}/versand-und-rueckgabe" params={{ locale: lp }}>
+        {t.order.helpReturns}
+      </Link>
+    </p>
+  );
 }
 
 function Actions() {
