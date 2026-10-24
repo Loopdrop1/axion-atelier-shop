@@ -17,7 +17,17 @@ import {
 } from "@/lib/admin/auto-translate";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { slugify } from "@/lib/admin/slug";
-import { AreaField, Bilingual, CheckField, notify, Panel, SelectField, TextField } from "./ui";
+import {
+  AreaField,
+  Bilingual,
+  CheckField,
+  ConfirmButton,
+  notify,
+  Panel,
+  SelectField,
+  TextField,
+  UnsavedChangesGuard,
+} from "./ui";
 
 const OCCASIONS = [
   { value: "hochzeit", label: "Hochzeit" },
@@ -173,6 +183,8 @@ export function ProductForm({
     () => products.filter((p) => p.id !== product?.id),
     [products, product?.id],
   );
+  // Ungespeichert: Formular weicht vom gespeicherten Stand ab (nicht während des Speicherns).
+  const dirty = !busy && JSON.stringify(form) !== JSON.stringify(baseline);
   const handleChanged = product && product.status === "active" && form.handle !== product.handle;
 
   function updateTitle(value: string) {
@@ -285,11 +297,6 @@ export function ProductForm({
       notify.error(new Error("MISSING_COPY_FACTS"));
       return;
     }
-    if (
-      (form.description_de.trim() || form.features_de.trim()) &&
-      !window.confirm("Beschreibung und Ausstattung durch den Vorschlag ersetzen?")
-    )
-      return;
     setDrafting(true);
     try {
       const draft = await draftProductCopy({
@@ -315,6 +322,7 @@ export function ProductForm({
 
   return (
     <form onSubmit={submit} noValidate className="admin-product-form">
+      <UnsavedChangesGuard active={dirty} />
       {/* Während Übersetzung und Speichern gesperrt: Eingaben in dieser Zeit gingen sonst verloren. */}
       <fieldset className="admin-lock" disabled={busy}>
         <Panel title="Grunddaten">
@@ -434,9 +442,22 @@ export function ProductForm({
         <Panel
           title="Texte"
           actions={
-            <Button type="button" variant="outline" disabled={drafting} onClick={suggestCopy}>
-              {drafting ? "Schreibt …" : "Text vorschlagen (KI)"}
-            </Button>
+            form.description_de.trim() || form.features_de.trim() ? (
+              <ConfirmButton
+                label={drafting ? "Schreibt …" : "Text vorschlagen (KI)"}
+                title="Text ersetzen?"
+                description="Beschreibung und Ausstattung werden durch den Vorschlag ersetzt."
+                confirmLabel="Ersetzen"
+                size="default"
+                danger={false}
+                disabled={drafting}
+                onConfirm={suggestCopy}
+              />
+            ) : (
+              <Button type="button" variant="outline" disabled={drafting} onClick={suggestCopy}>
+                {drafting ? "Schreibt …" : "Text vorschlagen (KI)"}
+              </Button>
+            )
           }
         >
           <div className="admin-form">

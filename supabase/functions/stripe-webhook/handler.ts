@@ -11,6 +11,9 @@ function orderIdOf(session: Stripe.Checkout.Session): string | null {
   return session.metadata?.["order_id"] ?? session.client_reference_id ?? null;
 }
 
+// Bewusst kein Fehler: Die Zahlungsart ist nur Anzeige (Bestellseite, Mails). Scheitert das Lesen oder fehlt die
+// Charge (z. B. Gutschein deckt alles), fällt sie still auf null; ein Wurf würde die Verbuchung der bezahlten
+// Bestellung blockieren und Stripe in Wiederholungen schicken.
 async function paymentMethodOf(deps: Deps, paymentIntentId: string | null): Promise<string | null> {
   if (!paymentIntentId) return null;
   try {

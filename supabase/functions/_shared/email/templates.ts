@@ -219,8 +219,8 @@ function totalsBlock(order: OrderData): { html: string; text: string } {
 /** Hinweis zu Rückgabe und Umtausch mit Link auf die Seite «Versand und Rückgabe». */
 function returnsNote(shop: ShopInfo, de: boolean): string {
   return de
-    ? `Rückgabe und Umtausch: Alles Wichtige steht unter ${shop.siteUrl}/versand-und-rueckgabe`
-    : `Returns and exchanges: everything you need to know is at ${shop.siteUrl}/en/versand-und-rueckgabe`;
+    ? `Rückgabe und Umtausch: Du hast ${shop.returnDays} Tage Zeit. Alles Wichtige steht unter ${shop.siteUrl}/versand-und-rueckgabe`
+    : `Returns and exchanges: you have ${shop.returnDays} days. Everything you need to know is at ${shop.siteUrl}/en/versand-und-rueckgabe`;
 }
 
 export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailContent {
@@ -416,6 +416,7 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
       ? divider() + label(T[order.locale].shipTo) + p(address.map(esc).join("<br>"))
       : "",
     divider(),
+    p(esc(returnsNote(shop, de)), { muted: true, size: 13 }),
     p(esc(T[order.locale].questions), { muted: true, size: 13 }),
   ].join("\n");
   const text = [
@@ -429,6 +430,8 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
     `${de ? "Bestellung" : "Order"} ${no}`,
     items.text,
     address.length ? `\n${T[order.locale].shipTo}:\n${address.join("\n")}` : "",
+    "",
+    returnsNote(shop, de),
   ].join("\n");
   return {
     subject,

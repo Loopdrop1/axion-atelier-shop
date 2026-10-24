@@ -30,7 +30,7 @@
 - Checkout always goes through the `checkout` Edge Function (stock reservation, Stripe Checkout); never hardcode payment links in the UI.
 - Admin lives under `/admin` (role `admin` in `user_roles`); stock changes only via the `admin_adjust_stock` RPC, never by updating `product_variants.stock`.
 - Edge Functions: see `supabase/functions/README.md`; secrets live in Cloud, never in the repo.
-- The root `README.md` is the outdated first brief (no backend, sample data); this file, `docs/DEPLOYMENT.md` and `supabase/functions/README.md` describe the current shop.
+- The root `README.md` is a short overview; the outdated first brief (no backend, sample data) lives in `docs/brief-v1.md`. This file, `docs/DEPLOYMENT.md` and `supabase/functions/README.md` describe the current shop.
 - Backend is Lovable Cloud (region Europe). Migrations in `supabase/migrations/` are applied manually in order (Lovable does not run migration files from Git); never edit an applied migration, add a new one instead.
 - Never edit the generated `src/integrations/supabase/client.ts`; `backendConfigured` and `supabaseUrl` live in `src/lib/backend.ts`.
 - What runs in Cloud is `drizzle/migrations/` (written by Lovable's migration tool when Cloud was connected; same SQL as `supabase/migrations/` except `citext` → `text` with unique `lower(...)` indexes). `supabase/migrations/` stays the source for the local test database. A schema change needs a new file in both, applied once in Cloud.

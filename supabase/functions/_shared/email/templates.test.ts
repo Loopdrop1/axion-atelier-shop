@@ -23,6 +23,7 @@ const shop: ShopInfo = {
   siteUrl: "https://shop.test",
   contactEmail: "hallo@shop.test",
   address: "Musterweg 1, 8000 Zürich",
+  returnDays: 14,
 };
 
 function order(locale: Locale, extra: Partial<OrderData> = {}): OrderData {
@@ -228,13 +229,20 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
 
   it("Bestellbestätigung: Hinweis auf Rückgabe und Umtausch (nicht beim Gutscheinkauf)", () => {
     expect(orderConfirmation(order("de"), shop).text).toContain(
-      "Rückgabe und Umtausch: Alles Wichtige steht unter https://shop.test/versand-und-rueckgabe",
+      "Rückgabe und Umtausch: Du hast 14 Tage Zeit. Alles Wichtige steht unter https://shop.test/versand-und-rueckgabe",
     );
     expect(orderConfirmation(order("en"), shop).html).toContain(
       "https://shop.test/en/versand-und-rueckgabe",
     );
     const gift = orderConfirmation(order("de", { kind: "gift_card", items: [] }), shop);
     expect(gift.text).not.toContain("Rückgabe und Umtausch");
+  });
+
+  it("Versandbestätigung: nennt die Rückgabefrist aus ShopInfo", () => {
+    const de = shippingConfirmation(order("de"), { ...shop, returnDays: 30 });
+    expect(de.text).toContain("Du hast 30 Tage Zeit");
+    expect(de.html).toContain("Du hast 30 Tage Zeit");
+    expect(shippingConfirmation(order("en"), shop).text).toContain("you have 14 days");
   });
 
   it("Kontaktformular: Absender, maskierte Nachricht, Sprache", () => {

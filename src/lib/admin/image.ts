@@ -3,6 +3,8 @@
 // Freigestellte Bilder (durchsichtiger Hintergrund) bleiben durchsichtig: WebP, sonst PNG statt JPEG.
 
 export const MAX_IMAGE_SIDE = 2000;
+/** Unter dieser längeren Seite wirkt ein Bild im Shop unscharf: Der Upload warnt. */
+export const MIN_IMAGE_SIDE = 1600;
 /** Grenze der Speicher-Buckets für Bilder (product-images, site-media) */
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
@@ -19,6 +21,8 @@ export interface PreparedImage {
   width: number;
   height: number;
   extension: "webp" | "jpg" | "png";
+  /** Original war kleiner als MIN_IMAGE_SIDE (längere Seite) */
+  lowRes: boolean;
 }
 
 /** Hat das Bild durchsichtige Stellen? (Stichprobe, reicht für freigestellte Produktfotos) */
@@ -69,6 +73,7 @@ export async function prepareImage(file: File, max = MAX_IMAGE_SIDE): Promise<Pr
     throw new Error("UNREADABLE_IMAGE");
   });
   const size = targetSize(bitmap.width, bitmap.height, max);
+  const lowRes = Math.max(bitmap.width, bitmap.height) < MIN_IMAGE_SIDE;
   const canvas = document.createElement("canvas");
   canvas.width = size.width;
   canvas.height = size.height;
@@ -79,7 +84,7 @@ export async function prepareImage(file: File, max = MAX_IMAGE_SIDE): Promise<Pr
   bitmap.close();
   // Safari kann teils kein WebP erzeugen und liefert dann PNG: in dem Fall JPEG, bei freigestellten Bildern PNG.
   const webp = await canvasToBlob(canvas, "image/webp", 0.86);
-  if (webp && webp.type === "image/webp") return { blob: webp, ...size, extension: "webp" };
+  if (webp && webp.type === "image/webp") return { blob: webp, ...size, extension: "webp", lowRes };
   if (webp && webp.type === "image/png" && hasTransparency(ctx, size.width, size.height)) {
     // PNG wird bei grossen Fotos schnell grösser als der Speicher erlaubt: dann schrittweise kleiner
     let best = { blob: webp, ...size };
@@ -87,9 +92,9 @@ export async function prepareImage(file: File, max = MAX_IMAGE_SIDE): Promise<Pr
       if (best.blob.size <= MAX_IMAGE_BYTES) break;
       best = (await smallerPng(canvas, size, factor)) ?? best;
     }
-    return { ...best, extension: "png" };
+    return { ...best, extension: "png", lowRes };
   }
   const jpeg = await canvasToBlob(canvas, "image/jpeg", 0.86);
   if (!jpeg) throw new Error("UNREADABLE_IMAGE");
-  return { blob: jpeg, ...size, extension: "jpg" };
+  return { blob: jpeg, ...size, extension: "jpg", lowRes };
 }

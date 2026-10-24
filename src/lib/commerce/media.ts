@@ -8,7 +8,7 @@ import modelSuit from "@/assets/model-anzug.jpg";
 import modelVest from "@/assets/model-weste.jpg";
 import modelShoes from "@/assets/model-schuhe.jpg";
 import look from "@/assets/look-outfit.jpg";
-import fabric from "@/assets/detail-stoff.jpg";
+import fabric from "@/assets/detail-stoff.webp";
 import type { ShopImage } from "./types";
 const portrait = (url: string, altText: string): ShopImage => ({
   url,

@@ -10,7 +10,8 @@ import type {
   TablesInsert,
   TablesUpdate,
 } from "@/integrations/supabase/types";
-import { prepareImage } from "./image";
+import { toast } from "sonner";
+import { MIN_IMAGE_SIDE, prepareImage } from "./image";
 
 export type OrderStatus = Enums<"order_status">;
 export type StockReason = "sale_store" | "return" | "correction";
@@ -572,6 +573,15 @@ export function notifyRestock(variantId: string): Promise<{ notified: number; fa
   return action({ action: "notify_restock", variantId });
 }
 
+/** Hinweis (Bild wird trotzdem hochgeladen), wenn das Original unter MIN_IMAGE_SIDE liegt. */
+function warnLowRes(lowRes: boolean) {
+  if (lowRes)
+    toast.warning(
+      `Das Bild ist kleiner als ${MIN_IMAGE_SIDE} Pixel und kann im Shop unscharf wirken. Empfohlen: mindestens 2000 Pixel.`,
+      { duration: 12_000 },
+    );
+}
+
 /** Bild verkleinern, hochladen und als letztes Bild anhängen. */
 export async function uploadProductImage(
   product: Pick<Product, "id" | "handle" | "title_de" | "title_en" | "en_auto">,
@@ -579,6 +589,7 @@ export async function uploadProductImage(
   sort: number,
 ): Promise<ProductImage> {
   const image = await prepareImage(file);
+  warnLowRes(image.lowRes);
   const path = `${product.handle}/${crypto.randomUUID()}.${image.extension}`;
   const upload = await db().storage.from("product-images").upload(path, image.blob, {
     contentType: image.blob.type,
@@ -623,6 +634,7 @@ export async function deleteImage(image: Pick<ProductImage, "id" | "path">) {
 /** Bild für Startseite oder Kategorie (Bucket site-media). Gibt den Pfad zurück. */
 export async function uploadSiteImage(file: File, folder: string, maxSide?: number) {
   const image = await prepareImage(file, maxSide);
+  warnLowRes(image.lowRes);
   const path = `${folder}/${crypto.randomUUID()}.${image.extension}`;
   const upload = await db()
     .storage.from("site-media")
@@ -656,13 +668,18 @@ export type StockRow = Pick<
   product: Pick<Product, "id" | "handle" | "title_de" | "color_name_de" | "status"> | null;
 };
 
+/** Obergrenze der Bestandsliste; erreicht sie das Limit, fehlen Grössen (das Lager warnt). */
+export const STOCK_LIST_LIMIT = 2000;
+/** Standardlänge der Bewegungsliste */
+export const MOVEMENTS_LIMIT = 200;
+
 export async function listStock(): Promise<StockRow[]> {
   const { data, error } = await db()
     .from("product_variants")
     .select(
       "id, size, stock, active, sku, barcode, sort, product:products(id, handle, title_de, color_name_de, status)",
     )
-    .limit(2000);
+    .limit(STOCK_LIST_LIMIT);
   fail(error);
   return ((data ?? []) as unknown as StockRow[]).sort(
     (a, b) =>
@@ -680,7 +697,7 @@ export type MovementRow = Tables<"stock_movements"> & {
   order: Pick<Tables<"orders">, "number"> | null;
 };
 
-export async function listMovements(limit = 200): Promise<MovementRow[]> {
+export async function listMovements(limit = MOVEMENTS_LIMIT): Promise<MovementRow[]> {
   const { data, error } = await db()
     .from("stock_movements")
     .select(

@@ -115,7 +115,7 @@ export function ImageManager({
   return (
     <Panel
       title="Bilder"
-      description="Das erste Bild erscheint in Listen, das zweite beim Darüberfahren. Hochformat 4:5 empfohlen. Grosse Bilder werden vor dem Hochladen auf höchstens 2000 px verkleinert."
+      description="Das erste Bild erscheint in Listen, das zweite beim Darüberfahren. Hochformat 4:5, mindestens 2000 px hoch (unter 1600 px erscheint eine Warnung). Grosse Bilder werden vor dem Hochladen auf höchstens 2000 px verkleinert."
       actions={
         <>
           <input

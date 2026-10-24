@@ -7,6 +7,7 @@ import { searchString } from "@/lib/commerce/presentation";
 import { searchQuery } from "@/lib/commerce/queries";
 import { pageHead } from "@/lib/commerce/seo";
 import { askSearchAssist, wantsAssist } from "@/lib/commerce/search-assist";
+import { EmptyState } from "@/components/shop/cart";
 import { ProductCard } from "@/components/shop/product-card";
 import { IntentChips, RelaxedNotes } from "@/components/shop/search-intent";
 import { rememberSearch } from "@/lib/commerce/recent-searches";
@@ -129,8 +130,10 @@ function SearchPage() {
             <ProductCard key={p.handle} product={p} eager={i < 4} headingLevel={2} />
           ))}
         </div>
+      ) : q ? (
+        <EmptyState title={t.search.none} text={t.search.noneText} suggest />
       ) : (
-        <p className="text-muted">{q ? t.search.none : t.search.hint}</p>
+        <p className="text-muted">{t.search.hint}</p>
       )}
     </div>
   );

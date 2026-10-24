@@ -22,6 +22,7 @@ const shop = {
   siteUrl: "https://axion.ch",
   contactEmail: "hallo@axion.ch",
   address: "Musterstrasse 1, 8000 Zürich",
+  returnDays: 14,
 };
 
 function order(locale: Locale, extra: Partial<OrderData> = {}): OrderData {

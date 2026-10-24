@@ -600,8 +600,8 @@ function ImageField({
         label="Bild ersetzen"
         hint={
           mobile
-            ? "Querformat für den Computer. Neues Bild erst nach «Speichern» im Shop."
-            : "Neues Bild erst nach «Speichern» im Shop."
+            ? "Querformat für den Computer, am besten 2560 px breit. Neues Bild erst nach «Speichern» im Shop."
+            : "Mindestens 2000 px auf der längeren Seite (Hochformat 4:5 wo möglich). Neues Bild erst nach «Speichern» im Shop."
         }
       />
       {mobile && (
