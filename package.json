@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "db:reset": "scripts/db/local-db.sh reset",
     "test:backend": "vitest run --config vitest.backend.config.ts",
+    "launch:check": "bun scripts/launch-check.ts",
     "typecheck:backend": "tsc --noEmit -p tsconfig.backend.json",
     "test:deno": "bun scripts/deno-smoke.ts",
     "test:e2e": "playwright test",

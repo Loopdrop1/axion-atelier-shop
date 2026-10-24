@@ -3,6 +3,7 @@
 import { useId, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { focusFirstInvalid } from "@/components/account/form";
 import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -28,18 +29,30 @@ export function NewsletterForm({
   const [website, setWebsite] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
+  // Welches Feld den Fehler verursacht hat, für aria-invalid.
+  const [errorField, setErrorField] = useState<"email" | "consent" | null>(null);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!EMAIL.test(email.trim())) return setError(t.common.invalidEmail);
-    if (!consent) return setError(t.newsletter.consentRequired);
+    setErrorField(null);
+    if (!EMAIL.test(email.trim())) {
+      setErrorField("email");
+      focusFirstInvalid();
+      return setError(t.common.invalidEmail);
+    }
+    if (!consent) {
+      setErrorField("consent");
+      focusFirstInvalid();
+      return setError(t.newsletter.consentRequired);
+    }
     if (!backendConfigured) return setError(t.newsletter.notConfigured);
     setState("sending");
     const result = await callFunction<{ ok: true }>("newsletter", {
       action: "subscribe",
       email: email.trim(),
-      consent: t.newsletter.consent,
+      // Wortlaut und Version legt der Server fest.
+      consent: true,
       locale,
       source,
       website,
@@ -49,14 +62,20 @@ export function NewsletterForm({
       return;
     }
     setState("idle");
+    if (result.error === "INVALID_EMAIL") setErrorField("email");
+    if (result.error === "CONSENT_REQUIRED") setErrorField("consent");
+    if (result.error === "INVALID_EMAIL" || result.error === "CONSENT_REQUIRED")
+      focusFirstInvalid();
     setError(
       result.status === 429
         ? t.newsletter.rateLimited
         : result.error === "INVALID_EMAIL"
           ? t.common.invalidEmail
-          : result.error === "NETWORK"
-            ? t.common.networkError
-            : t.common.error,
+          : result.error === "CONSENT_REQUIRED"
+            ? t.newsletter.consentRequired
+            : result.error === "NETWORK"
+              ? t.common.networkError
+              : t.common.error,
     );
   }
 
@@ -82,8 +101,8 @@ export function NewsletterForm({
           placeholder={t.newsletter.placeholder}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          aria-invalid={Boolean(error) && !EMAIL.test(email.trim())}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-invalid={errorField === "email"}
+          aria-describedby={errorField === "email" ? `${id}-error` : undefined}
         />
         <Button type="submit" variant={dark ? "dark" : "default"} disabled={state === "sending"}>
           {state === "sending" ? t.newsletter.sending : t.newsletter.submit}
@@ -106,6 +125,8 @@ export function NewsletterForm({
           type="checkbox"
           checked={consent}
           onChange={(e) => setConsent(e.target.checked)}
+          aria-invalid={errorField === "consent"}
+          aria-describedby={errorField === "consent" ? `${id}-error` : undefined}
         />
         <span>
           {t.newsletter.consent}{" "}

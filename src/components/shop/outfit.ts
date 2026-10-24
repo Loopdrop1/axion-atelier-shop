@@ -3,7 +3,8 @@
 import { useState } from "react";
 import type { Product, Variant } from "@/lib/commerce/types";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
-import { useCart, useShopUI } from "@/lib/commerce/stores";
+import { useShopUI } from "@/lib/commerce/stores";
+import { useAddToCart } from "./use-add-to-cart";
 
 /** Grössen zur Auswahl; ausverkaufte ausblenden, wenn das im Admin so eingestellt ist. */
 export function sizesFor(product: Product, hideSoldOut: boolean): Variant[] {
@@ -67,11 +68,14 @@ export function planOutfit(
 
 /** Auswahl, Grössen und «in den Warenkorb» für ein Outfit.
  *  Zurücksetzen bei anderem Outfit: Komponente mit key={outfitKey(outfit)} neu aufbauen. */
-export function useOutfit(outfit: Product[]) {
-  const add = useCart((s) => s.add);
+export function useOutfit(outfit: Product[], startSizes: Record<string, string> = {}) {
+  const addVariants = useAddToCart();
   const openCart = useShopUI((s) => s.setCart);
   const [picked, setPicked] = useState<string[]>(() => defaultSelection(outfit));
-  const [sizes, setSizes] = useState<Record<string, string>>(() => defaultSizes(outfit));
+  const [sizes, setSizes] = useState<Record<string, string>>(() => ({
+    ...defaultSizes(outfit),
+    ...startSizes,
+  }));
   const [missing, setMissing] = useState<string[]>([]);
   // Ist ein ausgewähltes Stück inzwischen ganz ausverkauft (neu geladene Daten), zählt es nicht mehr mit.
   // Sonst bliebe es ausgewählt, liesse sich aber nicht mehr abwählen, und nichts käme in den Warenkorb.
@@ -98,7 +102,12 @@ export function useOutfit(outfit: Product[]) {
         setMissing(plan.missing);
         return plan.missing;
       }
-      plan.variantIds.forEach((id) => add(id));
+      // Mit dem Bestand der Grösse in den Warenkorb: mehr als vorhanden kommt nicht hinein
+      const variants = plan.variantIds.flatMap((id) => {
+        const v = outfit.flatMap((p) => p.variants).find((x) => x.id === id);
+        return v ? [v] : [];
+      });
+      addVariants(variants);
       setMissing([]);
       if (plan.variantIds.length) openCart(true);
       return [];

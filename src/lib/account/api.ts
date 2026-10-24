@@ -85,6 +85,17 @@ export async function signUp(input: {
     : { ok: true, signedIn: Boolean(data.session) };
 }
 
+/** Bestätigungslink erneut senden (nach «E-Mail nicht bestätigt» bei der Anmeldung). */
+export async function resendConfirmation(email: string, locale: Locale): Promise<Result> {
+  if (!backendConfigured) return { ok: false, problem: "not_configured" };
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.trim(),
+    options: { emailRedirectTo: url(locale, "/konto") },
+  });
+  return error ? { ok: false, problem: authProblem(error) } : { ok: true };
+}
+
 export async function signOut(): Promise<void> {
   await supabase?.auth.signOut();
 }

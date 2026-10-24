@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { formatPrice } from "./format";
-import { listProducts } from "./index";
+import { getRecommendations, listProducts } from "./index";
+import { rankRecommendations } from "./recommendations";
+import { isOnSale } from "./sale";
 describe("Preisformatierung", () => {
   it("formatiert Franken nach de-CH", () => {
     expect(formatPrice(489).replace(/\s/g, " ")).toBe("CHF 489.00");
@@ -49,5 +51,56 @@ describe("Beispielkollektion", () => {
       "weste-reuss-sand",
       "loafer-lugano-cognac",
     ]);
+  });
+});
+
+describe("Sale-Regel", () => {
+  it("Sale = Tag «sale» oder durchgestrichener Preis über dem Preis", async () => {
+    const all = await listProducts();
+    const sale = await listProducts({ collection: "sale" });
+    expect(sale.every(isOnSale)).toBe(true);
+    expect(sale.map((p) => p.handle).sort()).toEqual(
+      all
+        .filter(isOnSale)
+        .map((p) => p.handle)
+        .sort(),
+    );
+    const base = all[0]!;
+    expect(isOnSale({ ...base, tags: [], compareAtPrice: undefined })).toBe(false);
+    expect(
+      isOnSale({
+        ...base,
+        tags: [],
+        compareAtPrice: { amount: base.priceRange.min.amount + 50, currencyCode: "CHF" },
+      }),
+    ).toBe(true);
+    expect(isOnSale({ ...base, tags: ["sale"], compareAtPrice: undefined })).toBe(true);
+  });
+});
+
+describe("Empfehlungen", () => {
+  it("Outfit-Partner und passende Kategorien zuerst, nie das Stück selbst, nur lieferbare", async () => {
+    const all = await listProducts();
+    const suit = all.find((p) => p.category === "anzuege" && p.outfitHandles.length)!;
+    const picks = await getRecommendations(suit, 4);
+    expect(picks).toHaveLength(4);
+    expect(picks.some((p) => p.handle === suit.handle)).toBe(false);
+    expect(picks.every((p) => p.variants.some((v) => v.availableForSale))).toBe(true);
+    expect(picks.some((p) => suit.outfitHandles.includes(p.handle))).toBe(true);
+    // Nicht mehr einfach die ersten vier des Katalogs
+    expect(picks.map((p) => p.handle)).not.toEqual(
+      all
+        .filter((p) => p.handle !== suit.handle)
+        .slice(0, 4)
+        .map((p) => p.handle),
+    );
+  });
+
+  it("rankRecommendations: Outfit-Partner vor Kategorie vor Rest", async () => {
+    const all = await listProducts();
+    const suit = all.find((p) => p.category === "anzuege" && p.outfitHandles.length)!;
+    const ranked = rankRecommendations(suit, all, all.length);
+    const first = ranked[0]!;
+    expect(suit.outfitHandles).toContain(first.handle);
   });
 });

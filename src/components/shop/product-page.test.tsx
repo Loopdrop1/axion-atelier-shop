@@ -69,6 +69,10 @@ describe("Produktseite: Einheitsgrösse", () => {
   it("ausverkauft: Knopf gesperrt, Leiste unten zeigt «ausverkauft» statt «Grösse wählen»", async () => {
     render(<ProductPage product={tie(false)} siblings={[]} outfit={[]} recommendations={[]} />);
     expect(screen.getByText("Einheitsgrösse · ausverkauft")).toBeInTheDocument();
+    // Auch der Kaufknopf in der Kaufbox ist gesperrt und sagt es
+    const main = document.querySelector<HTMLElement>(".add-row button")!;
+    expect(main).toHaveTextContent("ausverkauft");
+    expect(main).toBeDisabled();
     const leiste = await waitFor(() => {
       const el = document.querySelector<HTMLElement>(".mobile-add-bar");
       if (!el) throw new Error("Leiste fehlt");

@@ -17,11 +17,13 @@ import {
   type SizeGuideTable,
 } from "./mapping";
 import type { CategoryRow } from "./rows";
-import { loadCatalog } from "./source";
+import { rankRecommendations } from "./recommendations";
+import { isOnSale } from "./sale";
+import { loadCatalog, loadSettings } from "./source";
 import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
 
 export type * from "./types";
-export type { SearchIntent, SearchResult } from "./smart-search";
+export type { RelaxedCheck, SearchIntent, SearchResult } from "./smart-search";
 export type { SizeGuideTable } from "./mapping";
 export { backendConfigured } from "@/lib/backend";
 
@@ -69,7 +71,9 @@ export function filterProducts(all: Product[], filters: ProductFilters = {}): Pr
     if (
       filters.collection &&
       filters.collection !== "alle" &&
-      !(p.category === filters.collection || p.tags.includes(filters.collection))
+      !(filters.collection === "sale"
+        ? isOnSale(p)
+        : p.category === filters.collection || p.tags.includes(filters.collection))
     )
       return false;
     if (filters.occasion && !p.occasions.some((o) => o === filters.occasion)) return false;
@@ -139,12 +143,13 @@ export async function searchCatalogWith(
   return searchWithIntent(products, intent);
 }
 
+/** Empfehlungen zu einem Stück: Outfit-Partner, gleiche Anlässe, ergänzende Kategorien, Farbe und Preis. */
 export async function getRecommendations(
-  handle: string,
+  product: Product,
   count: number,
   locale: Locale = "de",
 ): Promise<Product[]> {
-  return (await listProducts({}, locale)).filter((p) => p.handle !== handle).slice(0, count);
+  return rankRecommendations(product, (await catalog(locale)).products, count);
 }
 
 export async function getSiblings(product: Product, locale: Locale = "de"): Promise<Product[]> {
@@ -168,7 +173,8 @@ export async function getSizeGuides(locale: Locale = "de"): Promise<SizeGuideTab
 }
 
 export async function getAnnouncements(locale: Locale = "de"): Promise<string[]> {
-  return mapAnnouncements((await loadCatalog()).content, locale);
+  const [{ content }, settings] = await Promise.all([loadCatalog(), loadSettings()]);
+  return mapAnnouncements(content, locale, settings);
 }
 
 export async function resolveCart(

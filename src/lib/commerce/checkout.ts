@@ -88,6 +88,8 @@ export interface OrderStatus {
   kind: "cart" | "gift_card";
   total_cents: number;
   email_hint: string;
+  /** Nur bei versandten Bestellungen */
+  tracking_number?: string | null;
 }
 
 export async function getOrderStatus(token: string): Promise<OrderStatus | null> {

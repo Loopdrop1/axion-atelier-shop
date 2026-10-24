@@ -7,8 +7,10 @@ export const en: Messages = {
   common: {
     skipToContent: "Skip to content",
     close: "Close",
+    announcements: "Announcements",
+    announcementsPause: "Pause announcements",
     loading: "Loading …",
-    error: "That didn't work. Please try again.",
+    error: "Sorry, something went wrong. Please try again.",
     networkError: "No connection. Please check your internet and try again.",
     retry: "Try again",
     toHome: "Back to the home page",
@@ -29,7 +31,6 @@ export const en: Messages = {
   },
   language: {
     label: "Language",
-    switchTo: "Deutsch",
     switchLabel: "Auf Deutsch wechseln",
     englishLegalNote:
       "This page is currently only available in German. The German version is legally binding.",
@@ -37,7 +38,6 @@ export const en: Messages = {
       "This English version is a translation for your convenience. Only the German version is legally binding.",
   },
   announcements: [
-    "Free shipping throughout Switzerland",
     "Delivery in 2 to 5 working days",
     "Pay with TWINT, card, Apple Pay, Google Pay or Klarna",
   ],
@@ -104,7 +104,7 @@ export const en: Messages = {
     },
     "versand-und-rueckgabe": {
       title: "Shipping and returns",
-      description: "Information on free shipping in Switzerland, delivery and returns at Axion.",
+      description: "Information on shipping, delivery and returns at Axion.",
     },
     impressum: {
       title: "Legal notice",
@@ -132,7 +132,7 @@ export const en: Messages = {
       intro:
         "Do you have a question about a piece or your order? Write to us and we will reply as soon as possible.",
       title: "Reach us directly",
-      hours: "Available",
+      hours: "Opening hours",
     },
   },
   contactForm: {
@@ -248,6 +248,7 @@ export const en: Messages = {
     sortPriceAsc: "Price: low to high",
     sortPriceDesc: "Price: high to low",
     show: (n: number) => `Show ${pieces(n)}`,
+    allOccasions: "All occasions",
     emptyTitle: "No matching pieces",
     emptyText: "Try a different selection.",
     reset: "Reset filters",
@@ -268,6 +269,7 @@ export const en: Messages = {
     remember: "add to wishlist",
     forget: "remove from wishlist",
     pleaseChooseSize: "Please choose a size",
+    from: (price: string) => `from ${price}`,
     deliveryNote: (shipping: string) => `${shipping} · Delivery in 2 to 5 working days`,
     vatIncluded: "incl. VAT",
     description: "Description",
@@ -284,6 +286,9 @@ export const en: Messages = {
     outfitSelection: (price: string) => `Selection: ${price}`,
     outfitError: "Please choose a size for each selected piece.",
     outfitAdd: "Add selection to cart",
+    outfitAddCount: (n: number) => `Add ${n} ${n === 1 ? "piece" : "pieces"} to cart`,
+    outfitThis: "This piece",
+    returnsLink: "Shipping and returns",
     outfitSoldOut: "Sold out",
     lowStock: (n: number) => `Only ${n} left in stock`,
     detailsTitle: "Fit & features",
@@ -295,7 +300,7 @@ export const en: Messages = {
     consultText: "Questions about size, delivery or returns? We are happy to help.",
     consultLink: "Get in touch",
     consultPhone: (phone: string) => `or call: ${phone}`,
-    klarna: "Pay later or in interest-free instalments with Klarna (subject to Klarna's approval).",
+    klarna: "Also with Klarna: pay later or in instalments.",
     badgeSample: "Sample",
     sampleNotice: "Sample product: images and text are placeholders until the real pieces arrive.",
     recommendations: "You might also like",
@@ -304,6 +309,7 @@ export const en: Messages = {
       toggle: "Size sold out? Get notified",
       size: "Size",
       chooseSize: "Please choose a size",
+      rateLimited: "Too many requests. Please try again in a few minutes.",
       email: "Your email address",
       submit: "Notify me",
       sent: "Almost done: please confirm the link in the email we have just sent you.",
@@ -357,6 +363,10 @@ export const en: Messages = {
     understood: "Understood as",
     relaxed: "No exact matches. These pieces come closest to your search:",
     didYouMean: "Did you mean",
+    ignored: "not applied",
+    noneUpTo: (max: string, min: string) =>
+      `Nothing up to ${max}. The most affordable pieces start at ${min}.`,
+    saleLink: "Go to the sale collection",
     popular: "Popular searches",
     popularItems: [
       "Suit for a wedding",
@@ -412,7 +422,7 @@ export const en: Messages = {
   cart: {
     title: "Your cart",
     eyebrow: "Your selection",
-    description: "The pieces you selected at Axion. Free shipping in Switzerland.",
+    description: "The pieces you selected at Axion.",
     loading: "Loading cart …",
     emptyTitle: "Your cart is empty",
     emptyText: "Find the pieces that suit your look.",
@@ -422,6 +432,12 @@ export const en: Messages = {
     view: "View cart",
     maxPerLine: "At most 10 per size.",
     removedItems: "Some pieces are no longer available and were removed.",
+    onlyLeft: (n: number) => `Only ${n} left in stock.`,
+    cappedMany: "Some quantities were adjusted to the available stock.",
+    reduced: "Quantities were adjusted to the available stock.",
+    removedLine: (name: string) => `${name} removed`,
+    undo: "Undo",
+    quantityOf: (name: string, n: number) => `Quantity ${name}: ${n}`,
     lineSoldOut: "This size is no longer available.",
     loadError: "The cart could not be loaded.",
   },
@@ -501,6 +517,10 @@ export const en: Messages = {
     total: (amount: string) => `Total ${amount}`,
     continueShopping: "Continue shopping",
     toAccount: "To your account",
+    refresh: "Refresh",
+    helpText: "Questions about your order?",
+    helpContact: "Contact",
+    helpReturns: "Shipping and returns",
   },
   account: {
     title: "Customer account",
@@ -537,6 +557,9 @@ export const en: Messages = {
       "The link has expired or has already been used. Please request a new one.",
     registered: "Almost done. Please confirm your email address using the link we have sent you.",
     invalidCredentials: "Email address or password is incorrect.",
+    resendConfirmation: "Resend confirmation link",
+    confirmationResent:
+      "We have sent you a new confirmation link. Please also check your spam folder.",
     emailNotConfirmed:
       "Please confirm your email address first. You will find the link in our email.",
     weakPassword: "This password is too weak. Please choose a longer one.",
@@ -660,7 +683,7 @@ export const en: Messages = {
     label: "Email address for the newsletter",
     placeholder: "Your email address",
     consent:
-      "Yes, I would like to receive the Axion newsletter with new arrivals and offers by email. I can unsubscribe at any time using the link in every email.",
+      "Yes, I would like to receive the Axion newsletter with new arrivals and offers by email. My consent also applies in return for any welcome discount. I can unsubscribe at any time using the link in every email.",
     privacy: "More in the privacy policy.",
     submit: "Subscribe",
     sending: "Sending …",

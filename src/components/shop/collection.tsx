@@ -5,6 +5,7 @@ import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Panel } from "./primitives";
 import { ProductCard, useFitLabel } from "./product-card";
+import { isOneSizeTitle } from "@/lib/commerce/one-size";
 import { formatPrice } from "@/lib/commerce/format";
 import { filtersFromSearch, type CollectionSearch } from "@/lib/commerce/queries";
 import { filterProducts, type Collection, type Product } from "@/lib/commerce";
@@ -14,7 +15,12 @@ export type { CollectionSearch };
 type GroupKey = "groesse" | "farbe" | "passform" | "anlass";
 // Adress-Parameter → Feld in ProductFilters
 const FACET = { groesse: "sizes", farbe: "colors", passform: "fits", anlass: "occasion" } as const;
-const bySize = (a: string, b: string) => Number(a) - Number(b) || a.localeCompare(b);
+// Einheitsgrösse steht am Ende der Liste
+const bySize = (a: string, b: string) =>
+  Number(isOneSizeTitle(a)) - Number(isOneSizeTitle(b)) ||
+  Number(a) - Number(b) ||
+  a.localeCompare(b);
+const slug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 export function CollectionPage({
   collection,
   products,
@@ -47,7 +53,9 @@ export function CollectionPage({
       ? fitLabel(v)
       : key === "anlass"
         ? (t.occasions[v] ?? v)
-        : v.charAt(0).toUpperCase() + v.slice(1);
+        : key === "groesse" && isOneSizeTitle(v)
+          ? t.product.oneSize
+          : v.charAt(0).toUpperCase() + v.slice(1);
   const change = (key: keyof CollectionSearch, value: string | number | undefined) => {
     navigate({
       to: "/{-$locale}/kollektion/$handle",
@@ -96,15 +104,17 @@ export function CollectionPage({
   );
   const priceValue = Math.min(search.preis ?? maxPrice, maxPrice);
   // Kluge Filter: Treffer je Option zusammen mit den übrigen aktiven Filtern; Sackgassen (0) gesperrt
+  // Checkbox-Gruppen: Vereinigung mit den schon gewählten Werten; Anlass (Radio) ersetzt die Wahl
   const facetCount = (key: GroupKey, value: string) =>
     filterProducts(catalogue, {
       ...filtersFromSearch("alle", search),
-      [FACET[key]]: key === "anlass" ? value : [value],
+      [FACET[key]]:
+        key === "anlass" ? value : [...new Set([...(search[key]?.split(",") ?? []), value])],
     }).length;
   const options = (g: (typeof groups)[number], location: string) => {
     const choices = (values: string[], section = "") =>
       values.map((v) => {
-        const controlId = `${id}-${location}-${g.key}-${section}-${v}`;
+        const controlId = `${id}-${location}-${g.key}-${section}-${slug(v)}`;
         const checked = Boolean(search[g.key]?.split(",").includes(v));
         const count = facetCount(g.key, v);
         return (
@@ -122,9 +132,10 @@ export function CollectionPage({
               onChange={() => toggle(g.key, v)}
             />
             {label(g.key, v)}
-            <span className="filter-count" aria-label={t.common.results(count)}>
+            <span className="filter-count" aria-hidden="true">
               {count}
             </span>
+            <span className="sr-only"> ({t.common.results(count)})</span>
           </label>
         );
       });
@@ -144,6 +155,19 @@ export function CollectionPage({
     return g.key === "anlass" ? (
       <fieldset>
         <legend className="sr-only">{labels["anlass"]}</legend>
+        <label htmlFor={`${id}-${location}-anlass-all`}>
+          <input
+            id={`${id}-${location}-anlass-all`}
+            type="radio"
+            name={`${id}-${location}-anlass`}
+            checked={!search.anlass}
+            onChange={() => {
+              change("anlass", undefined);
+              setDropdown(null);
+            }}
+          />
+          {t.collections.allOccasions}
+        </label>
         {choices(g.values)}
       </fieldset>
     ) : (
@@ -153,7 +177,9 @@ export function CollectionPage({
   const price = (location: string) => (
     <>
       <label htmlFor={`${id}-${location}-price`}>
-        {t.collections.upTo(formatPrice(priceValue, locale))}
+        {search.preis === undefined
+          ? labels["preis"]
+          : t.collections.upTo(formatPrice(priceValue, locale))}
       </label>
       <input
         id={`${id}-${location}-price`}
@@ -182,7 +208,14 @@ export function CollectionPage({
       modal={false}
     >
       <Popover.Trigger asChild>
-        <Button variant="icon" className="filter-trigger">
+        <Button
+          variant="icon"
+          className="filter-trigger"
+          data-active={
+            (g.key === "preis" ? search.preis !== undefined : Boolean(search[g.key as GroupKey])) ||
+            undefined
+          }
+        >
           {labels[g.key]}
           <ChevronDown size={14} />
         </Button>
@@ -220,6 +253,9 @@ export function CollectionPage({
       <option value="price-desc">{t.collections.sortPriceDesc}</option>
     </select>
   );
+  const activeCount = Object.entries(search).filter(
+    ([key, value]) => key !== "sort" && value,
+  ).length;
   return (
     <div className="container page-body">
       {/* Ein einzelner Anlass auf «Alle Stücke» bekommt eigene Überschrift und Einleitung (wie auf der Startseite) */}
@@ -236,11 +272,24 @@ export function CollectionPage({
           <p className="page-intro">{collection.description}</p>
         </>
       )}
+      <div className="occasion-chips" role="group" aria-label={labels["anlass"]}>
+        {occasionHandles.map((o) => (
+          <Button
+            key={o}
+            variant="icon"
+            aria-pressed={search.anlass === o}
+            onClick={() => change("anlass", search.anlass === o ? undefined : o)}
+          >
+            {t.occasions[o] ?? o}
+          </Button>
+        ))}
+      </div>
       <div className="filters-bar">
         <div className="filter-controls desktop-filter-controls">{desktop}</div>
         <Button variant="tailored" className="mobile-filters" onClick={() => setOpen(true)}>
           <SlidersHorizontal />
           {t.collections.filterAndSort}
+          {activeCount > 0 && <span className="filter-badge">{activeCount}</span>}
         </Button>
         <span className="text-muted text-xs">{t.common.pieces(products.length)}</span>
         {sort("desktop")}
@@ -291,7 +340,7 @@ export function CollectionPage({
         <div className="product-grid">
           {products.map((p, i) => (
             // Erste Reihe sofort laden (LCP), den Rest erst beim Scrollen
-            <ProductCard key={p.handle} product={p} eager={i < 4} />
+            <ProductCard key={p.handle} product={p} eager={i < 4} headingLevel={2} />
           ))}
         </div>
       ) : (
@@ -325,9 +374,11 @@ export function CollectionPage({
           <label htmlFor={`${id}-mobile-sort`}>{t.collections.sort}</label>
           {sort("mobile")}
         </div>
-        <Button className="w-full mt-8" onClick={() => setOpen(false)}>
-          {t.collections.show(products.length)}
-        </Button>
+        <div className="panel-footer">
+          <Button className="w-full" onClick={() => setOpen(false)}>
+            {t.collections.show(products.length)}
+          </Button>
+        </div>
       </Panel>
     </div>
   );

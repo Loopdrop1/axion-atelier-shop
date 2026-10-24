@@ -205,7 +205,11 @@ describe("Startseite und Laufband", () => {
     expect(
       mapAnnouncements({ announcements: { items: [{ de: "Eins", en: "One" }, { de: "" }] } }, "en"),
     ).toEqual(["One"]);
-    expect(mapAnnouncements({}, "de")[0]).toBe("Gratisversand in der ganzen Schweiz");
+    expect(mapAnnouncements({}, "de")[0]).toBe("Gratisversand in der Schweiz");
+    // Die Versandzeile folgt den Einstellungen im Admin
+    expect(
+      mapAnnouncements({}, "en", { shippingCents: 900, freeShippingFromCents: null })[0],
+    ).toMatch(/^Shipping in Switzerland CHF\s9\.00$/);
   });
 });
 

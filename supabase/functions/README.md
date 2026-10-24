@@ -4,7 +4,9 @@ Alle Funktionen laufen mit `verify_jwt = false` (siehe `supabase/config.toml`) u
 Aufruf aus dem Shop mit `supabase.functions.invoke(name, { body })`; eingeloggte Aufrufe schicken das Anmelde-Token automatisch mit.
 Fehler kommen immer als `{ "error": "CODE" }` mit passendem HTTP-Status. Anfragen brauchen `Content-Type: application/json`
 (sonst `415 UNSUPPORTED_MEDIA_TYPE`): So braucht jede Anfrage aus dem Browser eine CORS-Freigabe, auch von fremden Webseiten.
-Für Rate-Limits zählt die IP aus `cf-connecting-ip` (sonst der erste gültige Eintrag von X-Forwarded-For), IPv6 als /64-Netz;
+Für Rate-Limits in den Funktionen zählt die IP aus `cf-connecting-ip` (sonst der erste gültige Eintrag von X-Forwarded-For), IPv6 als /64-Netz.
+In den SQL-Funktionen (`private.request_ip`, z. B. `check_discount`) gilt dieselbe Reihenfolge: Cloudflare setzt
+`cf-connecting-ip` selbst, ein gefälschtes X-Forwarded-For zählt nur ohne diesen Header. `check_discount` hat zusätzlich ein globales Limit (300 pro 10 Minuten);
 die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zwei Tagen gelöscht.
 
 | Funktion          | Aufrufer                        | Zweck                                                                                |
@@ -15,19 +17,21 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 | `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen, Texte übersetzen       |
 | `contact`         | Shop                            | Kontaktformular: Nachricht als E-Mail an den Shop                                    |
 | `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                |
+| `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen     |
+| `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                  |
 
 ## checkout
 
 - `{ kind: "cart", lines: [{ variantId, quantity }], email?, discountCode?, giftCardCode?, locale }` → `200 { url, orderNumber }`
 - `{ kind: "gift_card", amountCents, recipientName?, recipientEmail?, senderName?, message?, email?, locale }` → `200 { url, orderNumber }`
-- `409 { error: "OUT_OF_STOCK", items: [{ variantId, available }] }`, `422 { error: "DISCOUNT_INVALID" | "GIFT_CARD_INVALID", reason }`, `400 INVALID_LINES | INVALID_EMAIL | INVALID_AMOUNT | BAD_REQUEST`, `429 RATE_LIMITED | TOO_MANY_CHECKOUTS` (pro IP 20 in 30 Minuten, pro E-Mail 10, höchstens 3 offen), `502 PAYMENT_PROVIDER`
+- `409 { error: "OUT_OF_STOCK", items: [{ variantId, available }] }`, `422 { error: "DISCOUNT_INVALID" | "GIFT_CARD_INVALID", reason }`, `400 INVALID_LINES | INVALID_EMAIL | INVALID_RECIPIENT_EMAIL | INVALID_AMOUNT | BAD_REQUEST`, `429 RATE_LIMITED | TOO_MANY_CHECKOUTS` (pro IP 20 in 30 Minuten, pro E-Mail 10, höchstens 3 offen), `502 PAYMENT_PROVIDER`
 - Decken Gutschein oder Rabatt alles, läuft die Bestellung trotzdem über Stripe (Session ohne Zahlbetrag): Stripe verlangt keine Zahlung, erfasst aber die Lieferadresse.
 - `{ kind: "release", token }` (nach Abbruch in Stripe): beendet zuerst die Stripe-Session und gibt die Reservierung nur frei, wenn Stripe sie als abgelaufen meldet. Eine schon bezahlte Session bleibt bestehen.
 
 ## newsletter
 
-- `{ action: "subscribe", email, consent, locale, source?: "footer" | "account" | "checkout", website?: "" }` → immer `200 { ok: true }` (verrät nicht, ob die Adresse schon eingetragen ist). `website` ist ein verstecktes Feld gegen Bots und muss leer bleiben. `400 INVALID_EMAIL | CONSENT_REQUIRED`, `429 RATE_LIMITED`.
+- `{ action: "subscribe", email, consent: true, locale, source?: "footer" | "account" | "checkout", website?: "" }` → immer `200 { ok: true }` (verrät nicht, ob die Adresse schon eingetragen ist). `website` ist ein verstecktes Feld gegen Bots und muss leer bleiben. Wortlaut und Version der Einwilligung legt der Server fest (`_shared/consent.ts`, gespeichert als «[newsletter-v2] Text»); der Formulartext in `src/i18n/messages` muss dazu passen (Test `consent.test.ts`). `400 INVALID_EMAIL | CONSENT_REQUIRED`, `429 RATE_LIMITED`.
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "unsubscribed" | "invalid" }`
 - `{ action: "unsubscribe", token }` → `200 { status: "unsubscribed" | "invalid" }`
 - Links in den E-Mails: `/newsletter/bestaetigen?token=…` und `/newsletter/abmelden?token=…` (mit `/en` davor auf Englisch). Die Seiten lösen die Aktion erst per Klick aus, damit Link-Scanner von Mailprogrammen nichts bestätigen.
@@ -50,7 +54,7 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 
 ## admin-actions (nur Admin)
 
-- `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`
+- `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`; mit Benachrichtigung ist die Sendungsnummer Pflicht (`400 TRACKING_REQUIRED`)
 - `{ action: "resend_shipping", orderId }`, `{ action: "resend_confirmation", orderId, to? }` → `200 { emailed: true, to }`
 - `{ action: "issue_gift_card", amountCents, locale?, recipientEmail?, recipientName?, senderName?, message?, note?, send?: true }` → `200 { giftCard, emailed, emailError? }`
 - `{ action: "resend_gift_card", giftCardId, to? }` → `200 { emailed: true, to }`
@@ -89,8 +93,33 @@ anderen Dienst mit OpenAI-Schnittstelle. Optional `ALLOWED_ORIGINS`
 (weitere Domains, Komma-getrennt), `STRIPE_REQUIRE_TERMS=1` (AGB-Häkchen in der Stripe-Kasse) und
 `SHIPPING_COUNTRIES` (Liefergebiet, Standard `CH`; `CH,LI` erst nach Entscheid des Kunden, weil für Kundschaft in
 Liechtenstein deren Konsumentenrecht mit Rücktrittsrecht gilt, Rechtstexte anpassen). `ALLOW_PREVIEW_ORIGINS=1`
-erlaubt zusätzlich die Lovable-Vorschau und localhost (CORS und Konto-Links), nur für die Testphase.
+erlaubt zusätzlich die Lovable-Vorschau und localhost (CORS und Konto-Links), nur für die Testphase: **vor dem Livegang
+entfernen** (Checkliste in `docs/DEPLOYMENT.md`). Optional `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`; nur bei MWST-Pflicht):
+`checkout` speichert ihn pro Bestellung (`orders.vat_rate`), der Beleg im Admin rechnet damit.
 `SUPABASE_URL` und die Schlüssel stellt Supabase selbst bereit.
+
+## Migrationen: supabase und drizzle
+
+`supabase/migrations/` ist die Quelle der lokalen Testdatenbank, `drizzle/migrations/` läuft in Cloud (Lovable führt Dateien aus Git
+nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche Anweisungen, mit diesen bekannten Unterschieden
+(der Test `src/test/backend-parity.test.ts` erzwingt das):
+
+| supabase/migrations                    | drizzle/migrations (Cloud)         | Unterschied                                                                    |
+| -------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| `20261012000100_core`                  | `0000_axion_core`                  | ohne `create extension citext`                                                 |
+| `20261012000200_commerce`              | `0001_axion_commerce`              | `citext` → `text` mit eindeutigem `lower(...)`-Index (Rabattcode, Newsletter)  |
+| `20261012000300_rpc`                   | `0002_axion_rpc`                   | gleich                                                                         |
+| `20261012000500_account`               | `0003_axion_account`               | gleich                                                                         |
+| `20261012000400_storage`               | `0004_axion_storage_policies`      | ohne `INSERT INTO storage.buckets` (Buckets mit dem Speicher-Werkzeug anlegen) |
+| `20261012000600_checkout_release`      | `0005_axion_checkout_release`      | gleich                                                                         |
+| `20261012000700_contact_and_settings`  | `0006_axion_contact_and_settings`  | gleich                                                                         |
+| `20261013000800_produktseite_und_hero` | `0007_axion_produktseite_und_hero` | gleich                                                                         |
+| `20261021000900_stock_alerts`          | `0008_axion_stock_alerts`          | gleich                                                                         |
+| `20261021001000_search_assist`         | `0009_axion_search_assist`         | gleich                                                                         |
+| `20261024001100_review_fixes`          | `0010_axion_review_fixes`          | gleich                                                                         |
+
+Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
+`NNNN_snapshot.json` mit der vorigen `id` als `prevId`).
 
 ## Prüfen
 

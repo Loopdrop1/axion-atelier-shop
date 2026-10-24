@@ -53,7 +53,7 @@ function RegisterPage() {
     if (!form.lastName.trim()) next.lastName = t.common.required;
     if (!EMAIL.test(form.email.trim())) next.email = t.common.invalidEmail;
     if (form.password.length < MIN_PASSWORD) next.password = t.account.passwordTooShort;
-    else if (form.password !== form.repeat) next.repeat = t.account.passwordMismatch;
+    if (form.password !== form.repeat) next.repeat = t.account.passwordMismatch;
     setErrors(next);
     if (Object.keys(next).length) return;
     setBusy(true);
@@ -118,6 +118,7 @@ function RegisterPage() {
         <Field
           label={t.common.password}
           type="password"
+          maxLength={72}
           autoComplete="new-password"
           required
           minLength={MIN_PASSWORD}
@@ -129,6 +130,7 @@ function RegisterPage() {
         <Field
           label={t.account.passwordRepeat}
           type="password"
+          maxLength={72}
           autoComplete="new-password"
           required
           value={form.repeat}

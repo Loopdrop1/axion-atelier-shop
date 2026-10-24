@@ -8,8 +8,10 @@ export const de = {
   common: {
     skipToContent: "Zum Inhalt springen",
     close: "Schliessen",
+    announcements: "Ankündigungen",
+    announcementsPause: "Ankündigungen anhalten",
     loading: "Wird geladen …",
-    error: "Das hat nicht geklappt. Bitte versuche es erneut.",
+    error: "Leider ist etwas schiefgegangen. Bitte versuche es erneut.",
     networkError: "Keine Verbindung. Bitte prüfe dein Internet und versuche es erneut.",
     retry: "Erneut versuchen",
     toHome: "Zur Startseite",
@@ -30,7 +32,6 @@ export const de = {
   },
   language: {
     label: "Sprache",
-    switchTo: "English",
     switchLabel: "Switch to English",
     englishLegalNote:
       "This page is currently only available in German. The German version is legally binding.",
@@ -38,7 +39,6 @@ export const de = {
       "This English version is a translation for your convenience. Only the German version is legally binding.",
   },
   announcements: [
-    "Gratisversand in der ganzen Schweiz",
     "Lieferung in 2 bis 5 Arbeitstagen",
     "Bezahlen mit TWINT, Karte, Apple Pay, Google Pay oder Klarna",
   ],
@@ -105,8 +105,7 @@ export const de = {
     },
     "versand-und-rueckgabe": {
       title: "Versand und Rückgabe",
-      description:
-        "Informationen zu Gratisversand in der Schweiz, Lieferung und Rückgabe bei Axion.",
+      description: "Informationen zu Versand, Lieferung und Rückgabe bei Axion.",
     },
     impressum: {
       title: "Impressum",
@@ -190,7 +189,7 @@ export const de = {
       eyebrow: "Für deine Momente",
       title: "Der Anlass ist deiner.",
       texts: {
-        hochzeit: "Für euren besonderen Tag.",
+        hochzeit: "Für den grossen Tag.",
         business: "Klar auftreten. Jeden Tag.",
         abschlussfeier: "Ein neuer Abschnitt beginnt.",
         gala: "Für die grossen Abende.",
@@ -251,6 +250,7 @@ export const de = {
     sortPriceAsc: "Preis aufsteigend",
     sortPriceDesc: "Preis absteigend",
     show: (n: number) => `${pieces(n)} ansehen`,
+    allOccasions: "Alle Anlässe",
     emptyTitle: "Keine passenden Stücke",
     emptyText: "Versuche eine andere Auswahl.",
     reset: "Filter zurücksetzen",
@@ -271,6 +271,7 @@ export const de = {
     remember: "merken",
     forget: "aus Merkliste entfernen",
     pleaseChooseSize: "Bitte Grösse wählen",
+    from: (price: string) => `ab ${price}`,
     deliveryNote: (shipping: string) => `${shipping} · Lieferung in 2 bis 5 Arbeitstagen`,
     vatIncluded: "inkl. MWST",
     description: "Beschreibung",
@@ -290,6 +291,9 @@ export const de = {
     outfitSelection: (price: string) => `Auswahl: ${price}`,
     outfitError: "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
     outfitAdd: "Auswahl in den Warenkorb",
+    outfitAddCount: (n: number) => `${n} ${n === 1 ? "Stück" : "Stücke"} in den Warenkorb`,
+    outfitThis: "Dieses Stück",
+    returnsLink: "Versand und Rückgabe",
     outfitSoldOut: "Ausverkauft",
     lowStock: (n: number) => `Nur noch ${n} an Lager`,
     detailsTitle: "Passform & Ausstattung",
@@ -301,7 +305,7 @@ export const de = {
     consultText: "Fragen zu Grösse, Lieferung oder Rückgabe? Wir helfen dir gerne weiter.",
     consultLink: "Kontakt aufnehmen",
     consultPhone: (phone: string) => `oder anrufen: ${phone}`,
-    klarna: "Mit Klarna später oder in Raten ohne Zins bezahlen (nach Prüfung durch Klarna).",
+    klarna: "Auch mit Klarna: später oder in Raten zahlen.",
     badgeSample: "Muster",
     sampleNotice:
       "Musterprodukt: Bilder und Texte sind Platzhalter, bis die echten Stücke da sind.",
@@ -311,6 +315,7 @@ export const de = {
       toggle: "Grösse ausverkauft? Benachrichtigen lassen",
       size: "Grösse",
       chooseSize: "Bitte eine Grösse wählen",
+      rateLimited: "Zu viele Anfragen. Bitte versuche es in ein paar Minuten erneut.",
       email: "Deine E-Mail-Adresse",
       submit: "Benachrichtigen",
       sent: "Fast geschafft: Bitte bestätige den Link in der E-Mail, die wir dir gerade geschickt haben.",
@@ -364,6 +369,10 @@ export const de = {
     understood: "Verstanden als",
     relaxed: "Keine exakten Treffer. Diese Stücke kommen deiner Suche am nächsten:",
     didYouMean: "Meintest du",
+    ignored: "nicht berücksichtigt",
+    noneUpTo: (max: string, min: string) =>
+      `Nichts bis ${max}. Die günstigsten Stücke starten bei ${min}.`,
+    saleLink: "Zur Sale-Sammlung",
     popular: "Beliebte Suchen",
     popularItems: [
       "Anzug für eine Hochzeit",
@@ -419,7 +428,7 @@ export const de = {
   cart: {
     title: "Dein Warenkorb",
     eyebrow: "Deine Auswahl",
-    description: "Deine ausgewählten Stücke von Axion. Gratisversand in der Schweiz.",
+    description: "Deine ausgewählten Stücke von Axion.",
     loading: "Warenkorb wird geladen …",
     emptyTitle: "Dein Warenkorb ist noch leer",
     emptyText: "Finde die Stücke, die zu deinem Auftritt passen.",
@@ -429,6 +438,12 @@ export const de = {
     view: "Warenkorb ansehen",
     maxPerLine: "Höchstens 10 Stück pro Grösse.",
     removedItems: "Einige Stücke sind nicht mehr verfügbar und wurden entfernt.",
+    onlyLeft: (n: number) => `Nur noch ${n} an Lager.`,
+    cappedMany: "Einzelne Mengen wurden an den Lagerbestand angepasst.",
+    reduced: "Mengen wurden an den Lagerbestand angepasst.",
+    removedLine: (name: string) => `${name} entfernt`,
+    undo: "Rückgängig",
+    quantityOf: (name: string, n: number) => `Menge ${name}: ${n}`,
     lineSoldOut: "Diese Grösse ist nicht mehr verfügbar.",
     loadError: "Der Warenkorb konnte nicht geladen werden.",
   },
@@ -510,6 +525,10 @@ export const de = {
     total: (amount: string) => `Total ${amount}`,
     continueShopping: "Weiter einkaufen",
     toAccount: "Zu deinem Konto",
+    refresh: "Aktualisieren",
+    helpText: "Fragen zu deiner Bestellung?",
+    helpContact: "Kontakt",
+    helpReturns: "Versand und Rückgabe",
   },
   account: {
     title: "Kundenkonto",
@@ -548,6 +567,9 @@ export const de = {
     registered:
       "Fast geschafft. Bitte bestätige deine E-Mail-Adresse mit dem Link, den wir dir geschickt haben.",
     invalidCredentials: "E-Mail-Adresse oder Passwort stimmen nicht.",
+    resendConfirmation: "Bestätigungslink erneut senden",
+    confirmationResent:
+      "Wir haben dir einen neuen Bestätigungslink geschickt. Bitte prüfe auch den Spam-Ordner.",
     emailNotConfirmed:
       "Bitte bestätige zuerst deine E-Mail-Adresse. Den Link findest du in unserer E-Mail.",
     weakPassword: "Dieses Passwort ist zu schwach. Bitte wähle ein längeres.",
@@ -671,7 +693,7 @@ export const de = {
     label: "E-Mail-Adresse für den Newsletter",
     placeholder: "Deine E-Mail-Adresse",
     consent:
-      "Ja, ich möchte den Newsletter von Axion mit Neuheiten und Angeboten per E-Mail erhalten. Die Abmeldung ist jederzeit über den Link in jeder E-Mail möglich.",
+      "Ja, ich möchte den Newsletter von Axion mit Neuheiten und Angeboten per E-Mail erhalten. Meine Einwilligung gilt auch als Gegenleistung für einen allfälligen Willkommensrabatt. Die Abmeldung ist jederzeit über den Link in jeder E-Mail möglich.",
     privacy: "Mehr in der Datenschutzerklärung.",
     submit: "Abonnieren",
     sending: "Wird gesendet …",

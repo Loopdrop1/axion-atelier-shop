@@ -6,7 +6,7 @@ import { useShopUI } from "@/lib/commerce/stores";
 import { formatPrice } from "@/lib/commerce/format";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo, Panel } from "./primitives";
-import { IntentChips } from "./search-intent";
+import { IntentChips, RelaxedNotes } from "./search-intent";
 import { readRecentSearches, rememberSearch } from "@/lib/commerce/recent-searches";
 
 export function SearchOverlay() {
@@ -94,7 +94,7 @@ export function SearchOverlay() {
         </div>
       ) : (
         <>
-          <IntentChips intent={result?.intent} />
+          <IntentChips intent={result?.intent} relaxed={result?.relaxedChecks} />
           {result?.didYouMean && (
             <p className="search-note">
               {t.search.didYouMean}{" "}
@@ -108,9 +108,7 @@ export function SearchOverlay() {
               ?
             </p>
           )}
-          {result?.relaxed && products.length > 0 && (
-            <p className="search-note">{t.search.relaxed}</p>
-          )}
+          <RelaxedNotes result={result ?? undefined} onNavigate={close} />
           {result && result.intent.categories.length > 0 && (
             <div className="search-pills" aria-label={t.search.categories}>
               {result.intent.categories.map((c) => (
@@ -160,7 +158,11 @@ export function SearchOverlay() {
                     {p.color.name} · {p.categoryTitle}
                   </p>
                 </div>
-                <span className="price">{formatPrice(p.priceRange.min, locale)}</span>
+                <span className="price">
+                  {p.priceRange.min.amount < p.priceRange.max.amount
+                    ? t.product.from(formatPrice(p.priceRange.min, locale))
+                    : formatPrice(p.priceRange.min, locale)}
+                </span>
               </Link>
             ))}
           </div>

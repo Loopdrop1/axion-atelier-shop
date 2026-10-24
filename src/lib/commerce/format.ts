@@ -16,6 +16,15 @@ export const discountPercent = (price: Money, compareAt: Money | undefined) =>
 export const formatPrice = (value: Money | number, locale: Locale = "de") =>
   price[locale].format(typeof value === "number" ? value : value.amount);
 
+const percent = {
+  de: new Intl.NumberFormat("de-CH", { style: "percent", maximumFractionDigits: 0 }),
+  en: new Intl.NumberFormat("en-CH", { style: "percent", maximumFractionDigits: 0 }),
+};
+
+/** Abschlag in ganzen Prozent als negative Zahl im Format der Sprache: −20 % (de), −20% (en) */
+export const formatDiscount = (percentOff: number, locale: Locale = "de") =>
+  percent[locale].format(-percentOff / 100);
+
 const francs = {
   de: new Intl.NumberFormat("de-CH", {
     style: "currency",

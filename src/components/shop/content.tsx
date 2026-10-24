@@ -88,7 +88,8 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
                 </a>
               </>
             )}
-            {shopConfig.contact.hours && (
+            {/* Freiwillig: solange hier noch ein Platzhalter in [Klammern] steht, bleibt die Zeile weg */}
+            {shopConfig.contact.hours && !/\[[^\]]*\]/.test(shopConfig.contact.hours) && (
               <>
                 <br />
                 {t.content.contact.hours}: {shopConfig.contact.hours}

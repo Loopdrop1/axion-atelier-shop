@@ -1,0 +1,110 @@
+# Prüft jeden Push und jeden Pull Request. Der Lovable-Branch muss grün bleiben:
+# Pflicht sind Lint, Unit-Tests (inkl. Paritätstests), Typprüfung und Build.
+# Backend-, Deno- und E2E-Tests sind optional (continue-on-error) und lassen sich auch von Hand starten.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, Tests, Typen, Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Pakete installieren
+        # bun.lock verweist auf den npm-Cache von Lovable (ausserhalb von Lovable 403): auf die öffentliche Registry umschreiben
+        run: |
+          sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock
+          bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+      - name: Unit-Tests (inkl. Paritätstests)
+        run: bun run test
+      - name: Typen (Shop)
+        run: bunx tsc --noEmit
+      - name: Typen (Edge Functions und Backend-Tests)
+        run: bun run typecheck:backend
+      - name: Build
+        run: bun run build
+
+  backend:
+    name: Backend-Tests (optional)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Pakete installieren
+        run: |
+          sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock
+          bun install --frozen-lockfile
+      - name: Lokale Datenbank einrichten
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-contrib
+          sudo systemctl stop postgresql
+          bun run db:reset
+      - name: Backend-Tests
+        run: bun run test:backend
+
+  deno:
+    name: Deno-Rauchtest (optional)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.1.x
+      - name: Pakete installieren
+        run: |
+          sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock
+          bun install --frozen-lockfile
+      - name: Lokale Datenbank einrichten
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-contrib
+          sudo systemctl stop postgresql
+          bun run db:reset
+      - name: Deno-Rauchtest
+        run: bun run test:deno
+
+  e2e:
+    name: Browser-Tests (optional)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Pakete installieren
+        run: |
+          sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock
+          bun install --frozen-lockfile
+      - name: Browser installieren
+        run: bunx playwright install --with-deps chromium
+      - name: E2E-Tests
+        run: bun run test:e2e

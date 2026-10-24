@@ -62,6 +62,11 @@ export function adminErrorText(error: unknown): string {
     INSUFFICIENT_STOCK: "So viel ist nicht an Lager.",
     INVALID_DELTA: "Bitte eine Menge zwischen 1 und 10'000 angeben.",
     INVALID_REASON: "Bitte einen Grund wählen.",
+    INVALID_COUNT: "Bitte einen gezählten Bestand zwischen 0 und 100'000 angeben.",
+    STOCK_CHANGED: "Der Bestand hat sich geändert, bitte neu zählen.",
+    NO_GIFT_CARD: "Bei dieser Bestellung wurde kein Gutschein eingelöst.",
+    TRACKING_REQUIRED:
+      "Für die Benachrichtigung bitte die Sendungsnummer eintragen (oder die Benachrichtigung abwählen).",
     VARIANT_NOT_FOUND: "Diese Grösse gibt es nicht mehr.",
     INVALID_ITEMS: "Diese Menge kann nicht zurückgebucht werden.",
     ORDER_NOT_FOUND: "Bestellung nicht gefunden.",
@@ -279,6 +284,10 @@ export interface AdminOrder {
   shipping_cents: number;
   total_cents: number;
   refunded_cents: number;
+  /** MWST-Satz in Prozent, zum Kaufzeitpunkt gespeichert; null bei Altbestellungen */
+  vat_rate: number | null;
+  /** Bereits auf den Gutschein zurückgebuchter Betrag (Rückerstattung des Gutscheinanteils) */
+  gift_card_credited_cents: number;
   shipping_name: string | null;
   shipping_address: {
     line1?: string;
@@ -362,7 +371,7 @@ export async function restockOrder(
     p_items: items as unknown as Json,
   });
   fail(error);
-  return data as unknown as { restocked: number };
+  return data as unknown as { restocked: number; back_in_stock: string[] };
 }
 
 /** Bestellungen mit Positionen für den Export (Zeitraum nach Bezahlung). */
@@ -479,7 +488,13 @@ export async function addVariant(
   fail(error);
   const variant = data as Variant;
   if (initialStock > 0) {
-    variant.stock = await adjustStock(variant.id, initialStock, "correction", "Anfangsbestand");
+    try {
+      variant.stock = await adjustStock(variant.id, initialStock, "correction", "Anfangsbestand");
+    } catch (e) {
+      // Ohne Anfangsbestand gäbe es eine Grösse mit Bestand 0 und ohne Erklärung: wieder entfernen.
+      await db().from("product_variants").delete().eq("id", variant.id);
+      throw e;
+    }
   }
   return variant;
 }
@@ -511,6 +526,33 @@ export async function adjustStock(
   });
   fail(error);
   return data as number;
+}
+
+const untyped = () => db() as unknown as import("@supabase/supabase-js").SupabaseClient;
+
+/** Inventur: gezählten Bestand verbuchen. `expected` ist der Bestand beim Öffnen des Dialogs;
+ *  hat er sich seither geändert, antwortet der Server mit STOCK_CHANGED. */
+export async function setStock(variantId: string, count: number, expected: number, note?: string) {
+  // Die RPC fehlt in den generierten Typen, bis Lovable sie nach der Migration neu erzeugt.
+  const { data, error } = await untyped().rpc("admin_set_stock", {
+    p_variant_id: variantId,
+    p_count: count,
+    p_expected: expected,
+    ...(note ? { p_note: note } : {}),
+  });
+  fail(error);
+  return data as number;
+}
+
+/** Gutscheinanteil einer erstatteten Bestellung auf den Gutschein zurückbuchen. */
+export async function creditGiftCard(orderId: string, cents: number, note?: string) {
+  const { data, error } = await untyped().rpc("admin_credit_gift_card", {
+    p_order_id: orderId,
+    p_cents: cents,
+    ...(note ? { p_note: note } : {}),
+  });
+  fail(error);
+  return data as unknown as { credited_cents: number; balance_cents: number };
 }
 
 /** Bestätigte «Wieder da»-Wünsche pro Grösse (nur Admin liest die Tabelle). */

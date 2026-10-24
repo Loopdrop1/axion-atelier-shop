@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { outfitKey } from "./outfit-key";
-import { isSoldOut, sizesFor, useOutfit } from "./outfit";
+import { sizesFor, useOutfit } from "./outfit";
+import { OutfitRow } from "./outfit-row";
+import { useAddToCart } from "./use-add-to-cart";
 import { Link } from "@tanstack/react-router";
 import { Heart, Plus, ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
-import { formatPrice, discountPercent } from "@/lib/commerce/format";
-import { oneSizeVariant, isOneSizeTitle } from "@/lib/commerce/one-size";
+import { formatPrice, formatDiscount, discountPercent } from "@/lib/commerce/format";
+import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
-import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
+import { useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { getProductsByHandles, type Product } from "@/lib/commerce";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -52,9 +54,12 @@ export function ProductPage({
   const [bottom, setBottom] = useState(false);
   const mainAdd = useRef<HTMLDivElement>(null);
   const gallery = useRef<HTMLDivElement>(null);
-  const add = useCart((s) => s.add);
+  const addToCart = useAddToCart();
   const setCart = useShopUI((s) => s.setCart);
-  const { handles, toggle } = useWishlist();
+  const saved = useWishlist((s) => s.handles.includes(product.handle));
+  const toggle = useWishlist((s) => s.toggle);
+  // «Bitte Grösse wählen» erst nach einem Klick auf den Knopf ohne gewählte Grösse
+  const [hint, setHint] = useState(false);
   // Nur bei anderem Produkt zurücksetzen. Neu geladene, gleiche Daten kommen als neue Objekte.
   useEffect(() => {
     setSize(presetSize);
@@ -96,6 +101,7 @@ export function ProductPage({
     };
   }, [product.handle]);
   const chooseSize = () => {
+    setHint(true);
     const target = sizeSelector.current;
     // Kurz hervorheben, wohin es geht (Animation nur ohne «weniger Bewegung», siehe styles.css)
     target?.classList.remove("attention");
@@ -109,12 +115,22 @@ export function ProductPage({
     });
   };
   // Hervorhebung endet, sobald eine Grösse gewählt ist
-  useEffect(() => sizeSelector.current?.classList.remove("attention"), [size]);
+  useEffect(() => {
+    sizeSelector.current?.classList.remove("attention");
+    if (size) setHint(false);
+  }, [size]);
   const sample = product.tags.includes("muster");
   const klarna = (shopConfig.paymentMethods as readonly string[]).includes("Klarna");
   // «Nur noch 2 an Lager» erst, wenn eine knappe Grösse gewählt ist
   const chosen = product.variants.find((v) => v.title === size && v.availableForSale);
   const lowStock = chosen && chosen.stock <= LOW_STOCK ? chosen.stock : 0;
+  // Preis der gewählten Grösse; ohne Wahl und bei Variantenpreisen «ab»
+  const pick = product.variants.find((v) => v.title === size);
+  const shownPrice = pick?.price ?? product.priceRange.min;
+  const shownCompare = pick ? pick.compareAtPrice : product.compareAtPrice;
+  const hasRange = product.priceRange.min.amount < product.priceRange.max.amount;
+  const priceText = formatPrice(shownPrice, locale);
+  const soldOutSingle = !!onlyVariant && !onlyVariant.availableForSale;
   const fitNote =
     product.details.fit && product.details.fit !== product.fit ? product.details.fit : "";
   const facts = [
@@ -129,7 +145,7 @@ export function ProductPage({
   const addSelected = () => {
     const variant = product.variants.find((v) => v.title === size && v.availableForSale);
     if (!variant) return;
-    add(variant.id);
+    addToCart([variant]);
     setCart(true);
   };
   return (
@@ -146,7 +162,7 @@ export function ProductPage({
             {product.images.map((image, i) => (
               <Button
                 variant="icon"
-                key={image.url}
+                key={`${image.url}-${i}`}
                 className={i === 0 ? "vt-product-image" : undefined}
                 style={{ "--i": i } as CSSProperties}
                 onClick={() => {
@@ -225,11 +241,11 @@ export function ProductPage({
           </div>
           <div className="product-buy">
             <div className="price">
-              {formatPrice(product.priceRange.min, locale)}
-              {product.compareAtPrice && <del>{formatPrice(product.compareAtPrice, locale)}</del>}
-              {discountPercent(product.priceRange.min, product.compareAtPrice) > 0 && (
+              {!pick && hasRange ? t.product.from(priceText) : priceText}
+              {shownCompare && <del>{formatPrice(shownCompare, locale)}</del>}
+              {discountPercent(shownPrice, shownCompare) > 0 && (
                 <span className="price-off">
-                  −{discountPercent(product.priceRange.min, product.compareAtPrice)} %
+                  {formatDiscount(discountPercent(shownPrice, shownCompare), locale)}
                 </span>
               )}
             </div>
@@ -290,26 +306,37 @@ export function ProductPage({
               {lowStock > 0 ? t.product.lowStock(lowStock) : ""}
             </p>
             <div ref={mainAdd} className="add-row">
-              <Button
-                aria-disabled={!size}
-                className={size ? "" : "needs-size"}
-                onClick={size ? addSelected : chooseSize}
-              >
-                {t.product.addToCart}
+              {/* Wie die Leiste unten: ohne Grösse «Grösse wählen», Einheitsgrösse ausverkauft gesperrt */}
+              <Button disabled={soldOutSingle} onClick={size ? addSelected : chooseSize}>
+                {soldOutSingle
+                  ? t.product.soldOut
+                  : size
+                    ? t.product.addToCart
+                    : t.product.chooseSize}
               </Button>
               <Button
                 variant="tailored"
                 size="icon"
-                aria-label={`${product.title}, ${product.color.name} ${handles.includes(product.handle) ? t.product.forget : t.product.remember}`}
-                aria-pressed={handles.includes(product.handle)}
+                aria-label={`${product.title}, ${product.color.name} ${saved ? t.product.forget : t.product.remember}`}
+                aria-pressed={saved}
                 onClick={() => toggle(product.handle)}
               >
-                <Heart fill={handles.includes(product.handle) ? "currentColor" : "none"} />
+                <Heart fill={saved ? "currentColor" : "none"} />
               </Button>
             </div>
-            {!size && !onlyVariant && <p className="size-hint">{t.product.pleaseChooseSize}</p>}
+            {hint && !size && !onlyVariant && (
+              <p className="size-hint" role="status">
+                {t.product.pleaseChooseSize}
+              </p>
+            )}
             <StockAlertForm product={product} />
             <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
+            <p className="trust-line">
+              {t.home.benefits.returns(shopConfig.returnDays)} ·{" "}
+              <Link to="/{-$locale}/versand-und-rueckgabe" params={{ locale: lp }}>
+                {t.product.returnsLink}
+              </Link>
+            </p>
             {klarna && <p className="pay-hint">{t.product.klarna}</p>}
             <div className="accordion">
               <details>
@@ -326,7 +353,12 @@ export function ProductPage({
         {outfit.length > 0 && (
           // Neu aufbauen bei anderem Produkt oder anderen Stücken: Auswahl und Grössen zurücksetzen.
           // Der Schlüssel bleibt gleich, wenn dieselben Daten neu geladen werden (gewählte Grössen bleiben).
-          <OutfitBuilder key={`${product.handle}:${outfitKey(outfit)}`} outfit={outfit} />
+          <OutfitBuilder
+            key={`${product.handle}:${outfitKey([product, ...outfit])}`}
+            product={product}
+            outfit={[product, ...outfit]}
+            startVariantId={chosen?.id ?? ""}
+          />
         )}
         <section className="section pb-0">
           <div className="section-head">
@@ -450,7 +482,7 @@ export function ProductPage({
       </Panel>
       {bottom && (
         <div className="mobile-add-bar">
-          <span className="price">{formatPrice(product.priceRange.min, locale)}</span>
+          <span className="price">{!pick && hasRange ? t.product.from(priceText) : priceText}</span>
           {/* Einheitsgrösse ausverkauft: nichts zu wählen, also auch kein «Grösse wählen» */}
           <Button onClick={size ? addSelected : chooseSize} disabled={!size && !!onlyVariant}>
             {size ? t.product.addToCart : onlyVariant ? t.product.soldOut : t.product.chooseSize}
@@ -461,74 +493,54 @@ export function ProductPage({
   );
 }
 
-/** «Komplettes Outfit» auf der Produktseite: passende Stücke mit Grösse zusammen in den Warenkorb. */
-function OutfitBuilder({ outfit }: { outfit: Product[] }) {
+/** «Komplettes Outfit» auf der Produktseite: dieses Stück und die passenden zusammen mit Grösse in den Warenkorb. */
+function OutfitBuilder({
+  product,
+  outfit,
+  startVariantId,
+}: {
+  product: Product;
+  /** Dieses Stück zuerst, dann die passenden */
+  outfit: Product[];
+  /** Grösse aus der Kaufbox (Startwert und Folgewert für dieses Stück) */
+  startVariantId: string;
+}) {
   const t = useT();
   const locale = useLocale();
-  const lp = useLocaleParam();
   const settings = useShopSettings();
-  const state = useOutfit(outfit);
+  const state = useOutfit(outfit, startVariantId ? { [product.handle]: startVariantId } : {});
+  // Die Grösse in der Kaufbox gilt auch für dieses Stück im Outfit
+  const choose = state.choose;
+  useEffect(() => {
+    if (startVariantId) choose(product.handle, startVariantId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- choose ist bei jedem Rendern neu, die Grösse löst aus
+  }, [startVariantId, product.handle]);
   const addToCart = () => {
     const missing = state.addToCart();
     if (missing[0]) document.getElementById(`outfit-size-${missing[0]}`)?.focus();
   };
+  const count = state.checked.length;
   return (
     <section className="outfit-builder" id="outfit">
       <p className="eyebrow">{t.product.outfitEyebrow}</p>
       <h2>{t.product.outfitTitle}</h2>
-      {outfit.map((p) => {
-        const soldOut = isSoldOut(p);
-        const invalid = state.missing.includes(p.handle);
-        return (
-          <div key={p.handle} className="outfit-row">
-            <input
-              type="checkbox"
-              id={`outfit-check-${p.handle}`}
-              aria-label={t.product.outfitSelect(`${p.title}, ${p.color.name}`)}
-              checked={state.checked.includes(p.handle)}
-              disabled={soldOut}
-              onChange={() => state.toggle(p.handle)}
-            />
-            <Link to="/{-$locale}/produkt/$handle" params={{ locale: lp, handle: p.handle }}>
-              <Photo image={p.images[0]} />
-            </Link>
-            <div>
-              <h3>{p.title}</h3>
-              <p className="price m-0">{formatPrice(p.priceRange.min, locale)}</p>
-            </div>
-            <select
-              className="form-select"
-              id={`outfit-size-${p.handle}`}
-              aria-label={t.product.outfitSize(`${p.title}, ${p.color.name}`)}
-              aria-invalid={invalid || undefined}
-              aria-describedby={invalid ? "outfit-error" : undefined}
-              disabled={soldOut}
-              value={state.sizes[p.handle] ?? ""}
-              onChange={(e) => state.choose(p.handle, e.target.value)}
-            >
-              <option value="">
-                {soldOut
-                  ? t.product.outfitSoldOut
-                  : `${t.product.chooseSize}${p.category === "schuhe" ? t.product.euSizes : ""}`}
-              </option>
-              {sizesFor(p, settings.hideSoldOut).map((v) => (
-                <option key={v.id} value={v.id} disabled={!v.availableForSale}>
-                  {isOneSizeTitle(v.title) ? t.product.oneSize : v.title}
-                  {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
-      })}
+      {outfit.map((p) => (
+        <OutfitRow
+          key={p.handle}
+          product={p}
+          state={state}
+          hideSoldOut={settings.hideSoldOut}
+          current={p.handle === product.handle}
+        />
+      ))}
       <p className="price mt-6">{t.product.outfitSelection(formatPrice(state.total, locale))}</p>
       {state.missing.length > 0 && (
         <p role="alert" id="outfit-error" className="form-error">
           {t.product.outfitError}
         </p>
       )}
-      <Button disabled={!state.checked.length} onClick={addToCart}>
-        {t.product.outfitAdd}
+      <Button disabled={!count} onClick={addToCart}>
+        {count ? t.product.outfitAddCount(count) : t.product.outfitAdd}
       </Button>
     </section>
   );

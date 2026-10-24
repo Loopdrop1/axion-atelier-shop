@@ -9,6 +9,14 @@ import {
 import { useT } from "@/i18n";
 import type { AuthProblem } from "@/lib/account/api";
 
+/** Setzt den Fokus nach einem Validierungsfehler auf das erste ungültige Feld (nach dem nächsten Rendern). */
+export function focusFirstInvalid(root: ParentNode = document) {
+  if (typeof window === "undefined") return;
+  window.requestAnimationFrame(() => {
+    root.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  });
+}
+
 export function Field({
   label,
   hint,

@@ -397,7 +397,7 @@ export function ProductForm({
               />
               <TextField
                 label="Streichpreis (CHF, freiwillig)"
-                hint="Früherer Preis, erscheint durchgestrichen. Nur angeben, wenn er wirklich verlangt wurde."
+                hint="Früherer Preis, erscheint durchgestrichen. Nur den früheren, während angemessener Zeit tatsächlich verlangten Preis eintragen (Art. 16 PBV)."
                 inputMode="decimal"
                 {...text("compare_at")}
                 error={errors.compare_at}

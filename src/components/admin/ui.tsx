@@ -131,7 +131,10 @@ export function TextField({
       <Input
         id={id}
         aria-invalid={Boolean(error)}
-        aria-describedby={hint ? `${id}-hint` : undefined}
+        aria-describedby={
+          [hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ") ||
+          undefined
+        }
         {...input}
       />
       {hint && (
@@ -139,7 +142,11 @@ export function TextField({
           {hint}
         </p>
       )}
-      {error && <p className="admin-error">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="admin-error">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
-import { createUser, pool, sql, type TestUser } from "../../tests/helpers.ts";
+import { createUser, pool, sql, uniq, type TestUser } from "../../tests/helpers.ts";
 import { makeProduct, reserve, rpc } from "../../tests/fixtures.ts";
 import {
   ANON_KEY,
@@ -136,16 +136,37 @@ describe("admin-actions: Versand", () => {
     expect(resend.sent.length).toBe(before);
   });
 
+  it("mit Benachrichtigung ohne Sendungsnummer: 400 TRACKING_REQUIRED, Bestellung bleibt unverändert", async () => {
+    const r = await paidOrder();
+    const before = resend.sent.length;
+    const res = await post({ action: "ship", orderId: r.order_id });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "TRACKING_REQUIRED" });
+    expect(resend.sent.length).toBe(before);
+    const row = await sql<{ status: string }>("select status from public.orders where id = $1", [
+      r.order_id,
+    ]);
+    expect(row[0]!.status).toBe("paid");
+  });
+
   it("offene Bestellung: 409; ungültige Sendungsnummer: 400; unbekannte Bestellung: 404", async () => {
     const p = await makeProduct({ priceCents: 10000, stocks: [2] });
     const pending = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }] });
-    const res = await post({ action: "ship", orderId: pending.order_id });
+    const res = await post({
+      action: "ship",
+      orderId: pending.order_id,
+      trackingNumber: "ABC123456",
+    });
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({ error: "ORDER_NOT_SHIPPABLE" });
     const paid = await paidOrder();
     const bad = await post({ action: "ship", orderId: paid.order_id, trackingNumber: "<b>x</b>" });
     expect(await bad.json()).toEqual({ error: "INVALID_TRACKING" });
-    const missing = await post({ action: "ship", orderId: "00000000-0000-4000-8000-000000000000" });
+    const missing = await post({
+      action: "ship",
+      orderId: "00000000-0000-4000-8000-000000000000",
+      trackingNumber: "ABC123456",
+    });
     expect(missing.status).toBe(404);
     expect((await post({ action: "ship", orderId: "kein-uuid" })).status).toBe(400);
   });
@@ -166,6 +187,57 @@ describe("admin-actions: Versand", () => {
     expect(await again.json()).toEqual({ emailed: true, to: "kunde@example.ch" });
     expect(resend.sent[before]!.subject).toBe(`Your order AX-${r.order_number} is on its way`);
     expect(resend.sent[before]!.idempotencyKey).toBeUndefined();
+  });
+});
+
+describe("admin-actions: notify_restock", () => {
+  async function waiting(variantId: string, email: string) {
+    const r = await rpc<{ token: string }>("stock_alert_request", [
+      variantId,
+      email,
+      "de",
+      "10.4.0.1",
+    ]);
+    await rpc("stock_alert_confirm", [r.token]);
+  }
+
+  it("nur verschickte Adressen werden abgehakt und entfernt, gescheiterte bleiben für später stehen", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [0] });
+    const v = p.variants[0]!.id;
+    const ok = `${uniq("ok")}@example.ch`;
+    const bad = `${uniq("bad")}@example.ch`;
+    await waiting(v, bad);
+    await waiting(v, ok);
+    await sql("update public.product_variants set stock = 4 where id = $1", [v]);
+    const before = resend.sent.length;
+    resend.failNext(); // die erste Mail scheitert
+    const res = await post({ action: "notify_restock", variantId: v });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ notified: 1, failed: 1 });
+    const mails = resend.sent.slice(before);
+    expect(mails).toHaveLength(1);
+    expect(mails[0]!.subject).toMatch(/^Wieder da:/);
+    const rows = await sql<{ status: string; email: string }>(
+      "select status, email from public.stock_alerts where variant_id = $1 order by status",
+      [v],
+    );
+    expect(rows.map((r) => r.status)).toEqual(["confirmed", "notified"]);
+    expect(rows.find((r) => r.status === "notified")!.email).toBe("entfernt@invalid");
+    expect(rows.find((r) => r.status === "confirmed")!.email).not.toBe("entfernt@invalid");
+    // Zweiter Lauf schickt die liegengebliebene Mail nach
+    const again = await post({ action: "notify_restock", variantId: v });
+    expect(await again.json()).toEqual({ notified: 1, failed: 0 });
+  });
+
+  it("ausverkaufte Grösse: niemand wird benachrichtigt; nur Admins dürfen", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [0] });
+    const v = p.variants[0]!.id;
+    await waiting(v, `${uniq("w")}@example.ch`);
+    const before = resend.sent.length;
+    const res = await post({ action: "notify_restock", variantId: v });
+    expect(await res.json()).toEqual({ notified: 0, failed: 0 });
+    expect(resend.sent.length).toBe(before);
+    expect((await post({ action: "notify_restock", variantId: v }, customer)).status).toBe(403);
   });
 });
 

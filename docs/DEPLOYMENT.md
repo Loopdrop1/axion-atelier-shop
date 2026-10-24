@@ -53,11 +53,11 @@ einschalten.
 1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern, und
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
-2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die acht Migrationen (in Cloud die Fassung aus
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die elf Migrationen `0000` bis `0010_axion_review_fixes` (in Cloud die Fassung aus
    `drizzle/migrations/`, lokal `supabase/migrations/`) werden der Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
-   Danach prüfen: 16 Tabellen im Schema `public`, Buckets `product-images` und `site-media`, Funktionen
-   `contact_guard`, `translate_guard` und `prune_rate_limits`, Spalten `en_auto`, `origin_de` und `features_de` in
+   Danach prüfen: 17 Tabellen im Schema `public` (u. a. `shop_settings` und `stock_alerts`), Buckets `product-images` und `site-media`, Funktionen
+   `contact_guard`, `translate_guard`, `search_assist_guard`, `admin_set_stock`, `admin_credit_gift_card` und `prune_rate_limits`, Spalten `en_auto`, `origin_de` und `features_de` in
    `products`, `site-media` nimmt auch Videos (MP4/WebM bis 25 MB). Spätere Änderungen mit neuer Migration:
    **zuerst die Migration ausführen, dann den Code pushen** (Lovable übernimmt Code sofort).
    `supabase/seed.sql` **nicht** ausführen: Er enthält Platzhalterprodukte und Beispielwerte für die Vorschau.
@@ -68,14 +68,17 @@ einschalten.
    Das Skript überschreibt nichts, was schon da ist, und lässt sich gefahrlos wiederholen.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
-   > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact and account-delete
-   > exactly as they are in supabase/functions, with verify_jwt = false as in supabase/config.toml. Do not change
-   > their code. The function admin-actions uses LOVABLE_API_KEY and the Lovable AI gateway with the model
-   > google/gemini-2.5-flash; if that model is not available in the gateway, tell me the current default Gemini Flash
-   > model id instead of changing the code.
+   > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact, account-delete,
+   > stock-alert and search-assist exactly as they are in supabase/functions, with verify_jwt = false as in
+   > supabase/config.toml. Do not change their code. The functions admin-actions and search-assist use
+   > LOVABLE_API_KEY and the Lovable AI gateway with the model google/gemini-2.5-flash; if that model is not
+   > available in the gateway, tell me the current default Gemini Flash model id instead of changing the code.
 
-   Kontrolle unter Cloud → Edge functions. `auth-email-hook` wird nicht gebraucht: Konto-E-Mails verschickt Lovable
-   Cloud selbst. Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
+   Kontrolle unter Cloud → Edge functions: Soll sind **9 Funktionen mit `verify_jwt = false`** (`checkout`,
+   `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist` und
+   `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
+   Send-Email-Hook von Lovable Cloud (Konto-E-Mails in Axion-Optik, siehe Punkt 6); ohne ihn verschickt Lovable die
+   Standard-E-Mails. Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
 
 4. Secrets (Cloud → Secrets), Bedeutung in `supabase/functions/README.md`, Abschnitt «Secrets»:
    - Testphase: `SITE_URL` = `https://id-preview--81384fd7-77a8-4809-b8c3-48b5a9ee05e8.lovable.app`,
@@ -84,6 +87,8 @@ einschalten.
      `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (bekommt auch die Nachrichten aus dem Kontaktformular),
      `SHOP_ADDRESS`. Optional `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion
      Liechtenstein beliefern will und die Liechtenstein-Klauseln in den Rechtstexten stehen), `TRANSLATE_MODEL`.
+     `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`) nur setzen, wenn Axion MWST-pflichtig ist; er wird pro
+     Bestellung gespeichert, und der Beleg rechnet damit.
    - `LOVABLE_API_KEY` legt Lovable selbst an; nicht von Hand setzen.
 5. Authentifizierung (Cloud → Users → Einstellungen):
    - **«Auto-confirm email» aus**, **«Secure email change» ein.** Gastbestellungen werden einem Konto über die
@@ -183,6 +188,12 @@ einschalten.
 3. Gutschein kaufen und einlösen, Rabattcode einlösen, Newsletter anmelden und bestätigen, Konto anlegen und löschen,
    Passwort zurücksetzen, Kontaktformular abschicken (E-Mail an `SHOP_CONTACT_EMAIL`, Antworten gehen an die
    Absenderin).
+   - «Wieder da»: bei einer ausverkauften Grösse «Benachrichtigen» ausfüllen, E-Mail bestätigen, die Grösse im Admin
+     aufstocken (oder eine Retoure einbuchen): Die Mail «Wieder da» kommt einmal an, die Adresse ist danach entfernt.
+   - KI-Suche: auf der Suchseite einen ganzen Satz eingeben (z. B. «heller Leinenanzug für eine Sommerhochzeit unter
+     800 Franken»); die verstandenen Filter erscheinen. Ohne `LOVABLE_API_KEY` oder bei leerem AI-Guthaben zeigt die
+     Suche einfach die lokalen Ergebnisse.
+   - Bestellung mit Geschenkgutschein als Teilzahlung erstatten: Den Gutscheinanteil im Admin gutschreiben.
 4. Neues Produkt nur auf Deutsch anlegen: Die englischen Felder füllen sich, `/en/produkt/…` zeigt sie. Danach den
    deutschen Titel ändern: Das Englisch folgt. Englisch von Hand ändern, dann das Deutsch: Das Englisch bleibt, die
    Meldung sagt «bitte prüfen».
@@ -199,9 +210,15 @@ einschalten.
 1. Stripe live: Live-Schlüssel (`rk_live_…`) und Live-Webhook mit eigenem `whsec_…` in die Secrets.
 2. Domain in Lovable verbinden. `SITE_URL` und `ALLOWED_ORIGINS` (Secrets), Site URL und Redirect URLs (Cloud → Users)
    sowie `siteUrl` in `src/config/shop.ts` auf die Domain umstellen. Die Vorschau-Adresse aus `ALLOWED_ORIGINS`
-   entfernen.
+   entfernen. **`ALLOW_PREVIEW_ORIGINS` (falls gesetzt) und `PREVIEW_ORIGINS` vor dem Livegang entfernen**: Sie
+   erlauben Aufrufe der Funktionen von Vorschau- und localhost-Seiten.
 3. `launched: true` in `src/config/shop.ts`, dann `bun scripts/sync-robots.ts` (robots.txt erlaubt Suchmaschinen und
-   nennt `/sitemap.xml`). Commit, push, in Lovable veröffentlichen.
+   nennt `/sitemap.xml`). Commit, push, in Lovable veröffentlichen. Vorher beide Prüfungen laufen lassen:
+   `bun run test` (der Test `launch-gate` schlägt an, wenn `public/robots.txt` nicht zu `launched` passt, wenn bei
+   `launched: true` noch Platzhalter in den Kontaktdaten stehen oder wenn die UID bei MWST-Pflicht kein Format
+   `CHE-123.456.789` hat) und `bun run launch:check` (liest die Cloud-Datenbank mit `SUPABASE_URL` und
+   `SUPABASE_PUBLISHABLE_KEY`: keine aktiven Muster-Produkte, keine aktiven Kategorien ohne Bild, keine Look- oder
+   Outfit-Handles ohne aktives Produkt).
 4. Echter Kauf mit kleinem Betrag und Rückerstattung. TWINT nach der Freischaltung durch Stripe testen.
 
 ## 9. Lieferpaket bauen
@@ -226,7 +243,10 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 - Lokal installieren: `bun.lock` verweist auf den npm-Cache von Lovable, der ausserhalb von Lovable `403` meldet.
   Für lokale Tests die Adressen vorübergehend umschreiben und danach zurücksetzen (nie committen):
   `sed -i 's#https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/#https://registry.npmjs.org/#g' bun.lock && bun install --frozen-lockfile && git checkout bun.lock`
-- Updates: Sicherheitsmeldungen von GitHub (Dependabot) für das Repository einschalten; Pakete bei Meldungen oder
+- Automatische Prüfung: `.github/workflows/ci.yml` lässt bei jedem Push Lint, Tests (mit den Paritätstests für
+  `verify_jwt` und für `supabase/migrations` gegen `drizzle/migrations`), Typprüfung und Build laufen. Backend-,
+  Deno- und Browser-Tests laufen mit, blockieren aber nicht. Der Lovable-Branch soll grün bleiben.
+- Updates: Sicherheitsmeldungen von GitHub (Dependabot, `.github/dependabot.yml`) für das Repository einschalten; Pakete bei Meldungen oder
   einmal im Quartal aktualisieren, prüfen (Tests, Build) und per Push einspielen.
 - Admin → Bestellungen, Ansicht «Prüfen»: Zahlungen nach Ablauf der Reservierung, die von Hand geprüft werden müssen,
   und zurückerstattete Gutscheinkäufe, deren Gutschein schon benutzt war.

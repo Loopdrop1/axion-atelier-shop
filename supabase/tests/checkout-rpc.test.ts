@@ -397,7 +397,7 @@ describe("Öffentliche Prüfungen und Status", () => {
 
   it("check_gift_card zeigt Guthaben, Rate-Limit nach 20 Versuchen", async () => {
     const card = await makeGiftCard(4500);
-    const headers = { "x-forwarded-for": `10.0.0.${Math.floor(Math.random() * 250)}` };
+    const headers = { "cf-connecting-ip": `10.0.0.${Math.floor(Math.random() * 250)}` };
     const ok = await withRole(
       "anon",
       null,

@@ -2,7 +2,7 @@
 import { useId, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Field, TextAreaField } from "@/components/account/form";
+import { Field, TextAreaField, focusFirstInvalid } from "@/components/account/form";
 import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
@@ -36,7 +36,10 @@ export function ContactForm() {
     if (!next.name && !next.email && !next.message && !backendConfigured)
       next.form = f.notConfigured;
     setErrors(next);
-    if (Object.keys(next).length) return;
+    if (Object.keys(next).length) {
+      focusFirstInvalid();
+      return;
+    }
     setState("sending");
     const result = await callFunction<{ sent: true }>("contact", {
       name: name.trim(),
@@ -61,6 +64,7 @@ export function ContactForm() {
       NETWORK: { form: t.common.networkError },
     };
     setErrors(byCode[result.error] ?? { form: f.failed });
+    focusFirstInvalid();
   }
 
   if (state === "sent") {
