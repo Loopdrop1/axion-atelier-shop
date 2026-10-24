@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { MAX_PER_LINE, useCart } from "@/lib/commerce/stores";
 import { sizeText } from "@/lib/commerce/one-size";
-import { resolveCart, type Cart as CartType } from "@/lib/commerce";
+import { listProducts, resolveCart, type Cart as CartType, type Product } from "@/lib/commerce";
 import { formatCents, formatPrice } from "@/lib/commerce/format";
 import { useShopSettings } from "@/lib/commerce/use-settings";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
@@ -13,9 +13,29 @@ import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
 import { CheckoutSummary } from "./checkout-summary";
-export function EmptyState({ title, text }: { title: string; text: string }) {
+import { ProductCard } from "./product-card";
+export function EmptyState({
+  title,
+  text,
+  suggest = false,
+}: {
+  title: string;
+  text: string;
+  /** Neuheiten als Anregung zeigen (Warenkorbseite, Merkliste; nicht in der schmalen Seitenleiste) */
+  suggest?: boolean;
+}) {
   const t = useT();
   const lp = useLocaleParam();
+  const locale = useLocale();
+  const [newest, setNewest] = useState<Product[]>([]);
+  useEffect(() => {
+    if (!suggest) return;
+    let live = true;
+    listProducts({ collection: "neu" }, locale).then((p) => live && setNewest(p.slice(0, 4)));
+    return () => {
+      live = false;
+    };
+  }, [suggest, locale]);
   return (
     <div className="empty-state">
       <h2>{title}</h2>
@@ -27,6 +47,16 @@ export function EmptyState({ title, text }: { title: string; text: string }) {
           </Link>
         </Button>
       </div>
+      {newest.length > 0 && (
+        <section className="empty-suggestions">
+          <h3>{t.home.newArrivals.title}</h3>
+          <div className="product-grid">
+            {newest.map((p) => (
+              <ProductCard key={p.handle} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -87,7 +117,7 @@ export function CartContents({
     return (
       <>
         {notice && <p className="form-notice">{notice}</p>}
-        <EmptyState title={t.cart.emptyTitle} text={t.cart.emptyText} />
+        <EmptyState title={t.cart.emptyTitle} text={t.cart.emptyText} suggest={page} />
       </>
     );
   return (
