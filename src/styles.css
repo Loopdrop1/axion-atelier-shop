@@ -5557,3 +5557,59 @@ button.search-chip:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Teilen-Knopf (Produktseite), Social-Links im Footer, Willkommensrabatt im Newsletter */
+.share-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 14px;
+}
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+}
+.share-button:hover {
+  text-decoration-color: currentColor;
+}
+.share-status {
+  font-size: 12px;
+  margin: 0;
+}
+.share-status:empty {
+  display: none;
+}
+.footer-bottom:has(.footer-social) {
+  align-items: center;
+}
+.footer-social {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-social a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  min-width: 24px;
+  justify-content: center;
+}
+.newsletter-perk {
+  margin: 0 0 8px;
+  font-size: 13px;
+}

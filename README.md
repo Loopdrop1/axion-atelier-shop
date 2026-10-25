@@ -8,6 +8,7 @@ Online-Shop für **AXION**, eine Schweizer Herrenmarke (Anzüge, Westen, Schuhe,
 - `src/lib/commerce/`: Katalog und Warenkorb; die Oberfläche liest Daten nur über diese Adapter.
 - `src/routes/`: Seiten des Shops und das Admin unter `/admin`.
 - `supabase/`: Migrationen, Seed, Edge Functions (`functions/README.md`) und Tests.
+- `docs/KUNDENDATEN.md`: Checkliste aller Angaben und Entscheide, die vor dem Livegang noch von Axion kommen.
 - `docs/DEPLOYMENT.md`: Veröffentlichung und Betrieb. `docs/brief-v1.md`: der ursprüngliche erste Auftrag (veraltet: kein Backend, Beispieldaten).
 - `AGENTS.md`: Architekturregeln und Konventionen für dieses Projekt.
 

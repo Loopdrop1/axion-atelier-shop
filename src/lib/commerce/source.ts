@@ -59,6 +59,8 @@ export interface ShopSettings {
   giftCardValidYears: number;
   /** Ausverkaufte Grössen ausblenden statt als ausverkauft zeigen */
   hideSoldOut: boolean;
+  /** Willkommensrabatt für den Newsletter in Prozent (Admin → Einstellungen); null = keiner */
+  newsletterWelcomePercent: number | null;
 }
 
 export const DEFAULT_SETTINGS: ShopSettings = {
@@ -68,6 +70,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   giftCardMaxCents: 100000,
   giftCardValidYears: 5,
   hideSoldOut: false,
+  newsletterWelcomePercent: null,
 };
 
 export async function loadSettings(): Promise<ShopSettings> {
@@ -75,7 +78,7 @@ export async function loadSettings(): Promise<ShopSettings> {
   const full = await supabase
     .from("shop_settings")
     .select(
-      "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out",
+      "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out, newsletter_welcome_percent",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -92,7 +95,9 @@ export async function loadSettings(): Promise<ShopSettings> {
       .eq("id", 1)
       .maybeSingle();
     if (base.error) console.error("Shop-Einstellungen nicht lesbar:", base.error.message);
-    data = base.data ? { ...base.data, hide_sold_out: false } : null;
+    data = base.data
+      ? { ...base.data, hide_sold_out: false, newsletter_welcome_percent: null }
+      : null;
   }
   if (!data) return DEFAULT_SETTINGS;
   return {
@@ -102,6 +107,7 @@ export async function loadSettings(): Promise<ShopSettings> {
     giftCardMaxCents: data.gift_card_max_cents,
     giftCardValidYears: data.gift_card_valid_years,
     hideSoldOut: data.hide_sold_out,
+    newsletterWelcomePercent: data.newsletter_welcome_percent || null,
   };
 }
 

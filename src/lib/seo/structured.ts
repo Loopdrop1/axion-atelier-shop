@@ -7,6 +7,17 @@ import { pageUrl } from "@/lib/commerce/seo";
 
 const filled = (value: string) => Boolean(value.trim()) && !/\[[^\]]+\]/.test(value);
 
+/** Gesetzte Social-Kanäle (nur gültige https-URLs), für Footer und sameAs. */
+export function socialChannels(): { channel: string; url: string }[] {
+  return Object.entries(shopConfig.social as Record<string, string>)
+    .map(([channel, url]) => ({ channel, url: url.trim() }))
+    .filter(({ url }) => /^https:\/\/\S+$/.test(url) && filled(url));
+}
+
+function socialUrls() {
+  return socialChannels().map((c) => c.url);
+}
+
 export function organizationLd(locale: Locale) {
   const { contact } = shopConfig;
   return [
@@ -19,6 +30,7 @@ export function organizationLd(locale: Locale) {
       ...(filled(contact.company) ? { legalName: contact.company } : {}),
       ...(filled(contact.email) ? { email: contact.email } : {}),
       ...(filled(contact.phone) ? { telephone: contact.phone } : {}),
+      ...(socialUrls().length ? { sameAs: socialUrls() } : {}),
       areaServed: "CH",
     },
     {

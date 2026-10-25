@@ -129,7 +129,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 ### 2. Welche Daten wir bearbeiten
 - **Bestelldaten:** E-Mail-Adresse, Vor- und Nachname, Lieferadresse, freiwillig Telefonnummer, bestellte Artikel, Grössen, Preise, eingelöste Rabattcodes und Gutscheine, Zahlungsart sowie Bestell- und Versandverlauf mit Sendungsnummer.
 - **Zahlungsdaten:** Kartennummern und ähnliche Zahlungsdaten erhalten wir nicht. Du gibst sie direkt auf der Bezahlseite unseres Zahlungsdienstleisters Stripe ein (Ziffer 4). Wir sehen nur, ob, wann und womit bezahlt wurde.
-- **Kundenkonto (freiwillig):** E-Mail-Adresse, Passwort (nur als verschlüsselter Prüfwert gespeichert, wir können es nicht lesen), Vor- und Nachname, Telefonnummer, Adresse, Sprache und deine Bestellungen.
+- **Kundenkonto (freiwillig):** E-Mail-Adresse, Passwort (nur als verschlüsselter Prüfwert gespeichert, wir können es nicht lesen), Vor- und Nachname, Telefonnummer, Adresse, Sprache, deine Bestellungen und, wenn du angemeldet bist, deine Merkliste.
 - **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
 - **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie, wenn wir einen Willkommensrabatt anbieten, dein persönlicher Rabattcode.
 - **Benachrichtigung bei Wiederverfügbarkeit (freiwillig):** E-Mail-Adresse, Sprache, gewünschtes Stück und Grösse sowie Zeitpunkt von Anfrage und Bestätigung.
@@ -158,6 +158,7 @@ Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten
 - **Zahlung:** Die Bezahlung läuft über Stripe (Stripe Payments Europe, Limited, Irland, zusammen mit Stripe, Inc., USA). Stripe bearbeitet deine Daten für die Zahlung in unserem Auftrag und für eigene Zwecke, etwa zur Betrugsbekämpfung und zur Erfüllung gesetzlicher Pflichten, als eigene Verantwortliche. Bei TWINT, Apple Pay und Google Pay gelten zusätzlich die Datenschutzbestimmungen der jeweiligen Anbieter und deiner Bank. Datenschutzerklärung von Stripe: https://stripe.com/ch/privacy
 - **Klarna:** Wenn du mit Klarna bezahlst, bearbeitet die Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, deine Daten als eigene Verantwortliche. Klarna kann dafür deine Kreditwürdigkeit prüfen, auch mit automatisierten Entscheidungen. Datenschutzhinweise von Klarna: https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_ch/privacy
 - **E-Mail:** Bestellbestätigungen, Nachrichten aus dem Kontaktformular und die übrigen E-Mails des Shops versenden wir über Resend (Plus Five Five, Inc., San Francisco, USA). [Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]
+- **KI-Suche:** Wenn du in der Suche einen längeren Satz eingibst, den die Suche im Browser nicht sicher versteht, senden wir diesen Suchtext zur Auswertung an unsere Funktion «search-assist». Sie reicht ihn über das Lovable AI Gateway an einen KI-Dienst weiter, der ihn in Suchfilter (zum Beispiel Kategorie, Farbe, Anlass) übersetzt. Betreiber des KI-Dienstes: [KI-Anbieter mit Sitz, von der Rechtsberatung zu bestätigen]. Der Suchtext wird dafür nur verarbeitet und von uns nicht gespeichert. Gegen Missbrauch zählen wir die Anfragen pro IP-Adresse, dabei speichern wir nur einen Prüfwert (Hash), nicht die Adresse selbst (Ziffer 7). Das Ergebnis merkt sich dein Browser bis zum Schliessen des Tabs (Ziffer 6). Der Dienst kann ausserhalb der Schweiz arbeiten (Ziffer 5). Gib in die Suche am besten keine Personendaten ein.
 - **Versand:** Für die Zustellung geben wir Name, Lieferadresse und Sendungsdaten an die Schweizerische Post weiter (Post CH AG, Post CH Netz AG und Die Schweizerische Post AG, Wankdorfallee 4, 3030 Bern). Die Post bearbeitet diese Daten als eigene Verantwortliche, gemäss ihren Angaben in der Schweiz, in Liechtenstein und in Deutschland. Datenschutzhinweise der Post: https://www.post.ch/de/pages/footer/datenschutz-und-rechtliches
 - **Technische Betreuung:** Flowrenix, Gibswil (Schweiz), betreibt und wartet den Shop in unserem Auftrag und kann dabei auf die Daten zugreifen, soweit das nötig ist.
 - **Behörden:** wenn wir gesetzlich dazu verpflichtet sind.
@@ -167,12 +168,15 @@ Einige der genannten Dienstleister bearbeiten Daten ausserhalb der Schweiz. Für
 
 ### 6. Cookies und Speicher im Browser
 Wir verwenden nur, was für den Betrieb des Shops nötig ist:
-- **Warenkorb und Merkliste** im Local Storage deines Browsers. Du kannst sie in den Browser-Einstellungen jederzeit löschen.
+- **Warenkorb und Merkliste** im Local Storage deines Browsers (Einträge \`axion-cart\` und \`axion-wishlist\`). Du kannst sie in den Browser-Einstellungen jederzeit löschen.
+- **Zuletzt angesehene Stücke** im Local Storage (Eintrag \`axion-recent\`) und **letzte Suchen** (Eintrag \`axion-recent-searches\`, die letzten fünf Suchbegriffe). Beide bleiben auf deinem Gerät und werden nicht an uns übermittelt.
+- **Zwischenspeicher der KI-Suche** im Session Storage (Eintrag \`axion-search-assist\`): die Antwort auf einen längeren Suchtext, damit dieselbe Frage nicht erneut gestellt wird. Er wird beim Schliessen des Tabs gelöscht.
+- **Sprache:** Die gewählte Sprache steckt in der Adresse der Seite (zum Beispiel \`/en\`), der Shop speichert sie nicht zusätzlich.
 - **Anmeldung:** Wenn du dich im Kundenkonto anmeldest, speichert dein Browser einen Anmeldeschlüssel, bis du dich abmeldest.
 - **Cloudflare** setzt ein Cookie (\`__cf_bm\`), das automatisierte Angriffe abwehrt und nach 30 Minuten Inaktivität abläuft.
 - **Bezahlseite:** Auf der Bezahlseite von Stripe setzt Stripe eigene Cookies, unter anderem zur Betrugsbekämpfung. Details stehen in der Datenschutzerklärung von Stripe.
 
-Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Du kannst Cookies und den Speicher deines Browsers jederzeit löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
+Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Unsere E-Mails und der Newsletter enthalten kein Öffnungs- und Klicktracking. Du kannst Cookies und den Speicher deines Browsers jederzeit löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
 
 ### 7. Wie lange wir Daten aufbewahren
 Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke brauchen:

@@ -98,6 +98,14 @@ function SearchPage() {
         }
       />
       {current?.ai && <p className="search-note search-ai">{t.search.ai}</p>}
+      {(thinking || current?.ai) && (
+        <p className="search-note search-ai-notice">
+          {t.search.aiNotice}{" "}
+          <Link to="/{-$locale}/datenschutz" params={{ locale: lp }}>
+            {t.newsletter.privacy}
+          </Link>
+        </p>
+      )}
       {thinking && !current && (
         <p className="search-note" role="status">
           {t.search.aiWorking}

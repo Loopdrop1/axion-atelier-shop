@@ -12,6 +12,14 @@ export const shopConfig = {
     hours: "[Erreichbarkeit, z. B. Montag bis Freitag, 9 bis 17 Uhr]", // freiwillig, leer = ohne
     uid: "[UID]",
   },
+  // Social-Kanäle: vollständige https-URL eintragen. Leer = Kanal erscheint weder im Footer noch in der Organization-Auszeichnung.
+  social: {
+    instagram: "",
+    facebook: "",
+    linkedin: "",
+    tiktok: "",
+    pinterest: "",
+  },
   returnDays: 14, // Vom Kunden noch zu bestätigen.
   paymentMethods: [
     "TWINT",

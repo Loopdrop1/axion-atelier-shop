@@ -83,6 +83,15 @@ export const en: Messages = {
     newsletterTitle: "Newsletter",
     newsletterText: "Be the first to hear about new pieces, combinations and offers.",
     madeBy: "Made by Flowrenix.com",
+    welcomeOffer: (percent: number) => `${percent}% off your first order.`,
+    social: "Axion on social media",
+    socialLabels: {
+      instagram: "Axion on Instagram",
+      facebook: "Axion on Facebook",
+      linkedin: "Axion on LinkedIn",
+      tiktok: "Axion on TikTok",
+      pinterest: "Axion on Pinterest",
+    } as Record<string, string>,
   },
   pages: {
     "ueber-uns": {
@@ -266,6 +275,10 @@ export const en: Messages = {
     sizeGuide: "Size chart",
     soldOut: "sold out",
     addToCart: "Add to cart",
+    share: "Share",
+    shareLabel: (title: string) => `Share ${title}`,
+    shareCopied: "Link copied.",
+    shareFailed: "Sharing is not possible here. Please copy the link from the address bar.",
     remember: "add to wishlist",
     forget: "remove from wishlist",
     pleaseChooseSize: "Please choose a size",
@@ -389,6 +402,8 @@ export const en: Messages = {
     gift: "Gift",
     ai: "Understood with AI",
     aiWorking: "Understanding your request …",
+    aiNotice:
+      "For longer sentences we send your search text to an AI service for evaluation. It is not stored. More in the privacy policy.",
     colors: {
       blau: "Blue",
       grau: "Grey",
@@ -409,6 +424,7 @@ export const en: Messages = {
     emptyTitle: "No pieces saved yet",
     emptyText: "Keep what you like here.",
     description: "Keep your favourite Axion pieces in your wishlist.",
+    syncFailed: "Your wishlist could not be saved. Please try again.",
   },
   errorPage: {
     title: "This page could not be loaded",

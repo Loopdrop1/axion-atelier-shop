@@ -3,6 +3,8 @@
 Anleitung für Ben (Flowrenix). Reihenfolge einhalten: zuerst alles im **Testmodus**, erst am Schluss live.
 Stand 12.10.2026. Datenbank: **Lovable Cloud** (Entscheid Ben), Code-Übertragung über **GitHub**.
 
+**Was Axion noch liefern oder entscheiden muss** (mit Ablageort und Folge bei leeren Angaben): `docs/KUNDENDATEN.md`.
+
 **Grundregel:** Passwörter, geheime Schlüssel (Stripe `rk_`/`sk_`, Webhook-Geheimnisse, Resend) und die IBAN gehören
 nie in einen Chat, eine E-Mail oder ins Git. Sie kommen nur in die Secrets von Lovable Cloud (Cloud → Secrets).
 
