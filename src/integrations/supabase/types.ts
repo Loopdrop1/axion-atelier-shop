@@ -386,6 +386,7 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string | null
+          vat_rate: number | null
         }
         Insert: {
           admin_note?: string | null
@@ -428,6 +429,7 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id?: string | null
+          vat_rate?: number | null
         }
         Update: {
           admin_note?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id?: string | null
+          vat_rate?: number | null
         }
         Relationships: [
           {
@@ -932,6 +935,24 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          handle: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          handle: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          handle?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -945,6 +966,10 @@ export type Database = {
           p_variant_id: string
         }
         Returns: number
+      }
+      admin_credit_gift_card: {
+        Args: { p_cents: number; p_note?: string; p_order_id: string }
+        Returns: Json
       }
       admin_dashboard: { Args: { p_from: string; p_to: string }; Returns: Json }
       admin_get_order: { Args: { p_order_id: string }; Returns: Json }
@@ -963,6 +988,15 @@ export type Database = {
         Returns: Json
       }
       admin_revoke_admin: { Args: { p_user_id: string }; Returns: undefined }
+      admin_set_stock: {
+        Args: {
+          p_count: number
+          p_expected: number
+          p_note?: string
+          p_variant_id: string
+        }
+        Returns: number
+      }
       attach_checkout_session: {
         Args: { p_expires_at: string; p_order_id: string; p_session_id: string }
         Returns: undefined
@@ -1064,6 +1098,11 @@ export type Database = {
           p_user_id?: string
         }
         Returns: Json
+      }
+      search_assist_guard: { Args: { p_ip: string }; Returns: boolean }
+      set_order_vat_rate: {
+        Args: { p_order_id: string; p_rate: number }
+        Returns: undefined
       }
       stock_alert_confirm: { Args: { p_token: string }; Returns: Json }
       stock_alert_request: {
