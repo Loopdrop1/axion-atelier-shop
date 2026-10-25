@@ -52,7 +52,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 ### 2. What data we process
 - **Order data:** email address, first and last name, delivery address, phone number (optional), items ordered, sizes, prices, discount codes and gift cards redeemed, payment method, and the order and shipping history including the tracking number.
 - **Payment data:** We do not receive card numbers or similar payment details. You enter them directly on the payment page of our payment service provider Stripe (section 4). We only see whether, when and how you paid.
-- **Customer account (optional):** email address, password (stored only as an encrypted hash that we cannot read), first and last name, phone number, address, language and your orders.
+- **Customer account (optional):** email address, password (stored only as an encrypted hash that we cannot read), first and last name, phone number, address, language, your orders and, if you are signed in, your wishlist.
 - **Gift cards:** code, value, remaining balance and expiry date, the purchaser's email address and, if provided, the recipient's name and email address, the sender's name and the personal message.
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
@@ -81,6 +81,7 @@ We work with carefully selected service providers. They only receive the data th
 - **Payment:** Payments are processed by Stripe (Stripe Payments Europe, Limited, Ireland, together with Stripe, Inc., USA). Stripe processes your data for the payment on our behalf and, as an independent controller, for its own purposes, for example to prevent fraud and to comply with legal obligations. For TWINT, Apple Pay and Google Pay, the privacy policies of the respective providers and of your bank also apply. Stripe's privacy policy: https://stripe.com/ch/privacy
 - **Klarna:** If you pay with Klarna, Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Sweden, processes your data as an independent controller. Klarna may check your creditworthiness for this purpose, including by automated decisions. Klarna's privacy information: https://www.klarna.com/ch/en/privacy/
 - **Email:** We send order confirmations, messages from the contact form and the shop's other emails through Resend (Plus Five Five, Inc., San Francisco, USA). [We send the newsletter with: newsletter service, registered office.]
+- **AI search:** If you type a longer sentence into the search that the in-browser search cannot understand with confidence, we send this search text for evaluation to our "search-assist" function. It passes it on through the Lovable AI Gateway to an AI service, which translates it into search filters (for example category, colour, occasion). Operator of the AI service: [AI provider with registered office, to be confirmed by legal counsel]. The search text is only processed for this and is not stored by us. To prevent misuse we count requests per IP address, storing only a hash, not the address itself (section 7). Your browser remembers the result until the tab is closed (section 6). The service may operate outside Switzerland (section 5). Please avoid entering personal data into the search.
 - **Shipping:** For delivery, we pass your name, delivery address and shipment data to Swiss Post (Post CH Ltd, Post CH Network Ltd and Swiss Post Ltd, Wankdorfallee 4, 3030 Bern). Swiss Post processes this data as an independent controller, according to its own information in Switzerland, Liechtenstein and Germany. Swiss Post's data protection information: https://www.post.ch/en/pages/footer/data-protection-and-disclaimer
 - **Technical support:** Flowrenix, Gibswil (Switzerland), runs and maintains the shop on our behalf and may access the data where necessary.
 - **Authorities:** where we are legally obliged to do so.
@@ -90,12 +91,15 @@ Some of the service providers listed process data outside Switzerland. The Feder
 
 ### 6. Cookies and storage in your browser
 We only use what is needed to run the shop:
-- **Cart and wishlist** in your browser's local storage. You can delete them in your browser settings at any time.
+- **Cart and wishlist** in your browser's local storage (entries \`axion-cart\` and \`axion-wishlist\`). You can delete them in your browser settings at any time.
+- **Recently viewed items** in local storage (entry \`axion-recent\`) and **recent searches** (entry \`axion-recent-searches\`, the last five search terms). Both stay on your device and are not sent to us.
+- **AI search cache** in session storage (entry \`axion-search-assist\`): the answer to a longer search text, so the same question is not asked again. It is deleted when you close the tab.
+- **Language:** The chosen language is part of the page address (for example \`/en\`); the shop does not store it separately.
 - **Login:** When you sign in to your customer account, your browser stores a login key until you sign out.
 - **Cloudflare** sets a cookie (\`__cf_bm\`) that fends off automated attacks and expires after 30 minutes of inactivity.
 - **Payment page:** On its payment page, Stripe sets its own cookies, among other things to prevent fraud. Details are in Stripe's privacy policy.
 
-We do not use analytics or advertising cookies on this website. You can delete cookies and your browser storage at any time. Without the necessary cookies, however, you cannot complete a purchase.
+We do not use analytics or advertising cookies on this website. Our emails and the newsletter contain no open or click tracking. You can delete cookies and your browser storage at any time. Without the necessary cookies, however, you cannot complete a purchase.
 
 ### 7. How long we keep data
 We keep personal data for as long as we need it for the purposes described:

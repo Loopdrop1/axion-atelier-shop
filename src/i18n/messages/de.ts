@@ -84,6 +84,15 @@ export const de = {
     newsletterTitle: "Newsletter",
     newsletterText: "Neue Stücke, Kombinationen und Aktionen zuerst erfahren.",
     madeBy: "Made by Flowrenix.com",
+    welcomeOffer: (percent: number) => `${percent} % auf deine erste Bestellung.`,
+    social: "Axion in den sozialen Medien",
+    socialLabels: {
+      instagram: "Axion auf Instagram",
+      facebook: "Axion auf Facebook",
+      linkedin: "Axion auf LinkedIn",
+      tiktok: "Axion auf TikTok",
+      pinterest: "Axion auf Pinterest",
+    } as Record<string, string>,
   },
   pages: {
     "ueber-uns": {
@@ -268,6 +277,10 @@ export const de = {
     sizeGuide: "Grössentabelle",
     soldOut: "ausverkauft",
     addToCart: "In den Warenkorb",
+    share: "Teilen",
+    shareLabel: (title: string) => `${title} teilen`,
+    shareCopied: "Link kopiert.",
+    shareFailed: "Teilen ist hier nicht möglich. Bitte kopiere den Link aus der Adresszeile.",
     remember: "merken",
     forget: "aus Merkliste entfernen",
     pleaseChooseSize: "Bitte Grösse wählen",
@@ -395,6 +408,8 @@ export const de = {
     gift: "Geschenk",
     ai: "Mit KI verstanden",
     aiWorking: "Wir verstehen deine Anfrage …",
+    aiNotice:
+      "Für längere Sätze senden wir deinen Suchtext zur Auswertung an einen KI-Dienst. Er wird nicht gespeichert. Mehr in der Datenschutzerklärung.",
     colors: {
       blau: "Blau",
       grau: "Grau",
@@ -415,6 +430,7 @@ export const de = {
     emptyTitle: "Noch keine Stücke gemerkt",
     emptyText: "Bewahre hier auf, was dir gefällt.",
     description: "Bewahre deine liebsten Stücke von Axion in deiner Merkliste auf.",
+    syncFailed: "Die Merkliste konnte nicht gespeichert werden. Bitte versuche es erneut.",
   },
   errorPage: {
     title: "Diese Seite konnte nicht geladen werden",

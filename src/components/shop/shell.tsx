@@ -1,7 +1,20 @@
 import { useEffect, useState, useRef, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Heart, ShoppingBag, Menu, ChevronDown, User, Pause, Play } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  Menu,
+  ChevronDown,
+  User,
+  Pause,
+  Play,
+  Instagram,
+  Facebook,
+  Linkedin,
+} from "lucide-react";
+import { socialChannels } from "@/lib/seo/structured";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
@@ -18,6 +31,7 @@ import { CartContents } from "./cart";
 import { SearchOverlay } from "./search";
 import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
+import { WishlistSync } from "./wishlist-sync";
 
 /** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
 const defaultCategories = [
@@ -296,6 +310,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      <WishlistSync />
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
@@ -377,10 +392,33 @@ function useNavCategories(): { handle: string; title: string }[] {
   );
 }
 
+const SOCIAL_ICONS: Record<string, typeof Instagram | undefined> = {
+  instagram: Instagram,
+  facebook: Facebook,
+  linkedin: Linkedin,
+};
+
+function channelName(channel: string) {
+  return channel === "tiktok" ? "TikTok" : channel.charAt(0).toUpperCase() + channel.slice(1);
+}
+
+/** Firma und Ort aus der Konfiguration; solange sie noch «[…]» sind, die Marke. */
+function footerOwner() {
+  const { company, address } = shopConfig.contact;
+  const ok = (v: string) => Boolean(v.trim()) && !/\[[^\]]*\]/.test(v);
+  if (!ok(company)) return shopConfig.brand;
+  // Ort aus der Adresse: letzte Zeile bzw. Teil nach der PLZ («Musterstrasse 1, 8000 Zürich» → Zürich)
+  const last = address.split(/[,\n]/).pop()?.trim() ?? "";
+  const place = /^\d{4}\s+(.+)$/.exec(last)?.[1];
+  return ok(address) && place ? `${company}, ${place}` : company;
+}
+
 function Footer() {
   const t = useT();
   const lp = useLocaleParam();
   const categories = useNavCategories();
+  const { newsletterWelcomePercent } = useShopSettings();
+  const social = socialChannels();
   return (
     <footer className="site-footer">
       <div className="container">
@@ -443,7 +481,12 @@ function Footer() {
           <div className="footer-newsletter">
             <div>
               <h2>{t.footer.newsletterTitle}</h2>
-              <p>{t.footer.newsletterText}</p>
+              <p>
+                {t.footer.newsletterText}
+                {newsletterWelcomePercent
+                  ? ` ${t.footer.welcomeOffer(newsletterWelcomePercent)}`
+                  : ""}
+              </p>
             </div>
             <NewsletterForm dark />
           </div>
@@ -454,7 +497,24 @@ function Footer() {
           ))}
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Axion</span>
+          <span>
+            © {new Date().getFullYear()} {footerOwner()}
+          </span>
+          {social.length > 0 && (
+            <ul className="footer-social" aria-label={t.footer.social}>
+              {social.map(({ channel, url }) => {
+                const Icon = SOCIAL_ICONS[channel];
+                const label = t.footer.socialLabels[channel] ?? channel;
+                return (
+                  <li key={channel}>
+                    <a href={url} target="_blank" rel="noopener noreferrer me" aria-label={label}>
+                      {Icon ? <Icon size={16} aria-hidden="true" /> : channelName(channel)}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <a href="https://flowrenix.com" target="_blank" rel="noopener">
             {t.footer.madeBy}
           </a>

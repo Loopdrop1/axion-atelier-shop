@@ -7,6 +7,7 @@ import { focusFirstInvalid } from "@/components/account/form";
 import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useShopSettings } from "@/lib/commerce/use-settings";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -24,6 +25,8 @@ export function NewsletterForm({
   const locale = useLocale();
   const lp = useLocaleParam();
   const id = useId();
+  // Im Footer steht der Rabatt im Text darüber; an anderen Orten direkt beim Formular.
+  const { newsletterWelcomePercent } = useShopSettings();
   const [email, setEmail] = useState(initialEmail);
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
@@ -92,6 +95,9 @@ export function NewsletterForm({
       <label className="sr-only" htmlFor={`${id}-email`}>
         {t.newsletter.label}
       </label>
+      {source !== "footer" && newsletterWelcomePercent ? (
+        <p className="newsletter-perk">{t.footer.welcomeOffer(newsletterWelcomePercent)}</p>
+      ) : null}
       <div className="newsletter-row">
         <input
           id={`${id}-email`}

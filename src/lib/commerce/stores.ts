@@ -76,27 +76,60 @@ export const useCart = create<CartStore>()(
     { name: "axion-cart", storage: createJSONStorage(() => localStorage), skipHydration: true },
   ),
 );
+/** Schreibzugriff auf die Merkliste im Konto; gesetzt, solange eine Person angemeldet und abgeglichen ist. */
+export interface WishlistRemote {
+  add: (handle: string) => Promise<void>;
+  remove: (handle: string) => Promise<void>;
+  /** Ein Schreibzugriff ist fehlgeschlagen und die Änderung wurde zurückgenommen. */
+  onError: (kind: "add" | "remove") => void;
+}
+let wishlistRemote: WishlistRemote | null = null;
+export function setWishlistRemote(remote: WishlistRemote | null) {
+  wishlistRemote = remote;
+}
 export const useWishlist = create<{
   handles: string[];
   toggle: (handle: string) => void;
+  /** Ersetzt die Liste (nach dem Abgleich mit dem Konto). */
+  replace: (handles: string[]) => void;
   /** Behält nur Handles, die es noch gibt (Merkliste räumt Gelöschtes auf). */
   prune: (existing: string[]) => void;
 }>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       handles: [],
-      prune: (existing) =>
+      replace: (handles) =>
         set((s) =>
-          s.handles.every((h) => existing.includes(h))
+          s.handles.length === handles.length && s.handles.every((h, i) => h === handles[i])
             ? s
-            : { handles: s.handles.filter((h) => existing.includes(h)) },
+            : { handles },
         ),
-      toggle: (handle) =>
+      prune: (existing) => {
+        const gone = get().handles.filter((h) => !existing.includes(h));
+        if (!gone.length) return;
+        set((s) => ({ handles: s.handles.filter((h) => existing.includes(h)) }));
+        // Im Konto ebenfalls aufräumen (ohne Meldung: der Eintrag ist ohnehin nicht mehr sichtbar)
+        const remote = wishlistRemote;
+        if (remote) for (const h of gone) void remote.remove(h).catch(() => undefined);
+      },
+      toggle: (handle) => {
+        const adding = !get().handles.includes(handle);
         set((s) => ({
-          handles: s.handles.includes(handle)
-            ? s.handles.filter((h) => h !== handle)
-            : [...s.handles, handle],
-        })),
+          handles: adding ? [...s.handles, handle] : s.handles.filter((h) => h !== handle),
+        }));
+        const remote = wishlistRemote;
+        if (!remote) return;
+        (adding ? remote.add(handle) : remote.remove(handle)).catch(() => {
+          // Zurücknehmen, sofern der Zustand nicht inzwischen wieder geändert wurde
+          set((s) => {
+            const has = s.handles.includes(handle);
+            if (adding && has) return { handles: s.handles.filter((h) => h !== handle) };
+            if (!adding && !has) return { handles: [...s.handles, handle] };
+            return s;
+          });
+          remote.onError(adding ? "add" : "remove");
+        });
+      },
     }),
     { name: "axion-wishlist", storage: createJSONStorage(() => localStorage), skipHydration: true },
   ),
