@@ -5,6 +5,7 @@ import { Fragment, useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n";
 import type { ShopImage } from "@/lib/commerce";
+import { buildSrcSet } from "@/lib/commerce/variants";
 /** Text mit Zeilenumbrüchen (\n) als <br /> – für Titel aus dem Admin. */
 export function Lines({ text }: { text: string }) {
   const parts = text.split("\n");
@@ -25,6 +26,7 @@ export function Photo({
   eager = false,
   priority = false,
   fallback = null,
+  sizes,
 }: {
   image: ShopImage | undefined;
   className?: string;
@@ -33,12 +35,17 @@ export function Photo({
   priority?: boolean;
   /** Wird gezeigt, wenn kein Bild vorhanden ist (Standard: nichts) */
   fallback?: ReactNode;
+  /** Anzeigebreite fürs srcset (siehe SIZES in variants.ts); wirkt nur, wenn das Bild Fassungen hat */
+  sizes?: string;
 }) {
   if (!image) return <>{fallback}</>;
+  const srcSet = buildSrcSet(image, image.variants);
   const img = (
     <img
       className={className}
       src={image.url}
+      srcSet={srcSet}
+      sizes={srcSet ? sizes : undefined}
       alt={image.altText}
       width={image.width}
       height={image.height}
@@ -51,7 +58,8 @@ export function Photo({
     <picture>
       <source
         media="(max-width: 767px)"
-        srcSet={image.mobile.url}
+        srcSet={buildSrcSet(image.mobile, image.mobile.variants) ?? image.mobile.url}
+        sizes={buildSrcSet(image.mobile, image.mobile.variants) ? sizes : undefined}
         width={image.mobile.width}
         height={image.mobile.height}
       />

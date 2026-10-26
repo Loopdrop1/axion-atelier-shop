@@ -509,6 +509,7 @@ export type Database = {
           path: string
           product_id: string
           sort: number
+          variants: Json | null
           width: number
         }
         Insert: {
@@ -521,6 +522,7 @@ export type Database = {
           path: string
           product_id: string
           sort?: number
+          variants?: Json | null
           width?: number
         }
         Update: {
@@ -533,6 +535,7 @@ export type Database = {
           path?: string
           product_id?: string
           sort?: number
+          variants?: Json | null
           width?: number
         }
         Relationships: [

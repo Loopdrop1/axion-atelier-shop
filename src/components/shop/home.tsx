@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import { SIZES } from "@/lib/commerce/variants";
 import { Link } from "@tanstack/react-router";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowRight, ArrowLeft, Truck, Clock3, CreditCard, RotateCcw, Plus } from "lucide-react";
@@ -142,7 +143,7 @@ export function HomePage({
                   key={c.handle}
                 >
                   <div className="category-tile">
-                    <Photo image={c.image} />
+                    <Photo image={c.image} sizes={SIZES.tile} />
                   </div>
                   <div className="category-label">
                     <h3>{c.title}</h3>
@@ -160,7 +161,7 @@ export function HomePage({
             <Reveal image>
               <div className="look-photo">
                 <div className="look-image">
-                  <Photo image={look.image} />
+                  <Photo image={look.image} sizes={SIZES.half} />
                   {look.hotspots.map((h) => (
                     <Button
                       key={h.handle}
@@ -185,7 +186,7 @@ export function HomePage({
                       } as CSSProperties
                     }
                   >
-                    <Photo image={active.images[0]} />
+                    <Photo image={active.images[0]} sizes={SIZES.thumb} />
                     <div>
                       <h3>{active.title}</h3>
                       <p className="price">{formatPrice(active.priceRange.min, locale)}</p>
@@ -254,7 +255,7 @@ export function HomePage({
       </div>
       <section className="section container about-layout">
         <Reveal image>
-          <Photo image={content.story.image} />
+          <Photo image={content.story.image} sizes={SIZES.half} />
         </Reveal>
         <Reveal>
           <p className="eyebrow">{content.story.eyebrow}</p>

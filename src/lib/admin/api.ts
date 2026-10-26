@@ -11,7 +11,8 @@ import type {
   TablesUpdate,
 } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { MIN_IMAGE_SIDE, prepareImage } from "./image";
+import { storagePaths, variantPath, type ImageVariant } from "@/lib/commerce/variants";
+import { MIN_IMAGE_SIDE, makeVariants, prepareImage, type PreparedImage } from "./image";
 
 export type OrderStatus = Enums<"order_status">;
 export type StockReason = "sale_store" | "return" | "correction";
@@ -582,6 +583,32 @@ function warnLowRes(lowRes: boolean) {
     );
 }
 
+/**
+ * Verkleinerte Fassungen (640/1200 px, WebP) neben dem Original hochladen. Eine Fassung, die nicht gelingt, fällt
+ * weg (der Shop zeigt dann das Hauptbild); das Hochladen des Bildes scheitert deshalb nicht.
+ */
+async function uploadVariants(
+  bucket: "product-images" | "site-media",
+  path: string,
+  image: PreparedImage,
+): Promise<ImageVariant[]> {
+  const out: ImageVariant[] = [];
+  try {
+    for (const file of await makeVariants(image)) {
+      const target = variantPath(path, file.w);
+      const { error } = await db().storage.from(bucket).upload(target, file.blob, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+        upsert: false,
+      });
+      if (!error) out.push({ w: file.w, path: target });
+    }
+  } catch {
+    // Fassungen sind Zusatz: das Hauptbild genügt
+  }
+  return out;
+}
+
 /** Bild verkleinern, hochladen und als letztes Bild anhängen. */
 export async function uploadProductImage(
   product: Pick<Product, "id" | "handle" | "title_de" | "title_en" | "en_auto">,
@@ -597,6 +624,7 @@ export async function uploadProductImage(
     upsert: false,
   });
   if (upload.error) throw new AdminError("UPLOAD_FAILED", upload.error.message);
+  const variants = await uploadVariants("product-images", path, image);
   const { data, error } = await db()
     .from("product_images")
     .insert({
@@ -608,12 +636,15 @@ export async function uploadProductImage(
       en_auto: product.title_en && (product.en_auto ?? []).includes("title") ? ["alt"] : [],
       width: image.width,
       height: image.height,
+      variants: variants.length ? variants : null,
       sort,
     })
     .select("*")
     .single();
   if (error) {
-    await db().storage.from("product-images").remove([path]);
+    await db()
+      .storage.from("product-images")
+      .remove([path, ...variants.map((v) => v.path)]);
     fail(error);
   }
   return data as ProductImage;
@@ -624,15 +655,24 @@ export async function updateImage(id: string, values: TablesUpdate<"product_imag
   fail(error);
 }
 
-export async function deleteImage(image: Pick<ProductImage, "id" | "path">) {
+export async function deleteImage(image: Pick<ProductImage, "id" | "path" | "variants">) {
   const { error } = await db().from("product_images").delete().eq("id", image.id);
   fail(error);
-  if (!image.path.startsWith("asset:"))
-    await db().storage.from("product-images").remove([image.path]);
+  // Original und Fassungen aus dem Speicher
+  const paths = storagePaths(image.path, image.variants);
+  if (paths.length) await db().storage.from("product-images").remove(paths);
 }
 
-/** Bild für Startseite oder Kategorie (Bucket site-media). Gibt den Pfad zurück. */
-export async function uploadSiteImage(file: File, folder: string, maxSide?: number) {
+/**
+ * Bild für Startseite oder Kategorie (Bucket site-media). Gibt Pfad, Grösse und die Fassungen zurück
+ * (withVariants: false für Stellen, die keine Fassungen speichern, z. B. die Kategorie-Tabelle).
+ */
+export async function uploadSiteImage(
+  file: File,
+  folder: string,
+  maxSide?: number,
+  withVariants = true,
+) {
   const image = await prepareImage(file, maxSide);
   warnLowRes(image.lowRes);
   const path = `${folder}/${crypto.randomUUID()}.${image.extension}`;
@@ -640,7 +680,8 @@ export async function uploadSiteImage(file: File, folder: string, maxSide?: numb
     .storage.from("site-media")
     .upload(path, image.blob, { contentType: image.blob.type, cacheControl: "31536000" });
   if (upload.error) throw new AdminError("UPLOAD_FAILED", upload.error.message);
-  return { path, width: image.width, height: image.height };
+  const variants = withVariants ? await uploadVariants("site-media", path, image) : [];
+  return { path, width: image.width, height: image.height, variants };
 }
 
 /** Höchstgrösse eines Videos für den Einstieg (gleich wie im Speicher site-media) */

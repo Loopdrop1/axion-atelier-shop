@@ -1,8 +1,7 @@
 // Aufruf der Edge Functions (supabase/functions) mit einheitlicher Fehlerform.
 // Die Funktionen antworten bei Fehlern mit { error: "CODE", ... } und passendem HTTP-Status.
-import { FunctionsHttpError } from "@supabase/supabase-js";
 import { backendConfigured } from "@/lib/backend";
-import { supabase } from "./client";
+import { getSupabase } from "@/lib/supabase-client";
 
 export type FunctionResult<T> =
   | { ok: true; data: T }
@@ -23,12 +22,14 @@ export async function callFunction<T>(
 ): Promise<FunctionResult<T>> {
   if (!backendConfigured) return { ok: false, status: 0, error: "NOT_CONFIGURED", body: {} };
   try {
+    const supabase = await getSupabase();
     const { data, error } = await supabase.functions.invoke<T>(name, {
       body: body as Record<string, unknown>,
     });
     if (!error) return { ok: true, data: data as T };
-    if (error instanceof FunctionsHttpError) {
-      const response = error.context as Response;
+    // FunctionsHttpError des Clients, ohne ihn für den Vergleich laden zu müssen
+    if (error.name === "FunctionsHttpError") {
+      const response = (error as { context: Response }).context;
       const parsed = (await response.json().catch(() => ({}))) as Record<string, unknown>;
       return {
         ok: false,

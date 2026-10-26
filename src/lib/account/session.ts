@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/supabase-client";
 import { backendConfigured } from "@/lib/backend";
 
 interface SessionState {
@@ -27,11 +27,13 @@ export function startSessionSync() {
     useSessionStore.setState({ ready: true });
     return;
   }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    useSessionStore.setState({ ready: true, session, user: session?.user ?? null });
-  });
-  supabase.auth
-    .getSession()
+  getSupabase()
+    .then((supabase) => {
+      supabase.auth.onAuthStateChange((_event, session) => {
+        useSessionStore.setState({ ready: true, session, user: session?.user ?? null });
+      });
+      return supabase.auth.getSession();
+    })
     .then(({ data }) =>
       useSessionStore.setState({
         ready: true,

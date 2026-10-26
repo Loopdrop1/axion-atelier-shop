@@ -3,6 +3,23 @@
 @import "@fontsource-variable/jost";
 @import "@fontsource-variable/inter";
 @source "../src";
+/* Ersatzschriften mit den Massen von Inter und Jost: Beim Wechsel zur geladenen Schrift springt kein Text (CLS) */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
+  size-adjust: 107.6%;
+  ascent-override: 90.1%;
+  descent-override: 22.4%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Jost Fallback";
+  src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
+  size-adjust: 95.5%;
+  ascent-override: 112%;
+  descent-override: 39.3%;
+  line-gap-override: 0%;
+}
 @custom-variant dark (&:is(.dark *));
 :root {
   --green: oklch(from #1e3a2f l c h);
@@ -31,8 +48,8 @@
   --popover-foreground: var(--ink);
   --destructive: oklch(0.5 0.15 25);
   --radius: 0px;
-  --font-body: "Inter Variable", sans-serif;
-  --font-display: "Jost Variable", sans-serif;
+  --font-body: "Inter Variable", "Inter Fallback", sans-serif;
+  --font-display: "Jost Variable", "Jost Fallback", sans-serif;
   /* Schriftgrössen-Skala: Etiketten ab 11 px, Kleintext 13 px, Fliesstext 15 px */
   --fs-label: 11px;
   --fs-small: 13px;

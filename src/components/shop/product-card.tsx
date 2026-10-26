@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { SIZES } from "@/lib/commerce/variants";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Photo } from "./primitives";
@@ -17,10 +18,13 @@ export function useFitLabel() {
 export function ProductCard({
   product,
   eager = false,
+  priority = false,
   headingLevel = 3,
 }: {
   product: Product;
   eager?: boolean;
+  /** Wahrscheinlich grösstes Bild der Seite (erste Karte): mit hoher Priorität laden */
+  priority?: boolean;
   headingLevel?: 2 | 3;
 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
@@ -51,8 +55,10 @@ export function ProductCard({
             e.currentTarget.classList.add("vt-product-image");
           }}
         >
-          <Photo image={product.images[0]} eager={eager} />
-          {product.images[1] && <Photo image={product.images[1]} className="second-image" />}
+          <Photo image={product.images[0]} eager={eager} priority={priority} sizes={SIZES.card} />
+          {product.images[1] && (
+            <Photo image={product.images[1]} className="second-image" sizes={SIZES.card} />
+          )}
         </Link>
         {(product.tags.includes("muster") || onSale || product.tags.includes("neu")) && (
           <span className={`product-badge ${product.tags.includes("muster") ? "is-sample" : ""}`}>

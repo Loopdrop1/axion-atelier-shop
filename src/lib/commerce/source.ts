@@ -1,7 +1,7 @@
 // Woher die Shop-Daten kommen: Supabase, wenn eingerichtet, sonst der Beispielkatalog.
 // Der Katalog wird 30 Sekunden zwischengespeichert (pro Browser bzw. pro Server-Instanz),
 // damit eine Seite mit mehreren Abfragen nur einmal lädt. Änderungen im Admin sind spätestens dann sichtbar.
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/supabase-client";
 import { backendConfigured } from "@/lib/backend";
 import { CATEGORY_SELECT, PRODUCT_SELECT, type CatalogData, type ProductRow } from "./rows";
 
@@ -13,6 +13,7 @@ let cache: { at: number; data: Promise<CatalogData> } | null = null;
 
 async function fetchCatalog(): Promise<CatalogData> {
   if (!backendConfigured) return sampleCatalog();
+  const supabase = await getSupabase();
   const [categories, products, content] = await Promise.all([
     supabase.from("categories").select(CATEGORY_SELECT).order("sort").order("slug"),
     supabase
@@ -75,6 +76,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
 
 export async function loadSettings(): Promise<ShopSettings> {
   if (!backendConfigured) return DEFAULT_SETTINGS;
+  const supabase = await getSupabase();
   const full = await supabase
     .from("shop_settings")
     .select(

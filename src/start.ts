@@ -1,7 +1,18 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { backendConfigured } from "@/lib/backend";
+import { getSupabase } from "@/lib/supabase-client";
+
+// Wie integrations/supabase/auth-attacher.ts (Bearer-Token an Server-Funktionen), nur ohne den Client beim
+// Seitenaufruf mitzuladen: Er wird erst geholt, wenn eine Server-Funktion aufgerufen wird.
+const attachSupabaseAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  if (!backendConfigured) return next();
+  const supabase = await getSupabase();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return next({ headers: token ? { Authorization: `Bearer ${token}` } : {} });
+});
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {

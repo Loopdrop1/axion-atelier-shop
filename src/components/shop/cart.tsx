@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SIZES } from "@/lib/commerce/variants";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -211,7 +212,7 @@ export function CartContents({
                 params={{ locale: lp, handle: l.product.handle }}
                 onClick={onNavigate}
               >
-                <Photo image={l.product.images[0]} />
+                <Photo image={l.product.images[0]} sizes={SIZES.thumb} />
               </Link>
               <div className="cart-line-info">
                 <Link

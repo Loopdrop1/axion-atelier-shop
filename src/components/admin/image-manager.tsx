@@ -115,7 +115,7 @@ export function ImageManager({
   return (
     <Panel
       title="Bilder"
-      description="Das erste Bild erscheint in Listen, das zweite beim Darüberfahren. Hochformat 4:5, mindestens 2000 px hoch (unter 1600 px erscheint eine Warnung). Grosse Bilder werden vor dem Hochladen auf höchstens 2000 px verkleinert."
+      description="Das erste Bild erscheint in Listen, das zweite beim Darüberfahren. Hochformat 4:5, mindestens 2000 px hoch (unter 1600 px erscheint eine Warnung). Grosse Bilder werden vor dem Hochladen auf höchstens 2000 px verkleinert; dazu entstehen kleinere Fassungen (640 und 1200 px), die der Shop je nach Bildschirm lädt. Die Bildbeschreibung gilt pro Bild (z. B. «Rückansicht, Revers im Detail»); leer bleibt der Produkttitel."
       actions={
         <>
           <input
@@ -158,7 +158,7 @@ export function ImageManager({
                 </div>
                 <Input
                   aria-label={`Bildbeschreibung Deutsch, Bild ${index + 1}`}
-                  placeholder="Bildbeschreibung (Deutsch)"
+                  placeholder="Bildbeschreibung (leer: Produkttitel)"
                   maxLength={300}
                   disabled={saving.includes(image.id)}
                   value={alt.alt_de}

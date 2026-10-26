@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { SIZES } from "@/lib/commerce/variants";
 import { pages, type WrittenPageHandle } from "@/content/pages";
 import { pagesEn } from "@/content/pages-en";
 import { WrittenContent } from "./written-content";
@@ -7,27 +8,11 @@ import { SizeGuide } from "./size-guide";
 import { ContactForm } from "./contact-form";
 import { Photo } from "./primitives";
 import type { ShopImage } from "@/lib/commerce";
-import { messages, useLocale, useLocaleParam, useT, type Locale } from "@/i18n";
-
-export const contentHandles = [
-  "ueber-uns",
-  "haeufige-fragen",
-  "kontakt",
-  "groessenberatung",
-  "versand-und-rueckgabe",
-  "impressum",
-  "datenschutz",
-  "agb",
-] as const;
-export type ContentHandle = (typeof contentHandles)[number];
+import { useLocale, useLocaleParam, useT } from "@/i18n";
+import type { ContentHandle } from "./content-meta";
 
 /** Rechtstexte: Auf Englisch steht ein Hinweis, dass die deutsche Fassung massgebend ist. */
 const LEGAL = new Set<ContentHandle>(["impressum", "datenschutz", "agb"]);
-
-/** Titel und Beschreibung einer Inhaltsseite in der gewünschten Sprache (für head). */
-export function contentMeta(handle: ContentHandle, locale: Locale) {
-  return messages[locale].pages[handle];
-}
 
 export function ContentPage({ handle, image }: { handle: ContentHandle; image?: ShopImage }) {
   const t = useT();
@@ -59,7 +44,7 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
         </div>
       ) : handle === "ueber-uns" ? (
         <>
-          {image && <Photo image={image} />}
+          {image && <Photo image={image} sizes={SIZES.half} />}
           <h2>{t.content.about.title}</h2>
           <p>{t.content.about.text}</p>
           {placeholder}

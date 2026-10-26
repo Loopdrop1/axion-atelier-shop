@@ -8,7 +8,16 @@ export interface ShopImage {
   width: number;
   height: number;
   /** Eigenes Bild fürs Handy (z. B. hoch statt quer), freiwillig */
-  mobile?: { url: string; width: number; height: number } | undefined;
+  mobile?:
+    | {
+        url: string;
+        width: number;
+        height: number;
+        variants?: { url: string; width: number }[] | undefined;
+      }
+    | undefined;
+  /** Verkleinerte Fassungen (WebP) fürs srcset, freiwillig; ohne sie bleibt es beim einen Bild */
+  variants?: { url: string; width: number }[] | undefined;
 }
 export interface Variant {
   id: string;

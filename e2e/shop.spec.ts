@@ -77,7 +77,8 @@ test("Startseite auf Deutsch und Englisch mit hreflang und Sprachwechsel", async
 
   await open(page, "/en/produkt/anzug-limmat-marine");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByRole("button", { name: "Add to cart" }).first()).toBeVisible();
+  // Ohne gewählte Grösse heisst der Kaufknopf «Choose size» (und ist aktiv)
+  await expect(page.locator(".add-row").getByRole("button", { name: "Choose size" })).toBeEnabled();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
     /\/en\/produkt\/anzug-limmat-marine$/,
@@ -214,10 +215,16 @@ test("Startseite und Menü: Neuheiten gleich nach dem Einstieg, alle Kategorien,
   // Gürtel: echte Grössen, ohne Wahl kein Warenkorb
   await open(page, "/produkt/guertel-chur-braun");
   await expect(page.locator(".size-grid button")).toHaveCount(5);
-  await expect(page.locator(".size-hint")).toBeVisible();
+  // Ohne Wahl: Knopf «Grösse wählen» (aktiv), Hinweis erst nach dem Klick, nichts im Warenkorb
+  await expect(page.locator(".size-hint")).toHaveCount(0);
   await expect(
     page.locator(".add-row").getByRole("button", { name: "In den Warenkorb" }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
+  await page.locator(".add-row").getByRole("button", { name: "Grösse wählen" }).click();
+  await expect(page.locator(".size-hint")).toBeVisible();
+  await expect(page.locator(".size-grid button:not([disabled])").first()).toBeFocused();
+  // Im Warenkorb bleibt nur die Krawatte von oben
+  expect(await cartLines(page)).toHaveLength(1);
   await shot(page, info, "accessoires-guertel");
   expect(errors, errors.join("\n")).toEqual([]);
 });
@@ -228,19 +235,21 @@ test("Produktseite: Komplettes Outfit legt die gewählten Stücke zusammen in de
   const errors = watchErrors(page);
   await open(page, "/produkt/anzug-limmat-marine");
   const builder = page.locator("#outfit");
-  await expect(builder.locator(".outfit-row")).toHaveCount(2);
-  const add = builder.getByRole("button", { name: "Auswahl in den Warenkorb" });
+  // Dieses Stück ist die erste Zeile, dazu die passenden: Weste und Schuhe
+  await expect(builder.locator(".outfit-row")).toHaveCount(3);
+  const add = builder.getByRole("button", { name: "3 Stücke in den Warenkorb" });
   await add.click();
   await expect(builder.getByRole("alert")).toHaveText(
     "Bitte wähle eine Grösse für jedes ausgewählte Stück.",
   );
-  await expect(builder.getByLabel("Grösse für Weste «Limmat», Marine")).toBeFocused();
+  await expect(builder.getByLabel("Grösse für Anzug «Limmat», Marine")).toBeFocused();
   expect(await cartLines(page)).toEqual([]);
 
-  // Schuhe abwählen, nur die Weste mit Grösse
+  // Anzug und Schuhe abwählen, nur die Weste mit Grösse
+  await builder.getByRole("checkbox", { name: "Anzug «Limmat», Marine auswählen" }).uncheck();
   await builder.getByRole("checkbox", { name: "Oxford «Nero», Schwarz auswählen" }).uncheck();
   const vest = await chooseFirstSize(builder.getByLabel("Grösse für Weste «Limmat», Marine"));
-  await add.click();
+  await builder.getByRole("button", { name: "1 Stück in den Warenkorb" }).click();
   await expect(page.getByRole("dialog").locator(".cart-line")).toHaveCount(1);
   expect(await cartLines(page)).toEqual([{ variantId: vest, quantity: 1 }]);
   expect(errors, errors.join("\n")).toEqual([]);
@@ -590,7 +599,8 @@ test("Newsletter: Anmeldung im Footer, Bestätigen und Abmelden erst per Klick",
     source: "footer",
     website: "",
   });
-  expect(String(subscribe?.body["consent"])).toContain("Ja, ich möchte den Newsletter");
+  // Der Client schickt nur die Zustimmung; den versionierten Text legt der Server fest (_shared/consent.ts)
+  expect(subscribe?.body["consent"]).toBe(true);
 
   await open(page, `/newsletter/bestaetigen?token=${FIXTURES.newsletterConfirm}`);
   expect((await fakeLog(request)).filter((e) => e.path === "functions/newsletter")).toHaveLength(1);

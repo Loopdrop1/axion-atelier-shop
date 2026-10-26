@@ -2,6 +2,8 @@
 // Spart Speicher und Ladezeit; Originale vom Handy haben oft 4000 px und mehr als 5 MB.
 // Freigestellte Bilder (durchsichtiger Hintergrund) bleiben durchsichtig: WebP, sonst PNG statt JPEG.
 
+import { VARIANT_WIDTHS, variantWidths } from "@/lib/commerce/variants";
+
 export const MAX_IMAGE_SIDE = 2000;
 /** Unter dieser längeren Seite wirkt ein Bild im Shop unscharf: Der Upload warnt. */
 export const MIN_IMAGE_SIDE = 1600;
@@ -97,4 +99,49 @@ export async function prepareImage(file: File, max = MAX_IMAGE_SIDE): Promise<Pr
   const jpeg = await canvasToBlob(canvas, "image/jpeg", 0.86);
   if (!jpeg) throw new Error("UNREADABLE_IMAGE");
   return { blob: jpeg, ...size, extension: "jpg", lowRes };
+}
+
+export interface ImageVariantFile {
+  /** Breite in px */
+  w: number;
+  height: number;
+  blob: Blob;
+}
+
+/** Höhe einer Fassung mit Breite w bei gleichem Seitenverhältnis */
+export function variantHeight(width: number, height: number, w: number): number {
+  return Math.max(1, Math.round((height * w) / width));
+}
+
+/**
+ * Verkleinerte WebP-Fassungen (Standard 640 und 1200 px Breite) aus dem schon verkleinerten Bild.
+ * Breiten, die nicht kleiner sind als das Bild, fallen weg. Kann der Browser kein WebP erzeugen, gibt es keine
+ * Fassungen: Der Shop zeigt dann nur das Hauptbild.
+ */
+export async function makeVariants(
+  image: Pick<PreparedImage, "blob" | "width" | "height">,
+  widths: readonly number[] = VARIANT_WIDTHS,
+): Promise<ImageVariantFile[]> {
+  const wanted = variantWidths(image.width, widths);
+  if (!wanted.length) return [];
+  const bitmap = await createImageBitmap(image.blob).catch(() => null);
+  if (!bitmap) return [];
+  const out: ImageVariantFile[] = [];
+  try {
+    for (const w of wanted) {
+      const height = variantHeight(image.width, image.height, w);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(bitmap, 0, 0, w, height);
+      const blob = await canvasToBlob(canvas, "image/webp", 0.82);
+      if (blob && blob.type === "image/webp") out.push({ w, height, blob });
+    }
+  } finally {
+    bitmap.close();
+  }
+  return out;
 }

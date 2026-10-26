@@ -317,7 +317,7 @@ function CategoryDialog({
                   const f = e.target.files?.[0];
                   if (!f) return;
                   try {
-                    const image = await uploadSiteImage(f, "kategorien");
+                    const image = await uploadSiteImage(f, "kategorien", undefined, false);
                     set("image_path", image.path);
                   } catch (err) {
                     notify.error(err);

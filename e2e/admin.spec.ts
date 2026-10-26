@@ -286,10 +286,13 @@ test("Admin: Lager – Verkauf im Laden und Korrektur nur mit Grund", async ({
   await dialog.getByLabel("Grund (Pflicht)").fill("Inventur Oktober");
   await dialog.getByRole("button", { name: "Speichern" }).click();
   await toast(page, /: 7$/);
-  const moves = (await fakeLog(request)).filter((e) => e.path === "rpc/admin_adjust_stock");
-  expect(moves.map((m) => [m.body["p_delta"], m.body["p_reason"]])).toEqual([
-    [-1, "sale_store"],
-    [5, "correction"],
+  const log = await fakeLog(request);
+  const sales = log.filter((e) => e.path === "rpc/admin_adjust_stock");
+  expect(sales.map((m) => [m.body["p_delta"], m.body["p_reason"]])).toEqual([[-1, "sale_store"]]);
+  // Inventur: absoluter Zählwert mit dem beim Öffnen gesehenen Bestand (2), der Server rechnet das Delta
+  const counts = log.filter((e) => e.path === "rpc/admin_set_stock");
+  expect(counts.map((m) => [m.body["p_count"], m.body["p_expected"], m.body["p_note"]])).toEqual([
+    [7, 2, "Inventur Oktober"],
   ]);
   await expect(page.locator(".admin-panel", { hasText: "Letzte Bewegungen" })).toContainText(
     "Inventur Oktober",

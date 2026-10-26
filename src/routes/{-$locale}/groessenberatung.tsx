@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toLocale } from "@/i18n";
 import { pageHead } from "@/lib/commerce/seo";
 import { sizeGuideQuery } from "@/lib/commerce/queries";
-import { ContentPage, contentMeta } from "@/components/shop/content";
+import { ContentPage } from "@/components/shop/content";
+import { contentMeta } from "@/components/shop/content-meta";
 export const Route = createFileRoute("/{-$locale}/groessenberatung")({
   head: ({ params }) => {
     const locale = toLocale(params.locale);

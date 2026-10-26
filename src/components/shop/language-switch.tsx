@@ -14,13 +14,15 @@ export function LanguageSwitch({
   const href = useRouterState({ select: (s) => s.location.href });
   const target = locale === "en" ? "de" : "en";
   const to = switchLocalePath(href, target);
+  const code = target === "en" ? "EN" : "DE";
   return (
     <a
       className={`language-switch ${className}`}
       href={to}
       hrefLang={htmlLang(target)}
       lang={htmlLang(target)}
-      aria-label={t.language.switchLabel}
+      // Der zugängliche Name beginnt mit dem sichtbaren Text (WCAG 2.5.3 Label in Name)
+      aria-label={`${code}: ${t.language.switchLabel}`}
       onClick={(event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
@@ -28,7 +30,7 @@ export function LanguageSwitch({
         router.history.push(to);
       }}
     >
-      {target === "en" ? "EN" : "DE"}
+      {code}
     </a>
   );
 }

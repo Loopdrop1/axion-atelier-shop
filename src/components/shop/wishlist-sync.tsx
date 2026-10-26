@@ -1,5 +1,4 @@
 import { lazy, Suspense, useCallback, useState } from "react";
-import { toast } from "sonner";
 import { useT } from "@/i18n";
 import { useWishlistSync } from "@/lib/account/wishlist-sync";
 
@@ -12,7 +11,8 @@ export function WishlistSync() {
   const message = t.wishlist.syncFailed;
   const onError = useCallback(() => {
     setFailed(true);
-    toast.error(message);
+    // sonner erst bei Bedarf laden: Die Meldung ist ein Ausnahmefall
+    void import("sonner").then((m) => m.toast.error(message));
   }, [message]);
   useWishlistSync(onError);
   return failed ? (

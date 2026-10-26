@@ -1,4 +1,5 @@
 // Produkt bearbeiten oder neu anlegen (/admin/produkte/neu). Grössen und Bilder nach dem ersten Speichern.
+import { storagePaths } from "@/lib/commerce/variants";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink } from "lucide-react";
@@ -148,7 +149,7 @@ function ProductPage() {
               onConfirm={async () => {
                 await deleteProduct(
                   p.id,
-                  p.product_images.map((i) => i.path).filter((path) => !path.startsWith("asset:")),
+                  p.product_images.flatMap((i) => storagePaths(i.path, i.variants)),
                 );
                 notify.ok("Produkt gelöscht.");
                 invalidateCatalog();

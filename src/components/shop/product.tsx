@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { SIZES } from "@/lib/commerce/variants";
 import { outfitKey } from "./outfit-key";
 import { sizesFor, useOutfit } from "./outfit";
 import { OutfitRow } from "./outfit-row";
@@ -172,7 +173,7 @@ export function ProductPage({
                 }}
                 aria-label={t.product.zoomImage(i + 1)}
               >
-                <Photo image={image} eager={i === 0} />
+                <Photo image={image} eager={i === 0} priority={i === 0} sizes={SIZES.gallery} />
               </Button>
             ))}
           </div>
@@ -437,6 +438,7 @@ export function ProductPage({
             >
               <Photo
                 image={product.images[zoom]}
+                sizes={SIZES.hero}
                 className={`zoom-image ${zoomed ? "zoomed" : ""}`}
               />
             </div>
