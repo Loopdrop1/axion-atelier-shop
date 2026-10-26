@@ -8,6 +8,7 @@ import { media, musterMedia, type MediaKey } from "./media";
 import { defaultAnnouncements } from "./shipping-text";
 import type { ShopSettings } from "./source";
 import type { CategoryRow, ProductRow } from "./rows";
+import { parseVariants } from "./variants";
 import type {
   Collection,
   HomeContent,
@@ -61,16 +62,25 @@ export function toImage(
   path: string | null | undefined,
   alt: string,
   bucket: Bucket,
-  size?: { width?: number | null; height?: number | null },
+  size?: { width?: number | null; height?: number | null; variants?: Json | null | undefined },
 ): ShopImage | undefined {
   const url = imageUrl(path, bucket);
   if (!url) return undefined;
   const builtIn = path?.startsWith("asset:") ? media[path.slice(6) as MediaKey] : undefined;
+  // Fassungen gibt es nur für hochgeladene Bilder, nie für eingebaute («asset:») oder fremde URLs
+  const variants =
+    path && !path.startsWith("asset:") && !/^https:\/\//.test(path)
+      ? parseVariants(size?.variants).flatMap((v) => {
+          const variantUrl = imageUrl(v.path, bucket);
+          return variantUrl ? [{ url: variantUrl, width: v.w }] : [];
+        })
+      : [];
   return {
     url,
     altText: alt,
     width: size?.width || builtIn?.width || 1024,
     height: size?.height || builtIn?.height || 1280,
+    ...(variants.length ? { variants } : {}),
   };
 }
 
@@ -110,8 +120,11 @@ export function mapProduct(
   const prices = variants.map((v) => v.price_cents ?? row.price_cents);
   const min = prices.length ? Math.min(...prices) : row.price_cents;
   const max = prices.length ? Math.max(...prices) : row.price_cents;
+  const title = pick(row.title_de, row.title_en, locale);
   const images = [...row.product_images].sort(bySort).flatMap((i) => {
-    const image = toImage(i.path, pick(i.alt_de, i.alt_en, locale), "product-images", i);
+    // Eigene Bildbeschreibung je Bild; leer: Produkttitel
+    const alt = pick(i.alt_de, i.alt_en, locale)?.trim() || title;
+    const image = toImage(i.path, alt, "product-images", i);
     return image ? [image] : [];
   });
   const sizeName = messages[locale].product.size;
@@ -200,6 +213,7 @@ function contentImage(block: Json | undefined, locale: Locale, fallback: ShopIma
     {
       width: num(block["image_width"]) ?? null,
       height: num(block["image_height"]) ?? null,
+      variants: block["image_variants"],
     },
   );
   if (!image) return fallback;
@@ -209,10 +223,19 @@ function contentImage(block: Json | undefined, locale: Locale, fallback: ShopIma
     ? toImage(mobilePath, image.altText, "site-media", {
         width: num(block["image_mobile_width"]) ?? null,
         height: num(block["image_mobile_height"]) ?? null,
+        variants: block["image_mobile_variants"],
       })
     : null;
   return mobile
-    ? { ...image, mobile: { url: mobile.url, width: mobile.width, height: mobile.height } }
+    ? {
+        ...image,
+        mobile: {
+          url: mobile.url,
+          width: mobile.width,
+          height: mobile.height,
+          ...(mobile.variants ? { variants: mobile.variants } : {}),
+        },
+      }
     : image;
 }
 

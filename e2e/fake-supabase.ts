@@ -1164,6 +1164,30 @@ function rpc(fn: string, b: Row, ctx: Ctx): Response {
       });
       return json(200, v["stock"]);
     }
+    case "admin_set_stock": {
+      // Spiegelt supabase/migrations/20261024001100_review_fixes.sql: absoluter Zählwert, Journal «correction»
+      const count = Number(b["p_count"]);
+      if (!Number.isInteger(count) || count < 0 || count > 100000)
+        return pgError(400, "22023", "INVALID_COUNT");
+      const v = table("product_variants").find((x) => x["id"] === b["p_variant_id"]);
+      if (!v) return pgError(404, "P0002", "VARIANT_NOT_FOUND");
+      const before = Number(v["stock"]);
+      if (b["p_expected"] != null && Number(b["p_expected"]) !== before)
+        return pgError(400, "P0001", "STOCK_CHANGED", { available: before });
+      if (count === before) return pgError(400, "22023", "INVALID_DELTA");
+      v["stock"] = count;
+      table("stock_movements").push({
+        id: nextId(),
+        variant_id: v["id"],
+        delta: count - before,
+        reason: "correction",
+        order_id: null,
+        note: ((b["p_note"] as string | undefined) ?? "").slice(0, 500) || null,
+        created_by: ctx.user!.id,
+        created_at: now(),
+      });
+      return json(200, count);
+    }
     case "admin_restock_order": {
       let total = 0;
       for (const entry of (b["p_items"] as Row[]) ?? []) {

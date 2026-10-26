@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SIZES } from "@/lib/commerce/variants";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { searchCatalog, type SearchResult } from "@/lib/commerce";
@@ -151,7 +152,7 @@ export function SearchOverlay() {
                   }
                 }}
               >
-                <Photo image={p.images[0]} />
+                <Photo image={p.images[0]} sizes={SIZES.thumb} />
                 <div>
                   <h3>{p.title}</h3>
                   <p>

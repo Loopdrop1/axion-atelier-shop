@@ -1,4 +1,5 @@
 // Eine Zeile im «Komplettes Outfit» der Produktseite: Bild mit Link, Auswahl mit Name, Preis und Grösse.
+import { SIZES } from "@/lib/commerce/variants";
 import { Link } from "@tanstack/react-router";
 import { formatPrice } from "@/lib/commerce/format";
 import { isOneSizeTitle } from "@/lib/commerce/one-size";
@@ -33,7 +34,7 @@ export function OutfitRow({
         params={{ locale: lp, handle: p.handle }}
         aria-label={name}
       >
-        <Photo image={p.images[0]} />
+        <Photo image={p.images[0]} sizes={SIZES.thumb} />
       </Link>
       <label className="outfit-pick">
         <input

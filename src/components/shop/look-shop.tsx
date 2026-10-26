@@ -1,5 +1,6 @@
 // Startseite: den Look neben dem Bild direkt kaufen. Stücke an- oder abwählen, je eine Grösse wählen,
 // dann den ganzen Look oder die Auswahl in den Warenkorb legen (gleiche Regeln wie auf der Produktseite).
+import { SIZES } from "@/lib/commerce/variants";
 import { Link } from "@tanstack/react-router";
 import { isOneSizeTitle } from "@/lib/commerce/one-size";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export function LookShop({ products, total }: { products: Product[]; total: stri
                 tabIndex={-1}
                 aria-hidden="true"
               >
-                <Photo image={p.images[0]} />
+                <Photo image={p.images[0]} sizes={SIZES.thumb} />
               </Link>
               <div className="look-info">
                 <h3>

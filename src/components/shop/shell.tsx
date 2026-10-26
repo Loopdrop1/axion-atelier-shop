@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,7 +15,6 @@ import {
   Linkedin,
 } from "lucide-react";
 import { socialChannels } from "@/lib/seo/structured";
-import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { useCart, useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
@@ -26,12 +25,15 @@ import { useLocaleLoaderData } from "@/lib/commerce/locale-data";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Logo } from "./logo";
 import * as Popover from "@radix-ui/react-popover";
-import { Panel } from "./primitives";
-import { CartContents } from "./cart";
-import { SearchOverlay } from "./search";
 import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
 import { WishlistSync } from "./wishlist-sync";
+import { occasionHandles } from "./nav-handles";
+
+export { occasionHandles };
+
+// Warenkorb, Menü und Suche sind erst nach dem Öffnen nötig: eigener Chunk, im Leerlauf nachgeladen
+const ShellOverlays = lazy(() => import("./shell-overlays"));
 
 /** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
 const defaultCategories = [
@@ -45,7 +47,6 @@ const defaultCategories = [
   "schuhe",
   "accessoires",
 ] as const;
-export const occasionHandles = ["hochzeit", "business", "abschlussfeier", "gala"] as const;
 const helpPages = [
   "versand-und-rueckgabe",
   "groessenberatung",
@@ -76,7 +77,21 @@ export function ShopShell({ children }: { children: ReactNode }) {
     ...(initialAnnouncements ? { initialData: initialAnnouncements } : {}),
   });
 
-  const { cartOpen, setCart, menuOpen, setMenu, setSearch } = useShopUI();
+  const { cartOpen, setCart, menuOpen, setMenu, searchOpen, setSearch } = useShopUI();
+  const [overlaysReady, setOverlaysReady] = useState(false);
+  useEffect(() => {
+    // nach dem Laden im Leerlauf bereitstellen, damit das erste Öffnen sofort reagiert
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(() => setOverlaysReady(true), { timeout: 4000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(() => setOverlaysReady(true), 2500);
+    return () => window.clearTimeout(id);
+  }, []);
   const count = useCart((s) => s.lines.reduce((a, l) => a + l.quantity, 0));
   const wishes = useWishlist((s) => s.handles.length);
   const label = (handle: string) => t.nav.labels[handle] ?? handle;
@@ -315,69 +330,11 @@ export function ShopShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
-      <Panel open={cartOpen} onOpenChange={setCart} title={t.cart.title}>
-        <CartContents onNavigate={() => setCart(false)} />
-      </Panel>
-      <Panel open={menuOpen} onOpenChange={setMenu} title={<Logo />} kind="menu">
-        <nav className="menu-links" aria-label={t.nav.mobile}>
-          {[
-            { handle: "neu", title: label("neu") },
-            ...categories,
-            { handle: "alle", title: label("alle") },
-            { handle: "sale", title: label("sale") },
-          ].map((c, i) => (
-            <motion.div
-              key={c.handle}
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-            >
-              <Link
-                to="/{-$locale}/kollektion/$handle"
-                params={{ locale: lp, handle: c.handle }}
-                onClick={() => setMenu(false)}
-              >
-                {c.title}
-              </Link>
-            </motion.div>
-          ))}
-        </nav>
-        <nav className="menu-secondary">
-          {occasionHandles.map((o) => (
-            <Link
-              key={o}
-              to="/{-$locale}/kollektion/$handle"
-              params={{ locale: lp, handle: "alle" }}
-              search={{ anlass: o }}
-              onClick={() => setMenu(false)}
-            >
-              {t.occasions[o]}
-            </Link>
-          ))}
-          {shopConfig.features.customerAccounts && (
-            <Link to="/{-$locale}/konto" params={{ locale: lp }} onClick={() => setMenu(false)}>
-              {t.nav.account}
-            </Link>
-          )}
-          <Link to="/{-$locale}/merkliste" params={{ locale: lp }} onClick={() => setMenu(false)}>
-            {t.nav.wishlist} ({t.common.pieces(wishes)})
-          </Link>
-          {shopConfig.features.giftCards && (
-            <Link
-              to="/{-$locale}/geschenkgutschein"
-              params={{ locale: lp }}
-              onClick={() => setMenu(false)}
-            >
-              {t.nav.giftCards}
-            </Link>
-          )}
-          <Link to="/{-$locale}/ueber-uns" params={{ locale: lp }} onClick={() => setMenu(false)}>
-            {t.nav.about}
-          </Link>
-          <LanguageSwitch className="menu-language" onNavigate={() => setMenu(false)} />
-        </nav>
-      </Panel>
-      <SearchOverlay />
+      {(overlaysReady || cartOpen || menuOpen || searchOpen) && (
+        <Suspense fallback={null}>
+          <ShellOverlays categories={categories} wishes={wishes} />
+        </Suspense>
+      )}
     </>
   );
 }

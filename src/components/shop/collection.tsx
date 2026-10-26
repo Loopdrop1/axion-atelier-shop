@@ -340,7 +340,13 @@ export function CollectionPage({
         <div className="product-grid">
           {products.map((p, i) => (
             // Erste Reihe sofort laden (LCP), den Rest erst beim Scrollen
-            <ProductCard key={p.handle} product={p} eager={i < 4} headingLevel={2} />
+            <ProductCard
+              key={p.handle}
+              product={p}
+              eager={i < 4}
+              priority={i === 0}
+              headingLevel={2}
+            />
           ))}
         </div>
       ) : (

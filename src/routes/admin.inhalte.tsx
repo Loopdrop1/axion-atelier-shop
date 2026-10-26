@@ -414,12 +414,17 @@ function ImageUpload({
             onBusy(true);
             try {
               const image = await uploadSiteImage(f, folder, maxSide);
-              onChange((current) => ({
-                ...current,
-                [name]: image.path,
-                [`${name}_width`]: image.width,
-                [`${name}_height`]: image.height,
-              }));
+              onChange((current) => {
+                // Neue Fassungen ersetzen die alten; ohne Fassungen fällt der Eintrag weg
+                const { [`${name}_variants`]: _old, ...rest } = current;
+                return {
+                  ...rest,
+                  [name]: image.path,
+                  [`${name}_width`]: image.width,
+                  [`${name}_height`]: image.height,
+                  ...(image.variants.length ? { [`${name}_variants`]: image.variants } : {}),
+                };
+              });
             } catch (err) {
               notify.error(err);
             } finally {
@@ -441,6 +446,7 @@ function ImageUpload({
                   image_mobile: _a,
                   image_mobile_width: _b,
                   image_mobile_height: _c,
+                  image_mobile_variants: _d,
                   ...rest
                 } = current;
                 return rest;

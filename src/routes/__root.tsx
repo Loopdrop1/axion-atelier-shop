@@ -12,6 +12,9 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+// Nur die lateinischen Teilsätze (Deutsch, Englisch) vorladen; Kyrillisch usw. laden nur bei Bedarf über unicode-range
+import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import jostLatin from "@fontsource-variable/jost/files/jost-latin-wght-normal.woff2?url";
 import { ShopShell } from "@/components/shop/shell";
 import { MissingPage } from "@/components/shop/missing-page";
 import { shopConfig } from "@/config/shop";
@@ -75,6 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ...(!shopConfig.launched ? [{ name: "robots", content: "noindex, nofollow" }] : []),
     ],
     links: [
+      { rel: "preload", as: "font", type: "font/woff2", href: jostLatin, crossOrigin: "anonymous" },
+      {
+        rel: "preload",
+        as: "font",
+        type: "font/woff2",
+        href: interLatin,
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
         href: appCss,

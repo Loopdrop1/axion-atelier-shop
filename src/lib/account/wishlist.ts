@@ -1,5 +1,5 @@
 // Merkliste auf dem Server (Tabelle wishlist_items, RLS: nur eigene Zeilen). Gäste bleiben beim lokalen Speicher.
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/supabase-client";
 import { backendConfigured } from "@/lib/backend";
 
 /** Höchstzahl pro Konto (gleich wie der Trigger in der Datenbank) und Länge eines Handles. */
@@ -42,13 +42,15 @@ interface Table {
   delete(): Result;
 }
 // Die generierte Typdatei kennt die Tabelle nicht: ungetypt ansprechen.
-const table = (): Table =>
-  (supabase as unknown as { from(name: string): Table }).from("wishlist_items");
+const table = async (): Promise<Table> =>
+  ((await getSupabase()) as unknown as { from(name: string): Table }).from("wishlist_items");
 
 /** Handles der angemeldeten Person, älteste zuerst. */
 export async function fetchWishlist(userId: string): Promise<string[]> {
   if (!backendConfigured) return [];
-  const { data, error } = await table()
+  const { data, error } = await (
+    await table()
+  )
     .select("handle")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
@@ -59,7 +61,9 @@ export async function fetchWishlist(userId: string): Promise<string[]> {
 /** Legt Handles an; bereits vorhandene bleiben unberührt. */
 export async function addWishlistItems(userId: string, handles: string[]): Promise<void> {
   if (!backendConfigured || !handles.length) return;
-  const { error } = await table().upsert(
+  const { error } = await (
+    await table()
+  ).upsert(
     handles.map((handle) => ({ user_id: userId, handle })),
     { onConflict: "user_id,handle", ignoreDuplicates: true },
   );
@@ -68,6 +72,6 @@ export async function addWishlistItems(userId: string, handles: string[]): Promi
 
 export async function removeWishlistItem(userId: string, handle: string): Promise<void> {
   if (!backendConfigured) return;
-  const { error } = await table().delete().eq("user_id", userId).eq("handle", handle);
+  const { error } = await (await table()).delete().eq("user_id", userId).eq("handle", handle);
   if (error) throw error;
 }

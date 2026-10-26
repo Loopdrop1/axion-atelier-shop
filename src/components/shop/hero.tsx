@@ -1,5 +1,6 @@
 // Einstieg der Startseite: Bild oder Video über die ganze Breite, Text unten links.
 // Bild und Video kommen aus dem Admin (Startseite → Einstieg); ohne eigenes Bild das Look-Foto.
+import { SIZES } from "@/lib/commerce/variants";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pause, Play } from "lucide-react";
@@ -66,7 +67,7 @@ export function Hero({
   return (
     <section className="hero">
       <div className="hero-media">
-        <Photo image={content.image} eager priority className="hero-image" />
+        <Photo image={content.image} eager priority className="hero-image" sizes={SIZES.hero} />
         {video.src && (
           <video
             ref={video.ref}

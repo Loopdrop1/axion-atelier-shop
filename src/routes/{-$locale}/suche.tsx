@@ -135,7 +135,13 @@ function SearchPage() {
       {result.products.length ? (
         <div className="product-grid">
           {result.products.map((p, i) => (
-            <ProductCard key={p.handle} product={p} eager={i < 4} headingLevel={2} />
+            <ProductCard
+              key={p.handle}
+              product={p}
+              eager={i < 4}
+              priority={i === 0}
+              headingLevel={2}
+            />
           ))}
         </div>
       ) : q ? (

@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toLocale } from "@/i18n";
 import { pageHead } from "@/lib/commerce/seo";
 import { getEditorial } from "@/lib/commerce";
-import { ContentPage, contentMeta } from "@/components/shop/content";
+import { ContentPage } from "@/components/shop/content";
+import { contentMeta } from "@/components/shop/content-meta";
 export const Route = createFileRoute("/{-$locale}/ueber-uns")({
   loader: ({ params }) => getEditorial(toLocale(params.locale)),
   head: ({ params }) => {
