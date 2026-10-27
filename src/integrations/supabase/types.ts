@@ -1058,10 +1058,6 @@ export type Database = {
         Returns: string
       }
       claim_guest_orders: { Args: never; Returns: number }
-      complete_order: {
-        Args: { p_order_id: string; p_payment?: Json }
-        Returns: Json
-      }
       client_error_report: {
         Args: {
           p_fingerprint: string
@@ -1073,6 +1069,10 @@ export type Database = {
           p_user_agent: string
         }
         Returns: string
+      }
+      complete_order: {
+        Args: { p_order_id: string; p_payment?: Json }
+        Returns: Json
       }
       contact_guard: {
         Args: { p_email: string; p_ip: string }
