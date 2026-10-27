@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MAX_PER_LINE,
   RECENT_MAX,
   lineMax,
   useCart,
   useRecentlyViewed,
+  setWishlistRemote,
   useWishlist,
 } from "./stores";
 
@@ -66,5 +67,78 @@ describe("Merkliste: prune", () => {
     const before = useWishlist.getState().handles;
     useWishlist.getState().prune(["a", "b"]);
     expect(useWishlist.getState().handles).toBe(before);
+  });
+});
+
+describe("useWishlist.toggle mit Konto", () => {
+  const deferred = () => {
+    let resolve!: () => void;
+    let reject!: (e: Error) => void;
+    const promise = new Promise<void>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+  beforeEach(() => useWishlist.setState({ handles: [], owner: "u" }));
+
+  it("schreibt pro Handle nacheinander und nur die neueste Absicht", async () => {
+    const first = deferred();
+    const calls: string[] = [];
+    setWishlistRemote({
+      add: (h) => {
+        calls.push(`add ${h}`);
+        return first.promise;
+      },
+      remove: async (h) => void calls.push(`remove ${h}`),
+      onError: () => undefined,
+    });
+    const t = useWishlist.getState().toggle;
+    t("a"); // add (läuft)
+    await Promise.resolve();
+    t("a"); // remove
+    t("a"); // add
+    expect(calls).toEqual(["add a"]);
+    first.resolve();
+    await vi.waitFor(() => expect(calls).toEqual(["add a"]));
+    await new Promise((r) => setTimeout(r, 0));
+    // remove wurde überholt, das zweite add ist schon bestätigt: nichts Weiteres
+    expect(calls).toEqual(["add a"]);
+    expect(useWishlist.getState().handles).toEqual(["a"]);
+    setWishlistRemote(null);
+  });
+
+  it("nimmt nur zurück, wenn die fehlgeschlagene Anfrage die neueste war, auf den bestätigten Stand", async () => {
+    const errors: string[] = [];
+    const add = deferred();
+    setWishlistRemote({
+      add: () => add.promise,
+      remove: async () => undefined,
+      onError: (k) => errors.push(k),
+    });
+    const t = useWishlist.getState().toggle;
+    t("a"); // add schlägt später fehl
+    await Promise.resolve();
+    t("a"); // remove ist neuer
+    await Promise.resolve();
+    add.reject(new Error("x"));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(errors).toEqual([]); // alte Anfrage fehlgeschlagen, aber nicht die neueste
+    expect(useWishlist.getState().handles).toEqual([]);
+
+    const fail = deferred();
+    setWishlistRemote({
+      add: () => fail.promise,
+      remove: async () => undefined,
+      onError: (k) => errors.push(k),
+    });
+    useWishlist.getState().toggle("b");
+    await Promise.resolve();
+    await Promise.resolve();
+    fail.reject(new Error("x"));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(errors).toEqual(["add"]);
+    expect(useWishlist.getState().handles).toEqual([]);
+    setWishlistRemote(null);
   });
 });

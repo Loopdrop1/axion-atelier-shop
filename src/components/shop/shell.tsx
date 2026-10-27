@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useRef, type ReactNode } from "react";
+import { Component, lazy, Suspense, useEffect, useState, useRef, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -34,6 +34,17 @@ export { occasionHandles };
 
 // Warenkorb, Menü und Suche sind erst nach dem Öffnen nötig: eigener Chunk, im Leerlauf nachgeladen
 const ShellOverlays = lazy(() => import("./shell-overlays"));
+
+/** Schlägt das Nachladen der Panels fehl (z. B. nach einem Deploy), bleibt die Seite benutzbar. */
+class OverlayBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  override state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  override render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 /** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
 const defaultCategories = [
@@ -79,6 +90,10 @@ export function ShopShell({ children }: { children: ReactNode }) {
 
   const { cartOpen, setCart, menuOpen, setMenu, searchOpen, setSearch } = useShopUI();
   const [overlaysReady, setOverlaysReady] = useState(false);
+  // Einmal geöffnet bleibt das Overlay-Paket eingehängt (Schliessanimation, Suchtext)
+  useEffect(() => {
+    if (cartOpen || menuOpen || searchOpen) setOverlaysReady(true);
+  }, [cartOpen, menuOpen, searchOpen]);
   useEffect(() => {
     // nach dem Laden im Leerlauf bereitstellen, damit das erste Öffnen sofort reagiert
     const w = window as Window & {
@@ -325,15 +340,17 @@ export function ShopShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <WishlistSync />
+      {shopConfig.features.customerAccounts && <WishlistSync />}
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
       <Footer />
       {(overlaysReady || cartOpen || menuOpen || searchOpen) && (
-        <Suspense fallback={null}>
-          <ShellOverlays categories={categories} wishes={wishes} />
-        </Suspense>
+        <OverlayBoundary>
+          <Suspense fallback={null}>
+            <ShellOverlays categories={categories} wishes={wishes} />
+          </Suspense>
+        </OverlayBoundary>
       )}
     </>
   );

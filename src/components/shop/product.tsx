@@ -16,7 +16,8 @@ import { useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores
 import { getProductsByHandles, type Product } from "@/lib/commerce";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
-import { Photo, Panel } from "./primitives";
+import { Photo } from "./primitives";
+import { Panel } from "./panel";
 import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
 import { ShareButton } from "./share-button";
@@ -438,7 +439,7 @@ export function ProductPage({
             >
               <Photo
                 image={product.images[zoom]}
-                sizes={SIZES.hero}
+                sizes="200vw"
                 className={`zoom-image ${zoomed ? "zoomed" : ""}`}
               />
             </div>

@@ -4,7 +4,7 @@ import { shopConfig } from "@/config/shop";
 import { useLocaleParam, useT } from "@/i18n";
 import { useShopUI } from "@/lib/commerce/stores";
 import { Logo } from "./logo";
-import { Panel } from "./primitives";
+import { Panel } from "./panel";
 import { CartContents } from "./cart";
 import { SearchOverlay } from "./search";
 import { LanguageSwitch } from "./language-switch";

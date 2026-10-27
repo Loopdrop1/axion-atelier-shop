@@ -6,7 +6,8 @@ import { searchCatalog, type SearchResult } from "@/lib/commerce";
 import { useShopUI } from "@/lib/commerce/stores";
 import { formatPrice } from "@/lib/commerce/format";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
-import { Photo, Panel } from "./primitives";
+import { Photo } from "./primitives";
+import { Panel } from "./panel";
 import { IntentChips, RelaxedNotes } from "./search-intent";
 import { readRecentSearches, rememberSearch } from "@/lib/commerce/recent-searches";
 

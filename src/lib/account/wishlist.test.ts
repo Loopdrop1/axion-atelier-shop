@@ -44,8 +44,10 @@ describe("useWishlist mit Konto", () => {
     setWishlistRemote({ add, remove, onError: vi.fn() });
     useWishlist.getState().toggle("mantel");
     expect(useWishlist.getState().handles).toEqual(["mantel"]);
+    await vi.waitFor(() => expect(add).toHaveBeenCalledWith("mantel"));
     useWishlist.getState().toggle("mantel");
     expect(useWishlist.getState().handles).toEqual([]);
+    await vi.waitFor(() => expect(remove).toHaveBeenCalledWith("mantel"));
     expect(add).toHaveBeenCalledWith("mantel");
     expect(remove).toHaveBeenCalledWith("mantel");
   });
