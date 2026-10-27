@@ -19,6 +19,7 @@ import { ShopShell } from "@/components/shop/shell";
 import { MissingPage } from "@/components/shop/missing-page";
 import { shopConfig } from "@/config/shop";
 import { htmlLang, useLocale, useT } from "@/i18n";
+import { reportClientError } from "@/lib/client-errors";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -39,6 +40,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const t = useT();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportClientError(error);
   }, [error]);
 
   // Sprache aus dem Pfad, damit «Zur Startseite» nicht von Englisch auf Deutsch springt

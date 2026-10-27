@@ -135,6 +135,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - **Benachrichtigung bei Wiederverfügbarkeit (freiwillig):** E-Mail-Adresse, Sprache, gewünschtes Stück und Grösse sowie Zeitpunkt von Anfrage und Bestätigung.
 - **Kommunikation:** Name, E-Mail-Adresse, Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns über das Kontaktformular, per E-Mail oder per Telefon kontaktierst.
 - **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website, zum Beispiel dem Schutz der Formulare vor Missbrauch.
+- **Technische Fehlerberichte:** Tritt in deinem Browser ein Fehler auf, schickt die Website einen kurzen Bericht an uns: Fehlermeldung, Pfad der Seite (ohne Teil nach dem Fragezeichen), technischer Ablauf des Fehlers (Stack), Browser- und Gerätetyp sowie die Version der Website. Der Bericht enthält keine Personendaten: keine IP-Adresse, keine E-Mail-Adresse, kein Konto und keine Eingaben. Wir brauchen ihn nur, um Fehler zu finden und zu beheben.
 - **Daten auf deinem Gerät:** Warenkorb, Merkliste und, wenn du angemeldet bist, deine Anmeldung speichert dein Browser (Ziffer 6).
 
 ### 3. Wofür wir deine Daten bearbeiten
@@ -187,6 +188,7 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
 - **Schutz vor Missbrauch:** Damit niemand Formulare, Kasse oder Gutscheinprüfung massenhaft benutzt, zählen wir Anfragen pro IP-Adresse und E-Mail-Adresse. Gespeichert wird dafür nur ein Prüfwert (Hash), nicht die Adresse selbst, zusammen mit der Anzahl und dem Zeitpunkt. Abgelaufene Zähler löschen wir laufend, in der Regel nach zwei Tagen.
+- **Technische Fehlerberichte:** Wir löschen sie automatisch nach 30 Tagen. Gleiche Fehler fassen wir zu einem Eintrag mit Zähler zusammen.
 
 ### 8. Datensicherheit
 Wir schützen deine Daten mit angemessenen technischen und organisatorischen Massnahmen. Die Verbindung zu unserer Website ist verschlüsselt, Passwörter speichern wir nur als verschlüsselten Prüfwert, und Zugriff auf die Daten haben nur wir und unsere Dienstleister im nötigen Umfang.

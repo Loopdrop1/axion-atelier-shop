@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.search-assist]
 verify_jwt = false
+
+[functions.client-error]
+verify_jwt = false

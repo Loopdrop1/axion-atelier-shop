@@ -58,6 +58,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
 - **Technical data:** When you visit the website, technical data is generated, such as your IP address, date and time, the page you open, your browser and device. We use it to run the website and keep it secure, for example to protect the forms against misuse.
+- **Technical error reports:** If an error occurs in your browser, the website sends us a short report: the error message, the path of the page (without anything after the question mark), the technical trace of the error (stack), the type of browser and device and the version of the website. The report contains no personal data: no IP address, no email address, no account and nothing you typed. We use it only to find and fix errors.
 - **Data on your device:** Your browser stores your cart, your wishlist and, if you are signed in, your login (section 6).
 
 ### 3. Why we process your data
@@ -110,6 +111,7 @@ We keep personal data for as long as we need it for the purposes described:
 - **Gift cards:** until they expire and then for the statutory period for business records.
 - **Messages sent through the contact form:** The shop does not store them; they reach our mailbox as emails. We keep them for as long as we need them for your enquiry.
 - **Protection against misuse:** To stop anyone from using the forms, checkout or gift card check on a massive scale, we count requests per IP address and email address. For this, we store only a hash of the address, not the address itself, together with the count and the time. We delete expired counters on an ongoing basis, usually after two days.
+- **Technical error reports:** We delete them automatically after 30 days. Identical errors are merged into one entry with a counter.
 
 ### 8. Data security
 We protect your data with appropriate technical and organisational measures. The connection to our website is encrypted, we store passwords only as an encrypted hash, and only we and our service providers have access to the data, to the extent necessary.

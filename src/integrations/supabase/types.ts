@@ -59,6 +59,45 @@ export type Database = {
         }
         Relationships: []
       }
+      client_errors: {
+        Row: {
+          count: number
+          created_at: string
+          fingerprint: string
+          id: string
+          last_seen_at: string
+          message: string
+          path: string
+          release: string | null
+          stack: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          fingerprint: string
+          id?: string
+          last_seen_at?: string
+          message: string
+          path?: string
+          release?: string | null
+          stack?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          fingerprint?: string
+          id?: string
+          last_seen_at?: string
+          message?: string
+          path?: string
+          release?: string | null
+          stack?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       discount_codes: {
         Row: {
           active: boolean
@@ -1022,6 +1061,18 @@ export type Database = {
       complete_order: {
         Args: { p_order_id: string; p_payment?: Json }
         Returns: Json
+      }
+      client_error_report: {
+        Args: {
+          p_fingerprint: string
+          p_ip: string
+          p_message: string
+          p_path: string
+          p_release: string
+          p_stack: string
+          p_user_agent: string
+        }
+        Returns: string
       }
       contact_guard: {
         Args: { p_email: string; p_ip: string }

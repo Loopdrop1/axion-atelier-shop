@@ -16,6 +16,7 @@ import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$local
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnmeldenRouteImport } from './routes/admin.anmelden'
 import { Route as AdminEinstellungenRouteImport } from './routes/admin.einstellungen'
+import { Route as AdminFehlerRouteImport } from './routes/admin.fehler'
 import { Route as AdminGroessenRouteImport } from './routes/admin.groessen'
 import { Route as AdminGutscheineRouteImport } from './routes/admin.gutscheine'
 import { Route as AdminHilfeRouteImport } from './routes/admin.hilfe'
@@ -25,6 +26,7 @@ import { Route as AdminLagerRouteImport } from './routes/admin.lager'
 import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
 import { Route as AdminRabattcodesRouteImport } from './routes/admin.rabattcodes'
 import { Route as AdminZugaengeRouteImport } from './routes/admin.zugaenge'
+import { Route as ApiHealthRouteImport } from './routes/api.health'
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as Char123LocaleChar125SplatRouteImport } from './routes/{-$locale}/$'
 import { Route as Char123LocaleChar125AgbRouteImport } from './routes/{-$locale}/agb'
@@ -57,6 +59,8 @@ import { Route as Char123LocaleChar125KontoRegistrierenRouteImport } from './rou
 import { Route as Char123LocaleChar125NewsletterAbmeldenRouteImport } from './routes/{-$locale}/newsletter.abmelden'
 import { Route as Char123LocaleChar125NewsletterBestaetigenRouteImport } from './routes/{-$locale}/newsletter.bestaetigen'
 import { Route as Char123LocaleChar125ProduktHandleRouteImport } from './routes/{-$locale}/produkt.$handle'
+import { Route as Char123LocaleChar125RatgeberIndexRouteImport } from './routes/{-$locale}/ratgeber.index'
+import { Route as Char123LocaleChar125RatgeberSlugRouteImport } from './routes/{-$locale}/ratgeber.$slug'
 import { Route as Char123LocaleChar125KontoBestellungenNumberRouteImport } from './routes/{-$locale}/konto.bestellungen.$number'
 
 const AdminRoute = AdminRouteImport.update({
@@ -93,6 +97,11 @@ const AdminAnmeldenRoute = AdminAnmeldenRouteImport.update({
 const AdminEinstellungenRoute = AdminEinstellungenRouteImport.update({
   id: '/einstellungen',
   path: '/einstellungen',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFehlerRoute = AdminFehlerRouteImport.update({
+  id: '/fehler',
+  path: '/fehler',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminGroessenRoute = AdminGroessenRouteImport.update({
@@ -139,6 +148,11 @@ const AdminZugaengeRoute = AdminZugaengeRouteImport.update({
   id: '/zugaenge',
   path: '/zugaenge',
   getParentRoute: () => AdminRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const Char123LocaleChar125IndexRoute =
   Char123LocaleChar125IndexRouteImport.update({
@@ -327,6 +341,18 @@ const Char123LocaleChar125ProduktHandleRoute =
     path: '/produkt/$handle',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
+const Char123LocaleChar125RatgeberIndexRoute =
+  Char123LocaleChar125RatgeberIndexRouteImport.update({
+    id: '/ratgeber/',
+    path: '/ratgeber/',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
+const Char123LocaleChar125RatgeberSlugRoute =
+  Char123LocaleChar125RatgeberSlugRouteImport.update({
+    id: '/ratgeber/$slug',
+    path: '/ratgeber/$slug',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 const Char123LocaleChar125KontoBestellungenNumberRoute =
   Char123LocaleChar125KontoBestellungenNumberRouteImport.update({
     id: '/bestellungen/$number',
@@ -341,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
   '/admin/hilfe': typeof AdminHilfeRoute
@@ -350,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
+  '/api/health': typeof ApiHealthRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -380,9 +408,11 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
   '/admin/produkte/': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesByTo {
@@ -390,6 +420,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
   '/admin/hilfe': typeof AdminHilfeRoute
@@ -399,6 +430,7 @@ export interface FileRoutesByTo {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
+  '/api/health': typeof ApiHealthRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -428,9 +460,11 @@ export interface FileRoutesByTo {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen': typeof AdminBestellungenIndexRoute
   '/admin/produkte': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/ratgeber': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRoutesById {
@@ -441,6 +475,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
+  '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
   '/admin/gutscheine': typeof AdminGutscheineRoute
   '/admin/hilfe': typeof AdminHilfeRoute
@@ -450,6 +485,7 @@ export interface FileRoutesById {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
+  '/api/health': typeof ApiHealthRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -480,9 +516,11 @@ export interface FileRoutesById {
   '/{-$locale}/newsletter/abmelden': typeof Char123LocaleChar125NewsletterAbmeldenRoute
   '/{-$locale}/newsletter/bestaetigen': typeof Char123LocaleChar125NewsletterBestaetigenRoute
   '/{-$locale}/produkt/$handle': typeof Char123LocaleChar125ProduktHandleRoute
+  '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
   '/admin/produkte/': typeof AdminProdukteIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
+  '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
 }
 export interface FileRouteTypes {
@@ -494,6 +532,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/fehler'
     | '/admin/groessen'
     | '/admin/gutscheine'
     | '/admin/hilfe'
@@ -503,6 +542,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
+    | '/api/health'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -533,9 +573,11 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen/'
     | '/admin/produkte/'
     | '/{-$locale}/konto/'
+    | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -543,6 +585,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/fehler'
     | '/admin/groessen'
     | '/admin/gutscheine'
     | '/admin/hilfe'
@@ -552,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
+    | '/api/health'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -581,9 +625,11 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen'
     | '/admin/produkte'
     | '/{-$locale}/konto'
+    | '/{-$locale}/ratgeber'
     | '/{-$locale}/konto/bestellungen/$number'
   id:
     | '__root__'
@@ -593,6 +639,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin/anmelden'
     | '/admin/einstellungen'
+    | '/admin/fehler'
     | '/admin/groessen'
     | '/admin/gutscheine'
     | '/admin/hilfe'
@@ -602,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
+    | '/api/health'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -632,9 +680,11 @@ export interface FileRouteTypes {
     | '/{-$locale}/newsletter/abmelden'
     | '/{-$locale}/newsletter/bestaetigen'
     | '/{-$locale}/produkt/$handle'
+    | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen/'
     | '/admin/produkte/'
     | '/{-$locale}/konto/'
+    | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
   fileRoutesById: FileRoutesById
 }
@@ -643,6 +693,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiHealthRoute: typeof ApiHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -694,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/einstellungen'
       fullPath: '/admin/einstellungen'
       preLoaderRoute: typeof AdminEinstellungenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/fehler': {
+      id: '/admin/fehler'
+      path: '/fehler'
+      fullPath: '/admin/fehler'
+      preLoaderRoute: typeof AdminFehlerRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/groessen': {
@@ -758,6 +816,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/zugaenge'
       preLoaderRoute: typeof AdminZugaengeRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/{-$locale}/': {
       id: '/{-$locale}/'
@@ -983,6 +1048,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125ProduktHandleRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
     }
+    '/{-$locale}/ratgeber/': {
+      id: '/{-$locale}/ratgeber/'
+      path: '/ratgeber'
+      fullPath: '/{-$locale}/ratgeber/'
+      preLoaderRoute: typeof Char123LocaleChar125RatgeberIndexRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
+    '/{-$locale}/ratgeber/$slug': {
+      id: '/{-$locale}/ratgeber/$slug'
+      path: '/ratgeber/$slug'
+      fullPath: '/{-$locale}/ratgeber/$slug'
+      preLoaderRoute: typeof Char123LocaleChar125RatgeberSlugRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
     '/{-$locale}/konto/bestellungen/$number': {
       id: '/{-$locale}/konto/bestellungen/$number'
       path: '/bestellungen/$number'
@@ -1049,6 +1128,8 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125NewsletterAbmeldenRoute: typeof Char123LocaleChar125NewsletterAbmeldenRoute
   Char123LocaleChar125NewsletterBestaetigenRoute: typeof Char123LocaleChar125NewsletterBestaetigenRoute
   Char123LocaleChar125ProduktHandleRoute: typeof Char123LocaleChar125ProduktHandleRoute
+  Char123LocaleChar125RatgeberSlugRoute: typeof Char123LocaleChar125RatgeberSlugRoute
+  Char123LocaleChar125RatgeberIndexRoute: typeof Char123LocaleChar125RatgeberIndexRoute
 }
 
 const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChildren =
@@ -1084,6 +1165,10 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
       Char123LocaleChar125NewsletterBestaetigenRoute,
     Char123LocaleChar125ProduktHandleRoute:
       Char123LocaleChar125ProduktHandleRoute,
+    Char123LocaleChar125RatgeberSlugRoute:
+      Char123LocaleChar125RatgeberSlugRoute,
+    Char123LocaleChar125RatgeberIndexRoute:
+      Char123LocaleChar125RatgeberIndexRoute,
   }
 
 const Char123LocaleChar125RouteRouteWithChildren =
@@ -1094,6 +1179,7 @@ const Char123LocaleChar125RouteRouteWithChildren =
 interface AdminRouteChildren {
   AdminAnmeldenRoute: typeof AdminAnmeldenRoute
   AdminEinstellungenRoute: typeof AdminEinstellungenRoute
+  AdminFehlerRoute: typeof AdminFehlerRoute
   AdminGroessenRoute: typeof AdminGroessenRoute
   AdminGutscheineRoute: typeof AdminGutscheineRoute
   AdminHilfeRoute: typeof AdminHilfeRoute
@@ -1113,6 +1199,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnmeldenRoute: AdminAnmeldenRoute,
   AdminEinstellungenRoute: AdminEinstellungenRoute,
+  AdminFehlerRoute: AdminFehlerRoute,
   AdminGroessenRoute: AdminGroessenRoute,
   AdminGutscheineRoute: AdminGutscheineRoute,
   AdminHilfeRoute: AdminHilfeRoute,
@@ -1136,6 +1223,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LlmsDottxtRoute: LlmsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiHealthRoute: ApiHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

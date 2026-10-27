@@ -2,7 +2,7 @@
 // Breadcrumbs und FAQ. Werte mit Platzhaltern ([...]) aus der Konfiguration bleiben weg, bis der Kunde sie liefert.
 import { shopConfig } from "@/config/shop";
 import type { WrittenPage } from "@/content/pages";
-import type { Locale } from "@/i18n/locale";
+import { htmlLang, type Locale } from "@/i18n/locale";
 import { pageUrl } from "@/lib/commerce/seo";
 
 const filled = (value: string) => Boolean(value.trim()) && !/\[[^\]]+\]/.test(value);
@@ -56,13 +56,9 @@ export function breadcrumbLd(items: { name: string; path: string }[], locale: Lo
   };
 }
 
-/** FAQ aus der Inhaltsseite; Fragen mit offenen Platzhaltern werden ausgelassen. */
-export function faqLd(page: WrittenPage, resolve: (text: string) => string) {
-  const items = page.sections.flatMap((section) =>
-    section.blocks.flatMap((block) => (block.type === "questions" ? block.items : [])),
-  );
+/** FAQPage aus Frage-Antwort-Paaren; Einträge mit offenen Platzhaltern werden ausgelassen. */
+export function faqFromItems(items: { q: string; a: string }[]) {
   const entities = items
-    .map((item) => ({ q: resolve(item.question), a: resolve(item.answer).replace(/\*\*/g, "") }))
     .filter((item) => filled(item.q) && filled(item.a) && !/\{\{/.test(item.q + item.a))
     .map((item) => ({
       "@type": "Question",
@@ -72,4 +68,51 @@ export function faqLd(page: WrittenPage, resolve: (text: string) => string) {
   return entities.length
     ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: entities }
     : null;
+}
+
+/** FAQ aus der Inhaltsseite; Fragen mit offenen Platzhaltern werden ausgelassen. */
+export function faqLd(page: WrittenPage, resolve: (text: string) => string) {
+  const items = page.sections.flatMap((section) =>
+    section.blocks.flatMap((block) => (block.type === "questions" ? block.items : [])),
+  );
+  return faqFromItems(
+    items.map((item) => ({
+      q: resolve(item.question),
+      a: resolve(item.answer).replace(/\*\*/g, ""),
+    })),
+  );
+}
+
+/** Artikel (Ratgeber): Autor und Herausgeber ist die Organisation Axion. */
+export function articleLd(
+  article: {
+    headline: string;
+    description: string;
+    path: string;
+    datePublished: string;
+    dateModified: string;
+  },
+  locale: Locale,
+) {
+  const organization = {
+    "@type": "Organization",
+    name: shopConfig.brand,
+    url: pageUrl("/", "de"),
+    logo: { "@type": "ImageObject", url: new URL("/favicon.svg", shopConfig.siteUrl).href },
+  };
+  const url = pageUrl(article.path, locale);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.headline,
+    description: article.description,
+    inLanguage: htmlLang(locale),
+    datePublished: article.datePublished,
+    dateModified: article.dateModified,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    url,
+    image: new URL("/og.jpg", shopConfig.siteUrl).href,
+    author: organization,
+    publisher: organization,
+  };
 }

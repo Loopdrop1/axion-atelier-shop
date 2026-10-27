@@ -19,6 +19,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 | `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                |
 | `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen     |
 | `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                |
+| `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                        |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                  |
 
 ## checkout
@@ -61,7 +62,20 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 - `{ action: "translate", texts: string[] }` → `200 { translations: string[] }` (Deutsch → Englisch, gleiche Reihenfolge, leere Texte bleiben leer). Höchstens 60 Texte, je 4000 Zeichen, zusammen 16'000. Über das Lovable AI Gateway (`LOVABLE_API_KEY`, legt Lovable selbst an); anderer Dienst mit OpenAI-Schnittstelle über `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`, `TRANSLATE_MODEL`. `503 TRANSLATION_UNAVAILABLE` (kein Schlüssel oder AI-Guthaben leer), `429 RATE_LIMITED` (Gateway) oder `429 DAILY_LIMIT` (500 Anfragen pro Admin und Tag, `translate_guard`), `502 TRANSLATION_FAILED`, `400 BAD_REQUEST | TOO_MANY_TEXTS | TEXT_TOO_LONG`. Das Admin schickt höchstens 40 Texte pro Anfrage und übersetzt leeres Englisch sowie maschinelles, dessen Deutsch sich geändert hat; von Hand geschriebenes Englisch bleibt (Herkunft in `en_auto` bzw. `auto`).
 - `{ action: "draft_copy", title, category, color, material?, fit?, notes? }` → `200 { description: string, features: string[] }` (Textvorschlag auf Deutsch für das Produktformular, nur aus den gelieferten Angaben, Schweizer Schreibweise; das Admin prüft vor dem Speichern). Gleiches Gateway und gleiches Tageslimit wie `translate`; `400 BAD_REQUEST` ohne Titel, Kategorie oder Farbe, `502 COPY_FAILED`, sonst Fehler wie bei `translate`.
 - `{ action: "notify_restock", variantId }` → `200 { notified, failed }`: bestätigte «Wieder da»-Wünsche einer wieder vorrätigen Grösse per E-Mail benachrichtigen (`stock_alerts_pending` → E-Mail mit Idempotenz-Schlüssel → `stock_alerts_done` nur für verschickte). Gescheiterte bleiben vorgemerkt. Das Lager-Dialogfeld ruft das automatisch auf, wenn eine Grösse von 0 aufgestockt wird.
+- `{ action: "system_status" }` → `200 { required: {SECRET: bool}, optional: {SECRET: bool}, stripeMode: "test" | "live" | "unknown" | "missing", emailFromIsOnboarding, previewOriginsAllowed }`: nur Ja/Nein, ob Secrets gesetzt sind, und der Stripe-Modus aus dem Schlüssel-Präfix (`sk_`/`rk_` + `test`/`live`); nie ein Wert. Speist den Kasten «Bereit für den Livegang» im Admin.
 - `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 ORDER_NOT_FOUND | GIFT_CARD_NOT_FOUND`, `409 ORDER_NOT_SHIPPABLE | ORDER_NOT_SHIPPED | ORDER_NOT_PAID`, `400 INVALID_TRACKING | INVALID_AMOUNT | INVALID_EMAIL`
+
+## client-error
+
+Technische Fehlerberichte aus dem Browser (Tabelle `client_errors`, Migration `20261027001400_client_errors.sql` bzw. Cloud `0013`).
+Anzeige im Admin unter «Fehler»; Ablauf in `docs/BETRIEB.md`.
+
+- `{ message, stack?, path?, release? }` → `200 { ok: true }`. Meldung auf 500, Stack auf 2000, Version auf 64 Zeichen gekürzt; der Browser-Typ kommt aus dem
+  `User-Agent`-Header (300 Zeichen). Der Pfad wird ohne Host, Query-String und Fragment gespeichert; Adressen im Text verlieren ihren Query-String, E-Mail-Adressen werden durch `[email]` ersetzt.
+  Es wird weder IP noch E-Mail noch Konto gespeichert.
+- Gleicher Fehler (Fingerprint aus Meldung ohne Zahlen und erster Stack-Stelle) innerhalb von 24 Stunden erhöht nur den Zähler (`count`). Einträge älter als 30 Tage löscht die RPC `client_error_report` beim Anlegen neuer Fehler.
+- `400 BAD_REQUEST` (ohne Meldung), `413 PAYLOAD_TOO_LARGE` (über 12 KB), `429 RATE_LIMITED` (20 pro IP bzw. IPv6-/64-Netz und Stunde, 500 pro Tag gesamt; Schlüssel `clienterr-ip:…`, `clienterr-global` nur als Hash). Lesen und Löschen nur für Admins (RLS), Schreiben nur über die RPC mit `service_role`.
+- Der Shop meldet höchstens 5 verschiedene Fehler pro Seitenaufruf, nie in der Entwicklung und nie ohne Backend (`src/lib/client-errors.ts`).
 
 ## contact
 
@@ -117,6 +131,9 @@ nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche An
 | `20261021000900_stock_alerts`          | `0008_axion_stock_alerts`          | gleich                                                                         |
 | `20261021001000_search_assist`         | `0009_axion_search_assist`         | gleich                                                                         |
 | `20261024001100_review_fixes`          | `0010_axion_review_fixes`          | gleich                                                                         |
+| `20261025001200_wishlist`              | `0011_axion_wishlist`              | gleich                                                                         |
+| `20261026001300_image_variants`        | `0012_axion_image_variants`        | gleich                                                                         |
+| `20261027001400_client_errors`         | `0013_axion_client_errors`         | gleich                                                                         |
 
 Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
 `NNNN_snapshot.json` mit der vorigen `id` als `prevId`).

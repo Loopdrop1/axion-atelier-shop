@@ -11,7 +11,15 @@ import {
   orderConfirmation,
   type GiftCardInfo,
 } from "../_shared/email/templates.ts";
-import { HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
+import {
+  HttpError,
+  json,
+  PREVIEW_ORIGINS,
+  readJson,
+  str,
+  UUID,
+  withHttp,
+} from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
 import { COPY_LIMITS, draftProductCopy } from "../_shared/copywrite.ts";
@@ -250,6 +258,43 @@ async function draftCopy(
   }
 }
 
+/** Stripe-Modus aus dem Präfix des Schlüssels (sk_/rk_ + test/live). Nur der Modus verlässt die Funktion, nie der Schlüssel. */
+export function stripeMode(key: string): "test" | "live" | "unknown" | "missing" {
+  if (!key) return "missing";
+  if (/^[sr]k_test_/.test(key)) return "test";
+  if (/^[sr]k_live_/.test(key)) return "live";
+  return "unknown";
+}
+
+/** Systemstatus für die Checkliste «Bereit für den Livegang»: nur Ja/Nein, ob Secrets gesetzt sind, nie ihre Werte. */
+function systemStatus(deps: Deps): Response {
+  const env = deps.env;
+  const set = (value: string | null | undefined) => Boolean(value && value.trim());
+  const required = {
+    STRIPE_SECRET_KEY: set(env.stripeSecretKey),
+    STRIPE_WEBHOOK_SECRET: set(env.stripeWebhookSecret),
+    RESEND_API_KEY: set(env.resendApiKey),
+    EMAIL_FROM: !/onboarding@resend\.dev/i.test(env.emailFrom),
+    SITE_URL: set(env.siteUrl) && !/^https?:\/\/(localhost|127\.0\.0\.1)/.test(env.siteUrl),
+    SHOP_CONTACT_EMAIL: set(env.shopContactEmail),
+    SHOP_NOTIFY_EMAIL: set(env.shopNotifyEmail),
+    SHOP_ADDRESS: set(env.shopAddress),
+  };
+  const optional = {
+    LOVABLE_API_KEY: set(env.translate.apiKey),
+    SHOP_VAT_RATE: env.vatRate !== null,
+    STRIPE_REQUIRE_TERMS: env.stripeRequireTerms,
+  };
+  return json(200, {
+    required,
+    optional,
+    stripeMode: stripeMode(env.stripeSecretKey),
+    emailFromIsOnboarding: /onboarding@resend\.dev/i.test(env.emailFrom),
+    // ALLOW_PREVIEW_ORIGINS muss vor dem Livegang weg
+    previewOriginsAllowed: env.allowedOrigins.includes(PREVIEW_ORIGINS),
+  });
+}
+
 export function createAdminActionsHandler(deps: Deps) {
   return withHttp(deps.env.allowedOrigins, async (req) => {
     const admin = await requireAdmin(req, deps.authClient, deps.rpc);
@@ -271,6 +316,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return notifyRestock(deps, body);
       case "draft_copy":
         return draftCopy(deps, admin.id, body);
+      case "system_status":
+        return systemStatus(deps);
       default:
         throw new HttpError(400, "BAD_REQUEST");
     }

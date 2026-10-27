@@ -4,6 +4,8 @@ Anleitung für Ben (Flowrenix). Reihenfolge einhalten: zuerst alles im **Testmod
 Stand 12.10.2026. Datenbank: **Lovable Cloud** (Entscheid Ben), Code-Übertragung über **GitHub**.
 
 **Was Axion noch liefern oder entscheiden muss** (mit Ablageort und Folge bei leeren Angaben): `docs/KUNDENDATEN.md`.
+**Betrieb und Prüfungen:** Überwachung, Fehlerberichte, Sicherung und Störungen in `docs/BETRIEB.md`; Testkauf im Testmodus Schritt für Schritt in
+`docs/TESTKAUF.md`; Klick-Liste für Safari auf dem iPhone in `docs/IPHONE-CHECK.md`.
 
 **Grundregel:** Passwörter, geheime Schlüssel (Stripe `rk_`/`sk_`, Webhook-Geheimnisse, Resend) und die IBAN gehören
 nie in einen Chat, eine E-Mail oder ins Git. Sie kommen nur in die Secrets von Lovable Cloud (Cloud → Secrets).
@@ -55,7 +57,7 @@ einschalten.
 1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern, und
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
-2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die elf Migrationen `0000` bis `0010_axion_review_fixes` (in Cloud die Fassung aus
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Migrationen `0000` bis `0013_axion_client_errors` (in Cloud die Fassung aus
    `drizzle/migrations/`, lokal `supabase/migrations/`) werden der Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
    Danach prüfen: 17 Tabellen im Schema `public` (u. a. `shop_settings` und `stock_alerts`), Buckets `product-images` und `site-media`, Funktionen
@@ -71,14 +73,14 @@ einschalten.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
    > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact, account-delete,
-   > stock-alert and search-assist exactly as they are in supabase/functions, with verify_jwt = false as in
+   > stock-alert, search-assist and client-error exactly as they are in supabase/functions, with verify_jwt = false as in
    > supabase/config.toml. Do not change their code. The functions admin-actions and search-assist use
    > LOVABLE_API_KEY and the Lovable AI gateway with the model google/gemini-2.5-flash; if that model is not
    > available in the gateway, tell me the current default Gemini Flash model id instead of changing the code.
 
-   Kontrolle unter Cloud → Edge functions: Soll sind **9 Funktionen mit `verify_jwt = false`** (`checkout`,
-   `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist` und
-   `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
+   Kontrolle unter Cloud → Edge functions: Soll sind **10 Funktionen mit `verify_jwt = false`** (`checkout`,
+   `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist`,
+   `client-error` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
    Send-Email-Hook von Lovable Cloud (Konto-E-Mails in Axion-Optik, siehe Punkt 6); ohne ihn verschickt Lovable die
    Standard-E-Mails. Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
 
@@ -183,6 +185,8 @@ einschalten.
 
 ## 7. Testkauf (Testmodus)
 
+Ausführliche Schritt-für-Schritt-Anleitung mit Testkarten und Prüfliste: `docs/TESTKAUF.md`. Kurzfassung:
+
 1. Karte `4242 4242 4242 4242`, beliebiges künftiges Datum, beliebige Prüfziffer.
 2. Prüfen: Bestellbestätigung an die Kundschaft (mit Hinweis zur Rückgabe), Bestellmeldung an `SHOP_NOTIFY_EMAIL`,
    Bestellung im Admin, «Quittung drucken», Bestand reduziert, Versand melden mit Sendungsnummer (E-Mail kommt),
@@ -234,6 +238,8 @@ Dateien), `LOESCHEN.txt` (zu löschende Dateien) und ein ZIP mit allem.
 
 ## 10. Betrieb (Betreuung)
 
+- Ausführlich (Uptime-Überwachung mit `/api/health`, Fehlerbericht im Admin unter «Fehler», Sicherung und Wiederherstellungsübung,
+  Störungs-Checkliste): `docs/BETRIEB.md`. Vor dem Livegang zusätzlich `docs/IPHONE-CHECK.md` auf einem echten iPhone durchgehen.
 - Sicherung, monatlich: Daten aus Lovable Cloud exportieren und verschlüsselt ablegen. Die Bilder im Shop sind
   verkleinerte Kopien; die Originalfotos bewahrt Axion auf. Einmal im Quartal die Wiederherstellung an einer Kopie
   ausprobieren.

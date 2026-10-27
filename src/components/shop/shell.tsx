@@ -28,6 +28,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
 import { WishlistSync } from "./wishlist-sync";
+import { installClientErrorReporting } from "@/lib/client-errors";
 import { occasionHandles } from "./nav-handles";
 
 export { occasionHandles };
@@ -107,6 +108,8 @@ export function ShopShell({ children }: { children: ReactNode }) {
     const id = window.setTimeout(() => setOverlaysReady(true), 2500);
     return () => window.clearTimeout(id);
   }, []);
+  // Technische Fehlerberichte (ohne Personendaten), installiert im Leerlauf
+  useEffect(() => installClientErrorReporting(), []);
   const count = useCart((s) => s.lines.reduce((a, l) => a + l.quantity, 0));
   const wishes = useWishlist((s) => s.handles.length);
   const label = (handle: string) => t.nav.labels[handle] ?? handle;
@@ -435,6 +438,9 @@ function Footer() {
                 {t.pages[page].title}
               </Link>
             ))}
+            <Link to="/{-$locale}/ratgeber" params={{ locale: lp }}>
+              {t.guides.navLabel}
+            </Link>
             {shopConfig.features.customerAccounts && (
               <Link to="/{-$locale}/konto" params={{ locale: lp }}>
                 {t.nav.account}

@@ -14,7 +14,8 @@ export type FunctionName =
   | "account-delete"
   | "contact"
   | "stock-alert"
-  | "search-assist";
+  | "search-assist"
+  | "client-error";
 
 export async function callFunction<T>(
   name: FunctionName,

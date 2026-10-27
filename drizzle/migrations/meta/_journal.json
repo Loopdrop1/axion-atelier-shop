@@ -92,6 +92,13 @@
       "when": 1792640000000,
       "tag": "0012_axion_image_variants",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792650000000,
+      "tag": "0013_axion_client_errors",
+      "breakpoints": true
     }
   ]
 }

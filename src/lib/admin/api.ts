@@ -205,6 +205,50 @@ export async function dashboard(from: Date, to: Date): Promise<DashboardStats> {
   return data as unknown as DashboardStats;
 }
 
+// Betrieb: Fehlerberichte, Systemstatus -----------------------------------------------------------------
+
+export type ClientErrorRow = Tables<"client_errors">;
+
+/** Letzte Fehlerberichte (die Datenbank löscht Einträge nach 30 Tagen). */
+export async function listClientErrors(): Promise<ClientErrorRow[]> {
+  const { data, error } = await db()
+    .from("client_errors")
+    .select("*")
+    .order("last_seen_at", { ascending: false })
+    .limit(500);
+  fail(error);
+  return data ?? [];
+}
+
+export async function clearClientErrors(): Promise<void> {
+  const { error } = await db().from("client_errors").delete().gte("created_at", "1970-01-01");
+  fail(error);
+}
+
+/** Antwort von admin-actions «system_status»: nur Ja/Nein und der Stripe-Modus, nie ein Wert. */
+export interface SystemStatus {
+  required: Record<string, boolean>;
+  optional: Record<string, boolean>;
+  stripeMode: "test" | "live" | "unknown" | "missing";
+  emailFromIsOnboarding: boolean;
+  previewOriginsAllowed: boolean;
+}
+
+export function systemStatus(): Promise<SystemStatus> {
+  return action<SystemStatus>({ action: "system_status" });
+}
+
+/** Aktive Musterstücke (Kennzeichen «muster»), die vor dem Livegang entfernt werden müssen. */
+export async function countSampleProducts(): Promise<number> {
+  const { count, error } = await db()
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active")
+    .contains("tags", ["muster"]);
+  fail(error);
+  return count ?? 0;
+}
+
 // Bestellungen --------------------------------------------------------------------------------------
 
 const ORDER_LIST =

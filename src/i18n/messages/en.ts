@@ -76,6 +76,16 @@ export const en: Messages = {
     abschlussfeier: "Graduation",
     gala: "Gala",
   },
+  guides: {
+    navLabel: "Guides",
+    eyebrow: "Guides",
+    updated: "Updated",
+    summaryTitle: "In short",
+    faqTitle: "Frequently asked questions",
+    relatedTitle: "Related in the shop",
+    moreTitle: "More guides",
+    read: "Read guide",
+  },
   footer: {
     shop: "Shop",
     help: "Help",

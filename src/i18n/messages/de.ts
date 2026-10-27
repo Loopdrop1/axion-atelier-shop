@@ -77,6 +77,16 @@ export const de = {
     abschlussfeier: "Abschlussfeier",
     gala: "Gala",
   } as Record<string, string>,
+  guides: {
+    navLabel: "Ratgeber",
+    eyebrow: "Ratgeber",
+    updated: "Aktualisiert am",
+    summaryTitle: "Kurz gesagt",
+    faqTitle: "Häufige Fragen",
+    relatedTitle: "Passend dazu im Shop",
+    moreTitle: "Weitere Ratgeber",
+    read: "Ratgeber lesen",
+  },
   footer: {
     shop: "Shop",
     help: "Hilfe",

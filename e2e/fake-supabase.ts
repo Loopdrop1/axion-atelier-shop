@@ -1510,6 +1510,14 @@ async function functions(req: Request, url: URL, ctx: Ctx): Promise<Response> {
         if (emailed) order["shipping_sent_at"] = now();
         return json(200, { status: "shipped", trackingNumber: order["tracking_number"], emailed });
       }
+      case "system_status":
+        return json(200, {
+          required: { STRIPE_SECRET_KEY: true, RESEND_API_KEY: true },
+          optional: { LOVABLE_API_KEY: true },
+          stripeMode: "test",
+          emailFromIsOnboarding: false,
+          previewOriginsAllowed: false,
+        });
       case "translate": {
         const texts = Array.isArray(b["texts"]) ? (b["texts"] as string[]) : [];
         return json(200, { translations: texts.map((t) => (t.trim() ? `EN ${t.trim()}` : "")) });
