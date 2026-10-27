@@ -84,26 +84,57 @@ export interface WishlistRemote {
   onError: (kind: "add" | "remove") => void;
 }
 let wishlistRemote: WishlistRemote | null = null;
+/** Letzter bekannter Serverstand und neueste Absicht je Handle; Schreibzugriffe laufen pro Handle nacheinander. */
+interface PendingWrite {
+  chain: Promise<void>;
+  latest: number;
+  confirmed: boolean;
+}
+const pendingWrites = new Map<string, PendingWrite>();
 export function setWishlistRemote(remote: WishlistRemote | null) {
   wishlistRemote = remote;
+  pendingWrites.clear();
+}
+/** Während des ersten Abgleichs lokal vorgenommene Änderungen (Handle → true = hinzugefügt, false = entfernt). */
+let wishlistIntents: Map<string, boolean> | null = null;
+export function trackWishlistIntents(): { intents: Map<string, boolean>; stop: () => void } {
+  const intents = new Map<string, boolean>();
+  wishlistIntents = intents;
+  return {
+    intents,
+    stop: () => {
+      if (wishlistIntents === intents) wishlistIntents = null;
+    },
+  };
 }
 export const useWishlist = create<{
   handles: string[];
+  /** Konto, dessen Liste `handles` spiegelt; `null` = reine Gästeliste. */
+  owner: string | null;
   toggle: (handle: string) => void;
-  /** Ersetzt die Liste (nach dem Abgleich mit dem Konto). */
-  replace: (handles: string[]) => void;
+  /** Ersetzt die Liste (nach dem Abgleich mit dem Konto); mit `owner` wird auch die Zugehörigkeit gesetzt. */
+  replace: (handles: string[], owner?: string | null) => void;
+  /** Verwirft eine Kontoliste (Abmeldung); Gästelisten bleiben unberührt. */
+  clearOwned: () => void;
   /** Behält nur Handles, die es noch gibt (Merkliste räumt Gelöschtes auf). */
   prune: (existing: string[]) => void;
 }>()(
   persist(
     (set, get) => ({
       handles: [],
-      replace: (handles) =>
-        set((s) =>
-          s.handles.length === handles.length && s.handles.every((h, i) => h === handles[i])
+      owner: null,
+      replace: (handles, owner) =>
+        set((s) => {
+          const nextOwner = owner === undefined ? s.owner : owner;
+          return nextOwner === s.owner &&
+            s.handles.length === handles.length &&
+            s.handles.every((h, i) => h === handles[i])
             ? s
-            : { handles },
-        ),
+            : { handles, owner: nextOwner };
+        }),
+      clearOwned: () => {
+        if (get().owner !== null) set({ handles: [], owner: null });
+      },
       prune: (existing) => {
         const gone = get().handles.filter((h) => !existing.includes(h));
         if (!gone.length) return;
@@ -117,21 +148,49 @@ export const useWishlist = create<{
         set((s) => ({
           handles: adding ? [...s.handles, handle] : s.handles.filter((h) => h !== handle),
         }));
+        wishlistIntents?.set(handle, adding);
         const remote = wishlistRemote;
         if (!remote) return;
-        (adding ? remote.add(handle) : remote.remove(handle)).catch(() => {
-          // Zurücknehmen, sofern der Zustand nicht inzwischen wieder geändert wurde
-          set((s) => {
-            const has = s.handles.includes(handle);
-            if (adding && has) return { handles: s.handles.filter((h) => h !== handle) };
-            if (!adding && !has) return { handles: [...s.handles, handle] };
-            return s;
-          });
-          remote.onError(adding ? "add" : "remove");
+        let rec = pendingWrites.get(handle);
+        if (!rec) {
+          rec = { chain: Promise.resolve(), latest: 0, confirmed: !adding };
+          pendingWrites.set(handle, rec);
+        }
+        const r = rec;
+        const mine = ++r.latest;
+        r.chain = r.chain.then(async () => {
+          try {
+            // Überholt oder schon so im Konto: nichts zu senden (es zählt die neueste Absicht)
+            if (r.latest !== mine || r.confirmed === adding) return;
+            await (adding ? remote.add(handle) : remote.remove(handle));
+            r.confirmed = adding;
+          } catch {
+            // Nur die neueste Anfrage nimmt zurück, und zwar auf den bestätigten Stand im Konto
+            if (r.latest !== mine) return;
+            set((s) =>
+              s.handles.includes(handle) === r.confirmed
+                ? s
+                : {
+                    handles: r.confirmed
+                      ? [...s.handles, handle]
+                      : s.handles.filter((h) => h !== handle),
+                  },
+            );
+            remote.onError(adding ? "add" : "remove");
+          } finally {
+            if (r.latest === mine && pendingWrites.get(handle) === r) pendingWrites.delete(handle);
+          }
         });
       },
     }),
-    { name: "axion-wishlist", storage: createJSONStorage(() => localStorage), skipHydration: true },
+    {
+      name: "axion-wishlist",
+      version: 1,
+      // Ältere Gästelisten kennen keinen Besitzer: als Gästeliste behandeln
+      migrate: (state) => ({ ...(state as { handles?: string[] }), owner: null }),
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
+    },
   ),
 );
 /** Zuletzt angesehene Produkte (nur Handles, neueste zuerst). */

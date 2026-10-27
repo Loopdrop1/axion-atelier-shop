@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import * as Popover from "@radix-ui/react-popover";
 import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Panel } from "./primitives";
+import { Panel } from "./panel";
 import { ProductCard, useFitLabel } from "./product-card";
 import { isOneSizeTitle } from "@/lib/commerce/one-size";
 import { formatPrice } from "@/lib/commerce/format";

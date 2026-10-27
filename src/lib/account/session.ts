@@ -20,6 +20,23 @@ export const useSessionStore = create<SessionState>(() => ({
 
 let started = false;
 
+/**
+ * Gibt es im Browser Hinweise auf eine gespeicherte Anmeldung? Der Supabase-Client legt sie unter `sb-<projekt>-auth-token`
+ * ab; im Editor-Vorschaurahmen liegt sie beim Editor. Ohne Hinweis muss der Client (50 kB) nicht beim Seitenaufruf laden.
+ */
+export function mayHaveStoredSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) return true;
+    }
+  } catch {
+    // Speicher gesperrt: keine Anmeldung nachweisbar
+  }
+  return window.parent !== window;
+}
+
 export function startSessionSync() {
   if (started || typeof window === "undefined") return;
   started = true;
