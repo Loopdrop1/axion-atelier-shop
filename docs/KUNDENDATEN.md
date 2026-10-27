@@ -3,6 +3,7 @@
 Eine Checkliste für alles, was Axion (Kundschaft/Inhaberin) noch liefern oder entscheiden muss, bevor der Shop live geht.
 Jede Zeile sagt, **wo** der Wert hineingehört und **was passiert, wenn er leer bleibt**. Die Reihenfolge der
 Inbetriebnahme steht in `docs/DEPLOYMENT.md`; die Funktionen und Secrets in `supabase/functions/README.md`.
+Betrieb und Überwachung: `docs/BETRIEB.md`; Testkauf: `docs/TESTKAUF.md`; iPhone-Prüfung: `docs/IPHONE-CHECK.md`.
 
 Grundregel: Geheime Schlüssel (Stripe, Resend), Passwörter und die IBAN nie per Chat oder E-Mail schicken und nie ins
 Git legen. Sie kommen nur in Cloud → Secrets.
@@ -171,7 +172,7 @@ Alles im Admin (`/admin`); Englisch entsteht beim Speichern automatisch.
    «muster», entfernt Zeichnungen als Kategoriebild, schaltet Kategorien ohne aktive Produkte aus). Vorher echte
    Produkte anlegen. Kategorien danach mit Foto wieder einschalten.
 2. **Edge Functions neu veröffentlichen**, wenn Code der Funktionen oder `supabase/config.toml` geändert wurde (Text
-   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle neun mit `verify_jwt = false`**.
+   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle zehn mit `verify_jwt = false`**.
 3. **Stripe live:** Live-Schlüssel und Live-Webhook mit eigenem `whsec_…`; TWINT nach Freigabe testen.
 4. **Livegang-Prüfungen:**
    - `bun run test` (Test `launch-gate`: `robots.txt` passt zu `launched`, keine Platzhalter in Kontaktdaten bei
@@ -179,7 +180,9 @@ Alles im Admin (`/admin`); Englisch entsteht beim Speichern automatisch.
    - `bun run launch:check` (liest Cloud mit `SUPABASE_URL` und `SUPABASE_PUBLISHABLE_KEY`: keine aktiven
      Muster-Produkte, keine aktiven Kategorien ohne Bild, keine Look- oder Outfit-Handles ohne aktives Produkt)
 5. `launched: true`, `bun scripts/sync-robots.ts`, Commit, Push, in Lovable veröffentlichen.
-6. Echter Kauf mit kleinem Betrag und Rückerstattung.
+6. Echter Kauf mit kleinem Betrag und Rückerstattung. Davor den Testkauf (`docs/TESTKAUF.md`) und den iPhone-Check
+   (`docs/IPHONE-CHECK.md`) durchgehen; im Admin zeigt der Kasten «Bereit für den Livegang» (Übersicht), was noch offen ist.
+7. Überwachung einrichten (`docs/BETRIEB.md`): Uptime-Monitor auf `/api/health`.
 
 ## 10. Entscheide, die nur Axion treffen kann (Kurzliste)
 

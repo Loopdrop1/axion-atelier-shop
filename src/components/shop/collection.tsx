@@ -11,6 +11,7 @@ import { filtersFromSearch, type CollectionSearch } from "@/lib/commerce/queries
 import { filterProducts, type Collection, type Product } from "@/lib/commerce";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { occasionHandles } from "./shell";
+import { GuideLinks } from "./guides";
 export type { CollectionSearch };
 type GroupKey = "groesse" | "farbe" | "passform" | "anlass";
 // Adress-Parameter → Feld in ProductFilters
@@ -368,6 +369,7 @@ export function CollectionPage({
           </Button>
         </div>
       )}
+      <GuideLinks handle={collection.handle} occasion={occasion} />
       <Panel open={open} onOpenChange={setOpen} kind="bottom" title={t.collections.filterAndSort}>
         <div className="filter-controls">
           {groups.map((g) => (

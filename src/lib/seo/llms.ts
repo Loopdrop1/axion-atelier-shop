@@ -1,6 +1,7 @@
 // Inhalt von /llms.txt: kurze Übersicht des Shops für KI-Assistenten und KI-Suchen (GEO), nach llmstxt.org.
 import { shopConfig } from "@/config/shop";
 import { messages } from "@/i18n";
+import { guideMeta, guideSlugs } from "@/content/guides-meta";
 import { pageUrl } from "@/lib/commerce/seo";
 
 export function buildLlmsTxt(
@@ -27,6 +28,16 @@ export function buildLlmsTxt(
     link(t.pages["versand-und-rueckgabe"].title, "/versand-und-rueckgabe"),
     link(t.pages["haeufige-fragen"].title, "/haeufige-fragen"),
     link(t.pages.kontakt.title, "/kontakt"),
+    "",
+    "## Ratgeber",
+    link(
+      t.guides.navLabel,
+      "/ratgeber",
+      "Praktische Ratgeber zu Anzug, Passform, Dresscode und Pflege",
+    ),
+    ...guideSlugs.map((slug) =>
+      link(guideMeta.de[slug].title, `/ratgeber/${slug}`, guideMeta.de[slug].description),
+    ),
     "",
     "## Optional",
     link(t.pages["ueber-uns"].title, "/ueber-uns"),

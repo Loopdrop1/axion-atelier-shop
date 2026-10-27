@@ -90,7 +90,11 @@ test("Admin: Übersicht, Bestellung versenden, interne Notiz, Retoure", async ({
     "href",
     /post\.ch\/swisspost-tracking\?formattedParcelCodes=99\.00\.111111\.22222222/,
   );
-  const ship = (await fakeLog(request)).find((e) => e.path === "functions/admin-actions");
+  const ship = (await fakeLog(request)).find(
+    (e) =>
+      e.path === "functions/admin-actions" &&
+      (e.body as { action?: string } | null)?.action === "ship",
+  );
   expect(ship?.body).toMatchObject({
     action: "ship",
     orderId: "o-1040",
@@ -341,7 +345,11 @@ test("Admin: Gutschein ausstellen und sperren", async ({ page, request }) => {
   const issued = await code.textContent();
   await expect(dialog.getByText("Die E-Mail ist unterwegs.")).toBeVisible();
   await dialog.getByRole("button", { name: "Fertig" }).click();
-  const issue = (await fakeLog(request)).find((e) => e.path === "functions/admin-actions");
+  const issue = (await fakeLog(request)).find(
+    (e) =>
+      e.path === "functions/admin-actions" &&
+      (e.body as { action?: string } | null)?.action === "issue_gift_card",
+  );
   expect(issue?.body).toMatchObject({
     action: "issue_gift_card",
     amountCents: 7500,

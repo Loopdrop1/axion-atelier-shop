@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { dashboard } from "@/lib/admin/api";
 import { zurichMidnight } from "@/lib/admin/dates";
 import { Badge, chf, ErrorBox, Loading, PageHeader, Panel } from "@/components/admin/ui";
+import { ReadinessPanel } from "@/components/admin/readiness";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -77,6 +78,8 @@ function Dashboard() {
           <p className="admin-muted">bestätigte Anmeldungen</p>
         </Link>
       </div>
+
+      <ReadinessPanel />
 
       <Panel title="Umsatz pro Tag" description="Letzte 30 Tage">
         <div className="admin-bars" role="list">

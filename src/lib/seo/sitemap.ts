@@ -1,5 +1,7 @@
 // Sitemap für Suchmaschinen: jede Seite auf Deutsch (ohne Präfix) und Englisch (/en), mit hreflang-Verweisen.
 
+import { guideSlugs } from "@/content/guides-meta";
+
 /** Öffentliche Seiten ohne Daten aus dem Katalog. Nicht enthalten: Warenkorb, Merkliste, Suche, Konto,
  *  Bestellstatus, Newsletter-Bestätigung und Admin (privat oder ohne eigenen Inhalt). */
 export const STATIC_PATHS = [
@@ -9,6 +11,8 @@ export const STATIC_PATHS = [
   "/kontakt",
   "/groessenberatung",
   "/haeufige-fragen",
+  "/ratgeber",
+  ...guideSlugs.map((slug) => `/ratgeber/${slug}` as const),
   "/versand-und-rueckgabe",
   "/impressum",
   "/datenschutz",

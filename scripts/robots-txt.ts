@@ -3,6 +3,7 @@
 // KI-Suchen (z. B. OAI-SearchBot, PerplexityBot, ClaudeBot) fallen unter «*» und dürfen die öffentlichen Seiten lesen.
 export const PRIVATE_PATHS = [
   "/admin",
+  "/api/",
   "/konto",
   "/warenkorb",
   "/merkliste",

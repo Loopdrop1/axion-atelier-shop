@@ -430,3 +430,104 @@ describe("admin-actions: Übersetzung", () => {
     }
   });
 });
+
+describe("admin-actions: system_status", () => {
+  const SECRETS = {
+    STRIPE_SECRET_KEY: "sk_test_GEHEIM_abc123",
+    STRIPE_WEBHOOK_SECRET: "whsec_GEHEIM_def456",
+    RESEND_API_KEY: "re_GEHEIM_ghi789",
+    EMAIL_FROM: "Axion <bestellung@axion-geheim.ch>",
+    SHOP_CONTACT_EMAIL: "info@axion-geheim.ch",
+    SHOP_ADDRESS: "Geheimstrasse 1, 8000 Zürich",
+  };
+
+  function statusHandler(extra: Record<string, string>) {
+    return createAdminActionsHandler(
+      createDeps(
+        readEnv(
+          (k) =>
+            ({
+              SUPABASE_URL: supa.url,
+              SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
+              SUPABASE_ANON_KEY: ANON_KEY,
+              SITE_URL: "https://shop.test",
+              ...extra,
+            })[k],
+        ),
+      ),
+    );
+  }
+
+  function call(h: (req: Request) => Promise<Response>, user: TestUser | null) {
+    return h(
+      new Request("https://fn.test/admin-actions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://shop.test",
+          ...(user
+            ? { authorization: `Bearer ${fakeJwt({ sub: user.id, email: user.email })}` }
+            : {}),
+        },
+        body: JSON.stringify({ action: "system_status" }),
+      }),
+    );
+  }
+
+  it("nur Admins: ohne Anmeldung 401, Kundschaft 403", async () => {
+    const h = statusHandler(SECRETS);
+    expect((await call(h, null)).status).toBe(401);
+    expect((await call(h, customer)).status).toBe(403);
+  });
+
+  it("liefert nur Ja/Nein und den Stripe-Modus, nie einen Wert", async () => {
+    const h = statusHandler(SECRETS);
+    const res = await call(h, admin);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    for (const secret of Object.values(SECRETS)) expect(text).not.toContain(secret);
+    expect(text).not.toMatch(/GEHEIM|geheim|sk_test_|whsec_|re_/);
+    const body = JSON.parse(text) as Record<string, unknown>;
+    expect(body["stripeMode"]).toBe("test");
+    expect(body["emailFromIsOnboarding"]).toBe(false);
+    for (const group of ["required", "optional"]) {
+      const values = Object.values(body[group] as Record<string, unknown>);
+      expect(values.length).toBeGreaterThan(0);
+      for (const v of values) expect(typeof v).toBe("boolean");
+    }
+    expect(body["required"]).toMatchObject({
+      STRIPE_SECRET_KEY: true,
+      STRIPE_WEBHOOK_SECRET: true,
+      RESEND_API_KEY: true,
+      EMAIL_FROM: true,
+      SHOP_CONTACT_EMAIL: true,
+      SHOP_ADDRESS: true,
+      SHOP_NOTIFY_EMAIL: false,
+    });
+    expect(body["optional"]).toMatchObject({ LOVABLE_API_KEY: false });
+  });
+
+  it("Stripe-Modus live, onboarding-Absender und Vorschau-Freigabe werden erkannt; ohne Secrets alles false", async () => {
+    const live = await call(
+      statusHandler({
+        STRIPE_SECRET_KEY: "rk_live_xyz",
+        EMAIL_FROM: "Axion <onboarding@resend.dev>",
+        ALLOW_PREVIEW_ORIGINS: "1",
+      }),
+      admin,
+    );
+    expect(await live.json()).toMatchObject({
+      stripeMode: "live",
+      emailFromIsOnboarding: true,
+      previewOriginsAllowed: true,
+      required: { STRIPE_SECRET_KEY: true, EMAIL_FROM: false },
+    });
+    const empty = (await (await call(statusHandler({ SITE_URL: "" }), admin)).json()) as {
+      stripeMode: string;
+      required: Record<string, boolean>;
+    };
+    expect(empty.stripeMode).toBe("missing");
+    expect(empty.required["STRIPE_SECRET_KEY"]).toBe(false);
+    expect(empty.required["RESEND_API_KEY"]).toBe(false);
+  });
+});
