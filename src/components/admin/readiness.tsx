@@ -38,7 +38,9 @@ export function serverChecks(status: SystemStatus): Check[] {
         ? "Stripe im Live-Modus"
         : status.stripeMode === "test"
           ? "Stripe im Testmodus (für den Livegang Live-Schlüssel setzen)"
-          : "Stripe-Modus unbekannt",
+          : status.stripeMode === "missing"
+            ? "Stripe-Schlüssel fehlt"
+            : "Stripe-Modus unbekannt",
     ok: status.stripeMode === "live",
   });
   checks.push({

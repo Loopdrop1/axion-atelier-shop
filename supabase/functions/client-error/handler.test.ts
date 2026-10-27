@@ -67,6 +67,19 @@ describe("scrub und cleanPath", () => {
     expect(cleanPath("/suche?q=max@example.ch")).toBe("/suche");
     expect(cleanPath(undefined)).toBe("/");
   });
+
+  it("ersetzt Bestell-Token, Nummern, UUIDs und lange Folgen in Pfad und Text", () => {
+    const token = "3f2b8c1e-9d4a-4b7e-a1c2-5e6f7a8b9c0d";
+    expect(cleanPath(`/bestellung/${token}`)).toBe("/bestellung/:token");
+    expect(cleanPath(`https://shop.test/en/bestellung/${token}?x=1`)).toBe("/en/bestellung/:token");
+    expect(cleanPath("/en/konto/bestellungen/10042")).toBe("/en/konto/bestellungen/:nr");
+    expect(scrub(`Boom at https://shop.test/bestellung/${token}?t=1 for ${token}`)).toBe(
+      "Boom at https://shop.test/bestellung/:token for :id",
+    );
+    expect(scrub("key Ab3dEf6hIj9lMn2pQr5tUv8xYz1Bc4De7Fg0 and " + "ab".repeat(16))).toBe(
+      "key :tok and :hex",
+    );
+  });
 });
 
 describe("client-error", () => {
@@ -90,6 +103,23 @@ describe("client-error", () => {
     expect(row!.stack).not.toContain("?v=1");
     const all = await sql("select * from public.client_errors where path = $1", [path]);
     expect(JSON.stringify(all)).not.toMatch(/10\.7\.0\.|kunde@/);
+  });
+
+  it("speichert den Bestell-Token nirgends (Pfad, Meldung, Stack)", async () => {
+    const token = "9a8b7c6d-1111-4222-8333-444455556666";
+    const marker = uniq("tok");
+    const res = await post({
+      message: `Render ${marker} bestellung/${token}`,
+      stack: `Error\n    at Page (https://shop.test/bestellung/${token}?t=1:10:5)`,
+      path: `/bestellung/${token}`,
+    });
+    expect(res.status).toBe(200);
+    const all = await sql("select * from public.client_errors where message like $1", [
+      `Render ${marker}%`,
+    ]);
+    expect(all).toHaveLength(1);
+    expect(JSON.stringify(all)).not.toContain(token);
+    expect(all[0]).toMatchObject({ path: "/bestellung/:token" });
   });
 
   it("kürzt zu lange Angaben", async () => {
@@ -138,6 +168,38 @@ describe("client-error", () => {
     );
     expect((await post({ message: "neu", path: `/${uniq("neu")}` })).status).toBe(200);
     expect(await rows(old)).toHaveLength(0);
+  });
+
+  it("löscht alte Einträge auch dann, wenn nur bekannte Fehler wiederkehren", async () => {
+    const old = `/${uniq("alt2")}`;
+    const path = `/${uniq("bekannt")}`;
+    const body = { message: `Bekannt ${uniq("b")}`, path };
+    expect((await post(body)).status).toBe(200);
+    await sql(
+      "insert into public.client_errors (fingerprint, message, path, last_seen_at) values ('altaltalt2', 'alt', $1, now() - interval '31 days')",
+      [old],
+    );
+    expect((await post(body)).status).toBe(200); // nur Zähler
+    expect(await rows(path)).toMatchObject([{ count: 2 }]);
+    expect(await rows(old)).toHaveLength(0);
+  });
+
+  it("Wiederholungen eines bekannten Fehlers belasten das Tageslimit nicht", async () => {
+    const body = { message: `Wiederholt ${uniq("w")}`, path: `/${uniq("rep")}` };
+    expect((await post(body)).status).toBe(200);
+    const global = () =>
+      sql<{ hits: number }>(`select hits from private.rate_limits where key = ${hash}`, [
+        "clienterr-global",
+      ]);
+    expect(await global()).toEqual([{ hits: 1 }]);
+    for (let i = 0; i < 5; i++) expect((await post(body)).status).toBe(200);
+    expect(await global()).toEqual([{ hits: 1 }]);
+    // bei erschöpftem Tageslimit gehen Wiederholungen weiter durch, neue Fehler nicht
+    await sql(`update private.rate_limits set hits = 500 where key = ${hash}`, [
+      "clienterr-global",
+    ]);
+    expect((await post(body)).status).toBe(200);
+    expect((await post({ message: `Neu ${uniq("n")}`, path: "/g" })).status).toBe(429);
   });
 
   it("ungültige Anfragen: 400, 413, 415", async () => {

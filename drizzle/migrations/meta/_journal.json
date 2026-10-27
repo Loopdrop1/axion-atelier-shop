@@ -99,6 +99,13 @@
       "when": 1792650000000,
       "tag": "0013_axion_client_errors",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792660000000,
+      "tag": "0014_axion_client_errors_prune",
+      "breakpoints": true
     }
   ]
 }

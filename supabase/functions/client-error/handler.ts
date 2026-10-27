@@ -4,6 +4,7 @@
 import type { Deps } from "../_shared/deps.ts";
 import { clientIp, HttpError, json, readJson, str, withHttp } from "../_shared/http.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
+import { redact } from "../_shared/redact.ts";
 
 export const LIMITS = {
   message: 500,
@@ -13,12 +14,14 @@ export const LIMITS = {
   path: 200,
 } as const;
 
-const URL_IN_TEXT = /https?:\/\/[^\s"'<>)\]]+/gi;
 const EMAIL_IN_TEXT = /[^\s@"'<>()]+@[^\s@"'<>()]+\.[a-z]{2,}/gi;
 
-/** Entfernt Query-String und Fragment aus Adressen im Text und ersetzt E-Mail-Adressen (Tokens, Namen, Suchbegriffe). */
+/**
+ * Ersetzt E-Mail-Adressen und entfernt Query-String und Fragment aus Adressen im Text; Bestell-Token, Bestellnummern,
+ * UUIDs und lange Zufallsfolgen werden ersetzt (`redact`, gleiche Regeln wie im Browser).
+ */
 export function scrub(text: string): string {
-  return text.replace(URL_IN_TEXT, (u) => u.split(/[?#]/)[0]!).replace(EMAIL_IN_TEXT, "[email]");
+  return redact(text.replace(EMAIL_IN_TEXT, "[email]"));
 }
 
 /** Pfad der Seite ohne Host, Query-String und Fragment. */

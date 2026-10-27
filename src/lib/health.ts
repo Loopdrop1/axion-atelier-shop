@@ -28,3 +28,28 @@ export async function checkHealth(
   }
   return { ok: catalogue === "ok", catalogue, time: now().toISOString() };
 }
+
+/**
+ * Merkt sich das Ergebnis `ttlMs` lang (pro Serverinstanz) und teilt eine laufende Prüfung: häufige Abfragen oder ein
+ * Ausfall des Katalogs erzeugen so nicht ebenso viele Datenbankabfragen. `time` ist der Zeitpunkt der Prüfung.
+ */
+export function createHealthCache(
+  check: () => Promise<HealthResult>,
+  ttlMs = 10_000,
+  clock: () => number = Date.now,
+): () => Promise<HealthResult> {
+  let cached: { at: number; result: HealthResult } | undefined;
+  let running: Promise<HealthResult> | undefined;
+  return async () => {
+    if (cached && clock() - cached.at < ttlMs) return cached.result;
+    running ??= check()
+      .then((result) => {
+        cached = { at: clock(), result };
+        return result;
+      })
+      .finally(() => {
+        running = undefined;
+      });
+    return running;
+  };
+}
