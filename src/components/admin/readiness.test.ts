@@ -27,6 +27,15 @@ describe("serverChecks", () => {
   });
 });
 
+describe("Stripe-Modus", () => {
+  it("beschriftet fehlenden Schlüssel und unbekannten Modus verschieden", () => {
+    const label = (mode: SystemStatus["stripeMode"]) =>
+      serverChecks(status({ stripeMode: mode })).find((c) => c.id === "stripe-mode")?.label;
+    expect(label("missing")).toBe("Stripe-Schlüssel fehlt");
+    expect(label("unknown")).toBe("Stripe-Modus unbekannt");
+  });
+});
+
 describe("clientChecks", () => {
   it("meldet Platzhalter, Entwurfsseiten und Musterstücke", () => {
     const checks = clientChecks({

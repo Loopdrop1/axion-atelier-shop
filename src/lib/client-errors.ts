@@ -1,8 +1,10 @@
 // Technische Fehlerberichte aus dem Browser (Edge Function «client-error», Anzeige im Admin unter /admin/fehler).
 // Klein halten: Das Modul gehört zum ersten Laden der Shop-Hülle. Die Funktion `callFunction` (und mit ihr der
 // Supabase-Client) wird erst beim ersten Bericht nachgeladen. Keine Personendaten: nur Meldung, Pfad ohne
-// Query-String, Stack, Version; die Funktion entfernt zusätzlich Adressen und E-Mails aus dem Text.
+// Query-String, Stack, Version. Tokens in Adressen (Bestellstatus), UUIDs und lange Zufallsfolgen werden schon hier
+// ersetzt (`redact`), die Funktion entfernt zusätzlich E-Mails aus dem Text.
 import { backendConfigured } from "@/lib/backend";
+import { redact } from "@/lib/redact";
 
 /** Höchstens so viele Berichte pro Seitenaufruf (ein Fehler in einer Schleife soll die Bremse nicht fluten). */
 export const MAX_REPORTS_PER_PAGE_VIEW = 5;
@@ -19,7 +21,9 @@ const NOISE = [
   /ResizeObserver loop/i,
   /^Script error\.?$/i,
   /Non-Error promise rejection captured/i,
-  /^(Load failed|Failed to fetch|NetworkError when attempting to fetch resource\.?)$/i,
+  // Netzwerk (Chrome, Safari, Firefox), auch mit Fehlernamen davor («TypeError: Failed to fetch»). Ladefehler von
+  // Skript-Teilen nach einem Update («Failed to fetch dynamically imported module», ChunkLoadError) bleiben Signal.
+  /^(\w*Error: )?(Load failed|Failed to fetch|NetworkError when attempting to fetch resource\.?|The network connection was lost\.?|The Internet connection appears to be offline\.?|Network request failed)$/i,
   /chrome-extension:|moz-extension:|safari-extension:|safari-web-extension:/i,
 ];
 
@@ -90,10 +94,11 @@ export function createReporter(options: {
       if (!text || isNoise(text, `${stack}\n${context.filename ?? ""}`)) return false;
       if (!throttle.allow(text, stack)) return false;
       const report: ErrorReport = {
-        message: text.slice(0, 500),
-        stack: stack.slice(0, 2000),
-        // nur der Pfad: nie Query-String oder Fragment (können Tokens oder Suchbegriffe enthalten)
-        path: location().split(/[?#]/)[0] || "/",
+        // erst ersetzen, dann kürzen: ein abgeschnittenes Token wäre sonst nicht mehr erkennbar
+        message: redact(text).slice(0, 500),
+        stack: redact(stack).slice(0, 2000),
+        // nur der Pfad: nie Query-String oder Fragment; Bestell-Token und Nummern ersetzt
+        path: redact(location().split(/[?#]/)[0] || "/").slice(0, 200),
         release: release(),
       };
       // Der Bericht darf nie selbst einen Fehler auslösen

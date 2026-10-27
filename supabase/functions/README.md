@@ -67,15 +67,15 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 
 ## client-error
 
-Technische Fehlerberichte aus dem Browser (Tabelle `client_errors`, Migration `20261027001400_client_errors.sql` bzw. Cloud `0013`).
+Technische Fehlerberichte aus dem Browser (Tabelle `client_errors`, Migrationen `20261027001400_client_errors.sql` und `20261027001500_client_errors_prune.sql` bzw. Cloud `0013` und `0014`).
 Anzeige im Admin unter «Fehler»; Ablauf in `docs/BETRIEB.md`.
 
 - `{ message, stack?, path?, release? }` → `200 { ok: true }`. Meldung auf 500, Stack auf 2000, Version auf 64 Zeichen gekürzt; der Browser-Typ kommt aus dem
-  `User-Agent`-Header (300 Zeichen). Der Pfad wird ohne Host, Query-String und Fragment gespeichert; Adressen im Text verlieren ihren Query-String, E-Mail-Adressen werden durch `[email]` ersetzt.
+  `User-Agent`-Header (300 Zeichen). Der Pfad wird ohne Host, Query-String und Fragment gespeichert; Adressen im Text verlieren ihren Query-String, E-Mail-Adressen werden durch `[email]` ersetzt. Dazu ersetzt `_shared/redact.ts` in Pfad, Meldung und Stack (auch in Adressen) Bestell-Token (`bestellung/:token`), Bestellnummern im Konto (`:nr`), UUIDs (`:id`), Hex-Folgen ab 24 Zeichen (`:hex`) und lange Zufallsfolgen ab 32 Zeichen (`:tok`); der Browser (`src/lib/redact.ts`) wendet dieselben Regeln schon vor dem Senden an, `src/lib/redact.test.ts` hält beide gleich.
   Es wird weder IP noch E-Mail noch Konto gespeichert.
-- Gleicher Fehler (Fingerprint aus Meldung ohne Zahlen und erster Stack-Stelle) innerhalb von 24 Stunden erhöht nur den Zähler (`count`). Einträge älter als 30 Tage löscht die RPC `client_error_report` beim Anlegen neuer Fehler.
-- `400 BAD_REQUEST` (ohne Meldung), `413 PAYLOAD_TOO_LARGE` (über 12 KB), `429 RATE_LIMITED` (20 pro IP bzw. IPv6-/64-Netz und Stunde, 500 pro Tag gesamt; Schlüssel `clienterr-ip:…`, `clienterr-global` nur als Hash). Lesen und Löschen nur für Admins (RLS), Schreiben nur über die RPC mit `service_role`.
-- Der Shop meldet höchstens 5 verschiedene Fehler pro Seitenaufruf, nie in der Entwicklung und nie ohne Backend (`src/lib/client-errors.ts`).
+- Gleicher Fehler (Fingerprint aus Meldung ohne Zahlen und erster Stack-Stelle) innerhalb von 24 Stunden erhöht nur den Zähler (`count`). Einträge älter als 30 Tage löscht die RPC `client_error_report` bei jedem Aufruf (höchstens 500 pro Aufruf).
+- `400 BAD_REQUEST` (ohne Meldung), `413 PAYLOAD_TOO_LARGE` (über 12 KB), `429 RATE_LIMITED` (20 pro IP bzw. IPv6-/64-Netz und Stunde, 500 pro Tag gesamt; zuerst die IP-Bremse, danach zählt nur ein neuer Fingerprint zum Tageslimit: Wiederholungen eines bekannten Fehlers erhöhen den Zähler, ohne das Tageslimit zu belasten; Schlüssel `clienterr-ip:…`, `clienterr-global` nur als Hash). Lesen und Löschen nur für Admins (RLS), Schreiben nur über die RPC mit `service_role`.
+- Der Shop meldet höchstens 5 verschiedene Fehler pro Seitenaufruf, nie in der Entwicklung und nie ohne Backend (`src/lib/client-errors.ts`); Netzwerkfehler («Failed to fetch», «Load failed», «NetworkError…», «The network connection was lost.», auch mit Fehlernamen davor) werden nicht gemeldet, Ladefehler von Skript-Teilen nach einem Update schon.
 
 ## contact
 
@@ -134,6 +134,7 @@ nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche An
 | `20261025001200_wishlist`              | `0011_axion_wishlist`              | gleich                                                                         |
 | `20261026001300_image_variants`        | `0012_axion_image_variants`        | gleich                                                                         |
 | `20261027001400_client_errors`         | `0013_axion_client_errors`         | gleich                                                                         |
+| `20261027001500_client_errors_prune`   | `0014_axion_client_errors_prune`   | gleich                                                                         |
 
 Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
 `NNNN_snapshot.json` mit der vorigen `id` als `prevId`).

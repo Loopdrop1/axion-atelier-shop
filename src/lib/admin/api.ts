@@ -214,6 +214,8 @@ export async function listClientErrors(): Promise<ClientErrorRow[]> {
   const { data, error } = await db()
     .from("client_errors")
     .select("*")
+    // die Datenbank löscht nach 30 Tagen beim nächsten Bericht; bis dahin nichts Älteres anzeigen
+    .gte("last_seen_at", new Date(Date.now() - 30 * 86_400_000).toISOString())
     .order("last_seen_at", { ascending: false })
     .limit(500);
   fail(error);

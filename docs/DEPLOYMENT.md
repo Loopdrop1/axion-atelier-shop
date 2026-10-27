@@ -57,7 +57,7 @@ einschalten.
 1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern, und
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
-2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Migrationen `0000` bis `0013_axion_client_errors` (in Cloud die Fassung aus
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Migrationen `0000` bis `0014_axion_client_errors_prune` (in Cloud die Fassung aus
    `drizzle/migrations/`, lokal `supabase/migrations/`) werden der Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
    Danach prüfen: 17 Tabellen im Schema `public` (u. a. `shop_settings` und `stock_alerts`), Buckets `product-images` und `site-media`, Funktionen

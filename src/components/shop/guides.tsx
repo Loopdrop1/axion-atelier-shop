@@ -2,6 +2,7 @@
 // Die langen Texte (guides.ts, guides-en.ts) kommen aus dem Loader der Route; hier stehen nur Darstellung und Stammdaten.
 import { Fragment, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import type { Guide, GuideBlock } from "@/content/guides";
 import {
   guideIndexMeta,
@@ -14,6 +15,8 @@ import {
 } from "@/content/guides-meta";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { formatDate } from "@/lib/commerce/format";
+import { useLocaleLoaderData } from "@/lib/commerce/locale-data";
+import { navQuery } from "@/lib/commerce/queries";
 
 type StaticPage = "groessenberatung" | "versand-und-rueckgabe" | "haeufige-fragen";
 const STATIC_PAGES: readonly string[] = [
@@ -21,6 +24,28 @@ const STATIC_PAGES: readonly string[] = [
   "versand-und-rueckgabe",
   "haeufige-fragen",
 ];
+
+/** Feste Kollektionen, die es immer gibt (keine Kategorie im Admin). */
+const ALWAYS_THERE = new Set(["alle", "neu", "sale"]);
+
+/**
+ * Gibt es das Ziel? Kategorien können im Admin (oder durch muster-entfernen.sql) ausgeschaltet sein; ein Link dorthin
+ * wäre ein 404. Anlässe, Ratgeber und Hilfeseiten gibt es immer. Solange die aktiven Kategorien nicht geladen sind,
+ * bleibt der Link stehen.
+ */
+export function guideTargetExists(path: string, activeHandles: ReadonlySet<string> | undefined) {
+  const [first, second] = (path.split("?")[0] ?? "").split("/").filter(Boolean);
+  if (first !== "kollektion" || !second || ALWAYS_THERE.has(second)) return true;
+  return !activeHandles || activeHandles.has(second);
+}
+
+/** Handles der aktiven Kategorien (wie das Menü), `undefined` bis sie geladen sind. */
+function useActiveCategoryHandles(): ReadonlySet<string> | undefined {
+  const locale = useLocale();
+  const initial = useLocaleLoaderData()?.nav;
+  const { data } = useQuery({ ...navQuery(locale), ...(initial ? { initialData: initial } : {}) });
+  return data ? new Set(data.map((c) => c.handle)) : undefined;
+}
 
 /** Link auf eine Seite im Shop: Pfad ohne Sprachpräfix, z. B. «/kollektion/alle?anlass=hochzeit». */
 export function GuideLink({
@@ -33,6 +58,9 @@ export function GuideLink({
   className?: string;
 }) {
   const lp = useLocaleParam();
+  const active = useActiveCategoryHandles();
+  // Im Fliesstext bleibt die Beschriftung stehen, nur der Link entfällt
+  if (!guideTargetExists(path, active)) return <>{children}</>;
   const [pathname = "", query = ""] = path.split("?");
   const segments = pathname.split("/").filter(Boolean);
   const [first, second] = segments;
@@ -149,6 +177,8 @@ export function GuidePage({ slug, guide }: { slug: GuideSlug; guide: Guide }) {
   const locale = useLocale();
   const lp = useLocaleParam();
   const t = useT();
+  const active = useActiveCategoryHandles();
+  const related = guide.related.filter((link) => guideTargetExists(link.path, active));
   const meta = guideMeta[locale][slug];
   return (
     <article className="container page-body content-page guide">
@@ -193,18 +223,20 @@ export function GuidePage({ slug, guide }: { slug: GuideSlug; guide: Guide }) {
             </div>
           ))}
         </section>
-        <section className="guide-related">
-          <h2>{t.guides.relatedTitle}</h2>
-          <ul className="guide-link-list">
-            {guide.related.map((link) => (
-              <li key={link.path}>
-                <GuideLink path={link.path} className="text-link">
-                  {link.label}
-                </GuideLink>
-              </li>
-            ))}
-          </ul>
-        </section>
+        {related.length > 0 && (
+          <section className="guide-related">
+            <h2>{t.guides.relatedTitle}</h2>
+            <ul className="guide-link-list">
+              {related.map((link) => (
+                <li key={link.path}>
+                  <GuideLink path={link.path} className="text-link">
+                    {link.label}
+                  </GuideLink>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <section className="guide-more">
           <h2>{t.guides.moreTitle}</h2>
           <ul className="guide-link-list">

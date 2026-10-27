@@ -130,3 +130,91 @@ describe("client_error_report", () => {
     expect(await report("198.51.100.250")).toEqual([{ r: "ok" }]);
   });
 });
+
+describe("client_error_report: Löschung und Tageslimit", () => {
+  const globalHits = async () =>
+    (
+      await sql<{ hits: number }>(
+        "select hits from private.rate_limits where key = encode(extensions.digest('clienterr-global'::text, 'sha256'), 'hex')",
+      )
+    )[0]?.hits ?? 0;
+
+  it("löscht Einträge über 30 Tage bei jedem Aufruf, auch bei bekanntem Fingerprint", async () => {
+    const path = `/${uniq("prune")}`;
+    const fp = uniq("fp12345678");
+    const call = (ip: string) =>
+      q(
+        "service_role",
+        null,
+        "select public.client_error_report($1, $2, 'Boom', $3, null, 'UA', 'rel') as r",
+        [ip, fp, path],
+      );
+    expect(await call("192.0.2.1")).toEqual([{ r: "ok" }]);
+    await sql(
+      "insert into public.client_errors (fingerprint, message, path, last_seen_at) values ($1, 'alt', $2, now() - interval '31 days')",
+      [uniq("altfp12345"), `${path}/alt`],
+    );
+    await sql(
+      "insert into public.client_errors (fingerprint, message, path, last_seen_at) values ($1, 'jung', $2, now() - interval '29 days')",
+      [uniq("jungfp1234"), `${path}/jung`],
+    );
+    expect(await call("192.0.2.1")).toEqual([{ r: "ok" }]); // bekannter Fingerprint: nur Zähler
+    expect(
+      await sql("select 1 from public.client_errors where path = $1", [`${path}/alt`]),
+    ).toEqual([]);
+    expect(
+      await sql("select 1 from public.client_errors where path = $1", [`${path}/jung`]),
+    ).toHaveLength(1);
+    expect(await sql("select count from public.client_errors where path = $1", [path])).toEqual([
+      { count: 2 },
+    ]);
+  });
+
+  it("Wiederholungen zählen nur pro IP, nicht zum Tageslimit; neue Fehler schon", async () => {
+    const fp = uniq("fp12345678");
+    const call = (ip: string, f = fp) =>
+      q(
+        "service_role",
+        null,
+        "select public.client_error_report($1, $2, 'Boom', '/limit', null, 'UA', 'rel') as r",
+        [ip, f],
+      );
+    expect(await call("192.0.2.10")).toEqual([{ r: "ok" }]);
+    expect(await globalHits()).toBe(1);
+    for (let i = 0; i < 4; i++) expect(await call(`192.0.2.${20 + i}`)).toEqual([{ r: "ok" }]);
+    expect(await globalHits()).toBe(1);
+    expect(await call("192.0.2.30", uniq("fp12345678"))).toEqual([{ r: "ok" }]);
+    expect(await globalHits()).toBe(2);
+  });
+
+  it("die IP-Bremse gilt zuerst, auch für Wiederholungen", async () => {
+    const fp = uniq("fp12345678");
+    const ip = "192.0.2.77";
+    const call = () =>
+      q(
+        "service_role",
+        null,
+        "select public.client_error_report($1, $2, 'Boom', '/ipfirst', null, 'UA', 'rel') as r",
+        [ip, fp],
+      );
+    for (let i = 0; i < 20; i++) expect(await call()).toEqual([{ r: "ok" }]);
+    expect(await call()).toEqual([{ r: "rate_limited" }]);
+  });
+
+  it("bei erschöpftem Tageslimit gehen Wiederholungen durch, neue Fehler nicht", async () => {
+    const fp = uniq("fp12345678");
+    const call = (f: string) =>
+      q(
+        "service_role",
+        null,
+        "select public.client_error_report('192.0.2.99', $1, 'Boom', '/full', null, 'UA', 'rel') as r",
+        [f],
+      );
+    expect(await call(fp)).toEqual([{ r: "ok" }]);
+    await sql(
+      "update private.rate_limits set hits = 500 where key = encode(extensions.digest('clienterr-global'::text, 'sha256'), 'hex')",
+    );
+    expect(await call(fp)).toEqual([{ r: "ok" }]);
+    expect(await call(uniq("fp12345678"))).toEqual([{ r: "rate_limited" }]);
+  });
+});

@@ -17,6 +17,57 @@ function reporter(enabled = true) {
   return { r, send };
 }
 
+const TOKEN = "3f2b8c1e-9d4a-4b7e-a1c2-5e6f7a8b9c0d";
+
+describe("Rauschen", () => {
+  it("ignoriert Netzwerkfehler mit und ohne Fehlernamen (echte Error-Instanzen)", () => {
+    const { r, send } = reporter();
+    const errors = [
+      new TypeError("Failed to fetch"),
+      new TypeError("Load failed"),
+      new TypeError("NetworkError when attempting to fetch resource."),
+      new Error("The network connection was lost."),
+      new Error("Network request failed"),
+      "Failed to fetch",
+    ];
+    for (const error of errors) expect(r.report(error), String(error)).toBe(false);
+    expect(send).not.toHaveBeenCalled();
+    expect(isNoise("TypeError: Failed to fetch")).toBe(true);
+  });
+
+  it("meldet Ladefehler von Skript-Teilen nach einem Update weiterhin", () => {
+    const { r, send } = reporter();
+    expect(
+      r.report(
+        new TypeError("Failed to fetch dynamically imported module: https://shop.ch/assets/a.js"),
+      ),
+    ).toBe(true);
+    const chunk = new Error("Loading chunk 7 failed.");
+    chunk.name = "ChunkLoadError";
+    expect(r.report(chunk)).toBe(true);
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("Bestell-Token", () => {
+  it("steht weder im Pfad noch in Meldung oder Stack", () => {
+    const send = vi.fn();
+    const r = createReporter({
+      enabled: true,
+      send,
+      location: () => `/en/bestellung/${TOKEN}?x=1`,
+      release: () => "b",
+    });
+    const error = new Error(`Order ${TOKEN} kaputt`);
+    error.stack = `Error: x\n    at Page (https://shop.ch/bestellung/${TOKEN}?t=1:10:5)`;
+    expect(r.report(error)).toBe(true);
+    const report = send.mock.calls[0]![0] as { message: string; stack: string; path: string };
+    expect(report.path).toBe("/en/bestellung/:token");
+    expect(JSON.stringify(report)).not.toContain(TOKEN);
+    expect(report.message).toBe("Error: Order :id kaputt");
+  });
+});
+
 describe("createThrottle", () => {
   it("lässt höchstens fünf verschiedene Fehler pro Seitenaufruf durch", () => {
     const t = createThrottle();
