@@ -20,6 +20,7 @@ import { MissingPage } from "@/components/shop/missing-page";
 import { shopConfig } from "@/config/shop";
 import { htmlLang, useLocale, useT } from "@/i18n";
 import { reportClientError } from "@/lib/client-errors";
+import { marketingHead } from "@/lib/marketing";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -69,35 +70,49 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { property: "og:site_name", content: "Axion" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "theme-color", content: "#1E3A2F" },
-      ...(!shopConfig.launched ? [{ name: "robots", content: "noindex, nofollow" }] : []),
-    ],
-    links: [
-      { rel: "preload", as: "font", type: "font/woff2", href: jostLatin, crossOrigin: "anonymous" },
-      {
-        rel: "preload",
-        as: "font",
-        type: "font/woff2",
-        href: interLatin,
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "icon", href: "/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-      { rel: "manifest", href: "/site.webmanifest" },
-    ],
-  }),
+  head: ({ matches }) => {
+    const marketing = marketingHead({
+      admin: matches.some((m) => /^\/admin(\/|$)/.test(m.routeId)),
+      dev: import.meta.env.DEV,
+    });
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { property: "og:site_name", content: "Axion" },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
+        { name: "theme-color", content: "#1E3A2F" },
+        ...(!shopConfig.launched ? [{ name: "robots", content: "noindex, nofollow" }] : []),
+        ...marketing.meta,
+      ],
+      scripts: marketing.scripts,
+      links: [
+        {
+          rel: "preload",
+          as: "font",
+          type: "font/woff2",
+          href: jostLatin,
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          as: "font",
+          type: "font/woff2",
+          href: interLatin,
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "stylesheet",
+          href: appCss,
+        },
+        { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+        { rel: "icon", href: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+        { rel: "manifest", href: "/site.webmanifest" },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

@@ -1132,6 +1132,7 @@ export type Database = {
         Returns: string
       }
       release_expired_orders: { Args: { p_grace?: string }; Returns: number }
+      restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
       reserve_checkout: {
         Args: {
           p_discount_code?: string

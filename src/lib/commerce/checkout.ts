@@ -2,6 +2,7 @@
 import { getSupabase } from "@/lib/supabase-client";
 import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
+import { trackEvent } from "@/lib/analytics";
 import type { Locale } from "@/i18n/locale";
 
 export interface DiscountCheck {
@@ -47,6 +48,8 @@ export type CheckoutInput =
       email?: string | undefined;
       discountCode?: string | undefined;
       giftCardCode?: string | undefined;
+      /** Ausdrückliche Einwilligung zur einmaligen Erinnerung per E-Mail, wenn die Kasse abläuft */
+      remind?: boolean | undefined;
       locale: Locale;
     }
   | {
@@ -70,6 +73,7 @@ export type CheckoutResult =
     };
 
 export async function startCheckout(input: CheckoutInput): Promise<CheckoutResult> {
+  trackEvent(input.kind === "cart" ? "Begin Checkout" : "Begin Checkout Gift Card");
   const result = await callFunction<{ url: string; orderNumber: number }>("checkout", input);
   if (result.ok) return { ok: true, url: result.data.url, orderNumber: result.data.orderNumber };
   const items = result.body["items"];

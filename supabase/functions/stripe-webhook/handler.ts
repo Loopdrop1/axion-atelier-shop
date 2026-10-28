@@ -1,10 +1,15 @@
 // Stripe-Webhook: verbucht Zahlungen (auch ohne Zahlbetrag, wenn ein Gutschein alles deckt), storniert
-// abgelaufene Kassen, übernimmt Rückerstattungen. Jedes Ereignis wird nur einmal verarbeitet; scheitert etwas,
+// abgelaufene Kassen (mit Einwilligung samt einmaliger Erinnerung), übernimmt Rückerstattungen (mit E-Mail). Jedes Ereignis wird nur einmal verarbeitet; scheitert etwas,
 // gibt es 500 und Stripe wiederholt.
 import type Stripe from "stripe";
 import type { Deps } from "../_shared/deps.ts";
 import { json } from "../_shared/http.ts";
-import { sendPaidEmails, type OrderRecord } from "../_shared/order-mail.ts";
+import {
+  sendCartReminder,
+  sendPaidEmails,
+  sendRefundNotice,
+  type OrderRecord,
+} from "../_shared/order-mail.ts";
 import { stripeCrypto } from "../_shared/stripe.ts";
 
 function orderIdOf(session: Stripe.Checkout.Session): string | null {
@@ -107,11 +112,18 @@ export function createStripeWebhookHandler(deps: Deps) {
         case "checkout.session.expired":
         case "checkout.session.async_payment_failed": {
           const orderId = orderIdOf(event.data.object);
-          if (orderId)
+          if (orderId) {
+            const expired = event.type === "checkout.session.expired";
             await deps.rpc("cancel_order", {
               p_order_id: orderId,
-              p_reason: event.type === "checkout.session.expired" ? "expired" : "payment_failed",
+              p_reason: expired ? "expired" : "payment_failed",
             });
+            // Erinnerung nur nach Ablauf und nur mit Einwilligung; ein Fehler hier darf die Stornierung nicht kippen.
+            if (expired)
+              await sendCartReminder(deps, orderId).catch((e) =>
+                console.error("Warenkorb-Erinnerung fehlgeschlagen", (e as Error).message),
+              );
+          }
           break;
         }
         case "charge.refunded": {
@@ -120,11 +132,14 @@ export function createStripeWebhookHandler(deps: Deps) {
             typeof charge.payment_intent === "string"
               ? charge.payment_intent
               : charge.payment_intent?.id;
-          if (pi)
+          if (pi) {
             await deps.rpc("record_refund", {
               p_payment_intent_id: pi,
               p_refunded_cents: charge.amount_refunded,
             });
+            // Wirft bei Versandfehlern: Stripe wiederholt, Betrag und Resend-Schlüssel verhindern doppelte Mails.
+            await sendRefundNotice(deps, pi);
+          }
           break;
         }
         default:

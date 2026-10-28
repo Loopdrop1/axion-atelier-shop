@@ -76,7 +76,8 @@ testen; TWINT erst nach der Freischaltung durch Stripe im Livemodus.
 
 ## 5. Rückerstattung
 
-1. Stripe (Testmodus) → Zahlungen → die Testzahlung → **Zahlung rückerstatten** (voll).
+1. Im Admin die Bestellung öffnen → **Rückerstatten** (voll, mit Bestätigung); der Betrag erscheint nach wenigen Sekunden (Webhook).
+   Alternativ in Stripe (Testmodus) → Zahlungen → die Testzahlung → **Zahlung rückerstatten**.
 2. Webhook `charge.refunded` kommt an (Zustellungen prüfen). Im Admin zeigt die Bestellung die Rückerstattung (Status
    «zurückerstattet», Betrag).
 3. Retoure einbuchen (Bestellung → «Retoure einbuchen»): der Bestand steigt wieder.

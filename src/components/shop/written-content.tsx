@@ -12,6 +12,7 @@ import { pagesEn } from "@/content/pages-en";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
+import { plausibleDomain } from "@/lib/marketing";
 
 const variables = {
   brand: shopConfig.brand,
@@ -27,13 +28,22 @@ export function resolvePageVariables(text: string) {
     key in variables ? String(variables[key as keyof typeof variables]) : token,
   );
 }
+/** Bedingte Aufzählungspunkte: Beginnt ein Punkt mit {{analytics}}, erscheint er nur, wenn die Besucherstatistik
+ *  in shop.ts eingeschaltet ist (analytics.plausibleDomain); die Marke selbst wird nie angezeigt. */
+const ANALYTICS_MARK = "{{analytics}}";
+export function visibleItems(items: string[], analytics = plausibleDomain() !== ""): string[] {
+  return items
+    .filter((text) => analytics || !text.startsWith(ANALYTICS_MARK))
+    .map((text) => (text.startsWith(ANALYTICS_MARK) ? text.slice(ANALYTICS_MARK.length) : text));
+}
 export function pageHasPlaceholder(page: WrittenPage) {
   const strings: string[] = [page.title];
   for (const section of page.sections) {
     if (section.heading) strings.push(section.heading);
     for (const block of section.blocks) {
       if (block.type === "paragraph") strings.push(block.text);
-      else if (block.type === "bullets" || block.type === "steps") strings.push(...block.items);
+      else if (block.type === "bullets" || block.type === "steps")
+        strings.push(...visibleItems(block.items));
       else if (block.type === "definitions")
         block.items.forEach((item) => strings.push(item.label, item.value));
       else if (block.type === "questions")
@@ -162,7 +172,7 @@ function Block({ block, shipping }: { block: PageBlock; shipping: boolean }) {
     const List = block.type === "steps" ? "ol" : "ul";
     return (
       <List>
-        {block.items.map((text, i) => (
+        {visibleItems(block.items).map((text, i) => (
           <li key={i}>
             <InlineText text={text} />
           </li>

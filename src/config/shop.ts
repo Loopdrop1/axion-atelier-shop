@@ -20,6 +20,18 @@ export const shopConfig = {
     tiktok: "",
     pinterest: "",
   },
+  // Besucherstatistik ohne Cookies (Plausible Analytics, https://plausible.io). Domain wie in Plausible angelegt,
+  // z. B. «www.axion-shop.ch». Leer = aus. Läuft erst nach dem Livegang, nie im Admin; gleichzeitig erscheint der
+  // Absatz «Besucherstatistik» in der Datenschutzerklärung. Vom Kunden zu bestätigen (docs/MARKETING.md).
+  analytics: {
+    plausibleDomain: "",
+  },
+  // Inhaberschaftsnachweise für Suchmaschinen: nur den Wert aus «content» der Meta-Angabe eintragen (nicht das ganze Tag).
+  // Leer = kein Tag. Vom Kunden zu bestätigen (docs/MARKETING.md).
+  verification: {
+    google: "", // Google Search Console, google-site-verification
+    bing: "", // Bing Webmaster Tools, msvalidate.01
+  },
   returnDays: 14, // Vom Kunden noch zu bestätigen.
   // Lieferschätzung (Europe/Zurich): Bestellungen vor dem Annahmeschluss gehen am selben Arbeitstag raus.
   // Vom Kunden zu bestätigen.

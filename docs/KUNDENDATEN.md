@@ -79,6 +79,10 @@ tracking» für die Absender-Domain nicht eingeschaltet sein, sonst stimmt die A
 Leer = der Kanal erscheint weder im Footer noch in den Strukturierten Daten (`sameAs`). Es werden keine Skripte
 Dritter geladen, nur Links.
 
+Marketing (optional, ohne Konto lauffähig): Produktfeed für Google Merchant Center und Meta, Search-Console-/Bing-Bestätigung und
+cookiefreie Statistik mit Plausible. Entscheide des Kunden und Schritte stehen in [`docs/MARKETING.md`](MARKETING.md); die Werte
+(`analytics`, `verification`) gehören nach `src/config/shop.ts`. Leer gelassen bleibt alles aus.
+
 ## 6. Rechtstexte: Platzhalter in `[…]`
 
 Deutsch in `src/content/pages.ts`, Englisch in `src/content/pages-en.ts` (gleiche Stellen, gleicher Aufbau; massgebend

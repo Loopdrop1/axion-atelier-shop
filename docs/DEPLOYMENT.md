@@ -57,7 +57,7 @@ einschalten.
 1. In Lovable: **Cloud aktivieren**, Region **Europa** wählen. Die Region lässt sich danach nicht mehr ändern, und
    das Angebot sagt Axion ein Rechenzentrum in Europa zu. Lovable legt dabei `.env` mit `VITE_SUPABASE_URL` und
    `VITE_SUPABASE_PUBLISHABLE_KEY` an; der Shop liest genau diese.
-2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Migrationen `0000` bis `0014_axion_client_errors_prune` (in Cloud die Fassung aus
+2. Datenbank: Lovable führt Migrationen aus Git **nicht** aus. Die Migrationen `0000` bis `0015_axion_checkout_reminder` (in Cloud die Fassung aus
    `drizzle/migrations/`, lokal `supabase/migrations/`) werden der Reihe nach ausgeführt (macht Claude über die Datenbank-Verbindung, sonst im SQL-Editor von Cloud), und zwar
    **direkt nach dem Aktivieren**: Bis dahin findet die Vorschau keine Tabellen und zeigt Fehler oder Standardwerte.
    Danach prüfen: 17 Tabellen im Schema `public` (u. a. `shop_settings` und `stock_alerts`), Buckets `product-images` und `site-media`, Funktionen
@@ -122,7 +122,7 @@ einschalten.
    Geschäftskonto direkt bei Stripe (Stripe prüft die Identität). Ben bleibt als Teammitglied dabei (Rolle
    Administrator oder Entwickler). Zwei-Faktor-Anmeldung für alle einschalten.
 2. Eingeschränkten Schlüssel (`rk_…`) erstellen, nur mit diesen Rechten: Checkout Sessions **Schreiben**,
-   Coupons **Schreiben**, PaymentIntents **Lesen**. Der Schlüssel kommt nur in die Secrets von Lovable Cloud.
+   Coupons **Schreiben**, PaymentIntents **Lesen**, Refunds **Schreiben** (Rückerstatten im Admin). Der Schlüssel kommt nur in die Secrets von Lovable Cloud.
 3. Zahlungsarten im Dashboard einschalten (die Kasse zeigt sie automatisch): Karten, Apple Pay, Google Pay,
    Klarna, TWINT (TWINT erst nach Prüfung durch Stripe, Shop muss öffentlich erreichbar sein, Impressum vollständig).
 4. Webhook: Endpunkt `<VITE_SUPABASE_URL>/functions/v1/stripe-webhook` (Adresse aus der `.env`), Ereignisse
@@ -190,7 +190,7 @@ Ausführliche Schritt-für-Schritt-Anleitung mit Testkarten und Prüfliste: `doc
 1. Karte `4242 4242 4242 4242`, beliebiges künftiges Datum, beliebige Prüfziffer.
 2. Prüfen: Bestellbestätigung an die Kundschaft (mit Hinweis zur Rückgabe), Bestellmeldung an `SHOP_NOTIFY_EMAIL`,
    Bestellung im Admin, «Quittung drucken», Bestand reduziert, Versand melden mit Sendungsnummer (E-Mail kommt),
-   Rückerstattung in Stripe (Admin zeigt sie).
+   Rückerstattung aus dem Admin («Rückerstatten», Betrag erscheint nach dem Webhook), Lieferschein und Adressetikette drucken.
 3. Gutschein kaufen und einlösen, Rabattcode einlösen, Newsletter anmelden und bestätigen, Konto anlegen und löschen,
    Passwort zurücksetzen, Kontaktformular abschicken (E-Mail an `SHOP_CONTACT_EMAIL`, Antworten gehen an die
    Absenderin).

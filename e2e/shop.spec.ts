@@ -320,6 +320,10 @@ test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer War
   await page.getByRole("button", { name: "Weiter zur Zahlung" }).click();
   await expect(page.getByText("Bitte gib eine gültige E-Mail-Adresse ein.")).toBeVisible();
   await page.getByLabel("E-Mail für die Bestellbestätigung").fill("gast@example.ch");
+  // Einwilligung zur Erinnerung: standardmässig aus, nur mit Häkchen wird sie mitgeschickt
+  const remind = page.getByLabel("Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse");
+  await expect(remind).not.toBeChecked();
+  await remind.check();
   await expectNoHorizontalScroll(page);
   await shot(page, info, "warenkorb");
   await page.getByRole("button", { name: "Weiter zur Zahlung" }).click();
@@ -337,6 +341,7 @@ test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer War
     email: "gast@example.ch",
     discountCode: "axion10",
     giftCardCode: FIXTURES.giftCard,
+    remind: true,
     locale: "de",
   });
 
@@ -370,6 +375,20 @@ test("Abbruch in der Stripe-Kasse gibt die Reservierung frei", async ({ page, re
       ),
     )
     .toBe(true);
+});
+
+test("Erinnerungslink: legt die Stücke der abgelaufenen Kasse in den Warenkorb", async ({
+  page,
+}) => {
+  const errors = watchErrors(page);
+  await open(page, `/warenkorb/wiederherstellen/${FIXTURES.statusTokens.cancelled}`);
+  await expect(page).toHaveURL(/\/warenkorb$/, { timeout: 15_000 });
+  await expect(page.locator(".cart-line")).toHaveCount(1);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
+  // Ungültiger oder fremder Link: kurze Meldung, nichts im Warenkorb
+  await open(page, "/en/warenkorb/wiederherstellen/77777777-7777-4777-8777-777777777777");
+  await expect(page.getByText("This link has expired or is not valid.")).toBeVisible();
+  expect(errors, errors.join("\n")).toEqual([]);
 });
 
 test("Bestellstatus über das Token: versendet, abgebrochen, offen, unbekannt", async ({ page }) => {

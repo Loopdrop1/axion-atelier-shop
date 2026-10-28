@@ -1,8 +1,8 @@
 // Bestellungen: Liste mit Ansichten, Suche nach Nummer oder E-Mail, Seiten und CSV-Export.
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,12 +12,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { exportOrders, listOrders, PAGE_SIZE, type OrderFilter } from "@/lib/admin/api";
+import { printDoc } from "@/components/admin/print";
+import { PackingSlips, type SlipOrder } from "@/components/admin/shipping-docs";
+import { shopConfig } from "@/config/shop";
+import {
+  AdminError,
+  exportOrders,
+  getOrdersByIds,
+  getVariantCodes,
+  listOrders,
+  openOrderIds,
+  paidOrderIds,
+  PAGE_SIZE,
+  type OrderFilter,
+  type VariantCodes,
+} from "@/lib/admin/api";
+import { accountingRows } from "@/lib/admin/accounting-export";
 import { downloadCsv } from "@/lib/admin/csv";
 import { zurichDate, zurichMidnight } from "@/lib/admin/dates";
 import { centsToInput } from "@/lib/admin/money";
 import {
   Badge,
+  CheckField,
   chf,
   dateTime,
   ErrorBox,
@@ -66,13 +82,46 @@ function Orders() {
   const view: View = search.ansicht ?? "open";
   const page = (search.seite ?? 1) - 1;
   const [term, setTerm] = useState(search.suche ?? "");
-  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<ExportMode | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [withPrices, setWithPrices] = useState(true);
+  const [slipBusy, setSlipBusy] = useState(false);
+  const [slipJob, setSlipJob] = useState<{ orders: SlipOrder[]; codes: VariantCodes } | null>(null);
   const query = useQuery({
     queryKey: ["admin", "orders", view, search.suche ?? "", page],
     queryFn: () => listOrders({ view, search: search.suche ?? "", page }),
     placeholderData: keepPreviousData,
   });
   const pages = Math.max(1, Math.ceil((query.data?.count ?? 0) / PAGE_SIZE));
+
+  function toggle(id: string, on: boolean) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  /** Lieferscheine der gewählten Bestellungen, sonst aller bezahlten und noch nicht versendeten (höchstens 100). */
+  async function printSlips() {
+    setSlipBusy(true);
+    try {
+      const ids = selected.size ? [...selected] : await openOrderIds();
+      const orders = (await getOrdersByIds(ids))
+        .filter((o) => o.kind === "cart" && o.shipping_address)
+        .sort((a, b) => a.number - b.number);
+      if (!orders.length) return notify.warn("Keine Bestellungen zum Drucken.");
+      const codes = await getVariantCodes(
+        orders.flatMap((o) => o.items.flatMap((i) => i.variant_id ?? [])),
+      );
+      setSlipJob({ orders, codes });
+    } catch (error) {
+      notify.error(error);
+    } finally {
+      setSlipBusy(false);
+    }
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -84,11 +133,32 @@ function Orders() {
       <PageHeader
         title="Bestellungen"
         actions={
-          <Button variant="outline" onClick={() => setExportOpen(true)}>
-            <Download /> Export (CSV)
-          </Button>
+          <>
+            <Button variant="outline" disabled={slipBusy} onClick={() => void printSlips()}>
+              <Printer />{" "}
+              {slipBusy
+                ? "Wird vorbereitet …"
+                : selected.size
+                  ? `Lieferscheine drucken (${selected.size})`
+                  : "Lieferscheine drucken (offene)"}
+            </Button>
+            <Button variant="outline" onClick={() => setExportMode("items")}>
+              <Download /> Export (CSV)
+            </Button>
+            <Button variant="outline" onClick={() => setExportMode("accounting")}>
+              <Download /> Buchhaltung (CSV)
+            </Button>
+          </>
         }
       />
+      <div className="admin-toolbar">
+        <CheckField
+          label="Lieferscheine mit Preisen"
+          hint="Gewählte Bestellungen ankreuzen; ohne Auswahl kommen alle bezahlten, noch nicht versendeten dran."
+          checked={withPrices}
+          onChange={setWithPrices}
+        />
+      </div>
       <div className="admin-toolbar">
         <nav className="admin-tabs" aria-label="Ansicht">
           {VIEWS.map((v) => (
@@ -128,6 +198,19 @@ function Orders() {
             <table className="admin-table admin-table-click">
               <thead>
                 <tr>
+                  <th className="admin-check-col">
+                    <input
+                      type="checkbox"
+                      aria-label="Alle auf dieser Seite auswählen"
+                      checked={
+                        query.data.rows.length > 0 &&
+                        query.data.rows.every((o) => selected.has(o.id))
+                      }
+                      onChange={(e) => {
+                        for (const o of query.data.rows) toggle(o.id, e.target.checked);
+                      }}
+                    />
+                  </th>
                   <th>Nr.</th>
                   <th className="admin-hide-sm">Datum</th>
                   <th>Kundschaft</th>
@@ -138,6 +221,16 @@ function Orders() {
               <tbody>
                 {query.data.rows.map((o) => (
                   <tr key={o.id}>
+                    <td className="admin-check-col">
+                      {o.kind === "cart" && (
+                        <input
+                          type="checkbox"
+                          aria-label={`AX-${o.number} auswählen`}
+                          checked={selected.has(o.id)}
+                          onChange={(e) => toggle(o.id, e.target.checked)}
+                        />
+                      )}
+                    </td>
                     <td>
                       <Link
                         to="/admin/bestellungen/$id"
@@ -194,7 +287,17 @@ function Orders() {
           </div>
         </>
       )}
-      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog mode={exportMode} onClose={() => setExportMode(null)} />
+      {slipJob && (
+        <SlipBatch
+          job={slipJob}
+          withPrices={withPrices}
+          onDone={() => {
+            setSlipJob(null);
+            setSelected(new Set());
+          }}
+        />
+      )}
     </>
   );
 }
@@ -203,13 +306,43 @@ function isoDay(date: Date) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich" }).format(date);
 }
 
-function ExportDialog({
-  open,
-  onOpenChange,
+/** Sammeldruck: Lieferscheine einhängen, drucken und nach dem Druckdialog wieder entfernen. */
+function SlipBatch({
+  job,
+  withPrices,
+  onDone,
 }: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  job: { orders: SlipOrder[]; codes: VariantCodes };
+  withPrices: boolean;
+  onDone: () => void;
 }) {
+  useEffect(() => {
+    let frame = 0;
+    window.addEventListener("afterprint", onDone, { once: true });
+    // Zwei Bilder abwarten: Das Dokument hängt erst nach dem Mounten an <body>
+    frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => printDoc("slip"));
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("afterprint", onDone);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return <PackingSlips orders={job.orders} codes={job.codes} withPrices={withPrices} />;
+}
+
+type ExportMode = "items" | "accounting";
+
+/** Wie viele Bestellungen ein Buchhaltungsexport höchstens lädt (jede Bestellung ist eine Abfrage). */
+const MAX_ACCOUNTING_ORDERS = 1500;
+
+function ExportDialog({ mode, onClose }: { mode: ExportMode | null; onClose: () => void }) {
+  const open = mode !== null;
+  const onOpenChange = (value: boolean) => {
+    if (!value) onClose();
+  };
+  const [progress, setProgress] = useState("");
   const [from, setFrom] = useState(() => isoDay(zurichMidnight(30)));
   const [to, setTo] = useState(() => isoDay(new Date()));
   const [busy, setBusy] = useState(false);
@@ -222,6 +355,23 @@ function ExportDialog({
     const endMidnight = zurichDate(isoDay(end)) ?? end;
     setBusy(true);
     try {
+      if (mode === "accounting") {
+        const ids = await paidOrderIds(start, endMidnight, MAX_ACCOUNTING_ORDERS);
+        if (ids.length > MAX_ACCOUNTING_ORDERS) throw new AdminError("TOO_MANY_ORDERS");
+        const full = await getOrdersByIds(ids, (done, total) => setProgress(`${done} / ${total}`));
+        downloadCsv(
+          `axion-buchhaltung-${from}-bis-${to}.csv`,
+          accountingRows(full, {
+            vatRegistered: shopConfig.vatRegistered,
+            defaultVatRate: shopConfig.vatRate,
+            statusLabel: (status) =>
+              orderStatusLabel(status as Parameters<typeof orderStatusLabel>[0]),
+          }),
+        );
+        notify.ok(`${full.length} Bestellungen exportiert.`);
+        onOpenChange(false);
+        return;
+      }
       const orders = await exportOrders(start, endMidnight);
       const rows: (string | number | null)[][] = [
         [
@@ -300,6 +450,7 @@ function ExportDialog({
       notify.error(error);
     } finally {
       setBusy(false);
+      setProgress("");
     }
   }
 
@@ -307,12 +458,14 @@ function ExportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="admin-dialog">
         <DialogHeader>
-          <DialogTitle>Bestellungen exportieren</DialogTitle>
+          <DialogTitle>
+            {mode === "accounting" ? "Export für die Buchhaltung" : "Bestellungen exportieren"}
+          </DialogTitle>
         </DialogHeader>
         <p className="admin-muted">
-          Bezahlte, versendete und zurückerstattete Bestellungen nach Zahlungsdatum. Eine Zeile pro
-          Position; die Beträge der Bestellung stehen in jeder Zeile. Datei für Excel (Semikolon,
-          UTF-8).
+          {mode === "accounting"
+            ? "Bezahlte, versendete und zurückerstattete Bestellungen nach Zahlungsdatum, eine Zeile pro Bestellung: Beträge, Zahlungsart, Stripe-Zahlung und enthaltene MWST (gerechnet wie auf der Quittung). Datei für Excel (Semikolon, UTF-8)."
+            : "Bezahlte, versendete und zurückerstattete Bestellungen nach Zahlungsdatum. Eine Zeile pro Position; die Beträge der Bestellung stehen in jeder Zeile. Datei für Excel (Semikolon, UTF-8)."}
         </p>
         <div className="admin-grid-2">
           <TextField
@@ -333,7 +486,7 @@ function ExportDialog({
             Abbrechen
           </Button>
           <Button variant="admin" disabled={busy} onClick={() => void run()}>
-            {busy ? "Wird erstellt …" : "CSV herunterladen"}
+            {busy ? `Wird erstellt … ${progress}` : "CSV herunterladen"}
           </Button>
         </DialogFooter>
       </DialogContent>

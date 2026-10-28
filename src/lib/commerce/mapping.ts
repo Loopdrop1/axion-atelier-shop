@@ -164,6 +164,8 @@ export function mapProduct(
         stock: Math.max(0, v.stock),
         price: money(v.price_cents ?? row.price_cents),
         compareAtPrice: compare ? money(compare) : undefined,
+        ...(v.sku?.trim() ? { sku: v.sku.trim() } : {}),
+        ...(v.barcode?.trim() ? { barcode: v.barcode.trim() } : {}),
         selectedOptions: [
           { name: sizeName, value: v.size },
           { name: colorName, value: color },

@@ -27,6 +27,9 @@ export interface Variant {
   stock: number;
   price: Money;
   compareAtPrice?: Money | undefined;
+  /** Artikelnummer und Barcode (GTIN) der Grösse, freiwillig; nur für den Produktfeed */
+  sku?: string | undefined;
+  barcode?: string | undefined;
   selectedOptions: { name: string; value: string }[];
 }
 export type Occasion = "hochzeit" | "business" | "abschlussfeier" | "gala";

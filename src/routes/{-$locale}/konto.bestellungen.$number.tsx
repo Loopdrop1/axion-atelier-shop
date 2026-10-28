@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { getMyOrder, trackingUrl, type OrderDetail, type ProfileAddress } from "@/lib/account/api";
 import { useGuestOrderClaim } from "@/lib/account/claim";
@@ -11,6 +11,8 @@ import { sizeText } from "@/lib/commerce/one-size";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { useRequireSession } from "@/components/account/use-require-session";
 import { Notice } from "@/components/account/form";
+import { OrderReceipt } from "@/components/account/order-receipt";
+import { receiptAvailable } from "@/components/account/order-receipt-data";
 
 export const Route = createFileRoute("/{-$locale}/konto/bestellungen/$number")({
   component: OrderPage,
@@ -170,6 +172,11 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
             {order.refunded_cents > 0 &&
               row(t.account.refundedAmount, `−${money(order.refunded_cents)}`)}
           </div>
+          {receiptAvailable(order) && (
+            <button type="button" className="text-link order-print" onClick={() => window.print()}>
+              <Printer aria-hidden="true" /> {t.account.printReceipt}
+            </button>
+          )}
           {address && (
             <div className="order-meta">
               <h2>{t.account.shippingAddress}</h2>
@@ -199,6 +206,7 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
           )}
         </aside>
       </div>
+      {receiptAvailable(order) && <OrderReceipt order={order} locale={locale} />}
     </>
   );
 }

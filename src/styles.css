@@ -3169,6 +3169,21 @@ button.text-link {
   line-height: 1.5;
   color: var(--muted);
 }
+.checkout-remind {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 18px;
+}
+.checkout-remind .consent {
+  font-size: 14px;
+  color: var(--ink);
+}
+.checkout-remind small {
+  padding-left: 26px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 .checkout-summary > .shop-button {
   margin-top: 6px;
 }
@@ -3342,6 +3357,18 @@ button.text-link {
   padding-top: 22px;
   border-top: 1px solid var(--line);
   font-size: 14px;
+}
+.order-print {
+  margin-top: 22px;
+  gap: 8px;
+  background: none;
+  border-width: 0 0 1px;
+  cursor: pointer;
+  color: inherit;
+}
+.order-print svg {
+  width: 14px;
+  height: 14px;
 }
 .order-meta h2 {
   font-family: var(--font-display);
@@ -4284,6 +4311,10 @@ button.text-link {
 .admin-back:hover {
   color: var(--green);
 }
+.admin-check-col {
+  width: 32px;
+  padding-right: 0 !important;
+}
 .admin-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -4750,19 +4781,25 @@ button.text-link {
   }
 }
 
-/* Quittung: nur im Druck (Admin → Bestellung → «Quittung drucken») */
-.admin-receipt {
+/* Druckdokumente: Quittung (Admin → Bestellung, Kundenkonto → Bestellung), Lieferschein und Adressetikette (Admin).
+   Alle hängen als `.admin-printdoc` direkt an <body>. Gedruckt wird die Quittung, ausser <body data-print="slip|label">
+   (components/admin/print.ts) wählt ein anderes Dokument. */
+.admin-printdoc {
   display: none;
 }
 @media print {
-  body:has(> .admin-receipt) > :not(.admin-receipt) {
+  body:has(> .admin-printdoc) > :not(.admin-printdoc) {
     display: none !important;
+  }
+  body:not([data-print]) > .admin-receipt,
+  body[data-print="slip"] > .admin-slip,
+  body[data-print="label"] > .admin-label {
+    display: block;
   }
   /* Eigene Druckseite nur für die Quittung; andere Seiten (AGB, Bestellstatus) drucken mit den Rändern
      des Browsers */
   .admin-receipt {
     page: receipt;
-    display: block;
     width: 100%;
     font:
       11pt/1.45 Helvetica,
@@ -4831,6 +4868,131 @@ button.text-link {
 @page receipt {
   size: A4;
   margin: 12mm 14mm;
+}
+
+/* Lieferschein (A4, eine Seite pro Bestellung) und Adressetikette (10 × 15 cm) */
+@media print {
+  .admin-slip,
+  .admin-label {
+    width: 100%;
+    font:
+      10.5pt/1.4 Helvetica,
+      Arial,
+      sans-serif;
+    color: #000;
+    background: #fff;
+  }
+  .admin-slip {
+    page: slip;
+  }
+  .admin-slip-page {
+    break-after: page;
+  }
+  .admin-slip-page:last-child {
+    break-after: auto;
+  }
+  .admin-slip header {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 8mm;
+    font-size: 9pt;
+  }
+  .admin-slip header strong {
+    font-size: 15pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 2mm;
+  }
+  .admin-slip h1 {
+    font-size: 17pt;
+    margin: 0 0 2mm;
+  }
+  .admin-slip p {
+    margin: 0 0 2.5mm;
+  }
+  .admin-slip table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5mm 0 4mm;
+  }
+  .admin-slip th,
+  .admin-slip td {
+    border-bottom: 1px solid #bbb;
+    padding: 1.8mm 1mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  .admin-slip td small {
+    display: block;
+    color: #333;
+    font-size: 8.5pt;
+  }
+  .admin-slip .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .admin-slip dl {
+    margin: 0 0 5mm auto;
+    width: 70mm;
+  }
+  .admin-slip dl div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8mm 0;
+  }
+  .admin-slip dl .total {
+    border-top: 1.5px solid #000;
+    font-weight: 700;
+    padding-top: 1.5mm;
+  }
+  .admin-slip dt,
+  .admin-slip dd {
+    margin: 0;
+  }
+  body[data-print="label"] > .admin-label {
+    page: label;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 140mm;
+  }
+  .admin-label .sender {
+    font-size: 8pt;
+    line-height: 1.3;
+    border-bottom: 1px solid #000;
+    padding-bottom: 2mm;
+  }
+  .admin-label .recipient {
+    font-size: 15pt;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+  .admin-label .recipient small {
+    display: block;
+    font-size: 9pt;
+    font-weight: 400;
+    margin-top: 3mm;
+  }
+  .admin-label .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-top: 1px solid #000;
+    padding-top: 2mm;
+    font-size: 11pt;
+  }
+  .admin-label .meta strong {
+    font-size: 16pt;
+  }
+}
+@page slip {
+  size: A4;
+  margin: 12mm 14mm;
+}
+@page label {
+  size: 100mm 150mm;
+  margin: 5mm;
 }
 
 /* Seitenwechsel: kurzes Überblenden (Browser mit View Transitions), bei «weniger Bewegung» ohne */

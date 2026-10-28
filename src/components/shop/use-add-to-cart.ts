@@ -3,6 +3,7 @@
 import type { Variant } from "@/lib/commerce/types";
 import { useCart, useShopUI, type AddResult } from "@/lib/commerce/stores";
 import { useT } from "@/i18n";
+import { trackEvent } from "@/lib/analytics";
 
 export function useAddToCart() {
   const t = useT();
@@ -11,6 +12,7 @@ export function useAddToCart() {
   /** Legt Varianten (je eine) in den Warenkorb und gibt zurück, ob etwas gekürzt wurde. */
   return (variants: Pick<Variant, "id" | "stock">[]): AddResult[] => {
     const results = variants.map((v) => add(v.id, 1, v.stock));
+    if (results.some((r) => r.added > 0)) trackEvent("Add to Cart");
     const capped = results.filter((r) => r.capped);
     const [first] = capped;
     setNotice(

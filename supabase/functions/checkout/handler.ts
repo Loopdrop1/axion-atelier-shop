@@ -166,6 +166,12 @@ async function cartCheckout(
     })
     .catch(mapReserveError);
 
+  // Einwilligung zur Erinnerung (Häkchen im Warenkorb, standardmässig aus): nur bei ausdrücklichem true.
+  if (body["remind"] === true)
+    await deps
+      .rpc("set_order_reminder", { p_order_id: reservation.order_id, p_opt_in: true })
+      .catch((e) => console.error("Erinnerung nicht gespeichert", e));
+
   const base = deps.env.siteUrl + prefix(locale);
   const successUrl = `${base}/bestellung/${reservation.status_token}?bezahlt=1`;
   // Auch wenn Gutschein oder Rabatt alles decken, läuft die Bestellung über Stripe: Bei 0 Franken verlangt

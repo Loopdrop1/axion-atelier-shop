@@ -5,10 +5,12 @@ import path from "node:path";
 import type { Locale } from "../supabase/functions/_shared/money.ts";
 import {
   authEmail,
+  cartReminder,
   giftCardEmail,
   newsletterConfirm,
   newsletterWelcome,
   orderConfirmation,
+  refundNotice,
   securityNotice,
   shippingConfirmation,
   shopNotification,
@@ -93,6 +95,29 @@ for (const locale of ["de", "en"] as const) {
     shop,
   );
   mails[`${locale}-versand`] = shippingConfirmation(order(locale), shop);
+  mails[`${locale}-warenkorb-erinnerung`] = cartReminder(
+    order(locale, {
+      status: "cancelled",
+      discount_cents: 0,
+      discount_code: null,
+      gift_card_cents: 0,
+      items: order(locale).items.map((i, n) => ({
+        ...i,
+        image_url: n === 0 ? "https://axion.ch/og.jpg" : null,
+      })),
+    }),
+    shop,
+  );
+  mails[`${locale}-rueckerstattung-teilweise`] = refundNotice(
+    order(locale, { refunded_cents: 5000 }),
+    5000,
+    shop,
+  );
+  mails[`${locale}-rueckerstattung-storniert`] = refundNotice(
+    order(locale, { refunded_cents: 64420, tracking_number: null, shipped_at: null }),
+    64420,
+    shop,
+  );
   mails[`${locale}-gutschein`] = giftCardEmail(
     {
       code: "AXN-K7QM-4XTB-9WRD",

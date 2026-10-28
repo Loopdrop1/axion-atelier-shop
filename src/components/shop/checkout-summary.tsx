@@ -135,6 +135,8 @@ export function CheckoutSummary({
   const [email, setEmail] = useState(storedEmail);
   const [emailError, setEmailError] = useState("");
   const [busy, setBusy] = useState(false);
+  // Einwilligung zur einmaligen Erinnerung (UWG Art. 3 lit. o): standardmässig aus
+  const [remind, setRemind] = useState(false);
   // Sperre gegen Doppelklick (state ist erst nach dem Rendern gesetzt)
   const paying = useRef(false);
   const [error, setError] = useState("");
@@ -245,6 +247,7 @@ export function CheckoutSummary({
       email: user ? undefined : mail,
       discountCode: discount ? discountCode : undefined,
       giftCardCode: gift ? giftCardCode : undefined,
+      remind: remind ? true : undefined,
       locale,
     });
     if (result.ok) {
@@ -392,6 +395,21 @@ export function CheckoutSummary({
               )}
             </>
           )}
+        </div>
+      )}
+      {backendConfigured && totals.totalCents > 0 && (
+        <div className="checkout-remind">
+          <label className="consent" htmlFor={`${id}-remind`}>
+            <input
+              id={`${id}-remind`}
+              type="checkbox"
+              checked={remind}
+              onChange={(e) => setRemind(e.target.checked)}
+              aria-describedby={`${id}-remind-hint`}
+            />
+            <span>{t.checkout.remindMe}</span>
+          </label>
+          <small id={`${id}-remind-hint`}>{t.checkout.remindHint}</small>
         </div>
       )}
       {error && (

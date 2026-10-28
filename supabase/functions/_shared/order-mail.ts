@@ -3,8 +3,10 @@
 import type { Deps } from "./deps.ts";
 import { sendEmail } from "./email/send.ts";
 import {
+  cartReminder,
   giftCardEmail,
   orderConfirmation,
+  refundNotice,
   shippingConfirmation,
   shopNotification,
   type OrderData,
@@ -76,4 +78,59 @@ export async function sendShippingEmail(
       : `order-${order.id}-shipping-${order.tracking_number ?? "ohne"}`;
   await sendEmail(order.email, shippingConfirmation(order, deps.shop), deps.mail, key);
   await deps.rpc("mark_order_email_sent", { p_order_id: order.id, p_kind: "shipping" });
+}
+
+function imageUrl(deps: Deps, path: string | null | undefined): string | null {
+  if (!path || path.startsWith("asset:")) return null;
+  if (/^https:\/\//.test(path)) return path;
+  return `${deps.env.supabaseUrl}/storage/v1/object/public/product-images/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/**
+ * Erinnerung an eine abgelaufene Kasse. Nur mit Einwilligung (orders.reminder_opt_in), höchstens einmal
+ * (reminder_sent_at, dazu Idempotenz-Schlüssel bei Resend). Gibt true zurück, wenn eine E-Mail rausging.
+ * Wirft bei Versandfehlern; der Webhook fängt das ab, damit die Stornierung nicht darunter leidet.
+ */
+export async function sendCartReminder(deps: Deps, orderId: string): Promise<boolean> {
+  const order = await deps.rpc<(OrderData & { items: { image?: string | null }[] }) | null>(
+    "get_cart_reminder",
+    { p_order_id: orderId },
+  );
+  if (!order || order.items.length === 0) return false;
+  const withImages: OrderData = {
+    ...order,
+    items: order.items.map((i) => ({
+      ...i,
+      image_url: imageUrl(deps, (i as { image?: string | null }).image),
+    })),
+  };
+  await sendEmail(
+    order.email,
+    cartReminder(withImages, deps.shop),
+    deps.mail,
+    `order-${order.id}-reminder`,
+  );
+  await deps.rpc("mark_order_email_sent", { p_order_id: order.id, p_kind: "reminder" });
+  return true;
+}
+
+/**
+ * Rückerstattungs-E-Mail nach `record_refund`: pro neuem Gesamtbetrag genau eine (orders.refund_notified_cents
+ * und Resend-Schlüssel mit Bestellung und Betrag). Gibt true zurück, wenn eine E-Mail rausging.
+ */
+export async function sendRefundNotice(deps: Deps, paymentIntentId: string): Promise<boolean> {
+  const order = await deps.rpc<
+    (OrderData & { refunded_cents: number; refund_notified_cents: number }) | null
+  >("get_refund_notice", { p_payment_intent_id: paymentIntentId });
+  if (!order) return false;
+  const amount = order.refunded_cents - order.refund_notified_cents;
+  if (amount <= 0) return false;
+  await sendEmail(
+    order.email,
+    refundNotice(order, amount, deps.shop),
+    deps.mail,
+    `order-${order.id}-refund-${order.refunded_cents}`,
+  );
+  await deps.rpc("mark_refund_notified", { p_order_id: order.id, p_cents: order.refunded_cents });
+  return true;
 }

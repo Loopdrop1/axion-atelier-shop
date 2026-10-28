@@ -1,14 +1,18 @@
 // Eine Bestellung im Admin: Versand melden, E-Mails erneut senden, Retoure einbuchen, interne Notiz.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink, Printer } from "lucide-react";
+import { printDoc } from "@/components/admin/print";
+import { AddressLabel, PackingSlips } from "@/components/admin/shipping-docs";
 import { Receipt } from "@/components/admin/receipt";
 import { Button } from "@/components/ui/button";
 import {
   creditGiftCard,
   getOrder,
+  getVariantCodes,
   notifyRestock,
+  refundOrder,
   resendGiftCard,
   resendOrderEmail,
   restockOrder,
@@ -16,6 +20,7 @@ import {
   updateOrderNote,
   type AdminOrder,
 } from "@/lib/admin/api";
+import { parseChf } from "@/lib/admin/money";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { sizeText } from "@/lib/commerce/one-size";
 import { trackingUrl } from "@/lib/account/api";
@@ -24,12 +29,14 @@ import {
   Badge,
   CheckField,
   chf,
+  ConfirmButton,
   dateTime,
   ErrorBox,
   Loading,
   notify,
   PageHeader,
   Panel,
+  SelectField,
   StatusBadge,
   TextField,
   UnsavedChangesGuard,
@@ -97,7 +104,7 @@ function OrderView({ order }: { order: AdminOrder }) {
       <PageHeader
         title={`Bestellung AX-${order.number}`}
         actions={
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <Button variant="outline" size="sm" onClick={() => printDoc("receipt")}>
             <Printer /> Quittung drucken
           </Button>
         }
@@ -240,6 +247,9 @@ function OrderView({ order }: { order: AdminOrder }) {
               )}
             </dl>
           </Panel>
+          {["paid", "shipped"].includes(order.status) &&
+            order.total_cents > order.refunded_cents &&
+            order.stripe_payment_intent_id && <RefundPanel order={order} onDone={refresh} />}
           {order.kind === "cart" && ["paid", "shipped", "refunded"].includes(order.status) && (
             <RestockPanel order={order} onDone={refresh} />
           )}
@@ -293,8 +303,9 @@ function OrderView({ order }: { order: AdminOrder }) {
               </p>
             )}
             <p className="admin-hint">
-              Rückerstattungen im Stripe-Dashboard auslösen. Der Betrag erscheint danach automatisch
-              hier. Ware, die zurückkommt, unter «Retoure einbuchen» an Lager nehmen.
+              Rückerstattungen unter «Rückerstatten» auslösen (oder im Stripe-Dashboard). Der Betrag
+              erscheint danach automatisch hier. Ware, die zurückkommt, unter «Retoure einbuchen» an
+              Lager nehmen.
             </p>
             {order.gift_card_cents > 0 && (
               <p className="admin-hint">
@@ -310,6 +321,7 @@ function OrderView({ order }: { order: AdminOrder }) {
               </p>
             )}
           </Panel>
+          {order.kind === "cart" && order.shipping_address && <ShippingDocsPanel order={order} />}
           <Panel title="E-Mails">
             <ul className="admin-list">
               <li>
@@ -450,6 +462,131 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
           {busy ? "Bitte warten …" : "Als versendet markieren"}
         </Button>
       </div>
+    </Panel>
+  );
+}
+
+const REFUND_REASONS = [
+  { value: "requested_by_customer", label: "Auf Wunsch der Kundschaft" },
+  { value: "duplicate", label: "Doppelt bezahlt" },
+  { value: "fraudulent", label: "Betrugsverdacht" },
+];
+
+/** Kartenanteil über Stripe zurückzahlen. Gebucht wird erst, wenn Stripe `charge.refunded` meldet (Webhook):
+ *  Status, Betrag und Kundenmail kommen von dort. Ein Gutscheinanteil bleibt davon unberührt (eigenes Feld unten). */
+function RefundPanel({ order, onDone }: { order: AdminOrder; onDone: () => void }) {
+  const remaining = Math.max(0, order.total_cents - order.refunded_cents);
+  const [amount, setAmount] = useState((remaining / 100).toFixed(2));
+  const [reason, setReason] = useState("requested_by_customer");
+  useEffect(() => setAmount((remaining / 100).toFixed(2)), [remaining]);
+  const cents = parseChf(amount);
+  const valid = cents !== null && cents >= 1 && cents <= remaining;
+  // Ein Vorgang = eine requestId: Wiederholung nach Fehler oder Timeout erstattet nicht doppelt, eine weitere
+  // Rückerstattung (nach Erfolg oder mit anderem Betrag/Grund) bekommt eine neue.
+  const request = useRef({ key: "", id: "" });
+  const requestId = () => {
+    const key = `${cents}-${reason}`;
+    if (request.current.key !== key) request.current = { key, id: crypto.randomUUID() };
+    return request.current.id;
+  };
+  return (
+    <Panel
+      title="Rückerstatten"
+      description={`Zahlt den Betrag auf das Zahlungsmittel der Kundschaft zurück (über Stripe). Noch erstattbar: ${chf(remaining)}${order.refunded_cents > 0 ? `, schon erstattet ${chf(order.refunded_cents)}` : ""}.`}
+    >
+      <div className="admin-form">
+        <TextField
+          label="Betrag (CHF)"
+          inputMode="decimal"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          hint={`Höchstens ${chf(remaining)}. Der Rest bleibt erstattbar.`}
+          error={amount && !valid ? `Bitte einen Betrag bis ${chf(remaining)} angeben.` : undefined}
+        />
+        <SelectField
+          label="Grund (für Stripe)"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          options={REFUND_REASONS}
+        />
+        <ConfirmButton
+          label="Rückerstatten …"
+          title={`${valid ? chf(cents) : "Betrag"} zurückzahlen?`}
+          description={
+            <>
+              <p>
+                {valid ? chf(cents) : ""} gehen über Stripe an die Kundschaft zurück. Das lässt sich
+                nicht rückgängig machen. Die Kundschaft erhält eine E-Mail.
+              </p>
+              <p>
+                Ware, die zurückkommt, danach unter «Retoure einbuchen» an Lager nehmen.
+                {order.gift_card_cents > 0 &&
+                  " Der Gutscheinanteil wird nicht erstattet (siehe «Gutscheinanteil gutschreiben»)."}
+              </p>
+            </>
+          }
+          confirmLabel="Jetzt zurückzahlen"
+          variant="outline"
+          size="default"
+          disabled={!valid}
+          onConfirm={async () => {
+            const r = await refundOrder(
+              order.id,
+              cents!,
+              reason as "requested_by_customer" | "duplicate" | "fraudulent",
+              requestId(),
+            );
+            request.current = { key: "", id: "" };
+            if (r.status === "succeeded" || r.status === "pending")
+              notify.ok(
+                `${chf(r.amountCents)} bei Stripe zurückgezahlt. Hier erscheint der Betrag, sobald Stripe ihn meldet.`,
+              );
+            else
+              notify.warn(
+                `Stripe meldet den Status «${r.status}». Bitte im Stripe-Dashboard prüfen.`,
+              );
+            onDone();
+            // Der Webhook trifft meist nach wenigen Sekunden ein
+            window.setTimeout(onDone, 5000);
+          }}
+        />
+      </div>
+    </Panel>
+  );
+}
+
+/** Lieferschein (A4) und Adressetikette (10 × 15 cm) zum Ausdrucken. */
+function ShippingDocsPanel({ order }: { order: AdminOrder }) {
+  const [withPrices, setWithPrices] = useState(true);
+  const variantIds = order.items.flatMap((i) => (i.variant_id ? [i.variant_id] : []));
+  const codes = useQuery({
+    queryKey: ["admin", "variant-codes", variantIds.join(",")],
+    queryFn: () => getVariantCodes(variantIds),
+    enabled: variantIds.length > 0,
+  });
+  return (
+    <Panel
+      title="Versanddokumente"
+      description="Im Druckdialog das Papierformat wählen: A4 für den Lieferschein, 10 × 15 cm für die Etikette."
+    >
+      <div className="admin-form">
+        <CheckField
+          label="Lieferschein mit Preisen"
+          hint="Ohne Preise eignet er sich für Geschenke."
+          checked={withPrices}
+          onChange={setWithPrices}
+        />
+        <div className="admin-actions">
+          <Button variant="outline" size="sm" onClick={() => printDoc("slip")}>
+            <Printer /> Lieferschein
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => printDoc("label")}>
+            <Printer /> Adressetikette
+          </Button>
+        </div>
+      </div>
+      <PackingSlips orders={[order]} codes={codes.data ?? {}} withPrices={withPrices} />
+      <AddressLabel order={order} />
     </Panel>
   );
 }
