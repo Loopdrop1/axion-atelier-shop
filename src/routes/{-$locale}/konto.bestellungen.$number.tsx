@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Printer } from "lucide-react";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { shopConfig } from "@/config/shop";
 import { getMyOrder, trackingUrl, type OrderDetail, type ProfileAddress } from "@/lib/account/api";
 import { useGuestOrderClaim } from "@/lib/account/claim";
 import { formatCents, formatDate } from "@/lib/commerce/format";
@@ -63,6 +64,7 @@ function OrderPage() {
 function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
   const t = useT();
   const locale = useLocale();
+  const lp = useLocaleParam();
   const money = (cents: number) => formatCents(cents, locale);
   const address = (order.shipping_address ?? null) as ProfileAddress | null;
   const gift = (order.gift_card_purchase ?? null) as Record<string, unknown> | null;
@@ -172,6 +174,19 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
             {order.refunded_cents > 0 &&
               row(t.account.refundedAmount, `−${money(order.refunded_cents)}`)}
           </div>
+          {order.kind === "cart" && (order.status === "paid" || order.status === "shipped") && (
+            <div className="order-meta">
+              <Link
+                className="text-link"
+                to="/{-$locale}/retoure"
+                params={{ locale: lp }}
+                search={{ order: String(order.number) }}
+              >
+                {t.returns.accountLink}
+              </Link>
+              <p className="text-muted">{t.returns.accountHint(shopConfig.returnDays)}</p>
+            </div>
+          )}
           {receiptAvailable(order) && (
             <button type="button" className="text-link order-print" onClick={() => window.print()}>
               <Printer aria-hidden="true" /> {t.account.printReceipt}

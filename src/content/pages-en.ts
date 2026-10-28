@@ -56,6 +56,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Gift cards:** code, value, remaining balance and expiry date, the purchaser's email address and, if provided, the recipient's name and email address, the sender's name and the personal message.
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
+- **Return (on request):** order number, email address, the pieces returned with quantity and reason, your optional comment, and the time and status of the return.
 - **Reminder about an incomplete purchase (optional):** Only if you tick “Remind me by email if I do not complete my purchase” in your basket, we send you a single email with your items and a link to your basket if the payment does not go through; we store your consent with the order, and without the tick you receive no reminder.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
 - **Technical data:** When you visit the website, technical data is generated, such as your IP address, date and time, the page you open, your browser and device. We use it to run the website and keep it secure, for example to protect the forms against misuse.
@@ -207,6 +208,7 @@ We may change these terms and conditions at any time. Your order is governed by 
 - **Shipping:** with Swiss Post. {{shipping}}
 - **Delivery time:** 2 to 5 working days after payment, tracking number by email
 - **Returns:** within {{returnDays}} days of receipt, unworn and with all tags
+- **Register a return:** online with your order number and email address, then we email you the instructions for sending it back
 - **Return shipping:** [free / CHF …], [label included / on request]
 - **Refund:** within [number] days of receiving your return, to the original payment method
 - **Exchange:** another size [free of charge], while available
@@ -245,7 +247,7 @@ At the moment we only ship within Switzerland [and to Liechtenstein].
 
 ### Returns
 **Can I return an item?**
-Yes. You can return items within {{returnDays}} days of receipt, unworn and with all tags. The details are in the terms and conditions.
+Yes. You can return items within {{returnDays}} days of receipt, unworn and with all tags. Register the return online first, with your order number and email address, under “Register a return” on the Shipping and returns page. The details are in the terms and conditions.
 **When do I get my money back?**
 Within [number] days of receiving your return, to the original payment method.
 

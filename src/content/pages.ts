@@ -133,6 +133,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
 - **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie, wenn wir einen Willkommensrabatt anbieten, dein persönlicher Rabattcode.
 - **Benachrichtigung bei Wiederverfügbarkeit (freiwillig):** E-Mail-Adresse, Sprache, gewünschtes Stück und Grösse sowie Zeitpunkt von Anfrage und Bestätigung.
+- **Retoure (auf Anfrage):** Bestellnummer, E-Mail-Adresse, zurückgegebene Stücke mit Menge und Grund, dein freiwilliger Kommentar sowie Zeitpunkt und Stand der Retoure.
 - **Erinnerung an einen nicht abgeschlossenen Kauf (freiwillig):** Nur wenn du im Warenkorb das Kästchen «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse» ankreuzt, schicken wir dir einmalig eine E-Mail mit deinen Artikeln und einem Link zum Warenkorb, falls die Zahlung nicht zustande kommt; wir speichern dazu deine Einwilligung bei der Bestellung, und ohne Häkchen erhältst du keine Erinnerung.
 - **Kommunikation:** Name, E-Mail-Adresse, Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns über das Kontaktformular, per E-Mail oder per Telefon kontaktierst.
 - **Technische Daten:** Beim Besuch der Website fallen technische Daten an, etwa IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browser und Gerät. Sie dienen dem Betrieb und der Sicherheit der Website, zum Beispiel dem Schutz der Formulare vor Missbrauch.
@@ -284,6 +285,7 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
 - **Versand:** mit der Schweizerischen Post. {{shipping}}
 - **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
+- **Retoure anmelden:** online mit Bestellnummer und E-Mail-Adresse, danach schicken wir dir die Hinweise zur Rücksendung per E-Mail
 - **Rücksendung:** [gratis / CHF …], [Etikett liegt bei / auf Anfrage]
 - **Rückerstattung:** innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel
 - **Umtausch:** andere Grösse [gratis], solange verfügbar
@@ -322,7 +324,7 @@ Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 
 ### Rückgabe
 **Kann ich etwas zurückgeben?**
-Ja. Du kannst Artikel innert {{returnDays}} Tagen ab Erhalt zurückgeben, ungetragen und mit allen Etiketten. Die Details stehen in den AGB.
+Ja. Du kannst Artikel innert {{returnDays}} Tagen ab Erhalt zurückgeben, ungetragen und mit allen Etiketten. Melde die Rücksendung vorab online an, mit Bestellnummer und E-Mail-Adresse unter «Retoure anmelden» auf der Seite Versand und Rückgabe. Die Details stehen in den AGB.
 **Wann bekomme ich mein Geld zurück?**
 Innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel.
 

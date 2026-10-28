@@ -147,6 +147,15 @@ Geht es nicht, das Etikett wie bisher bei der Post erstellen und die Nummer von 
 darunter, kommt eine E-Mail «Bestand knapp: …» bzw. «Ausverkauft: …» an die Bestelladresse (Admin → Einstellungen,
 sonst `SHOP_NOTIFY_EMAIL`). Pro Bestellung eine Meldung, nur für Grössen, die die Schwelle neu erreicht haben.
 
+## 7. Retouren
+
+Die Kundschaft meldet Rücksendungen unter `/retoure` an (Bestellnummer + E-Mail der Bestellung, Stücke, Menge, Grund). Du bekommst eine E-Mail «Neue Retoure R-…» an die Bestelladresse (Reply-To = Kundschaft); die Kundschaft bekommt Hinweise zur Rücksendung an die Adresse aus `SHOP_ADDRESS` (kein Etikett, keine Kostenübernahme versprochen: das regelt die Seite «Versand und Rückgabe»).
+
+1. Admin → **Retouren** (Ansicht «Angemeldet» ist die Arbeitsliste). Status: **Angemeldet** (unterwegs), **Eingegangen**, **Erstattet**, **Abgelehnt** (gibt die Menge für eine neue Anmeldung frei).
+2. Ist das Paket da: prüfen, in der Bestellung «Retoure einbuchen» (Bestand) und, wenn es passt, erstatten (Karte über Stripe, Gutscheinanteil als Guthaben). Danach hier den Status setzen und bei Bedarf eine interne Notiz schreiben. Der Status löst nichts automatisch aus.
+3. Frist: `returnDays` ab Versand (sonst ab Zahlung). Abgelaufene oder falsche Angaben zeigt das Formular ohne Hinweis, ob die Bestellung existiert. Fälle ausserhalb der Frist per Kontaktformular klären.
+4. Kam die Bestätigungs-E-Mail nicht an (Resend → Emails), steht die Retoure trotzdem in der Liste: der Kundschaft kurz selbst schreiben.
+
 ## Marketing-Anbindungen
 
 Produktfeed (`/feeds/google.xml`), Search Console, Bing und Plausible: Einrichtung Schritt für Schritt in

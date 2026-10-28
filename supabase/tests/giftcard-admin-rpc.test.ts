@@ -222,7 +222,9 @@ describe("Admin-Funktionen", () => {
 
   it("Übersicht zählt bezahlte Bestellungen und Umsatz im Zeitraum", async () => {
     const from = new Date(Date.now() - 60_000).toISOString();
-    const p = await makeProduct({ priceCents: 25000, stocks: [5] });
+    // Hoher Preis, damit das Stück unter den Top-Produkten steht, auch wenn andere Testdateien im selben
+    // Zeitfenster bezahlte Bestellungen anlegen.
+    const p = await makeProduct({ priceCents: 2_500_000, stocks: [5] });
     const r = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 2 }] });
     await rpc("complete_order", [r.order_id, "{}"]);
     const to = new Date(Date.now() + 60_000).toISOString();

@@ -2,7 +2,11 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createUser, expectPgError, pool, q, sql, uniq } from "./helpers";
 import { rpc } from "./fixtures";
 
+const created: string[] = [];
+
 afterAll(async () => {
+  // Testbestellungen entfernen (Positionen und Retouren folgen per Cascade), damit Übersichten anderer Tests sauber bleiben
+  await sql("delete from public.orders where id = any($1::uuid[])", [created]);
   await pool.end();
 });
 
@@ -36,6 +40,7 @@ async function order(
     [email, opts.status ?? "paid", opts.kind ?? "cart", paid, shipped],
   );
   const o = rows[0]!;
+  created.push(o.id);
   const itemIds: string[] = [];
   for (const [title, qty] of [
     ["Anzug", 2],

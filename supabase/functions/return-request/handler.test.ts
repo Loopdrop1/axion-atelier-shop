@@ -14,6 +14,7 @@ let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
 let resend: Awaited<ReturnType<typeof startFakeResend>>;
 let handler: (req: Request) => Promise<Response>;
 let ipCounter = 0;
+const created: string[] = [];
 
 function makeEnv(extra: Record<string, string> = {}) {
   return readEnv(
@@ -42,6 +43,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  // Testbestellungen entfernen (Positionen und Retouren folgen per Cascade), damit Übersichten anderer Tests sauber bleiben
+  await sql("delete from public.orders where id = any($1::uuid[])", [created]);
   await Promise.all([supa.close(), resend.close()]);
   await pool.end();
 });
@@ -88,6 +91,7 @@ async function order(
     [email, opts.locale ?? "de", opts.status ?? "shipped", paid, shipped],
   );
   const o = rows[0]!;
+  created.push(o.id);
   const items: TestOrder["items"] = [];
   for (const [title, size, qty, price] of [
     ["Anzug Limmat", "50", 2, 10000],

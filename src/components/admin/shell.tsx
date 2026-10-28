@@ -19,6 +19,7 @@ import {
   Settings,
   ShoppingBag,
   Store,
+  Undo2,
   Users,
 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
@@ -33,6 +34,7 @@ import { Loading } from "./ui";
 const NAV = [
   { to: "/admin", label: "Übersicht", icon: BarChart3, exact: true },
   { to: "/admin/bestellungen", label: "Bestellungen", icon: ShoppingBag },
+  { to: "/admin/retouren", label: "Retouren", icon: Undo2 },
   { to: "/admin/produkte", label: "Produkte", icon: Package },
   { to: "/admin/kategorien", label: "Kategorien", icon: FolderTree },
   { to: "/admin/lager", label: "Lager", icon: Boxes },

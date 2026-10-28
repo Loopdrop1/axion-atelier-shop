@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { pages, type PageBlock, type WrittenPage } from "@/content/pages";
 import { pagesEn } from "@/content/pages-en";
@@ -222,6 +223,7 @@ function Block({ block, shipping }: { block: PageBlock; shipping: boolean }) {
 }
 export function WrittenContent({ page }: { page: WrittenPage }) {
   const t = useT();
+  const lp = useLocaleParam();
   const shipping =
     page === pages["versand-und-rueckgabe"] || page === pagesEn["versand-und-rueckgabe"];
   return (
@@ -239,6 +241,15 @@ export function WrittenContent({ page }: { page: WrittenPage }) {
           ))}
         </section>
       ))}
+      {shipping && (
+        <p className="return-cta">
+          <Button asChild>
+            <Link to="/{-$locale}/retoure" params={{ locale: lp }}>
+              {t.returns.cta}
+            </Link>
+          </Button>
+        </p>
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 | `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen                                       |
 | `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                                                  |
 | `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                                                          |
+| `return-request`  | Shop (Gast oder eingeloggt)     | «Retoure anmelden»: Bestellung per Nummer und E-Mail finden (lookup), Stücke und Grund speichern (submit), E-Mails     |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                                                    |
 
 ## checkout
@@ -53,6 +54,16 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `{ action: "request", variantId, email, locale, website }` → `200 { ok: true }` (verrät nie, ob die Adresse schon eingetragen ist; schickt die Bestätigungs-E-Mail mit Link auf `/benachrichtigung/bestaetigen?token=…`). Nur aktive, ausverkaufte Grössen: `409 IN_STOCK`, `404 VARIANT_NOT_FOUND`, `400 INVALID_EMAIL | BAD_REQUEST`, `429 RATE_LIMITED` (5 pro Adresse, 10 pro IP, 200 gesamt pro Stunde).
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "invalid" }`.
 - Versand nach dem Aufstocken: `admin-actions` → `notify_restock` (unten). Nach dem Versand wird die Adresse entfernt; unbestätigte und benachrichtigte Einträge nach 30 Tagen gelöscht.
+
+## return-request
+
+«Retoure anmelden» (Seite `/retoure`, Tabelle `return_requests`, Migration `20261029001700_return_requests.sql` bzw. Cloud `0016`). Nur JSON (`415` sonst). Alle Regeln stehen in den RPCs `return_lookup` und `return_submit` (nur `service_role`).
+
+- `{ action: "lookup", orderNumber, email }` → `200 { status: "ok", orderNumber, deadline, items: [{ orderItemId, title, size, color, image, quantity }] }` mit den noch zurückgebbaren Stücken (`quantity` = bestellt minus bereits angemeldet; abgelehnte Anmeldungen zählen nicht). `orderNumber` darf `AX-10001`, `#10001` oder `10001` sein. Nur bezahlte oder versendete Warenkorb-Bestellungen, E-Mail ohne Beachtung der Schreibweise. `404 NOT_FOUND` ist **einheitlich** für unbekannte Nummer, falsche Adresse und nicht bezahlte Bestellungen (verrät nie, ob eine Bestellung existiert). Erst wenn die Adresse passt: `409 RETURN_WINDOW_CLOSED { returnDays }` (Frist ab `shipped_at`, sonst `paid_at`; `SHOP_RETURN_DAYS`, Standard 14, gleich wie `returnDays` in `src/config/shop.ts`, Test `src/lib/returns.test.ts`) und `409 NOTHING_RETURNABLE` (alles angemeldet oder ganz erstattet).
+- `{ action: "submit", orderNumber, email, items: [{ orderItemId, quantity, reason }], comment?, locale, requestId?, website? }` → `200 { status: "ok", returnNumber: "R-1001", orderNumber, emailed }`. `reason`: `too_small | too_large | style | quality | wrong_item | other`; 1 bis 20 verschiedene Positionen, Menge 1 bis 10 (zusätzlich ≤ noch zurückgebbar), Kommentar höchstens 1000 Zeichen (`400 COMMENT_TOO_LONG`). Fehler wie bei lookup, dazu `409 ITEMS_NOT_RETURNABLE` (Menge, fremde oder doppelte Position) und `400 BAD_REQUEST`. `requestId` (UUID aus dem Formular) macht doppeltes Absenden unschädlich: dieselbe Anmeldung wird nochmals geliefert, nichts wird zweimal angelegt.
+- Mails (Resend, Idempotency-Key `return-<id>-customer` und `return-<id>-shop`): Bestätigung an die Kundschaft mit allgemeinen Hinweisen (ungetragen einpacken, Bestell- und Retourennummer beilegen, an `SHOP_ADDRESS` schicken; **kein** Rücksendeetikett und keine Kostenübernahme versprochen) und Meldung an die Bestelladresse (Admin → Einstellungen, sonst `SHOP_NOTIFY_EMAIL`, sonst `SHOP_CONTACT_EMAIL`) mit Reply-To an die Kundschaft. Scheitert eine Mail, bleibt die Anmeldung gespeichert (`emailed: false`, sichtbar im Admin → Retouren).
+- Bremsen (`private.hit_rate_limit`, nur als Hash gezählt): lookup pro IP 30, pro Adresse 15, pro Bestellnummer 20, gesamt 500 pro Stunde; submit pro IP 10 und pro Adresse 5 pro Stunde (dazu dieselben Bestellnummer- und Gesamtgrenzen) → `429 RATE_LIMITED`.
+- Admin → Retouren (`/admin/retouren`) liest und ändert `status` (`requested → received → refunded | rejected`) und `admin_note` per RLS; Erstattung und «Retoure einbuchen» bleiben an der Bestellung.
 
 ## search-assist
 

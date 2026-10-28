@@ -4274,6 +4274,15 @@ button.text-link {
 .admin-table-click tbody tr:hover {
   background: color-mix(in oklab, var(--sand) 35%, transparent);
 }
+.admin-item-cell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.admin-item-cell img {
+  object-fit: cover;
+  background: var(--sand, #e9e1d2);
+}
 .admin-sub {
   display: block;
   font-size: 12px;
