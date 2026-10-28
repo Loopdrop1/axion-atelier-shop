@@ -106,9 +106,9 @@ describe("return_lookup", () => {
     });
   });
 
-  it("Frist ab Versand, sonst ab Zahlung; Grenze ist der letzte Tag", async () => {
-    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 13 }))).status).toBe("ok");
-    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 15 }))).status).toBe(
+  it("Frist ab Erhalt (Versand + 5 Tage Zustellung), sonst ab Zahlung", async () => {
+    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 18 }))).status).toBe("ok");
+    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 20 }))).status).toBe(
       "expired",
     );
     expect((await lookup(await order({ paidDaysAgo: 15 }))).status).toBe("expired");
@@ -117,6 +117,16 @@ describe("return_lookup", () => {
     );
     const closed = await lookup(await order({ paidDaysAgo: 40 }));
     expect(closed).toEqual({ status: "expired", return_days: 14 });
+  });
+
+  it("von Hand eingebuchte Stücke sind nicht mehr zurückgebbar", async () => {
+    const o = await order();
+    await sql("update public.order_items set restocked_quantity = 1 where id = $1", [o.itemIds[0]]);
+    const r = await lookup(o);
+    expect(r.items?.find((i) => i.order_item_id === o.itemIds[0])?.quantity).toBe(1);
+    expect(
+      await submit(o, [{ order_item_id: o.itemIds[0], quantity: 2, reason: "style" }]),
+    ).toEqual({ status: "invalid_items" });
   });
 
   it("erstattete Bestellung: nothing_returnable; alles angemeldet: nothing_returnable", async () => {
@@ -129,16 +139,18 @@ describe("return_lookup", () => {
     expect((await lookup(o)).status).toBe("nothing_returnable");
   });
 
-  it("bremst pro Bestellnummer (20 pro Stunde) und pro Adresse (15)", async () => {
+  it("bremst pro Bestellnummer und Adresse (20 pro Stunde) und pro Adresse (15); Fremde sperren niemanden aus", async () => {
     const o = await order();
     const answers: string[] = [];
     for (let i = 0; i < 21; i++)
       answers.push(
-        (await rpc<Result>("return_lookup", [o.number, `x${i}@example.ch`, `10.9.1.${i}`, 14]))
+        (await rpc<Result>("return_lookup", [o.number, "fremd@example.ch", `10.9.1.${i}`, 14]))
           .status,
       );
-    expect(answers.slice(0, 20).every((s) => s === "not_found")).toBe(true);
+    expect(answers.slice(0, 15).every((s) => s === "not_found")).toBe(true);
     expect(answers[20]).toBe("rate_limited");
+    // Die echte Kundschaft kommt trotzdem durch
+    expect((await lookup(o, o.email, "10.9.1.99")).status).toBe("ok");
     const p = await order();
     const email = `${uniq("viel")}@example.ch`;
     const byEmail: string[] = [];
@@ -228,8 +240,8 @@ describe("return_submit", () => {
     const o2 = await order();
     const c = await submit(o2, [{ order_item_id: o2.itemIds[1], quantity: 1, reason: "other" }], {
       requestId,
-    }).catch((e: unknown) => e);
-    expect(c).toBeInstanceOf(Error);
+    });
+    expect(c).toEqual({ status: "invalid_items" });
   });
 
   it("Adresse und Frist werden wie beim lookup geprüft", async () => {

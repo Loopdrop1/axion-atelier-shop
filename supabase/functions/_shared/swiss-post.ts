@@ -234,7 +234,7 @@ async function http(cfg: SwissPostConfig, url: string, init: RequestInit): Promi
     return await (cfg.fetchImpl ?? fetch)(url, { ...init, signal: AbortSignal.timeout(15_000) });
   } catch (error) {
     console.error("Post nicht erreichbar", error instanceof Error ? error.name : "Error");
-    // Netzfehler zählen wie ein 503: einmal wiederholen
+    // Netzfehler zählen wie ein 503 ohne Fehlercode (nicht wiederholt, siehe generateAddressLabel)
     return new Response(null, { status: 503 });
   }
 }
@@ -289,8 +289,8 @@ async function accessToken(cfg: SwissPostConfig, force: boolean): Promise<string
   }
 }
 
-/** Etikett erzeugen. 401: einmal mit neuem Token; vorübergehende Fehler (E9993/E9994/E9997/E9999, 5xx, 429):
- *  einmal nach kurzer Pause; alles andere wird in einen klaren PostError übersetzt. */
+/** Etikett erzeugen. 401: einmal mit neuem Token; E9993/E9994/E9997/E9999 und 429:
+ *  einmal nach kurzer Pause (5xx und Netzfehler nicht: die Etikette könnte schon bestehen); alles andere wird in einen klaren PostError übersetzt. */
 export async function createPostLabel(
   cfg: SwissPostConfig,
   order: PostOrder,
@@ -318,28 +318,34 @@ export async function createPostLabel(
       continue;
     }
     if (res.status === 401 || res.status === 403) throw new PostError("POST_AUTH_FAILED");
-    const transient = res.status === 429 || res.status >= 500;
+    // Wiederholt wird nur, wenn die Post sicher nichts erstellt hat (429 oder ausdrücklicher Fehlercode E99xx).
+    // Bei Zeitüberschreitung oder 5xx ohne Fehlercode kann die Etikette schon bestehen: keine zweite (Kosten).
     let failure: PostError;
-    if (transient) {
-      failure = new PostError(res.status === 429 ? "POST_RATE_LIMITED" : "POST_UNAVAILABLE");
+    let retryable = false;
+    if (res.status === 429) {
+      failure = new PostError("POST_RATE_LIMITED");
+      retryable = true;
     } else {
       const body = await readJson(res);
       try {
         if (!res.ok) {
           const root = (body ?? {}) as Record<string, unknown>;
           const errs = messages(root["errors"]);
-          throw errs.length
-            ? mapPostErrors(errs)
-            : new PostError("POST_REJECTED", [String(res.status)]);
+          if (errs.length) throw mapPostErrors(errs);
+          throw new PostError(
+            res.status >= 500 ? "POST_UNAVAILABLE" : "POST_REJECTED",
+            res.status >= 500 ? [] : [String(res.status)],
+          );
         }
         return parseLabelResponse(body);
       } catch (error) {
         if (!(error instanceof PostError)) throw error;
         failure = error;
+        // Ausdrücklicher Fehlercode E99xx: Die Post hat nichts erstellt, eine Wiederholung ist sicher
+        retryable = error.code === "POST_UNAVAILABLE" && error.detail.length > 0;
       }
     }
-    if (failure.code !== "POST_UNAVAILABLE" && failure.code !== "POST_RATE_LIMITED") throw failure;
-    if (retried) throw failure;
+    if (!retryable || retried) throw failure;
     retried = true;
     await sleepOf(cfg)(750);
   }

@@ -663,7 +663,7 @@ describe("stripe-webhook: Bestandsmeldung an den Shop", () => {
   it("ein Fehler beim Versand der Meldung kippt die Verbuchung nicht", async () => {
     const { order } = await orderWith([3]);
     const before = resend.sent.length;
-    resend.failNext(); // trifft die Bestandsmeldung, sie geht zuerst raus
+    resend.failNext((key) => key === `order-${order.order_id}-lowstock`);
     expect((await deliver("checkout.session.completed", session(order.order_id))).status).toBe(200);
     expect(alerts(order.order_id, before)).toHaveLength(0);
     const status = await sql<{ status: string }>("select status from public.orders where id = $1", [

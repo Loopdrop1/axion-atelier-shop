@@ -72,10 +72,14 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
         : null,
     },
   });
-  // Bestandsmeldung an den Shop nur beim ersten Verbuchen und vor den Kundenmails: Scheitert deren Versand und
-  // Stripe wiederholt, ist die Bestellung dann nicht mehr «neu». Fängt Fehler selbst ab (Verbuchung bleibt gültig).
-  if (result.newly_paid !== false) await sendLowStockAlert(deps, result.order);
-  await sendPaidEmails(deps, result.order);
+  // Bestandsmeldung an den Shop nur beim ersten Verbuchen (eine Wiederholung durch Stripe ist nicht mehr «neu»),
+  // parallel zu den Kundenmails, damit sie diese nicht verzögert. Sie fängt Fehler selbst ab; scheitern die
+  // Kundenmails, gibt es den Fehler weiter (Stripe wiederholt).
+  const [, mails] = await Promise.allSettled([
+    result.newly_paid !== false ? sendLowStockAlert(deps, result.order) : Promise.resolve(),
+    sendPaidEmails(deps, result.order),
+  ]);
+  if (mails.status === "rejected") throw mails.reason;
 }
 
 export function createStripeWebhookHandler(deps: Deps) {

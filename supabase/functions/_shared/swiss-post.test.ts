@@ -227,7 +227,6 @@ describe("createPostLabel", () => {
       "E9999 bei HTTP 400",
       () => new Response(JSON.stringify({ errors: [{ code: "E9999" }] }), { status: 400 }),
     ],
-    ["HTTP 503", () => new Response("", { status: 503 })],
     ["HTTP 429", () => new Response("", { status: 429 })],
   ])("vorübergehend (%s): einmal wiederholen", async (_name, first) => {
     let n = 0;
@@ -240,15 +239,22 @@ describe("createPostLabel", () => {
     expect(calls.filter((c) => !isToken(c))).toHaveLength(2);
   });
 
-  it("bleibt es vorübergehend, gibt es nach der Wiederholung POST_UNAVAILABLE (429: POST_RATE_LIMITED)", async () => {
+  it("5xx ohne Fehlercode: keine Wiederholung (die Etikette könnte schon bestehen); 429 bleibt: POST_RATE_LIMITED", async () => {
     const down = fakePost((c) => (isToken(c) ? token() : new Response("", { status: 500 })));
     await expect(createPostLabel(down.cfg, order, sender)).rejects.toThrow("POST_UNAVAILABLE");
-    expect(down.calls.filter((c) => !isToken(c))).toHaveLength(2);
+    expect(down.calls.filter((c) => !isToken(c))).toHaveLength(1);
+    const e99 = fakePost((c) =>
+      isToken(c)
+        ? token()
+        : new Response(JSON.stringify({ errors: [{ code: "E9997" }] }), { status: 400 }),
+    );
+    await expect(createPostLabel(e99.cfg, order, sender)).rejects.toThrow("POST_UNAVAILABLE");
+    expect(e99.calls.filter((c) => !isToken(c))).toHaveLength(2);
     const busy = fakePost((c) => (isToken(c) ? token() : new Response("", { status: 429 })));
     await expect(createPostLabel(busy.cfg, order, sender)).rejects.toThrow("POST_RATE_LIMITED");
   });
 
-  it("Netzfehler zählt als vorübergehend", async () => {
+  it("Netzfehler: POST_UNAVAILABLE ohne Wiederholung", async () => {
     let n = 0;
     const { cfg } = fakePost(() => token());
     const inner = cfg.fetchImpl!;
@@ -257,9 +263,8 @@ describe("createPostLabel", () => {
       return isToken({ url, init }) ? token() : labelOk();
     }) as typeof fetch;
     void inner;
-    await expect(createPostLabel(cfg, order, sender)).resolves.toMatchObject({
-      identCode: "99.60.123456.12345678",
-    });
+    await expect(createPostLabel(cfg, order, sender)).rejects.toThrow("POST_UNAVAILABLE");
+    expect(n).toBe(1);
   });
 
   it("andere Fehler: kein Wiederholen, klarer Code", async () => {

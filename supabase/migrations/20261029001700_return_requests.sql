@@ -68,7 +68,9 @@ as $$
       'quantity', x.open_qty
     ) order by x.created_at, x.id), '[]'::jsonb)
   from (
-    select i.*, i.quantity - private.return_requested_qty(i.order_id, i.id) as open_qty
+    -- Schon von Hand eingebuchte Stücke («Retoure einbuchen» ohne Anmeldung) zählen wie angemeldete; greatest statt
+    -- Summe, weil eine angemeldete Retoure später auch eingebucht wird.
+    select i.*, i.quantity - greatest(private.return_requested_qty(i.order_id, i.id), i.restocked_quantity) as open_qty
     from public.order_items i where i.order_id = p_order_id
   ) x
   where x.open_qty > 0
@@ -79,7 +81,9 @@ revoke all on function private.return_requested_qty(uuid, uuid), private.return_
 -- Schritt 1: Bestellnummer + E-Mail prüfen und die zurückgebbaren Stücke liefern.
 -- 'not_found' ist einheitlich für unbekannte Nummer, falsche Adresse und nicht bezahlte Bestellungen; 'expired',
 -- 'nothing_returnable' und 'ok' gibt es erst, wenn die Adresse zur Bestellung passt. Fristbeginn: Versand, sonst Zahlung.
--- Begrenzt pro IP (30 pro Stunde), Adresse (15), Bestellung (20) und gesamt (500): 'rate_limited'.
+-- Begrenzt pro IP (30 pro Stunde), Adresse (15), Bestellung+Adresse (20) und gesamt (3000): 'rate_limited'. Der Zähler
+-- pro Bestellung hängt an der Adresse, damit Fremde mit falscher Adresse die echte Kundschaft nicht aussperren.
+-- Frist: «ab Erhalt der Ware» (AGB); gerechnet ab Versand plus 5 Tage Zustellung (Lieferzeit 2–5 Tage), sonst ab Zahlung.
 create or replace function public.return_lookup(p_order_number bigint, p_email text, p_ip text, p_days int)
 returns jsonb
 language plpgsql
@@ -95,8 +99,8 @@ declare
 begin
   if not private.hit_rate_limit('return-ip:' || coalesce(nullif(btrim(p_ip), ''), 'unbekannt'), 30, interval '1 hour')
      or not private.hit_rate_limit('return-email:' || v_email, 15, interval '1 hour')
-     or not private.hit_rate_limit('return-order:' || coalesce(p_order_number, 0), 20, interval '1 hour')
-     or not private.hit_rate_limit('return-global', 500, interval '1 hour') then
+     or not private.hit_rate_limit('return-order:' || coalesce(p_order_number, 0) || ':' || md5(v_email), 20, interval '1 hour')
+     or not private.hit_rate_limit('return-global', 3000, interval '1 hour') then
     return jsonb_build_object('status', 'rate_limited');
   end if;
   select * into v_order from public.orders
@@ -105,7 +109,7 @@ begin
   if not found then
     return jsonb_build_object('status', 'not_found');
   end if;
-  v_deadline := coalesce(v_order.shipped_at, v_order.paid_at) + make_interval(days => v_days);
+  v_deadline := coalesce(v_order.shipped_at + interval '5 days', v_order.paid_at) + make_interval(days => v_days);
   if v_order.status = 'refunded' then
     return jsonb_build_object('status', 'nothing_returnable');
   end if;
@@ -157,8 +161,8 @@ declare
 begin
   if not private.hit_rate_limit('return-submit-ip:' || coalesce(nullif(btrim(p_ip), ''), 'unbekannt'), 10, interval '1 hour')
      or not private.hit_rate_limit('return-submit-email:' || v_email, 5, interval '1 hour')
-     or not private.hit_rate_limit('return-order:' || coalesce(p_order_number, 0), 20, interval '1 hour')
-     or not private.hit_rate_limit('return-global', 500, interval '1 hour') then
+     or not private.hit_rate_limit('return-order:' || coalesce(p_order_number, 0) || ':' || md5(v_email), 20, interval '1 hour')
+     or not private.hit_rate_limit('return-global', 3000, interval '1 hour') then
     return jsonb_build_object('status', 'rate_limited');
   end if;
   select * into v_order from public.orders
@@ -169,7 +173,11 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
   if p_request_id is not null then
-    select * into v_row from public.return_requests where client_request_id = p_request_id and order_id = v_order.id;
+    select * into v_row from public.return_requests where client_request_id = p_request_id;
+    if found and v_row.order_id <> v_order.id then
+      -- Dieselbe Formular-Id zu einer anderen Bestellung: nichts verraten, nichts anlegen.
+      return jsonb_build_object('status', 'invalid_items');
+    end if;
     if found then
       return jsonb_build_object('status', 'ok', 'duplicate', true, 'id', v_row.id, 'number', v_row.number,
         'order_number', v_order.number, 'email', v_row.email, 'locale', v_row.locale, 'items', v_row.items,
@@ -179,7 +187,7 @@ begin
   if v_order.status = 'refunded' then
     return jsonb_build_object('status', 'nothing_returnable');
   end if;
-  v_deadline := coalesce(v_order.shipped_at, v_order.paid_at) + make_interval(days => v_days);
+  v_deadline := coalesce(v_order.shipped_at + interval '5 days', v_order.paid_at) + make_interval(days => v_days);
   if v_deadline is null or v_deadline < now() then
     return jsonb_build_object('status', 'expired', 'return_days', v_days);
   end if;
@@ -194,7 +202,8 @@ begin
     if not found or v_qty is null or v_qty < 1
        or v_item.id = any (v_seen)
        or v_reason is null or v_reason not in ('too_small', 'too_large', 'style', 'quality', 'wrong_item', 'other')
-       or v_qty > v_item.quantity - private.return_requested_qty(v_order.id, v_item.id) then
+       or v_qty > v_item.quantity
+                  - greatest(private.return_requested_qty(v_order.id, v_item.id), v_item.restocked_quantity) then
       return jsonb_build_object('status', 'invalid_items');
     end if;
     v_seen := v_seen || v_item.id;
