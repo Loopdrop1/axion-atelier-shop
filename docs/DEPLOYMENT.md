@@ -73,14 +73,14 @@ einschalten.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
    > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact, account-delete,
-   > stock-alert, search-assist and client-error exactly as they are in supabase/functions, with verify_jwt = false as in
+   > stock-alert, search-assist, client-error and return-request exactly as they are in supabase/functions, with verify_jwt = false as in
    > supabase/config.toml. Do not change their code. The functions admin-actions and search-assist use
    > LOVABLE_API_KEY and the Lovable AI gateway with the model google/gemini-2.5-flash; if that model is not
    > available in the gateway, tell me the current default Gemini Flash model id instead of changing the code.
 
-   Kontrolle unter Cloud → Edge functions: Soll sind **10 Funktionen mit `verify_jwt = false`** (`checkout`,
+   Kontrolle unter Cloud → Edge functions: Soll sind **11 Funktionen mit `verify_jwt = false`** (`checkout`,
    `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist`,
-   `client-error` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
+   `client-error`, `return-request` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
    Send-Email-Hook von Lovable Cloud (Konto-E-Mails in Axion-Optik, siehe Punkt 6); ohne ihn verschickt Lovable die
    Standard-E-Mails. Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
 
@@ -93,6 +93,13 @@ einschalten.
      Liechtenstein beliefern will und die Liechtenstein-Klauseln in den Rechtstexten stehen), `TRANSLATE_MODEL`.
      `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`) nur setzen, wenn Axion MWST-pflichtig ist; er wird pro
      Bestellung gespeichert, und der Beleg rechnet damit.
+   - Optional `LOW_STOCK_THRESHOLD` (Standard 2): Der Shop bekommt eine E-Mail an `SHOP_NOTIFY_EMAIL`, wenn der Bestand einer
+     Grösse mit einer Bestellung auf diesen Wert oder darunter fällt. Braucht die Migration `0017_axion_low_stock_alert`
+     (einmal in Cloud ausführen); Funktion `stripe-webhook` neu veröffentlichen.
+   - Optional Post-Etiketten (noch nicht mit der echten Post getestet, braucht ein Geschäftskundenkonto): `POST_CLIENT_ID`,
+     `POST_CLIENT_SECRET`, `POST_FRANKING_LICENSE`, dazu `POST_PRODUCT` (`ECO` oder `PRI`, Standard `ECO`). `SHOP_ADDRESS`
+     muss «Strasse Nr, PLZ Ort» lauten. Funktion `admin-actions` neu veröffentlichen. Ohne diese Secrets bleibt der Knopf
+     «Etikett (Post) erstellen» im Admin deaktiviert; die Checkliste «Bereit für den Livegang» zeigt es als optional.
    - `LOVABLE_API_KEY` legt Lovable selbst an; nicht von Hand setzen.
 5. Authentifizierung (Cloud → Users → Einstellungen):
    - **«Auto-confirm email» aus**, **«Secure email change» ein.** Gastbestellungen werden einem Konto über die

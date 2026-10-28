@@ -10,6 +10,8 @@ export interface Check {
   label: string;
   ok: boolean;
   hint?: string;
+  /** Zählt nicht für «Bereit» (z. B. Post-Etiketten) */
+  optional?: boolean;
 }
 
 const SECRET_LABELS: Record<string, string> = {
@@ -31,6 +33,14 @@ export function serverChecks(status: SystemStatus): Check[] {
     ok,
     hint: `Cloud → Secrets: ${key}`,
   }));
+  if (typeof status.swissPost === "boolean")
+    checks.push({
+      id: "swiss-post",
+      label: "Post-Etiketten eingerichtet (optional, noch ungetestet)",
+      ok: status.swissPost,
+      optional: true,
+      hint: "Cloud → Secrets: POST_CLIENT_ID, POST_CLIENT_SECRET, POST_FRANKING_LICENSE",
+    });
   checks.push({
     id: "stripe-mode",
     label:
@@ -141,7 +151,8 @@ export function ReadinessPanel() {
       sampleProducts: muster.data ?? null,
     }),
   ];
-  const done = checks.filter((c) => c.ok).length;
+  const counted = checks.filter((c) => !c.optional);
+  const done = counted.filter((c) => c.ok).length;
   return (
     <Panel
       title="Bereit für den Livegang"
@@ -151,8 +162,8 @@ export function ReadinessPanel() {
           : "Zeigt nur, ob Secrets gesetzt sind, nie ihre Werte."
       }
       actions={
-        <Badge tone={done === checks.length && !status.isError ? "ok" : "warn"}>
-          {done} von {checks.length}
+        <Badge tone={done === counted.length && !status.isError ? "ok" : "warn"}>
+          {done} von {counted.length}
         </Badge>
       }
     >
@@ -162,7 +173,9 @@ export function ReadinessPanel() {
             key={c.id}
             style={{ display: "flex", gap: "0.5rem", alignItems: "baseline", padding: "0.2rem 0" }}
           >
-            <Badge tone={c.ok ? "ok" : "warn"}>{c.ok ? "OK" : "Offen"}</Badge>
+            <Badge tone={c.ok ? "ok" : c.optional ? "neutral" : "warn"}>
+              {c.ok ? "OK" : c.optional ? "Optional" : "Offen"}
+            </Badge>
             <span>
               {c.label}
               {!c.ok && c.hint ? <span className="admin-muted"> · {c.hint}</span> : null}

@@ -12,11 +12,13 @@ import {
   getOrder,
   getVariantCodes,
   notifyRestock,
+  postLabel,
   refundOrder,
   resendGiftCard,
   resendOrderEmail,
   restockOrder,
   shipOrder,
+  systemStatus,
   updateOrderNote,
   type AdminOrder,
 } from "@/lib/admin/api";
@@ -367,11 +369,34 @@ function OrderView({ order }: { order: AdminOrder }) {
   );
 }
 
+/** PDF aus Base64 als Datei speichern (Download im Browser). */
+function downloadPdf(base64: string, filename: string): void {
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
 function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void }) {
   const [tracking, setTracking] = useState(order.tracking_number ?? "");
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [busy, setBusy] = useState(false);
   const [trackingMissing, setTrackingMissing] = useState(false);
+  const [labelBusy, setLabelBusy] = useState(false);
+  const [labelMade, setLabelMade] = useState(false);
+  // Gleicher Schlüssel wie die Checkliste auf der Übersicht; unbekannt (lädt oder Fehler) heisst nicht «aus».
+  const system = useQuery({
+    queryKey: ["admin", "system-status"],
+    queryFn: systemStatus,
+    retry: false,
+  });
+  const postReady = system.data?.swissPost;
+  const postCountry = ["CH", "LI"].includes((order.shipping_address?.country ?? "").toUpperCase());
   if (order.status === "shipped")
     return (
       <Panel title="Versand">
@@ -430,6 +455,40 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
             setTrackingMissing(false);
           }}
         />
+        <div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={labelBusy || postReady === false || !postCountry}
+            onClick={async () => {
+              setLabelBusy(true);
+              try {
+                const r = await postLabel(order.id);
+                downloadPdf(r.labelPdfBase64, `Post-Etikett-AX-${order.number}.pdf`);
+                // Die bestehende Versandmeldung bleibt der Weg zum «Versendet»: Nummer eintragen, dann bestätigen.
+                setTracking(r.identCode);
+                setTrackingMissing(false);
+                setLabelMade(true);
+                notify.ok(`Etikett erstellt, Sendungsnummer ${r.identCode} eingetragen.`);
+              } catch (error) {
+                notify.error(error);
+              } finally {
+                setLabelBusy(false);
+              }
+            }}
+          >
+            <Printer /> {labelBusy ? "Bitte warten …" : "Etikett (Post) erstellen"}
+          </Button>
+          <p className="admin-hint">
+            {postReady === false
+              ? "Nicht eingerichtet: Die Secrets POST_CLIENT_ID, POST_CLIENT_SECRET und POST_FRANKING_LICENSE fehlen (Cloud → Secrets, siehe docs/BETRIEB.md)."
+              : !postCountry
+                ? "Post-Etiketten gibt es nur für Lieferungen in die Schweiz und nach Liechtenstein."
+                : labelMade
+                  ? "Etikett heruntergeladen und ausgedruckt? Dann unten «Als versendet markieren». Ein weiterer Klick erzeugt ein neues Etikett (kostenpflichtig)."
+                  : "Erzeugt das A6-Etikett als PDF und trägt die Sendungsnummer ein. Erst «Als versendet markieren» informiert die Kundschaft. Noch nicht mit der echten Post getestet."}
+          </p>
+        </div>
         <CheckField
           label="Kundschaft per E-Mail informieren"
           hint="Die Versandmeldung enthält den Link zur Sendungsverfolgung."

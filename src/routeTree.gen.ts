@@ -39,6 +39,7 @@ import { Route as Char123LocaleChar125ImpressumRouteImport } from './routes/{-$l
 import { Route as Char123LocaleChar125KontaktRouteImport } from './routes/{-$locale}/kontakt'
 import { Route as Char123LocaleChar125KontoRouteImport } from './routes/{-$locale}/konto'
 import { Route as Char123LocaleChar125MerklisteRouteImport } from './routes/{-$locale}/merkliste'
+import { Route as Char123LocaleChar125RetoureRouteImport } from './routes/{-$locale}/retoure'
 import { Route as Char123LocaleChar125SucheRouteImport } from './routes/{-$locale}/suche'
 import { Route as Char123LocaleChar125UeberUnsRouteImport } from './routes/{-$locale}/ueber-uns'
 import { Route as Char123LocaleChar125VersandUndRueckgabeRouteImport } from './routes/{-$locale}/versand-und-rueckgabe'
@@ -47,6 +48,8 @@ import { Route as AdminBestellungenIndexRouteImport } from './routes/admin.beste
 import { Route as AdminBestellungenIdRouteImport } from './routes/admin.bestellungen.$id'
 import { Route as AdminProdukteIndexRouteImport } from './routes/admin.produkte.index'
 import { Route as AdminProdukteIdRouteImport } from './routes/admin.produkte.$id'
+import { Route as AdminRetourenIndexRouteImport } from './routes/admin.retouren.index'
+import { Route as AdminRetourenIdRouteImport } from './routes/admin.retouren.$id'
 import { Route as Char123LocaleChar125BenachrichtigungBestaetigenRouteImport } from './routes/{-$locale}/benachrichtigung.bestaetigen'
 import { Route as Char123LocaleChar125BestellungTokenRouteImport } from './routes/{-$locale}/bestellung.$token'
 import { Route as Char123LocaleChar125KollektionHandleRouteImport } from './routes/{-$locale}/kollektion.$handle'
@@ -226,6 +229,12 @@ const Char123LocaleChar125MerklisteRoute =
     path: '/merkliste',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
+const Char123LocaleChar125RetoureRoute =
+  Char123LocaleChar125RetoureRouteImport.update({
+    id: '/retoure',
+    path: '/retoure',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 const Char123LocaleChar125SucheRoute =
   Char123LocaleChar125SucheRouteImport.update({
     id: '/suche',
@@ -268,6 +277,16 @@ const AdminProdukteIndexRoute = AdminProdukteIndexRouteImport.update({
 const AdminProdukteIdRoute = AdminProdukteIdRouteImport.update({
   id: '/produkte/$id',
   path: '/produkte/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRetourenIndexRoute = AdminRetourenIndexRouteImport.update({
+  id: '/retouren/',
+  path: '/retouren/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRetourenIdRoute = AdminRetourenIdRouteImport.update({
+  id: '/retouren/$id',
+  path: '/retouren/$id',
   getParentRoute: () => AdminRoute,
 } as any)
 const Char123LocaleChar125BenachrichtigungBestaetigenRoute =
@@ -402,6 +421,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -410,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
@@ -425,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
   '/admin/produkte/': typeof AdminProdukteIndexRoute
+  '/admin/retouren/': typeof AdminRetourenIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
@@ -456,6 +478,7 @@ export interface FileRoutesByTo {
   '/{-$locale}/impressum': typeof Char123LocaleChar125ImpressumRoute
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -464,6 +487,7 @@ export interface FileRoutesByTo {
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
@@ -479,6 +503,7 @@ export interface FileRoutesByTo {
   '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen': typeof AdminBestellungenIndexRoute
   '/admin/produkte': typeof AdminProdukteIndexRoute
+  '/admin/retouren': typeof AdminRetourenIndexRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
@@ -514,6 +539,7 @@ export interface FileRoutesById {
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -522,6 +548,7 @@ export interface FileRoutesById {
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/bestellungen/$id': typeof AdminBestellungenIdRoute
   '/admin/produkte/$id': typeof AdminProdukteIdRoute
+  '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
@@ -537,6 +564,7 @@ export interface FileRoutesById {
   '/{-$locale}/ratgeber/$slug': typeof Char123LocaleChar125RatgeberSlugRoute
   '/admin/bestellungen/': typeof AdminBestellungenIndexRoute
   '/admin/produkte/': typeof AdminProdukteIndexRoute
+  '/admin/retouren/': typeof AdminRetourenIndexRoute
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
@@ -573,6 +601,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/kontakt'
     | '/{-$locale}/konto'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -581,6 +610,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
@@ -596,6 +626,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen/'
     | '/admin/produkte/'
+    | '/admin/retouren/'
     | '/{-$locale}/konto/'
     | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
@@ -627,6 +658,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/impressum'
     | '/{-$locale}/kontakt'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -635,6 +667,7 @@ export interface FileRouteTypes {
     | '/{-$locale}'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
@@ -650,6 +683,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen'
     | '/admin/produkte'
+    | '/admin/retouren'
     | '/{-$locale}/konto'
     | '/{-$locale}/ratgeber'
     | '/{-$locale}/konto/bestellungen/$number'
@@ -684,6 +718,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/kontakt'
     | '/{-$locale}/konto'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -692,6 +727,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/'
     | '/admin/bestellungen/$id'
     | '/admin/produkte/$id'
+    | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
     | '/{-$locale}/kollektion/$handle'
@@ -707,6 +743,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/ratgeber/$slug'
     | '/admin/bestellungen/'
     | '/admin/produkte/'
+    | '/admin/retouren/'
     | '/{-$locale}/konto/'
     | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
@@ -934,6 +971,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125MerklisteRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
     }
+    '/{-$locale}/retoure': {
+      id: '/{-$locale}/retoure'
+      path: '/retoure'
+      fullPath: '/{-$locale}/retoure'
+      preLoaderRoute: typeof Char123LocaleChar125RetoureRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
     '/{-$locale}/suche': {
       id: '/{-$locale}/suche'
       path: '/suche'
@@ -988,6 +1032,20 @@ declare module '@tanstack/react-router' {
       path: '/produkte/$id'
       fullPath: '/admin/produkte/$id'
       preLoaderRoute: typeof AdminProdukteIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/retouren/': {
+      id: '/admin/retouren/'
+      path: '/retouren'
+      fullPath: '/admin/retouren/'
+      preLoaderRoute: typeof AdminRetourenIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/retouren/$id': {
+      id: '/admin/retouren/$id'
+      path: '/retouren/$id'
+      fullPath: '/admin/retouren/$id'
+      preLoaderRoute: typeof AdminRetourenIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/{-$locale}/benachrichtigung/bestaetigen': {
@@ -1157,6 +1215,7 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125KontaktRoute: typeof Char123LocaleChar125KontaktRoute
   Char123LocaleChar125KontoRoute: typeof Char123LocaleChar125KontoRouteWithChildren
   Char123LocaleChar125MerklisteRoute: typeof Char123LocaleChar125MerklisteRoute
+  Char123LocaleChar125RetoureRoute: typeof Char123LocaleChar125RetoureRoute
   Char123LocaleChar125SucheRoute: typeof Char123LocaleChar125SucheRoute
   Char123LocaleChar125UeberUnsRoute: typeof Char123LocaleChar125UeberUnsRoute
   Char123LocaleChar125VersandUndRueckgabeRoute: typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -1188,6 +1247,7 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
     Char123LocaleChar125KontaktRoute: Char123LocaleChar125KontaktRoute,
     Char123LocaleChar125KontoRoute: Char123LocaleChar125KontoRouteWithChildren,
     Char123LocaleChar125MerklisteRoute: Char123LocaleChar125MerklisteRoute,
+    Char123LocaleChar125RetoureRoute: Char123LocaleChar125RetoureRoute,
     Char123LocaleChar125SucheRoute: Char123LocaleChar125SucheRoute,
     Char123LocaleChar125UeberUnsRoute: Char123LocaleChar125UeberUnsRoute,
     Char123LocaleChar125VersandUndRueckgabeRoute:
@@ -1235,8 +1295,10 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminBestellungenIdRoute: typeof AdminBestellungenIdRoute
   AdminProdukteIdRoute: typeof AdminProdukteIdRoute
+  AdminRetourenIdRoute: typeof AdminRetourenIdRoute
   AdminBestellungenIndexRoute: typeof AdminBestellungenIndexRoute
   AdminProdukteIndexRoute: typeof AdminProdukteIndexRoute
+  AdminRetourenIndexRoute: typeof AdminRetourenIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1255,8 +1317,10 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminBestellungenIdRoute: AdminBestellungenIdRoute,
   AdminProdukteIdRoute: AdminProdukteIdRoute,
+  AdminRetourenIdRoute: AdminRetourenIdRoute,
   AdminBestellungenIndexRoute: AdminBestellungenIndexRoute,
   AdminProdukteIndexRoute: AdminProdukteIndexRoute,
+  AdminRetourenIndexRoute: AdminRetourenIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

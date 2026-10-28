@@ -30,6 +30,20 @@ export interface FunctionEnv {
   shippingCountries: ShippingCountry[];
   /** MWST-Satz in Prozent (SHOP_VAT_RATE), nur setzen, wenn der Shop MWST-pflichtig ist. Wird pro Bestellung gespeichert. */
   vatRate: number | null;
+  /** Post-Etiketten (Digital Commerce API «Barcode»), noch ungetestet: POST_CLIENT_ID, POST_CLIENT_SECRET,
+   *  POST_FRANKING_LICENSE, POST_PRODUCT (ECO oder PRI, Standard ECO). Leer = Funktion aus. */
+  postClientId: string;
+  postClientSecret: string;
+  postFrankingLicense: string;
+  postProduct: "ECO" | "PRI";
+  /** POST_SEND_RECIPIENT_CONTACT=1: Telefon und E-Mail der Kundschaft auf dem Etikett (Standard aus) */
+  postSendRecipientContact: boolean;
+  /** Nur für Tests: Post-Fake statt api.post.ch / dcapi.apis.post.ch */
+  postOauthUrl?: string | undefined;
+  postLabelUrl?: string | undefined;
+  /** Meldung an den Shop, wenn der Bestand einer Grösse mit einer Bestellung auf diesen Wert oder darunter fällt
+   *  (LOW_STOCK_THRESHOLD, Standard 2; 0 = nur bei ausverkauft). */
+  lowStockThreshold: number;
   /** Automatische Übersetzung (OpenAI-Schnittstelle). Standard: Lovable AI Gateway mit LOVABLE_API_KEY. */
   translate: { apiBase: string; apiKey: string; model: string };
 }
@@ -71,6 +85,12 @@ function positiveInt(value: string | undefined, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+/** Ganze Zahl ab 0, sonst der Standardwert. */
+function nonNegativeInt(value: string | undefined, fallback: number): number {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
 export function readEnv(get: EnvSource): FunctionEnv {
   const siteUrl = (get("SITE_URL") ?? "http://localhost:5174").replace(/\/+$/, "");
   return {
@@ -101,6 +121,14 @@ export function readEnv(get: EnvSource): FunctionEnv {
     ],
     shippingCountries: shippingCountries(get("SHIPPING_COUNTRIES")),
     vatRate: vatRate(get("SHOP_VAT_RATE")),
+    postClientId: get("POST_CLIENT_ID") ?? "",
+    postClientSecret: get("POST_CLIENT_SECRET") ?? "",
+    postFrankingLicense: get("POST_FRANKING_LICENSE") ?? "",
+    postProduct: get("POST_PRODUCT")?.trim().toUpperCase() === "PRI" ? "PRI" : "ECO",
+    postSendRecipientContact: get("POST_SEND_RECIPIENT_CONTACT") === "1",
+    postOauthUrl: get("POST_OAUTH_URL"),
+    postLabelUrl: get("POST_LABEL_URL"),
+    lowStockThreshold: nonNegativeInt(get("LOW_STOCK_THRESHOLD"), 2),
     translate: {
       apiBase: get("TRANSLATE_API_BASE") || DEFAULT_TRANSLATE_API,
       apiKey: get("TRANSLATE_API_KEY") || get("LOVABLE_API_KEY") || "",

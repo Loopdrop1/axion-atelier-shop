@@ -20,6 +20,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 | `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen                                       |
 | `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                                                  |
 | `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                                                          |
+| `return-request`  | Shop (Gast oder eingeloggt)     | «Retoure anmelden»: Bestellung per Nummer und E-Mail finden (lookup), Stücke und Grund speichern (submit), E-Mails     |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                                                    |
 
 ## checkout
@@ -37,6 +38,8 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `public.restore_cart_by_token(uuid)` (für `anon` aufrufbar): liefert für eine abgebrochene Warenkorb-Bestellung (Status `cancelled`, jünger als 7 Tage) nur `[{variant_id, quantity}]`. Die Seite `/warenkorb/wiederherstellen/:token` legt die noch verfügbaren Stücke (Menge auf den Bestand gekürzt) in den Warenkorb und leitet zur Warenkorbseite weiter.
 - `charge.refunded` übernimmt die Rückerstattung (`record_refund`) und schickt «Deine Rückerstattung zur Bestellung AX-…» (Betrag dieser Rückerstattung, ganz oder teilweise, Hinweis auf einige Tage bei der Bank; bei Vollrückerstattung vor dem Versand der Hinweis, dass die Bestellung storniert ist). Pro Betrag genau eine E-Mail: `orders.refund_notified_cents` (RPC `get_refund_notice`, `mark_refund_notified`) und Resend-Schlüssel `order-<id>-refund-<Gesamtbetrag>`. Ein Versandfehler gibt 500, Stripe wiederholt. Rückerstattungen und Stornierungen bezahlter Bestellungen löst das Admin im Stripe-Dashboard aus; sie laufen deshalb alle über diesen Weg, es gibt keine zweite Admin-Funktion dafür.
 
+- **Bestandsmeldung an den Shop:** Bei einer neu verbuchten Zahlung (`complete_order` → `newly_paid`) meldet `sendLowStockAlert` («Bestand knapp: …», «Ausverkauft: …», Bestand 0) per E-Mail an die Bestelladresse (`shop_settings.notify_email`, sonst `SHOP_NOTIFY_EMAIL`), welche Grössen mit dieser Bestellung auf `LOW_STOCK_THRESHOLD` (Secret, Standard 2, 0 = nur ausverkauft) oder darunter gefallen sind. Der Bestand wird schon beim Reservieren der Kasse abgebucht; gemeldet wird trotzdem erst bei Zahlungseingang (abgelaufene Kassen lösen nichts aus). RPC `low_stock_after_order` (Migration `20261029001800_low_stock_alert.sql` bzw. Cloud `0017`, nur `service_role`) liefert nur Grössen, die die Schwelle mit dieser Bestellung erreicht haben (Bestand jetzt <= Schwelle, Bestand + bestellte Menge > Schwelle), also nicht jede weitere Bestellung; Bestellungen anderer Kundschaft zwischen Reservierung und Zahlung können das um eine Stufe verschieben (Näherung, kein Verlust: schlimmstenfalls eine Meldung mehr oder weniger). Resend-Schlüssel `order-<id>-lowstock`; die Meldung geht vor den Kundenmails raus, und ein Fehler dabei wird nur protokolliert, die Verbuchung bleibt gültig.
+
 ## newsletter
 
 - `{ action: "subscribe", email, consent: true, locale, source?: "footer" | "account" | "checkout", website?: "" }` → immer `200 { ok: true }` (verrät nicht, ob die Adresse schon eingetragen ist). `website` ist ein verstecktes Feld gegen Bots und muss leer bleiben. Wortlaut und Version der Einwilligung legt der Server fest (`_shared/consent.ts`, gespeichert als «[newsletter-v2] Text»); der Formulartext in `src/i18n/messages` muss dazu passen (Test `consent.test.ts`). `400 INVALID_EMAIL | CONSENT_REQUIRED`, `429 RATE_LIMITED`.
@@ -52,6 +55,16 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "invalid" }`.
 - Versand nach dem Aufstocken: `admin-actions` → `notify_restock` (unten). Nach dem Versand wird die Adresse entfernt; unbestätigte und benachrichtigte Einträge nach 30 Tagen gelöscht.
 
+## return-request
+
+«Retoure anmelden» (Seite `/retoure`, Tabelle `return_requests`, Migration `20261029001700_return_requests.sql` bzw. Cloud `0016`). Nur JSON (`415` sonst). Alle Regeln stehen in den RPCs `return_lookup` und `return_submit` (nur `service_role`).
+
+- `{ action: "lookup", orderNumber, email }` → `200 { status: "ok", orderNumber, deadline, items: [{ orderItemId, title, size, color, image, quantity }] }` mit den noch zurückgebbaren Stücken (`quantity` = bestellt minus bereits angemeldet; abgelehnte Anmeldungen zählen nicht). `orderNumber` darf `AX-10001`, `#10001` oder `10001` sein. Nur bezahlte oder versendete Warenkorb-Bestellungen, E-Mail ohne Beachtung der Schreibweise. `404 NOT_FOUND` ist **einheitlich** für unbekannte Nummer, falsche Adresse und nicht bezahlte Bestellungen (verrät nie, ob eine Bestellung existiert). Erst wenn die Adresse passt: `409 RETURN_WINDOW_CLOSED { returnDays }` (Frist ab `shipped_at`, sonst `paid_at`; `SHOP_RETURN_DAYS`, Standard 14, gleich wie `returnDays` in `src/config/shop.ts`, Test `src/lib/returns.test.ts`) und `409 NOTHING_RETURNABLE` (alles angemeldet oder ganz erstattet).
+- `{ action: "submit", orderNumber, email, items: [{ orderItemId, quantity, reason }], comment?, locale, requestId?, website? }` → `200 { status: "ok", returnNumber: "R-1001", orderNumber, emailed }`. `reason`: `too_small | too_large | style | quality | wrong_item | other`; 1 bis 20 verschiedene Positionen, Menge 1 bis 10 (zusätzlich ≤ noch zurückgebbar), Kommentar höchstens 1000 Zeichen (`400 COMMENT_TOO_LONG`). Fehler wie bei lookup, dazu `409 ITEMS_NOT_RETURNABLE` (Menge, fremde oder doppelte Position) und `400 BAD_REQUEST`. `requestId` (UUID aus dem Formular) macht doppeltes Absenden unschädlich: dieselbe Anmeldung wird nochmals geliefert, nichts wird zweimal angelegt.
+- Mails (Resend, Idempotency-Key `return-<id>-customer` und `return-<id>-shop`): Bestätigung an die Kundschaft mit allgemeinen Hinweisen (ungetragen einpacken, Bestell- und Retourennummer beilegen, an `SHOP_ADDRESS` schicken; **kein** Rücksendeetikett und keine Kostenübernahme versprochen) und Meldung an die Bestelladresse (Admin → Einstellungen, sonst `SHOP_NOTIFY_EMAIL`, sonst `SHOP_CONTACT_EMAIL`) mit Reply-To an die Kundschaft. Scheitert eine Mail, bleibt die Anmeldung gespeichert (`emailed: false`, sichtbar im Admin → Retouren).
+- Bremsen (`private.hit_rate_limit`, nur als Hash gezählt): lookup pro IP 30, pro Adresse 15, pro Bestellnummer 20, gesamt 500 pro Stunde; submit pro IP 10 und pro Adresse 5 pro Stunde (dazu dieselben Bestellnummer- und Gesamtgrenzen) → `429 RATE_LIMITED`.
+- Admin → Retouren (`/admin/retouren`) liest und ändert `status` (`requested → received → refunded | rejected`) und `admin_note` per RLS; Erstattung und «Retoure einbuchen» bleiben an der Bestellung.
+
 ## search-assist
 
 KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (Kategorien, Farbgruppen, Anlässe, Passform, Preis, Stichworte). Gleiches Gateway wie `translate` (`LOVABLE_API_KEY`).
@@ -63,6 +76,7 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 ## admin-actions (nur Admin)
 
 - `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`; mit Benachrichtigung ist die Sendungsnummer Pflicht (`400 TRACKING_REQUIRED`)
+- `{ action: "post_label", orderId }` → `200 { identCode, labelPdfBase64, warnings }`: A6-Etikett der Schweizerischen Post (Digital Commerce API «Barcode», `_shared/swiss-post.ts`). Nur für bezahlte, noch nicht versendete Warenkorb-Bestellungen mit Lieferadresse in CH oder LI. Markiert **nicht** als versendet: Das Admin trägt `identCode` als Sendungsnummer ein und löst «Versendet» (mit Versandmeldung) selbst aus. `409 POST_NOT_CONFIGURED | ORDER_NOT_PAID | POST_NOT_DOMESTIC | POST_SENDER_INVALID`, `422 POST_ADDRESS_INVALID`, `502 POST_AUTH_FAILED | POST_LICENSE_INVALID | POST_REJECTED | POST_BAD_RESPONSE`, `503 POST_UNAVAILABLE | POST_RATE_LIMITED`. **Noch nicht gegen die echte API getestet** (Axion hat noch kein Post-Geschäftskundenkonto); die Tests laufen gegen einen Fake. Der Absender kommt aus `SHOP_NAME` und `SHOP_ADDRESS` im Format «Strasse Nr, PLZ Ort». `system_status` meldet nur das Boolean `swissPost`.
 - `{ action: "resend_shipping", orderId }`, `{ action: "resend_confirmation", orderId, to? }` → `200 { emailed: true, to }`
 - `{ action: "issue_gift_card", amountCents, locale?, recipientEmail?, recipientName?, senderName?, message?, note?, send?: true }` → `200 { giftCard, emailed, emailError? }`
 - `{ action: "resend_gift_card", giftCardId, to? }` → `200 { emailed: true, to }`
@@ -118,6 +132,8 @@ Liechtenstein deren Konsumentenrecht mit Rücktrittsrecht gilt, Rechtstexte anpa
 erlaubt zusätzlich die Lovable-Vorschau und localhost (CORS und Konto-Links), nur für die Testphase: **vor dem Livegang
 entfernen** (Checkliste in `docs/DEPLOYMENT.md`). Optional `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`; nur bei MWST-Pflicht):
 `checkout` speichert ihn pro Bestellung (`orders.vat_rate`), der Beleg im Admin rechnet damit.
+Optional `LOW_STOCK_THRESHOLD` (Bestandsmeldung an den Shop, Standard 2, `0` = nur ausverkauft).
+Optional für Post-Etiketten (nur Cloud, nie ins Repo; ohne die ersten drei bleibt die Funktion aus und das Admin zeigt den Knopf deaktiviert): `POST_CLIENT_ID` und `POST_CLIENT_SECRET` (OAuth-Zugang zur Digital Commerce API, Scope `DCAPI_BARCODE_READ`), `POST_FRANKING_LICENSE` (Frankierlizenz), `POST_PRODUCT` (`ECO` = B-Post, Standard, oder `PRI` = A-Post), `POST_SEND_RECIPIENT_CONTACT=1` (Telefon und E-Mail der Kundschaft auf das Etikett; Standard aus, nur einschalten, wenn die Datenschutzerklärung die Post als Empfängerin nennt). Nur für Tests: `POST_OAUTH_URL`, `POST_LABEL_URL`.
 `SUPABASE_URL` und die Schlüssel stellt Supabase selbst bereit.
 
 ## Migrationen: supabase und drizzle

@@ -786,6 +786,59 @@ export type Database = {
         }
         Relationships: []
       }
+      return_requests: {
+        Row: {
+          admin_note: string | null
+          client_request_id: string | null
+          comment: string | null
+          created_at: string
+          email: string
+          id: string
+          items: Json
+          locale: string
+          number: number
+          order_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          client_request_id?: string | null
+          comment?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          items: Json
+          locale?: string
+          number?: number
+          order_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          client_request_id?: string | null
+          comment?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          items?: Json
+          locale?: string
+          number?: number
+          order_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shop_settings: {
         Row: {
           free_shipping_from_cents: number | null
@@ -1133,6 +1186,23 @@ export type Database = {
       }
       release_expired_orders: { Args: { p_grace?: string }; Returns: number }
       restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
+      return_lookup: {
+        Args: { p_days: number; p_email: string; p_ip: string; p_order_number: number }
+        Returns: Json
+      }
+      return_submit: {
+        Args: {
+          p_comment: string
+          p_days: number
+          p_email: string
+          p_ip: string
+          p_items: Json
+          p_locale: string
+          p_order_number: number
+          p_request_id?: string
+        }
+        Returns: Json
+      }
       reserve_checkout: {
         Args: {
           p_discount_code?: string

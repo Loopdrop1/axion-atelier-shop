@@ -5,6 +5,7 @@ import type { FunctionEnv } from "./env.ts";
 import { createStripe } from "./stripe.ts";
 import type { SendConfig } from "./email/send.ts";
 import type { ShopInfo } from "./email/layout.ts";
+import type { SwissPostConfig } from "./swiss-post.ts";
 
 export interface Deps {
   env: FunctionEnv;
@@ -16,6 +17,8 @@ export interface Deps {
   stripe: Stripe;
   mail: SendConfig;
   shop: ShopInfo;
+  /** Post-Etiketten (ungetestet gegen die echte API) */
+  post: SwissPostConfig;
   now: () => Date;
 }
 
@@ -39,6 +42,15 @@ export function createDeps(env: FunctionEnv, overrides: Partial<Deps> = {}): Dep
       contactEmail: env.shopContactEmail,
       address: env.shopAddress,
       returnDays: env.shopReturnDays,
+    },
+    post: {
+      clientId: env.postClientId,
+      clientSecret: env.postClientSecret,
+      frankingLicense: env.postFrankingLicense,
+      product: env.postProduct,
+      sendRecipientContact: env.postSendRecipientContact,
+      oauthUrl: env.postOauthUrl,
+      labelUrl: env.postLabelUrl,
     },
     now: () => new Date(),
     ...overrides,

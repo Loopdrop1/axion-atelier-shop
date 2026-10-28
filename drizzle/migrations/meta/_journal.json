@@ -113,6 +113,20 @@
       "when": 1792670000000,
       "tag": "0015_axion_checkout_reminder",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792680000000,
+      "tag": "0016_axion_return_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792690000000,
+      "tag": "0017_axion_low_stock_alert",
+      "breakpoints": true
     }
   ]
 }

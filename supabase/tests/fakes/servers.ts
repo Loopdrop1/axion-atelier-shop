@@ -262,18 +262,22 @@ export interface SentEmail {
 }
 
 export async function startFakeResend(): Promise<
-  FakeServer & { sent: SentEmail[]; failNext: () => void }
+  FakeServer & {
+    sent: SentEmail[];
+    /** Nächste Mail scheitert; mit `match` die nächste passende (Idempotency-Key), andere gehen durch. */
+    failNext: (match?: (key: string | undefined) => boolean) => void;
+  }
 > {
   const sent: SentEmail[] = [];
-  let fail = false;
+  let fail: false | ((key: string | undefined) => boolean) = false;
   const server = http.createServer(async (req, res) => {
     const body = JSON.parse((await readBody(req)) || "{}") as SentEmail;
     if (req.url === "/emails" && req.method === "POST") {
-      if (fail) {
+      const key = req.headers["idempotency-key"];
+      if (fail && fail(typeof key === "string" ? key : undefined)) {
         fail = false;
         return send(res, 500, { message: "Resend nicht erreichbar" });
       }
-      const key = req.headers["idempotency-key"];
       sent.push({ ...body, ...(typeof key === "string" ? { idempotencyKey: key } : {}) });
       return send(res, 200, { id: randomUUID() });
     }
@@ -283,8 +287,8 @@ export async function startFakeResend(): Promise<
   return {
     url,
     sent,
-    failNext: () => {
-      fail = true;
+    failNext: (match = () => true) => {
+      fail = match;
     },
     close: () => new Promise((r) => server.close(() => r())),
   };

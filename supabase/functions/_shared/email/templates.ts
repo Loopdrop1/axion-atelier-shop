@@ -577,6 +577,64 @@ export function stockAlertConfirm(
   };
 }
 
+export interface LowStockItem {
+  variant_id?: string;
+  handle?: string | null;
+  title: string;
+  color: string | null;
+  size: string | null;
+  /** Bestand nach der Bestellung */
+  stock: number;
+}
+
+/** Meldung an den Shop (immer Deutsch): Bestand einer Grösse ist mit einer Bestellung auf die Schwelle oder
+ *  darunter gefallen. 0 heisst «ausverkauft». */
+export function lowStockAlert(
+  data: { orderNumber: number; threshold: number; items: LowStockItem[] },
+  shop: ShopInfo,
+): EmailContent {
+  const sold = data.items.filter((i) => i.stock <= 0).length;
+  const subject =
+    data.items.length === 1
+      ? `${data.items[0]!.stock <= 0 ? "Ausverkauft" : "Bestand knapp"}: ${data.items[0]!.title}`
+      : `Bestand knapp: ${data.items.length} Artikel${sold ? `, davon ${sold} ausverkauft` : ""}`;
+  const line = (i: LowStockItem) =>
+    [i.title, i.color, i.size ? sizeText(i.size, "Grösse", "Einheitsgrösse") : null]
+      .filter(Boolean)
+      .join(", ");
+  const left = (i: LowStockItem) => (i.stock <= 0 ? "ausverkauft" : `noch ${i.stock}`);
+  const adminUrl = `${shop.siteUrl}/admin/produkte`;
+  const intro = `Mit der Bestellung ${orderNumber(data.orderNumber)} ist der Bestand bei ${data.items.length === 1 ? "diesem Artikel" : "diesen Artikeln"} auf ${data.threshold} oder weniger gefallen.`;
+  const body = [
+    h1(subject),
+    p(esc(intro)),
+    rows(
+      data.items.map((i) => ({
+        left: esc(line(i)),
+        right: i.stock <= 0 ? `<strong>${esc(left(i))}</strong>` : esc(left(i)),
+      })),
+    ),
+    button("Bestand im Admin ansehen", adminUrl),
+    p(
+      "Du erhältst diese Meldung nur, wenn der Bestand mit einer Bestellung unter die Schwelle fällt.",
+      {
+        muted: true,
+        size: 13,
+      },
+    ),
+  ].join("\n");
+  const text = [
+    subject,
+    "",
+    intro,
+    "",
+    ...data.items.map((i) => `${line(i)}: ${left(i)}`),
+    "",
+    `Admin: ${adminUrl}`,
+  ].join("\n");
+  return { subject, html: layout({ locale: "de", subject, preheader: subject, body, shop }), text };
+}
+
 /** Einmalige Nachricht, sobald die gewünschte Grösse wieder an Lager ist. */
 export function backInStock(
   data: { locale: Locale; productUrl: string; item: StockAlertItem },

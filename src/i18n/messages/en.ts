@@ -686,6 +686,69 @@ export const en: Messages = {
     invalidPostalCode: "Please enter a four-digit postcode.",
     editData: "Edit details",
   },
+  returns: {
+    title: "Register a return",
+    metaDescription:
+      "Register a return for your Axion order: your order number and email address are all you need.",
+    eyebrow: "Returns",
+    intro:
+      "Enter your order number and the email address of the order, then choose the pieces and a reason. We will then email you the instructions for sending your return.",
+    cta: "Register a return",
+    accountLink: "Register a return",
+    accountHint: (days: number) => `Returns within ${days} days of receipt, unworn and with tags.`,
+    orderNumber: "Order number",
+    orderNumberHint: "Shown in your confirmation email, for example AX-10001.",
+    email: "Email address of the order",
+    lookup: "Find order",
+    looking: "Looking for your order …",
+    otherOrder: "Another order",
+    itemsTitle: "Which pieces are you sending back?",
+    itemsHint: "Choose the pieces, the quantity and a reason for each.",
+    deadline: (date: string) => `Returns possible until ${date}.`,
+    selectItem: (title: string) => `Return ${title}`,
+    quantity: "Quantity",
+    quantityOf: (n: number) => `of ${n}`,
+    reason: "Reason",
+    reasonPlaceholder: "Choose a reason",
+    reasons: {
+      too_small: "Too small",
+      too_large: "Too large",
+      style: "Not to my taste",
+      quality: "Quality",
+      wrong_item: "Wrong item received",
+      other: "Other reason",
+    },
+    comment: "Comment (optional)",
+    commentHint: "For example what did not fit. 1000 characters at most.",
+    privacy: "We use your details only to process the return.",
+    submit: "Register return",
+    sending: "Sending …",
+    prefilled: "Order taken from your account. Please confirm the email address.",
+    errors: {
+      invalidOrderNumber: "Please enter the order number, for example AX-10001.",
+      notFound:
+        "We cannot find an order that can be returned for this order number and email address. Please check both.",
+      windowClosed: (days: number) =>
+        `The ${days}-day return period for this order has ended. Please write to us through the contact form if you have questions.`,
+      nothingReturnable:
+        "Nothing is left to return for this order: everything has already been registered or refunded.",
+      itemsNotReturnable:
+        "This selection is no longer possible, for example because it has already been registered. Please look up the order again.",
+      rateLimited: "Too many requests. Please try again in a few minutes.",
+      noItem: "Please choose at least one piece.",
+      noReason: "Please choose a reason for each piece.",
+      commentTooLong: "The comment is too long (1000 characters at most).",
+    },
+    notConfigured: "Returns can be registered online from launch.",
+    doneTitle: "Return registered",
+    done: (ref: string, order: string) =>
+      `Thank you, your return ${ref} for order ${order} is registered.`,
+    doneMail:
+      "We have emailed you the instructions for sending your return. Pack the pieces unworn and with tags, include the order number and send the parcel to the address in the email.",
+    doneMailFailed:
+      "We could not send the confirmation email. Your registration is saved anyway: we will get in touch.",
+    another: "Register another return",
+  },
   giftCard: {
     title: "Gift card",
     metaDescription:

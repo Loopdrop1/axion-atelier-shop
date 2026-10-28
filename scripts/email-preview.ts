@@ -7,6 +7,7 @@ import {
   authEmail,
   cartReminder,
   giftCardEmail,
+  lowStockAlert,
   newsletterConfirm,
   newsletterWelcome,
   orderConfirmation,
@@ -179,6 +180,18 @@ for (const locale of ["de", "en"] as const) {
   );
 }
 mails["de-shop-meldung"] = shopNotification(order("de"), shop);
+mails["de-shop-bestand"] = lowStockAlert(
+  {
+    orderNumber: 10042,
+    threshold: 2,
+    items: [
+      { title: "Anzug Milano", color: "Navy", size: "50", stock: 2 },
+      { title: "Weste Milano", color: "Navy", size: "50", stock: 0 },
+      { title: "Gürtel Classic", color: "Schwarz", size: "One Size", stock: 1 },
+    ],
+  },
+  shop,
+);
 mails["de-shop-meldung-pruefen"] = shopNotification(
   order("de", { needs_attention: true, admin_note: "Bestand fehlte nach Zahlungseingang" }),
   shop,

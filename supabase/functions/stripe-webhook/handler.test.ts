@@ -96,7 +96,7 @@ async function pendingOrder(
   price = 10000,
   opts: { email?: string; locale?: "de" | "en"; remind?: boolean } = {},
 ) {
-  const p = await makeProduct({ priceCents: price, stocks: [2] });
+  const p = await makeProduct({ priceCents: price, stocks: [10] });
   const r = await reserve({
     lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }],
     email: opts.email ?? "kundin@example.ch",
@@ -181,12 +181,12 @@ describe("stripe-webhook", () => {
 
   it("abgelaufene Session storniert und gibt Bestand zurück", async () => {
     const { product, order } = await pendingOrder();
-    expect(await stockOf(product.variants[0]!.id)).toBe(1);
+    expect(await stockOf(product.variants[0]!.id)).toBe(9);
     await deliver(
       "checkout.session.expired",
       session(order.order_id, { payment_status: "unpaid" }),
     );
-    expect(await stockOf(product.variants[0]!.id)).toBe(2);
+    expect(await stockOf(product.variants[0]!.id)).toBe(10);
     expect(
       (
         await sql<{ status: string }>("select status from public.orders where id = $1", [
@@ -443,7 +443,7 @@ describe("stripe-webhook: Warenkorb-Erinnerung", () => {
       session(order.order_id, { payment_status: "unpaid" }),
     );
     expect(reminders(to, before)).toHaveLength(0);
-    expect(await stockOf(product.variants[0]!.id)).toBe(2);
+    expect(await stockOf(product.variants[0]!.id)).toBe(10);
     expect(await sentAt(order.order_id)).toBeNull();
   });
 
@@ -487,7 +487,7 @@ describe("stripe-webhook: Warenkorb-Erinnerung", () => {
     const evt = session(order.order_id, { payment_status: "unpaid" });
     resend.failNext();
     expect((await deliver("checkout.session.expired", evt)).status).toBe(200);
-    expect(await stockOf(product.variants[0]!.id)).toBe(2);
+    expect(await stockOf(product.variants[0]!.id)).toBe(10);
     expect(await sentAt(order.order_id)).toBeNull();
     expect(reminders(to, before)).toHaveLength(0);
     await deliver("checkout.session.expired", evt);
@@ -579,5 +579,149 @@ describe("stripe-webhook: Rückerstattungs-E-Mail", () => {
     const before = resend.sent.length;
     expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(200);
     expect(resend.sent.length).toBe(before);
+  });
+});
+
+describe("stripe-webhook: Bestandsmeldung an den Shop", () => {
+  // Der Bestand wird schon beim Reservieren abgebucht; gemeldet wird bei Zahlungseingang, wenn die Bestellung die
+  // Schwelle (Standard 2) erreicht hat: Bestand jetzt <= Schwelle, Bestand + bestellte Menge > Schwelle.
+  const alerts = (orderId: string, from: number) =>
+    resend.sent
+      .slice(from)
+      .filter((m: { idempotencyKey?: string }) => m.idempotencyKey === `order-${orderId}-lowstock`);
+
+  async function orderWith(stocks: number[], quantity = 1) {
+    const p = await makeProduct({ priceCents: 10000, stocks });
+    const r = await reserve({
+      lines: [{ variant_id: p.variants[0]!.id, quantity }],
+      email: "kundin@example.ch",
+    });
+    return { product: p, order: r };
+  }
+
+  it("meldet eine Grösse, die mit dieser Bestellung auf die Schwelle fällt (Produkt, Grösse, Restbestand, Admin-Link)", async () => {
+    const { product, order } = await orderWith([3]);
+    const before = resend.sent.length;
+    expect((await deliver("checkout.session.completed", session(order.order_id))).status).toBe(200);
+    const [mail] = alerts(order.order_id, before) as {
+      to: string[];
+      subject: string;
+      text: string;
+    }[];
+    expect(mail).toBeDefined();
+    expect(mail!.to).toEqual(["shop@shop.test"]);
+    expect(mail!.subject).toBe(`Bestand knapp: Test ${product.handle}`);
+    expect(mail!.text).toContain(`Test ${product.handle}, Blau, Grösse 46: noch 2`);
+    expect(mail!.text).toContain("https://shop.test/admin/produkte");
+  });
+
+  it("zeigt Bestand null als ausverkauft", async () => {
+    const { product, order } = await orderWith([3], 3);
+    const before = resend.sent.length;
+    await deliver("checkout.session.completed", session(order.order_id));
+    const [mail] = alerts(order.order_id, before) as { subject: string; text: string }[];
+    expect(mail!.subject).toBe(`Ausverkauft: Test ${product.handle}`);
+    expect(mail!.text).toContain("ausverkauft");
+  });
+
+  it("meldet nicht, wenn die Schwelle schon vorher erreicht war oder nicht erreicht wird", async () => {
+    for (const stocks of [[2], [1], [4]]) {
+      const { order } = await orderWith(stocks);
+      const before = resend.sent.length;
+      await deliver("checkout.session.completed", session(order.order_id));
+      expect(alerts(order.order_id, before), `Bestand ${stocks[0]}`).toHaveLength(0);
+    }
+  });
+
+  it("zählt die bestellte Menge: 4 auf Lager, 2 bestellt, Rest 2: gemeldet", async () => {
+    const { order } = await orderWith([4], 2);
+    const before = resend.sent.length;
+    await deliver("checkout.session.completed", session(order.order_id));
+    expect(alerts(order.order_id, before)).toHaveLength(1);
+  });
+
+  it("schickt pro Bestellung nur eine Meldung, auch bei wiederholtem Ereignis", async () => {
+    const { order } = await orderWith([3]);
+    const before = resend.sent.length;
+    const s = session(order.order_id);
+    await deliver("checkout.session.completed", s);
+    await deliver("checkout.session.completed", s);
+    await deliver("checkout.session.async_payment_succeeded", s);
+    expect(alerts(order.order_id, before)).toHaveLength(1);
+  });
+
+  it("abgelaufene Kasse löst keine Meldung aus", async () => {
+    const { order } = await orderWith([3]);
+    const before = resend.sent.length;
+    await deliver(
+      "checkout.session.expired",
+      session(order.order_id, { payment_status: "unpaid" }),
+    );
+    expect(alerts(order.order_id, before)).toHaveLength(0);
+  });
+
+  it("ein Fehler beim Versand der Meldung kippt die Verbuchung nicht", async () => {
+    const { order } = await orderWith([3]);
+    const before = resend.sent.length;
+    resend.failNext((key) => key === `order-${order.order_id}-lowstock`);
+    expect((await deliver("checkout.session.completed", session(order.order_id))).status).toBe(200);
+    expect(alerts(order.order_id, before)).toHaveLength(0);
+    const status = await sql<{ status: string }>("select status from public.orders where id = $1", [
+      order.order_id,
+    ]);
+    expect(status[0]!.status).toBe("paid");
+    const to = resend.sent.slice(before).map((m: { to: string[] }) => m.to[0]);
+    expect(to).toEqual(["kundin@example.ch", "shop@shop.test"]);
+  });
+
+  it("LOW_STOCK_THRESHOLD=0 meldet nur ausverkaufte Grössen", async () => {
+    const strict = createStripeWebhookHandler(
+      createDeps(
+        readEnv(
+          (k) =>
+            ({
+              SUPABASE_URL: supa.url,
+              SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
+              SUPABASE_ANON_KEY: ANON_KEY,
+              SITE_URL: "https://shop.test",
+              STRIPE_SECRET_KEY: "sk_test_fake",
+              STRIPE_WEBHOOK_SECRET: SECRET,
+              STRIPE_API_BASE: stripe.url,
+              RESEND_API_KEY: "re_test",
+              RESEND_API_BASE: resend.url,
+              SHOP_NOTIFY_EMAIL: "shop@shop.test",
+              LOW_STOCK_THRESHOLD: "0",
+            })[k],
+        ),
+      ),
+    );
+    const send = async (orderId: string) => {
+      const payload = JSON.stringify({
+        id: uniq("evt"),
+        object: "event",
+        type: "checkout.session.completed",
+        api_version: "2026-08-26.dahlia",
+        created: Math.floor(Date.now() / 1000),
+        data: { object: session(orderId) },
+      });
+      const header = await signer.webhooks.generateTestHeaderStringAsync({
+        payload,
+        secret: SECRET,
+      });
+      return strict(
+        new Request("https://fn.test/stripe-webhook", {
+          method: "POST",
+          headers: { "stripe-signature": header },
+          body: payload,
+        }),
+      );
+    };
+    const low = await orderWith([3]);
+    const gone = await orderWith([1]);
+    const before = resend.sent.length;
+    expect((await send(low.order.order_id)).status).toBe(200);
+    expect((await send(gone.order.order_id)).status).toBe(200);
+    expect(alerts(low.order.order_id, before)).toHaveLength(0);
+    expect(alerts(gone.order.order_id, before)).toHaveLength(1);
   });
 });

@@ -6,6 +6,7 @@ import type { Deps } from "../_shared/deps.ts";
 import { json } from "../_shared/http.ts";
 import {
   sendCartReminder,
+  sendLowStockAlert,
   sendPaidEmails,
   sendRefundNotice,
   type OrderRecord,
@@ -50,7 +51,7 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
       : (session.payment_intent?.id ?? null);
   const shipping = session.collected_information?.shipping_details ?? null;
   const address = shipping?.address ?? null;
-  const result = await deps.rpc<{ order: OrderRecord }>("complete_order", {
+  const result = await deps.rpc<{ order: OrderRecord; newly_paid?: boolean }>("complete_order", {
     p_order_id: orderId,
     p_payment: {
       session_id: session.id,
@@ -71,7 +72,14 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
         : null,
     },
   });
-  await sendPaidEmails(deps, result.order);
+  // Bestandsmeldung an den Shop nur beim ersten Verbuchen (eine Wiederholung durch Stripe ist nicht mehr «neu»),
+  // parallel zu den Kundenmails, damit sie diese nicht verzögert. Sie fängt Fehler selbst ab; scheitern die
+  // Kundenmails, gibt es den Fehler weiter (Stripe wiederholt).
+  const [, mails] = await Promise.allSettled([
+    result.newly_paid !== false ? sendLowStockAlert(deps, result.order) : Promise.resolve(),
+    sendPaidEmails(deps, result.order),
+  ]);
+  if (mails.status === "rejected") throw mails.reason;
 }
 
 export function createStripeWebhookHandler(deps: Deps) {
