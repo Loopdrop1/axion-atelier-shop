@@ -9,6 +9,7 @@ export const guideSlugs = [
   "business-dresscode-schweiz",
   "abschlussfeier-outfit",
   "anzug-pflegen",
+  "stoffe-und-qualitaet",
 ] as const;
 export type GuideSlug = (typeof guideSlugs)[number];
 
@@ -17,7 +18,7 @@ export function isGuideSlug(value: string): value is GuideSlug {
 }
 
 /** Datum der letzten inhaltlichen Überarbeitung (ISO), für die Anzeige und dateModified. */
-export const guidesUpdated = "2026-10-27";
+export const guidesUpdated = "2026-10-28";
 
 export interface GuideMeta {
   title: string;
@@ -77,6 +78,12 @@ export const guideMeta: Record<Locale, Record<GuideSlug, GuideMeta>> = {
         "So pflegst du deinen Anzug richtig: lüften, bürsten, Flecken behandeln, aufbewahren und wann die Reinigung sinnvoll ist.",
       teaser: "Lüften, bürsten, aufhängen, reinigen: So bleibt ein Anzug lange in Form.",
     },
+    "stoffe-und-qualitaet": {
+      title: "Stoffe und Qualität erklärt",
+      description:
+        "Schurwolle, Super-Zahlen, Tuchgewicht, Leinen, Baumwolle, Kaschmir und Futter einfach erklärt: So liest du die Materialangabe richtig.",
+      teaser: "Schurwolle, Super-Zahlen, Tuchgewicht und Futter: die Materialangabe richtig lesen.",
+    },
   },
   en: {
     "anzug-hochzeit": {
@@ -109,6 +116,12 @@ export const guideMeta: Record<Locale, Record<GuideSlug, GuideMeta>> = {
         "How to look after your suit: airing, brushing, treating stains, storing it properly and when dry cleaning makes sense.",
       teaser: "Airing, brushing, hanging, cleaning: how a suit keeps its shape for years.",
     },
+    "stoffe-und-qualitaet": {
+      title: "Fabrics and quality explained",
+      description:
+        "Virgin wool, Super numbers, fabric weight, linen, cotton, cashmere and lining explained simply: how to read a material line properly.",
+      teaser: "Virgin wool, Super numbers, fabric weight and lining: how to read a material line.",
+    },
   },
 };
 
@@ -123,10 +136,12 @@ export function guidesFor(handle: string, occasion?: string): GuideSlug[] {
       "slim-fit-oder-regular-fit",
       "business-dresscode-schweiz",
       "anzug-pflegen",
+      "stoffe-und-qualitaet",
     ];
   if (handle === "sakkos" || handle === "hosen" || handle === "westen")
-    return ["slim-fit-oder-regular-fit", "anzug-pflegen"];
+    return ["slim-fit-oder-regular-fit", "anzug-pflegen", "stoffe-und-qualitaet"];
   if (handle === "hemden" || handle === "accessoires" || handle === "schuhe")
     return ["business-dresscode-schweiz", "anzug-hochzeit"];
+  if (handle === "strick") return ["stoffe-und-qualitaet"];
   return [];
 }

@@ -565,4 +565,144 @@ export const guidesEn: Record<GuideSlug, Guide> = {
       { label: "Frequently asked questions", path: "/haeufige-fragen" },
     ],
   },
+  "stoffe-und-qualitaet": {
+    intro:
+      "Behind «virgin wool», «Super 120’s» or «cotton poplin» there is more than the label tells you at first glance. If you know the key terms, you can read a garment’s material line like an ingredients list: it tells you how the fabric wears, when it suits and how to look after it. This guide explains the common fabrics plainly and without promises that no label can keep.",
+    sections: [
+      {
+        heading: "Virgin wool and merino",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Virgin wool is wool from live sheep that is being processed for the first time. It is the classic suit fabric because it absorbs and releases moisture, regulates warmth and drops out of its creases on its own after wearing. Merino wool comes from the merino breed and has particularly fine, soft fibres. That is why it itches less and also works for knitwear worn next to the skin.",
+          },
+          {
+            type: "paragraph",
+            text: "If a label simply says «wool» or «virgin wool» with nothing added, that is not a flaw. What counts is fibre fineness, yarn, weave and finishing together, not a single term.",
+          },
+        ],
+      },
+      {
+        heading: "Super 100’s to 150’s: what the number really says",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "The Super number describes the fineness of the wool fibre: the higher the number, the thinner the fibre on average. Roughly speaking, Super 100’s is about 18.5 and Super 150’s about 16 microns, where one micron is a thousandth of a millimetre.",
+          },
+          {
+            type: "paragraph",
+            text: "Finer fibres make the fabric softer and more supple, often with a slight sheen. They are not automatically better, though. Very fine cloths wear through faster and crease more easily, while a slightly coarser fabric is often sturdier and the more sensible choice for daily office wear. The number says nothing about how well a fabric is woven, finished and made up. It describes the fibre; it is not a quality guarantee.",
+          },
+        ],
+      },
+      {
+        heading: "Fabric weight and seasons",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Fabric weight, also called grammage, is given in grams per square metre. It tells you how dense and heavy a cloth is. As rough guidelines, which vary depending on how they are measured:",
+          },
+          {
+            type: "bullets",
+            items: [
+              "**Light (under about 250 g/m²):** airy and made for warm days, drapes softly but creases faster.",
+              "**Medium (about 250 to 320 g/m²):** the all-rounder for most months of the year, equally at home in the office and at a celebration.",
+              "**Heavy (over about 320 g/m²):** warm, stable in drape and meant for autumn and winter.",
+            ],
+          },
+          {
+            type: "paragraph",
+            text: "A light fabric is not necessarily cooler: the weave and the fibre also decide how much air gets through. If you only want one suit for the whole year, a medium weight in navy or charcoal serves you best. You will find a selection in the [suits](/kollektion/anzuege).",
+          },
+        ],
+      },
+      {
+        heading: "Linen and cotton",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Linen is made from flax. It is airy, absorbs moisture well and feels cool in the heat. It creases, and that is part of its character. Blends with wool or cotton keep the freshness but hang more calmly.",
+          },
+          {
+            type: "paragraph",
+            text: "With cotton, the weave matters most, and it sets the tone for [shirts](/kollektion/hemden):",
+          },
+          {
+            type: "bullets",
+            items: [
+              "**Poplin:** woven dense and smooth, slightly glossy and fine. The classic business shirt.",
+              "**Oxford:** coarser structure with a visible grain, sturdy and a little more casual. Typical for shirts with a button-down collar.",
+              "**Twill:** diagonal rib, softer drape and fewer creases. Common in trousers and shirts.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Cashmere",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Cashmere is the fine undercoat of the cashmere goat. The fabric is very soft and warms at low weight, especially in [knitwear](/kollektion/strick). It is more sensitive to abrasion, however, and forms small pills more easily in places that see a lot of wear. Blends with a share of cashmere give wool extra softness and stay more hard-wearing than pure cashmere. Treat cashmere gently, do not wear it every day and let it rest between wears.",
+          },
+        ],
+      },
+      {
+        heading: "Lining: full, half or unlined",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "The lining inside a jacket affects comfort and drape. A fully lined jacket glides easily over the shirt, holds its shape and is a little warmer. In half-lined jackets the lining covers only part of the back, which makes the jacket lighter and airier. Unlined models are the lightest but have less structure.",
+          },
+          {
+            type: "paragraph",
+            text: "Lining materials you often come across are cupro and viscose. Both are made from cellulose and are considered pleasantly breathable.",
+          },
+        ],
+      },
+      {
+        heading: "Care by fabric",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Wool is aired and brushed, linen and cotton can be washed more simply depending on the label, and cashmere needs particular care. The care symbols on the label and the details on the product page always take precedence. You will find the basic routine for suits in the guide [Suit care](/ratgeber/anzug-pflegen), and more answers under [Frequently asked questions](/haeufige-fragen).",
+          },
+        ],
+      },
+    ],
+    summary: [
+      "The Super number describes the fineness of the wool fibre, not the quality of the finished fabric.",
+      "Fabric weight sets the season: light for warmth, medium for the whole year, heavy for winter.",
+      "Linen creases by nature, poplin is smooth, oxford sturdy and twill drapes softly.",
+      "Cashmere is soft and delicate; blends with wool are more hard-wearing.",
+      "Half-lined jackets are lighter and airier than fully lined ones.",
+    ],
+    faq: [
+      {
+        question: "Is Super 150’s better than Super 110’s?",
+        answer:
+          "Not automatically. The number tells you how fine the wool fibre is. Finer fabrics feel softer but are often more delicate. For everyday wear, how the fabric is woven and made up matters too.",
+      },
+      {
+        question: "Which fabric weight suits the whole year?",
+        answer:
+          "A medium weight of roughly 250 to 320 grams per square metre is the usual compromise. It is not too warm in summer and wears well with an overcoat in winter.",
+      },
+      {
+        question: "What is the difference between poplin and oxford?",
+        answer:
+          "Poplin is dense, smooth and fine, while oxford has a coarser, visible structure and looks more casual. Both are cotton; only the weave differs.",
+      },
+      {
+        question: "Why does cashmere pill?",
+        answer:
+          "The fine, short fibres catch on points of friction and form small pills. That is normal. A knitwear comb removes them carefully.",
+      },
+    ],
+    related: [
+      { label: "Suits", path: "/kollektion/anzuege" },
+      { label: "Shirts", path: "/kollektion/hemden" },
+      { label: "Knitwear", path: "/kollektion/strick" },
+      { label: "Suit care", path: "/ratgeber/anzug-pflegen" },
+    ],
+  },
 };

@@ -318,6 +318,7 @@ export const en: Messages = {
     material: "Material",
     care: "Care",
     origin: "Origin",
+    materialExplain: "What does this mean?",
     features: "Features",
     consultTitle: "Personal service",
     consultText: "Questions about size, delivery or returns? We are happy to help.",

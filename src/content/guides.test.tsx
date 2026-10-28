@@ -52,8 +52,8 @@ const internalLinks = (guide: Guide) => [
 ];
 
 describe("Ratgeber", () => {
-  it("has five guides in German and English with identical structure and links", () => {
-    expect(guideSlugs).toHaveLength(5);
+  it("has six guides in German and English with identical structure and links", () => {
+    expect(guideSlugs).toHaveLength(6);
     for (const slug of guideSlugs) {
       expect(guidesEn[slug], slug).toBeDefined();
       expect(shape(guidesEn[slug]), slug).toEqual(shape(guides[slug]));
@@ -159,6 +159,6 @@ describe("Ratgeber", () => {
         for (const slug of guidesFor(handle, occasion)) expect(guideSlugs).toContain(slug);
     expect(guidesFor("anzuege")).toContain("anzug-hochzeit");
     expect(guidesFor("alle", "hochzeit")).toContain("anzug-hochzeit");
-    expect(guidesFor("strick")).toEqual([]);
+    expect(guidesFor("strick")).toEqual(["stoffe-und-qualitaet"]);
   });
 });
