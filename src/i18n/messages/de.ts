@@ -488,6 +488,20 @@ export const de = {
     haveCode: "Rabattcode oder Gutschein einlösen",
     email: "E-Mail für die Bestellbestätigung",
     emailHint: "Wir schicken dir die Bestellbestätigung und die Versandmeldung an diese Adresse.",
+    remindMe: "Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse",
+    remindHint:
+      "Einmalige Erinnerung an diese Adresse, ohne Werbung. Du kannst darauf verzichten, die Bestellung funktioniert genauso.",
+    restore: {
+      title: "Dein Warenkorb",
+      description: "Wir legen deine Auswahl wieder in den Warenkorb.",
+      working: "Wir legen deine Stücke in den Warenkorb …",
+      done: "Deine Stücke liegen wieder im Warenkorb.",
+      partial:
+        "Einige Stücke sind nicht mehr in dieser Menge verfügbar. Wir haben den Warenkorb angepasst.",
+      none: "Leider ist von dieser Auswahl nichts mehr verfügbar.",
+      invalid: "Dieser Link ist abgelaufen oder ungültig. Du kannst weiter im Shop stöbern.",
+      error: "Das hat leider nicht geklappt. Bitte versuche es in ein paar Minuten erneut.",
+    },
     signedInAs: (email: string) => `Angemeldet als ${email}`,
     toCheckout: "Zur Kasse",
     pay: "Weiter zur Zahlung",
@@ -659,6 +673,7 @@ export const de = {
     orderNotFound: "Diese Bestellung haben wir in deinem Konto nicht gefunden.",
     quantity: (n: number) => `Menge ${n}`,
     refundedAmount: "Zurückerstattet",
+    printReceipt: "Quittung drucken",
     giftCardFor: (name: string) => `Für ${name}`,
     trackingNumber: "Sendungsnummer",
     profile: "Persönliche Angaben",

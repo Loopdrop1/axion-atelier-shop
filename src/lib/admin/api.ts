@@ -74,7 +74,21 @@ export function adminErrorText(error: unknown): string {
     ORDER_NOT_FOUND: "Bestellung nicht gefunden.",
     ORDER_NOT_SHIPPABLE: "Nur bezahlte Bestellungen können als versendet markiert werden.",
     ORDER_NOT_SHIPPED: "Die Bestellung ist noch nicht versendet.",
-    ORDER_NOT_PAID: "Die Bestellung ist noch nicht bezahlt.",
+    ORDER_NOT_PAID: "Die Bestellung ist noch nicht bezahlt (oder schon ganz erstattet).",
+    ALREADY_REFUNDED: "Diese Bestellung ist bereits vollständig erstattet.",
+    CHARGE_DISPUTED:
+      "Die Kundschaft hat die Zahlung bei der Bank bestritten (Streitfall). Erstatten geht hier nicht: bitte im Stripe-Dashboard bearbeiten.",
+    AMOUNT_TOO_LARGE: "Der Betrag ist grösser als der noch erstattbare Rest.",
+    INSUFFICIENT_BALANCE:
+      "Das Stripe-Guthaben reicht für die Rückerstattung nicht. Bitte im Stripe-Dashboard prüfen.",
+    NO_CARD_PAYMENT:
+      "Zu dieser Bestellung gibt es keine Kartenzahlung, die Stripe erstatten könnte.",
+    REFUND_IN_PROGRESS:
+      "Diese Rückerstattung läuft gerade schon. Bitte kurz warten und die Seite neu laden.",
+    STRIPE_PERMISSION:
+      "Der Stripe-Schlüssel darf keine Rückerstattungen auslösen (Recht «Refunds: Schreiben» fehlt).",
+    PAYMENT_PROVIDER:
+      "Stripe ist gerade nicht erreichbar oder hat die Rückerstattung abgelehnt. Bitte später erneut versuchen oder im Stripe-Dashboard prüfen.",
     INVALID_TRACKING: "Die Sendungsnummer ist ungültig.",
     INVALID_AMOUNT: "Der Betrag ist ungültig.",
     INVALID_EMAIL: "Die E-Mail-Adresse ist ungültig.",
@@ -89,6 +103,8 @@ export function adminErrorText(error: unknown): string {
       "Das Video ist grösser als 25 MB. Bitte kürzer oder stärker komprimiert exportieren (z. B. 10 bis 15 Sekunden in Full HD).",
     INVALID_SIZE: "Bitte eine Grösse angeben.",
     INVALID_RANGE: "Bitte gültige Daten wählen.",
+    TOO_MANY_ORDERS:
+      "Zu viele Bestellungen für einen Export (über 1'500). Bitte den Zeitraum verkürzen.",
     SPOT_WITHOUT_PRODUCT: "Jeder Punkt braucht ein Produkt.",
     TRANSLATION_UNAVAILABLE: "Die Übersetzung ist gerade nicht verfügbar.",
     TRANSLATION_FAILED: "Die Übersetzung hat nicht geklappt.",
@@ -420,6 +436,93 @@ export async function restockOrder(
   });
   fail(error);
   return data as unknown as { restocked: number; back_in_stock: string[] };
+}
+
+export interface RefundResult {
+  refundId: string;
+  /** Stripe-Status: «succeeded», «pending», «requires_action» oder «failed» */
+  status: string;
+  amountCents: number;
+  remainingCents: number;
+}
+
+/** Kartenanteil über Stripe erstatten (ohne Betrag: der ganze Rest). Verbucht wird erst, wenn Stripe den Webhook
+ *  `charge.refunded` schickt; die Seite zeigt den Betrag danach von selbst. */
+export function refundOrder(
+  orderId: string,
+  amountCents?: number,
+  reason?: "requested_by_customer" | "duplicate" | "fraudulent",
+) {
+  return action<RefundResult>({
+    action: "refund",
+    orderId,
+    ...(amountCents !== undefined ? { amountCents } : {}),
+    ...(reason ? { reason } : {}),
+  });
+}
+
+/** Artikelnummer und Barcode je Variante (stehen nicht in der Bestellposition, sondern an der Variante). */
+export type VariantCodes = Record<string, { sku: string | null; barcode: string | null }>;
+
+/** Artikelnummer und Barcode der Varianten (für den Lieferschein). */
+export async function getVariantCodes(variantIds: string[]): Promise<VariantCodes> {
+  const ids = [...new Set(variantIds)];
+  const codes: VariantCodes = {};
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await db()
+      .from("product_variants")
+      .select("id, sku, barcode")
+      .in("id", ids.slice(i, i + 100));
+    fail(error);
+    for (const v of data ?? []) codes[v.id] = { sku: v.sku, barcode: v.barcode };
+  }
+  return codes;
+}
+
+/** Ganze Bestellungen (wie die Detailseite) für Sammeldrucke und den Buchhaltungsexport; ein paar Abfragen gleichzeitig. */
+export async function getOrdersByIds(
+  ids: string[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<AdminOrder[]> {
+  const found: (AdminOrder | null)[] = new Array<AdminOrder | null>(ids.length).fill(null);
+  let next = 0;
+  let done = 0;
+  const worker = async () => {
+    while (next < ids.length) {
+      const i = next++;
+      found[i] = await getOrder(ids[i]!);
+      onProgress?.(++done, ids.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(6, ids.length) }, worker));
+  return found.filter((o): o is AdminOrder => o !== null);
+}
+
+/** Bezahlte, noch nicht versendete Bestellungen (älteste zuerst) für den Sammeldruck der Lieferscheine. */
+export async function openOrderIds(limit = 100): Promise<string[]> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("id")
+    .eq("status", "paid")
+    .eq("kind", "cart")
+    .order("paid_at", { ascending: true })
+    .limit(limit);
+  fail(error);
+  return (data ?? []).map((o) => o.id);
+}
+
+/** Ids der bezahlten, versendeten und zurückerstatteten Bestellungen im Zeitraum (nach Zahlungsdatum). */
+export async function paidOrderIds(from: Date, to: Date): Promise<string[]> {
+  const { data, error } = await db()
+    .from("orders")
+    .select("id")
+    .in("status", ["paid", "shipped", "refunded"])
+    .gte("paid_at", from.toISOString())
+    .lt("paid_at", to.toISOString())
+    .order("paid_at", { ascending: true })
+    .limit(5000);
+  fail(error);
+  return (data ?? []).map((o) => o.id);
 }
 
 /** Bestellungen mit Positionen für den Export (Zeitraum nach Bezahlung). */

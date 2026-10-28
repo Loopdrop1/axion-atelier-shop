@@ -244,6 +244,18 @@ function seed() {
     ),
     item("o-1042", 2, "Anzug Limmat", "50", "Marine", "asset:suit", 48900, 1),
     item("o-1042", 3, "Weste Aare", "50", "Marine", "asset:vest", 12900, 1),
+    // Abgelaufene Kasse (o-1044): Quelle für /warenkorb/wiederherstellen/<Token>
+    item(
+      "o-1044",
+      4,
+      "Weste Limmat",
+      "50",
+      "Marine",
+      "asset:vest",
+      12900,
+      2,
+      (firstVest?.["id"] as string) ?? null,
+    ),
   ];
   const giftCards: Row[] = [
     {
@@ -1053,6 +1065,21 @@ function rpc(fn: string, b: Row, ctx: Ctx): Response {
         total_cents: order["total_cents"],
         email_hint: `${email[0]}***@${email.split("@")[1]}`,
       });
+    }
+    case "restore_cart_by_token": {
+      // Wie die echte Funktion: nur Variante und Menge einer abgebrochenen Warenkorb-Bestellung
+      const order = table("orders").find(
+        (o) =>
+          o["status_token"] === b["p_token"] && o["kind"] === "cart" && o["status"] === "cancelled",
+      );
+      return json(
+        200,
+        order
+          ? table("order_items")
+              .filter((i) => i["order_id"] === order["id"] && i["variant_id"])
+              .map((i) => ({ variant_id: i["variant_id"], quantity: i["quantity"] }))
+          : [],
+      );
     }
     case "claim_guest_orders": {
       if (!ctx.user) return forbidden();

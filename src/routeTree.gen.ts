@@ -27,6 +27,7 @@ import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
 import { Route as AdminRabattcodesRouteImport } from './routes/admin.rabattcodes'
 import { Route as AdminZugaengeRouteImport } from './routes/admin.zugaenge'
 import { Route as ApiHealthRouteImport } from './routes/api.health'
+import { Route as FeedsGoogleDotxmlRouteImport } from './routes/feeds/google[.]xml'
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as Char123LocaleChar125SplatRouteImport } from './routes/{-$locale}/$'
 import { Route as Char123LocaleChar125AgbRouteImport } from './routes/{-$locale}/agb'
@@ -62,6 +63,7 @@ import { Route as Char123LocaleChar125ProduktHandleRouteImport } from './routes/
 import { Route as Char123LocaleChar125RatgeberIndexRouteImport } from './routes/{-$locale}/ratgeber.index'
 import { Route as Char123LocaleChar125RatgeberSlugRouteImport } from './routes/{-$locale}/ratgeber.$slug'
 import { Route as Char123LocaleChar125KontoBestellungenNumberRouteImport } from './routes/{-$locale}/konto.bestellungen.$number'
+import { Route as Char123LocaleChar125WarenkorbWiederherstellenTokenRouteImport } from './routes/{-$locale}/warenkorb_.wiederherstellen.$token'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -152,6 +154,11 @@ const AdminZugaengeRoute = AdminZugaengeRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedsGoogleDotxmlRoute = FeedsGoogleDotxmlRouteImport.update({
+  id: '/feeds/google.xml',
+  path: '/feeds/google.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char123LocaleChar125IndexRoute =
@@ -359,6 +366,12 @@ const Char123LocaleChar125KontoBestellungenNumberRoute =
     path: '/bestellungen/$number',
     getParentRoute: () => Char123LocaleChar125KontoRoute,
   } as any)
+const Char123LocaleChar125WarenkorbWiederherstellenTokenRoute =
+  Char123LocaleChar125WarenkorbWiederherstellenTokenRouteImport.update({
+    id: '/warenkorb_/wiederherstellen/$token',
+    path: '/warenkorb/wiederherstellen/$token',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/{-$locale}': typeof Char123LocaleChar125RouteRouteWithChildren
@@ -378,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
   '/api/health': typeof ApiHealthRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -414,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
+  '/{-$locale}/warenkorb/wiederherstellen/$token': typeof Char123LocaleChar125WarenkorbWiederherstellenTokenRoute
 }
 export interface FileRoutesByTo {
   '/llms.txt': typeof LlmsDottxtRoute
@@ -431,6 +446,7 @@ export interface FileRoutesByTo {
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
   '/api/health': typeof ApiHealthRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -466,6 +482,7 @@ export interface FileRoutesByTo {
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
+  '/{-$locale}/warenkorb/wiederherstellen/$token': typeof Char123LocaleChar125WarenkorbWiederherstellenTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -486,6 +503,7 @@ export interface FileRoutesById {
   '/admin/rabattcodes': typeof AdminRabattcodesRoute
   '/admin/zugaenge': typeof AdminZugaengeRoute
   '/api/health': typeof ApiHealthRoute
+  '/feeds/google.xml': typeof FeedsGoogleDotxmlRoute
   '/{-$locale}/$': typeof Char123LocaleChar125SplatRoute
   '/{-$locale}/agb': typeof Char123LocaleChar125AgbRoute
   '/{-$locale}/datenschutz': typeof Char123LocaleChar125DatenschutzRoute
@@ -522,6 +540,7 @@ export interface FileRoutesById {
   '/{-$locale}/konto/': typeof Char123LocaleChar125KontoIndexRoute
   '/{-$locale}/ratgeber/': typeof Char123LocaleChar125RatgeberIndexRoute
   '/{-$locale}/konto/bestellungen/$number': typeof Char123LocaleChar125KontoBestellungenNumberRoute
+  '/{-$locale}/warenkorb_/wiederherstellen/$token': typeof Char123LocaleChar125WarenkorbWiederherstellenTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -543,6 +562,7 @@ export interface FileRouteTypes {
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
     | '/api/health'
+    | '/feeds/google.xml'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -579,6 +599,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/konto/'
     | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
+    | '/{-$locale}/warenkorb/wiederherstellen/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/llms.txt'
@@ -596,6 +617,7 @@ export interface FileRouteTypes {
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
     | '/api/health'
+    | '/feeds/google.xml'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -631,6 +653,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/konto'
     | '/{-$locale}/ratgeber'
     | '/{-$locale}/konto/bestellungen/$number'
+    | '/{-$locale}/warenkorb/wiederherstellen/$token'
   id:
     | '__root__'
     | '/{-$locale}'
@@ -650,6 +673,7 @@ export interface FileRouteTypes {
     | '/admin/rabattcodes'
     | '/admin/zugaenge'
     | '/api/health'
+    | '/feeds/google.xml'
     | '/{-$locale}/$'
     | '/{-$locale}/agb'
     | '/{-$locale}/datenschutz'
@@ -686,6 +710,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/konto/'
     | '/{-$locale}/ratgeber/'
     | '/{-$locale}/konto/bestellungen/$number'
+    | '/{-$locale}/warenkorb_/wiederherstellen/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -694,6 +719,7 @@ export interface RootRouteChildren {
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  FeedsGoogleDotxmlRoute: typeof FeedsGoogleDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -822,6 +848,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds/google.xml': {
+      id: '/feeds/google.xml'
+      path: '/feeds/google.xml'
+      fullPath: '/feeds/google.xml'
+      preLoaderRoute: typeof FeedsGoogleDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/{-$locale}/': {
@@ -1069,6 +1102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125KontoBestellungenNumberRouteImport
       parentRoute: typeof Char123LocaleChar125KontoRoute
     }
+    '/{-$locale}/warenkorb_/wiederherstellen/$token': {
+      id: '/{-$locale}/warenkorb_/wiederherstellen/$token'
+      path: '/warenkorb/wiederherstellen/$token'
+      fullPath: '/{-$locale}/warenkorb/wiederherstellen/$token'
+      preLoaderRoute: typeof Char123LocaleChar125WarenkorbWiederherstellenTokenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
   }
 }
 
@@ -1130,6 +1170,7 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125ProduktHandleRoute: typeof Char123LocaleChar125ProduktHandleRoute
   Char123LocaleChar125RatgeberSlugRoute: typeof Char123LocaleChar125RatgeberSlugRoute
   Char123LocaleChar125RatgeberIndexRoute: typeof Char123LocaleChar125RatgeberIndexRoute
+  Char123LocaleChar125WarenkorbWiederherstellenTokenRoute: typeof Char123LocaleChar125WarenkorbWiederherstellenTokenRoute
 }
 
 const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChildren =
@@ -1169,6 +1210,8 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
       Char123LocaleChar125RatgeberSlugRoute,
     Char123LocaleChar125RatgeberIndexRoute:
       Char123LocaleChar125RatgeberIndexRoute,
+    Char123LocaleChar125WarenkorbWiederherstellenTokenRoute:
+      Char123LocaleChar125WarenkorbWiederherstellenTokenRoute,
   }
 
 const Char123LocaleChar125RouteRouteWithChildren =
@@ -1224,6 +1267,7 @@ const rootRouteChildren: RootRouteChildren = {
   LlmsDottxtRoute: LlmsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiHealthRoute: ApiHealthRoute,
+  FeedsGoogleDotxmlRoute: FeedsGoogleDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

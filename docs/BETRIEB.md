@@ -131,3 +131,9 @@ Ruhig vorgehen, zuerst feststellen, dann beheben. Notizen mit Uhrzeit führen.
 | wöchentlich   | Admin → Fehler ansehen, Stripe → Webhooks (fehlgeschlagene Zustellungen), Resend (Bounces), Guthaben von Cloud/AI |
 | monatlich     | Sicherung (Abschnitt 3), Uptime-Monitor kontrollieren (Testmeldung)                                               |
 | quartalsweise | Wiederherstellung üben, Pakete aktualisieren (`docs/DEPLOYMENT.md`, Abschnitt 10), Zugänge im Admin prüfen        |
+
+## Marketing-Anbindungen
+
+Produktfeed (`/feeds/google.xml`), Search Console, Bing und Plausible: Einrichtung Schritt für Schritt in
+[`docs/MARKETING.md`](MARKETING.md). Fällt der Feed im Merchant Center oder Meta aus, zuerst die Adresse im Browser öffnen und
+Abschnitt 1 (Gesundheitsprüfung) prüfen.

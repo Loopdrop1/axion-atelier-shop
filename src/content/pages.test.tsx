@@ -5,6 +5,7 @@ import { pagesEn } from "./pages-en";
 import {
   InlineText,
   pageHasPlaceholder,
+  visibleItems,
   resolvePageVariables,
 } from "@/components/shop/written-content";
 
@@ -108,5 +109,19 @@ describe("English pages", () => {
   it("explains the abuse counters (hash only, deleted after about two days)", () => {
     expect(JSON.stringify(pages.datenschutz)).toContain("nur ein Prüfwert (Hash)");
     expect(JSON.stringify(pagesEn.datenschutz)).toContain("only a hash of the address");
+  });
+});
+
+describe("Besucherstatistik im Datenschutztext", () => {
+  const bullets = (page: WrittenPage) =>
+    page.sections.flatMap((s) => s.blocks).flatMap((b) => (b.type === "bullets" ? b.items : []));
+  it("steht in beiden Sprachen und erscheint nur bei eingeschalteter Statistik", () => {
+    for (const page of [pages.datenschutz, pagesEn.datenschutz!]) {
+      const marked = bullets(page).filter((t) => t.startsWith("{{analytics}}"));
+      expect(marked).toHaveLength(1);
+      expect(visibleItems(marked, false)).toEqual([]);
+      expect(visibleItems(marked, true)[0]).not.toContain("{{analytics}}");
+      expect(visibleItems(marked, true)[0]).toContain("Plausible");
+    }
   });
 });

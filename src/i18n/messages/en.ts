@@ -482,6 +482,20 @@ export const en: Messages = {
     haveCode: "Redeem a discount code or gift card",
     email: "Email for your order confirmation",
     emailHint: "We send your order confirmation and shipping notice to this address.",
+    remindMe: "Remind me by email if I do not complete my purchase",
+    remindHint:
+      "A single reminder to this address, no advertising. You can leave it unticked; your order works the same.",
+    restore: {
+      title: "Your basket",
+      description: "We are putting your selection back in your basket.",
+      working: "Putting your pieces back in your basket …",
+      done: "Your pieces are back in your basket.",
+      partial:
+        "Some pieces are no longer available in that quantity. We have adjusted your basket.",
+      none: "Unfortunately none of this selection is available any more.",
+      invalid: "This link has expired or is not valid. You can keep browsing the shop.",
+      error: "That did not work. Please try again in a few minutes.",
+    },
     signedInAs: (email: string) => `Signed in as ${email}`,
     toCheckout: "Checkout",
     pay: "Continue to payment",
@@ -649,6 +663,7 @@ export const en: Messages = {
     orderNotFound: "We could not find this order in your account.",
     quantity: (n: number) => `Quantity ${n}`,
     refundedAmount: "Refunded",
+    printReceipt: "Print receipt",
     giftCardFor: (name: string) => `For ${name}`,
     trackingNumber: "Tracking number",
     profile: "Personal details",

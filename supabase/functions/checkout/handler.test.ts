@@ -411,3 +411,55 @@ describe("checkout: Schutz vor Missbrauch", () => {
     expect(await stockOf(p.variants[0]!.id)).toBe(80);
   });
 });
+
+describe("checkout: Erinnerung an abgebrochene Kasse (Einwilligung)", () => {
+  async function optIn(body: Record<string, unknown>) {
+    const p = await makeProduct({ priceCents: 20000, stocks: [3] });
+    const res = await post({
+      kind: "cart",
+      locale: "de",
+      email: `${uniq("remind")}@example.ch`,
+      lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+      ...body,
+    });
+    expect(res.status).toBe(200);
+    const { orderNumber } = (await res.json()) as { orderNumber: number };
+    return (
+      await sql<{ reminder_opt_in: boolean | null; reminder_sent_at: string | null }>(
+        "select reminder_opt_in, reminder_sent_at from public.orders where number = $1",
+        [orderNumber],
+      )
+    )[0]!;
+  }
+
+  it("remind: true speichert die Einwilligung an der Bestellung", async () => {
+    expect(await optIn({ remind: true })).toEqual({
+      reminder_opt_in: true,
+      reminder_sent_at: null,
+    });
+  });
+
+  it("ohne Angabe oder mit anderem Wert bleibt die Einwilligung aus", async () => {
+    expect((await optIn({})).reminder_opt_in).toBe(false);
+    expect((await optIn({ remind: false })).reminder_opt_in).toBe(false);
+    expect((await optIn({ remind: "true" })).reminder_opt_in).toBe(false);
+    expect((await optIn({ remind: 1 })).reminder_opt_in).toBe(false);
+  });
+
+  it("Geschenkgutschein-Kauf: kein Erinnerungsmerker, auch wenn remind mitgeschickt wird", async () => {
+    const res = await post({
+      kind: "gift_card",
+      locale: "de",
+      amountCents: 5000,
+      email: `${uniq("gk")}@example.ch`,
+      remind: true,
+    });
+    expect(res.status).toBe(200);
+    const { orderNumber } = (await res.json()) as { orderNumber: number };
+    const row = await sql<{ reminder_opt_in: boolean | null }>(
+      "select reminder_opt_in from public.orders where number = $1",
+      [orderNumber],
+    );
+    expect(row[0]!.reminder_opt_in).toBe(false);
+  });
+});

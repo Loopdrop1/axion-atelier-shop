@@ -224,6 +224,76 @@ async function notifyRestock(deps: Deps, body: Record<string, unknown>): Promise
   return json(200, { notified: sent.length, failed });
 }
 
+const REFUND_REASONS = ["requested_by_customer", "duplicate", "fraudulent"] as const;
+
+/** Stripe-Fehler beim Erstatten in unsere Codes übersetzen (Stripe-Texte gehen nie ungefiltert ans Admin). */
+function mapStripeRefundError(error: unknown): never {
+  const e = (error ?? {}) as { type?: string; code?: string; message?: string };
+  switch (e.code) {
+    case "charge_already_refunded":
+      throw new HttpError(409, "ALREADY_REFUNDED");
+    case "charge_disputed":
+      throw new HttpError(409, "CHARGE_DISPUTED");
+    case "amount_too_large":
+      throw new HttpError(409, "AMOUNT_TOO_LARGE");
+    case "balance_insufficient":
+    case "insufficient_funds":
+      throw new HttpError(409, "INSUFFICIENT_BALANCE");
+  }
+  if (e.type === "StripePermissionError" || e.type === "StripeAuthenticationError")
+    throw new HttpError(502, "STRIPE_PERMISSION");
+  if (e.type === "StripeIdempotencyError") throw new HttpError(409, "REFUND_IN_PROGRESS");
+  console.error("Stripe-Rückerstattung fehlgeschlagen", e.type, e.code, e.message);
+  throw new HttpError(502, "PAYMENT_PROVIDER");
+}
+
+/** Kartenanteil über Stripe zurückerstatten. Verbucht wird nichts hier: Das Ereignis `charge.refunded` landet im
+ *  Webhook (`record_refund`, idempotent) und setzt refunded_cents, Status und die Kundenmail. Der Gutscheinanteil
+ *  gehört nicht dazu (`admin_credit_gift_card`); total_cents ist bereits der Kartenanteil. */
+async function refund(
+  deps: Deps,
+  adminId: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  const order = await loadOrder(deps, uuid(body["orderId"]));
+  if (!["paid", "shipped"].includes(order.status)) throw new HttpError(409, "ORDER_NOT_PAID");
+  const paymentIntent = (order as OrderRecord & { stripe_payment_intent_id?: string | null })
+    .stripe_payment_intent_id;
+  if (order.total_cents <= 0 || !paymentIntent) throw new HttpError(409, "NO_CARD_PAYMENT");
+  const refunded = order.refunded_cents ?? 0;
+  const remaining = order.total_cents - refunded;
+  if (remaining <= 0) throw new HttpError(409, "ALREADY_REFUNDED");
+  const requested = body["amountCents"] ?? remaining;
+  if (typeof requested !== "number" || !Number.isInteger(requested) || requested < 1)
+    throw new HttpError(400, "INVALID_AMOUNT");
+  if (requested > remaining)
+    throw new HttpError(400, "AMOUNT_TOO_LARGE", { remainingCents: remaining });
+  const reason = body["reason"];
+  if (reason !== undefined && reason !== null && !REFUND_REASONS.includes(reason as never))
+    throw new HttpError(400, "BAD_REQUEST");
+  try {
+    const result = await deps.stripe.refunds.create(
+      {
+        payment_intent: paymentIntent,
+        amount: requested,
+        ...(reason ? { reason: reason as (typeof REFUND_REASONS)[number] } : {}),
+        metadata: { order_id: order.id, order_number: String(order.number), admin_id: adminId },
+      },
+      // Derselbe Klick (Doppelklick, Wiederholung nach Timeout) erstattet nur einmal; nach dem Webhook hat sich
+      // refunded_cents geändert, ein weiterer Teilbetrag ist dann eine neue Anfrage.
+      { idempotencyKey: `refund-${order.id}-${requested}-${refunded}` },
+    );
+    return json(200, {
+      refundId: result.id,
+      status: result.status,
+      amountCents: result.amount,
+      remainingCents: remaining - result.amount,
+    });
+  } catch (error) {
+    return mapStripeRefundError(error);
+  }
+}
+
 /** Textvorschlag (Deutsch) für ein Produkt; zählt auf dasselbe Tageslimit wie die Übersetzung. */
 async function draftCopy(
   deps: Deps,
@@ -314,6 +384,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return translate(deps, admin.id, body);
       case "notify_restock":
         return notifyRestock(deps, body);
+      case "refund":
+        return refund(deps, admin.id, body);
       case "draft_copy":
         return draftCopy(deps, admin.id, body);
       case "system_status":

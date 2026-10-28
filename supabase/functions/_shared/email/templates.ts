@@ -28,6 +28,8 @@ export interface OrderItem {
   quantity: number;
   unit_price_cents: number;
   line_total_cents: number;
+  /** Vollständige Bild-Adresse (https) für die Erinnerung; fehlt sie, zeigt die Mail keine Vorschau */
+  image_url?: string | null;
 }
 
 export interface Address {
@@ -69,6 +71,8 @@ export interface OrderData {
   shipping_name: string | null;
   shipping_address: Address | null;
   tracking_number: string | null;
+  shipped_at?: string | null;
+  refunded_cents?: number;
   /** Nur für die Shop-Meldung: Zahlung kam an, aber etwas stimmt nicht (z. B. Bestand fehlte). */
   needs_attention?: boolean;
   admin_note?: string | null;
@@ -876,6 +880,174 @@ export function securityNotice(
   return {
     subject,
     html: layout({ locale: data.locale, subject, preheader: intro, body, shop }),
+    text,
+  };
+}
+
+/** Link aus der Warenkorb-Erinnerung (Status-Token der abgelaufenen Bestellung). */
+export function cartReminderUrl(shop: ShopInfo, order: OrderData): string {
+  return `${shop.siteUrl}${prefixFor(order.locale)}/warenkorb/wiederherstellen/${order.status_token}`;
+}
+
+/** Warenkorb-Erinnerung: nur mit Einwilligung im Warenkorb, einmalig, ohne Rabatt. */
+export function cartReminder(order: OrderData, shop: ShopInfo): EmailContent {
+  const de = order.locale !== "en";
+  const t = T[order.locale];
+  const subject = de ? "Dein Warenkorb wartet auf dich" : "Your basket is waiting for you";
+  const intro = de
+    ? "Du hast deinen Kauf bei Axion nicht abgeschlossen. Deine Auswahl haben wir hier für dich zusammengestellt. Wenn du magst, legst du sie mit einem Klick wieder in den Warenkorb."
+    : "You did not complete your purchase at Axion. We have put your selection together here. If you like, you can place it back in your basket with one click.";
+  const stock = de
+    ? "Wir können Stücke nicht dauerhaft für dich zurücklegen. Was noch verfügbar ist, siehst du im Warenkorb."
+    : "We cannot hold pieces for you indefinitely. You will see what is still available in your basket.";
+  const why = de
+    ? "Du erhältst diese E-Mail einmalig, weil du im Warenkorb «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse» angekreuzt hast. Weitere Erinnerungen folgen nicht."
+    : "You are receiving this email once because you ticked “Remind me by email if I do not complete my purchase” in your basket. No further reminders will follow.";
+  const url = cartReminderUrl(shop, order);
+  const detail = (i: OrderItem) =>
+    [i.color, i.size ? sizeText(i.size, t.size, t.oneSize) : null]
+      .filter(Boolean)
+      .map(esc)
+      .join(" · ");
+  const items = order.items
+    .map((i) => {
+      const image =
+        i.image_url && /^https:\/\//.test(i.image_url)
+          ? `<td width="72" style="padding:8px 14px 8px 0;vertical-align:top;"><img src="${esc(i.image_url)}" width="72" alt="" style="display:block;width:72px;height:auto;border:0;"></td>`
+          : "";
+      const qty =
+        i.quantity > 1
+          ? ` · ${i.quantity} × ${esc(formatChf(i.unit_price_cents, order.locale))}`
+          : "";
+      return `<tr>${image}<td style="padding:8px 0;vertical-align:top;font-family:Helvetica, Arial, sans-serif;font-size:14px;line-height:1.5;color:#141414;">${esc(i.title)}<br><span style="color:#5F5F5F;font-size:13px;">${detail(i)}${qty}</span></td><td align="right" style="padding:8px 0;vertical-align:top;font-family:Helvetica, Arial, sans-serif;font-size:14px;color:#141414;white-space:nowrap;">${esc(formatChf(i.line_total_cents, order.locale))}</td></tr>`;
+    })
+    .join("");
+  const cta = de ? "Zum Warenkorb" : "Go to basket";
+  const text = [
+    subject,
+    "",
+    intro,
+    "",
+    itemsBlock(order).text,
+    "",
+    `${t.subtotal}: ${formatChf(order.subtotal_cents, order.locale)}`,
+    "",
+    `${cta}: ${url}`,
+    "",
+    stock,
+    why,
+    t.questions,
+  ].join("\n");
+  const body = [
+    h1(subject),
+    p(esc(intro)),
+    button(cta, url),
+    label(de ? "Deine Auswahl" : "Your selection"),
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table>`,
+    divider(),
+    rows([{ left: esc(t.subtotal), right: esc(formatChf(order.subtotal_cents, order.locale)) }]),
+    p(esc(stock), { muted: true, size: 13, margin: "14px 0" }),
+    p(esc(t.questions), { muted: true, size: 13 }),
+  ].join("\n");
+  return {
+    subject,
+    html: layout({
+      locale: order.locale,
+      subject,
+      preheader: de
+        ? "Deine Auswahl ist nur einen Klick entfernt."
+        : "Your selection is just one click away.",
+      body,
+      shop,
+      footerNote: esc(why),
+    }),
+    text,
+  };
+}
+
+/**
+ * Rückerstattung (ganz oder teilweise). `amountCents` ist der Betrag dieser Rückerstattung,
+ * `order.refunded_cents` die Summe aller bisherigen.
+ */
+export function refundNotice(order: OrderData, amountCents: number, shop: ShopInfo): EmailContent {
+  const de = order.locale !== "en";
+  const t = T[order.locale];
+  const L = (c: number) => formatChf(c, order.locale);
+  const no = orderNumber(order.number);
+  const refundedTotal = order.refunded_cents ?? amountCents;
+  const full = order.total_cents > 0 && refundedTotal >= order.total_cents;
+  const cancelled = full && !order.shipped_at && !order.tracking_number;
+  const subject = de ? `Deine Rückerstattung zur Bestellung ${no}` : `Your refund for order ${no}`;
+  const intro = full
+    ? de
+      ? `Wir haben deine Bestellung ${no} vollständig zurückerstattet: ${L(amountCents)}.`
+      : `We have refunded your order ${no} in full: ${L(amountCents)}.`
+    : de
+      ? `Wir haben dir einen Teil deiner Bestellung ${no} zurückerstattet: ${L(amountCents)}.`
+      : `We have refunded part of your order ${no}: ${L(amountCents)}.`;
+  const cancelNote = cancelled
+    ? de
+      ? "Die Bestellung ist damit storniert; es wird nichts mehr geliefert."
+      : "The order is therefore cancelled; nothing further will be delivered."
+    : "";
+  const bank = de
+    ? "Der Betrag geht auf das ursprüngliche Zahlungsmittel zurück. Je nach Bank dauert es ein paar Tage, bis er auf deinem Konto sichtbar ist."
+    : "The amount goes back to your original payment method. Depending on your bank, it can take a few days before it appears on your account.";
+  const giftNote =
+    order.gift_card_cents > 0
+      ? de
+        ? "Ein mit Geschenkgutschein bezahlter Anteil wird nicht auf die Karte zurückgezahlt. Bei Fragen dazu schreib uns."
+        : "A part paid with a gift card is not paid back to your card. Write to us if you have questions about it."
+      : "";
+  const summary: { left: string; right: string; strong?: boolean }[] = [
+    { left: de ? "Rückerstattung" : "Refund", right: L(amountCents), strong: true },
+  ];
+  if (refundedTotal > amountCents)
+    summary.push({
+      left: de ? "Insgesamt zurückerstattet" : "Refunded in total",
+      right: L(refundedTotal),
+    });
+  summary.push({
+    left: de ? `Bestellung ${no}, Total` : `Order ${no}, total`,
+    right: L(order.total_cents),
+  });
+  const body = [
+    h1(de ? "Deine Rückerstattung" : "Your refund"),
+    p(esc(intro)),
+    cancelNote ? p(esc(cancelNote)) : "",
+    rows(summary.map((e) => ({ ...e, left: esc(e.left), right: esc(e.right) }))),
+    divider(),
+    p(esc(bank)),
+    giftNote ? p(esc(giftNote), { muted: true, size: 13 }) : "",
+    button(t.viewOrder, statusUrl(shop, order)),
+    p(esc(t.questions), { muted: true, size: 13 }),
+  ].join("\n");
+  const text = [
+    de ? "Deine Rückerstattung" : "Your refund",
+    "",
+    intro,
+    cancelNote,
+    "",
+    ...summary.map((e) => `${e.left}: ${e.right}`),
+    "",
+    bank,
+    giftNote,
+    "",
+    `${t.viewOrder}: ${statusUrl(shop, order)}`,
+    "",
+    t.questions,
+  ]
+    .filter((l, i, all) => !(l === "" && all[i - 1] === ""))
+    .join("\n");
+  return {
+    subject,
+    html: layout({
+      locale: order.locale,
+      subject,
+      preheader: `${no} · ${L(amountCents)}`,
+      body,
+      shop,
+    }),
     text,
   };
 }

@@ -56,6 +56,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Gift cards:** code, value, remaining balance and expiry date, the purchaser's email address and, if provided, the recipient's name and email address, the sender's name and the personal message.
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
+- **Reminder about an incomplete purchase (optional):** Only if you tick “Remind me by email if I do not complete my purchase” in your basket, we send you a single email with your items and a link to your basket if the payment does not go through; we store your consent with the order, and without the tick you receive no reminder.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
 - **Technical data:** When you visit the website, technical data is generated, such as your IP address, date and time, the page you open, your browser and device. We use it to run the website and keep it secure, for example to protect the forms against misuse.
 - **Technical error reports:** If an error occurs in your browser, the website sends us a short report: the error message, the path of the page (without anything after the question mark), the technical trace of the error (stack), the type of browser and device and the version of the website. The report contains no personal data: no IP address, no email address, no account and nothing you typed. We use it only to find and fix errors.
@@ -99,6 +100,7 @@ We only use what is needed to run the shop:
 - **Login:** When you sign in to your customer account, your browser stores a login key until you sign out.
 - **Cloudflare** sets a cookie (\`__cf_bm\`) that fends off automated attacks and expires after 30 minutes of inactivity.
 - **Payment page:** On its payment page, Stripe sets its own cookies, among other things to prevent fraud. Details are in Stripe's privacy policy.
+- {{analytics}}**Visitor statistics:** We measure use of the website anonymously with Plausible Analytics (Plausible Insights OÜ, Estonia; data processed in the EU). Plausible sets no cookies and builds no profiles of individual visitors. It records the page opened, the referring page, browser, device, rough country of origin and the events "Add to cart" and "Begin checkout", without us recognising you as a person. The legal basis is our interest in improving the website. You can prevent the measurement with your browser's "Do Not Track" setting or an ad blocker. [To be confirmed before launch: provider details and data processing]
 
 We do not use analytics or advertising cookies on this website. Our emails and the newsletter contain no open or click tracking. You can delete cookies and your browser storage at any time. Without the necessary cookies, however, you cannot complete a purchase.
 

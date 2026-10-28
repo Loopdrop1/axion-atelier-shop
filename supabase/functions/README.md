@@ -9,26 +9,33 @@ In den SQL-Funktionen (`private.request_ip`, z. B. `check_discount`) gilt diesel
 `cf-connecting-ip` selbst, ein gefälschtes X-Forwarded-For zählt nur ohne diesen Header. `check_discount` hat zusätzlich ein globales Limit (300 pro 10 Minuten);
 die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zwei Tagen gelöscht.
 
-| Funktion          | Aufrufer                        | Zweck                                                                                |
-| ----------------- | ------------------------------- | ------------------------------------------------------------------------------------ |
-| `checkout`        | Shop (Gast oder eingeloggt)     | Bestand reservieren, Stripe-Checkout starten                                         |
-| `stripe-webhook`  | Stripe                          | Zahlung verbuchen, Ablauf/Fehlzahlung stornieren, Rückerstattung übernehmen, E-Mails |
-| `newsletter`      | Shop                            | Anmelden (Double Opt-in), bestätigen, abmelden                                       |
-| `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen, Texte übersetzen       |
-| `contact`         | Shop                            | Kontaktformular: Nachricht als E-Mail an den Shop                                    |
-| `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                |
-| `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen     |
-| `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                |
-| `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                        |
-| `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                  |
+| Funktion          | Aufrufer                        | Zweck                                                                                                                  |
+| ----------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `checkout`        | Shop (Gast oder eingeloggt)     | Bestand reservieren, Stripe-Checkout starten                                                                           |
+| `stripe-webhook`  | Stripe                          | Zahlung verbuchen, Ablauf/Fehlzahlung stornieren (Erinnerung nur mit Einwilligung), Rückerstattung übernehmen, E-Mails |
+| `newsletter`      | Shop                            | Anmelden (Double Opt-in), bestätigen, abmelden                                                                         |
+| `admin-actions`   | Admin (Rolle `admin`)           | Versand melden, E-Mails erneut senden, Gutscheine ausstellen, Rückerstatten, Texte übersetzen                          |
+| `contact`         | Shop                            | Kontaktformular: Nachricht als E-Mail an den Shop                                                                      |
+| `account-delete`  | eingeloggte Kundschaft          | eigenes Konto löschen                                                                                                  |
+| `stock-alert`     | Shop (Gast)                     | «Benachrichtigen, wenn wieder da»: Wunsch anlegen (Double Opt-in) und bestätigen                                       |
+| `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                                                  |
+| `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                                                          |
+| `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                                                    |
 
 ## checkout
 
 - `{ kind: "cart", lines: [{ variantId, quantity }], email?, discountCode?, giftCardCode?, locale }` → `200 { url, orderNumber }`
+- `remind?: true` (nur beim Warenkorb, ausdrückliche Einwilligung aus dem unangekreuzten Häkchen «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse»; jeder andere Wert gilt als Nein): Die Kasse speichert nach der Reservierung `orders.reminder_opt_in = true` (RPC `set_order_reminder`, `service_role`). Scheitert das, läuft die Kasse trotzdem weiter.
 - `{ kind: "gift_card", amountCents, recipientName?, recipientEmail?, senderName?, message?, email?, locale }` → `200 { url, orderNumber }`
 - `409 { error: "OUT_OF_STOCK", items: [{ variantId, available }] }`, `422 { error: "DISCOUNT_INVALID" | "GIFT_CARD_INVALID", reason }`, `400 INVALID_LINES | INVALID_EMAIL | INVALID_RECIPIENT_EMAIL | INVALID_AMOUNT | BAD_REQUEST`, `429 RATE_LIMITED | TOO_MANY_CHECKOUTS` (pro IP 20 in 30 Minuten, pro E-Mail 10, höchstens 3 offen), `502 PAYMENT_PROVIDER`
 - Decken Gutschein oder Rabatt alles, läuft die Bestellung trotzdem über Stripe (Session ohne Zahlbetrag): Stripe verlangt keine Zahlung, erfasst aber die Lieferadresse.
 - `{ kind: "release", token }` (nach Abbruch in Stripe): beendet zuerst die Stripe-Session und gibt die Reservierung nur frei, wenn Stripe sie als abgelaufen meldet. Eine schon bezahlte Session bleibt bestehen.
+
+## stripe-webhook: E-Mails an die Kundschaft
+
+- `checkout.session.expired` storniert die Bestellung (`cancel_reason = 'expired'`). Hat die Person zugestimmt (`reminder_opt_in`), geht danach **eine** Erinnerung «Dein Warenkorb wartet auf dich» (Artikel mit Bild, Knopf «Zum Warenkorb» auf `/warenkorb/wiederherstellen/<status_token>`, kein Rabatt). RPC `get_cart_reminder` liefert die Bestellung nur bei Ablauf (nicht bei `customer_cancelled`, `payment_failed`), ohne bisherigen Versand (`reminder_sent_at`, gesetzt über `mark_order_email_sent(…, 'reminder')`, dazu Resend-Schlüssel `order-<id>-reminder`) und nur, wenn dieselbe Adresse nicht inzwischen bezahlt hat. Ein Fehler beim Versand wird protokolliert und bricht die Stornierung nicht ab; ein späteres Ereignis kann nachholen.
+- `public.restore_cart_by_token(uuid)` (für `anon` aufrufbar): liefert für eine abgebrochene Warenkorb-Bestellung (Status `cancelled`, jünger als 7 Tage) nur `[{variant_id, quantity}]`. Die Seite `/warenkorb/wiederherstellen/:token` legt die noch verfügbaren Stücke (Menge auf den Bestand gekürzt) in den Warenkorb und leitet zur Warenkorbseite weiter.
+- `charge.refunded` übernimmt die Rückerstattung (`record_refund`) und schickt «Deine Rückerstattung zur Bestellung AX-…» (Betrag dieser Rückerstattung, ganz oder teilweise, Hinweis auf einige Tage bei der Bank; bei Vollrückerstattung vor dem Versand der Hinweis, dass die Bestellung storniert ist). Pro Betrag genau eine E-Mail: `orders.refund_notified_cents` (RPC `get_refund_notice`, `mark_refund_notified`) und Resend-Schlüssel `order-<id>-refund-<Gesamtbetrag>`. Ein Versandfehler gibt 500, Stripe wiederholt. Rückerstattungen und Stornierungen bezahlter Bestellungen löst das Admin im Stripe-Dashboard aus; sie laufen deshalb alle über diesen Weg, es gibt keine zweite Admin-Funktion dafür.
 
 ## newsletter
 
@@ -62,6 +69,7 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 - `{ action: "translate", texts: string[] }` → `200 { translations: string[] }` (Deutsch → Englisch, gleiche Reihenfolge, leere Texte bleiben leer). Höchstens 60 Texte, je 4000 Zeichen, zusammen 16'000. Über das Lovable AI Gateway (`LOVABLE_API_KEY`, legt Lovable selbst an); anderer Dienst mit OpenAI-Schnittstelle über `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`, `TRANSLATE_MODEL`. `503 TRANSLATION_UNAVAILABLE` (kein Schlüssel oder AI-Guthaben leer), `429 RATE_LIMITED` (Gateway) oder `429 DAILY_LIMIT` (500 Anfragen pro Admin und Tag, `translate_guard`), `502 TRANSLATION_FAILED`, `400 BAD_REQUEST | TOO_MANY_TEXTS | TEXT_TOO_LONG`. Das Admin schickt höchstens 40 Texte pro Anfrage und übersetzt leeres Englisch sowie maschinelles, dessen Deutsch sich geändert hat; von Hand geschriebenes Englisch bleibt (Herkunft in `en_auto` bzw. `auto`).
 - `{ action: "draft_copy", title, category, color, material?, fit?, notes? }` → `200 { description: string, features: string[] }` (Textvorschlag auf Deutsch für das Produktformular, nur aus den gelieferten Angaben, Schweizer Schreibweise; das Admin prüft vor dem Speichern). Gleiches Gateway und gleiches Tageslimit wie `translate`; `400 BAD_REQUEST` ohne Titel, Kategorie oder Farbe, `502 COPY_FAILED`, sonst Fehler wie bei `translate`.
 - `{ action: "notify_restock", variantId }` → `200 { notified, failed }`: bestätigte «Wieder da»-Wünsche einer wieder vorrätigen Grösse per E-Mail benachrichtigen (`stock_alerts_pending` → E-Mail mit Idempotenz-Schlüssel → `stock_alerts_done` nur für verschickte). Gescheiterte bleiben vorgemerkt. Das Lager-Dialogfeld ruft das automatisch auf, wenn eine Grösse von 0 aufgestockt wird.
+- `{ action: "refund", orderId, amountCents?, reason?: "requested_by_customer" | "duplicate" | "fraudulent" }` → `200 { refundId, status, amountCents, remainingCents }`: Kartenanteil einer bezahlten oder versendeten Bestellung über Stripe (`POST /v1/refunds` auf den PaymentIntent) zurückzahlen; ohne Betrag der ganze Rest (`total_cents - refunded_cents`; `total_cents` ist schon der Kartenanteil, ein Gutscheinanteil gehört nicht dazu und wird mit `admin_credit_gift_card` gutgeschrieben). Idempotency-Key `refund-<Bestellung>-<Betrag>-<bisher erstattet>`: ein Doppelklick erstattet nur einmal. Die Funktion schreibt `refunded_cents` nicht selbst: Das Ereignis `charge.refunded` im Webhook ruft `record_refund` auf (idempotent über `greatest`), setzt Status und schickt die Kundenmail. Der eingeschränkte Stripe-Schlüssel braucht dafür das Recht «Refunds: Schreiben». Fehler: `409 ORDER_NOT_PAID` (nicht bezahlt/versendet oder schon ganz erstattet), `409 NO_CARD_PAYMENT` (kein PaymentIntent), `409 ALREADY_REFUNDED | CHARGE_DISPUTED | AMOUNT_TOO_LARGE | INSUFFICIENT_BALANCE | REFUND_IN_PROGRESS` (von Stripe), `400 AMOUNT_TOO_LARGE` (mehr als der Rest, mit `remainingCents`), `400 INVALID_AMOUNT | BAD_REQUEST`, `502 STRIPE_PERMISSION` (Schlüssel darf nicht erstatten) und `502 PAYMENT_PROVIDER` (sonstiger Stripe-Fehler).
 - `{ action: "system_status" }` → `200 { required: {SECRET: bool}, optional: {SECRET: bool}, stripeMode: "test" | "live" | "unknown" | "missing", emailFromIsOnboarding, previewOriginsAllowed }`: nur Ja/Nein, ob Secrets gesetzt sind, und der Stripe-Modus aus dem Schlüssel-Präfix (`sk_`/`rk_` + `test`/`live`); nie ein Wert. Speist den Kasten «Bereit für den Livegang» im Admin.
 - `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 ORDER_NOT_FOUND | GIFT_CARD_NOT_FOUND`, `409 ORDER_NOT_SHIPPABLE | ORDER_NOT_SHIPPED | ORDER_NOT_PAID`, `400 INVALID_TRACKING | INVALID_AMOUNT | INVALID_EMAIL`
 
@@ -135,6 +143,7 @@ nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche An
 | `20261026001300_image_variants`        | `0012_axion_image_variants`        | gleich                                                                         |
 | `20261027001400_client_errors`         | `0013_axion_client_errors`         | gleich                                                                         |
 | `20261027001500_client_errors_prune`   | `0014_axion_client_errors_prune`   | gleich                                                                         |
+| `20261028001600_checkout_reminder`     | `0015_axion_checkout_reminder`     | gleich                                                                         |
 
 Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
 `NNNN_snapshot.json` mit der vorigen `id` als `prevId`).

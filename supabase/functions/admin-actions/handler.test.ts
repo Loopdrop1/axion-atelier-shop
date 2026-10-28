@@ -1,3 +1,5 @@
+import http from "node:http";
+import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
@@ -16,6 +18,7 @@ import { createAdminActionsHandler } from "./handler.ts";
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
 let resend: Awaited<ReturnType<typeof startFakeResend>>;
 let ai: Awaited<ReturnType<typeof startFakeAi>>;
+let stripe: Awaited<ReturnType<typeof startRefundStripe>>;
 let handler: (req: Request) => Promise<Response>;
 let admin: TestUser;
 let customer: TestUser;
@@ -24,6 +27,7 @@ beforeAll(async () => {
   supa = await startFakeSupabase();
   resend = await startFakeResend();
   ai = await startFakeAi();
+  stripe = await startRefundStripe();
   const env = readEnv(
     (k) =>
       ({
@@ -32,6 +36,8 @@ beforeAll(async () => {
         SUPABASE_ANON_KEY: ANON_KEY,
         SITE_URL: "https://shop.test",
         RESEND_API_KEY: "re_test",
+        STRIPE_SECRET_KEY: "rk_test_x",
+        STRIPE_API_BASE: stripe.url,
         RESEND_API_BASE: resend.url,
         LOVABLE_API_KEY: "lov_test",
         TRANSLATE_API_BASE: `${ai.url}/v1`,
@@ -43,9 +49,58 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await Promise.all([supa.close(), resend.close(), ai.close()]);
+  await Promise.all([supa.close(), resend.close(), ai.close(), stripe.close()]);
   await pool.end();
 });
+
+/** Stripe-Fake nur für POST /v1/refunds: merkt sich Aufrufe samt Idempotency-Key und kann einen Fehler liefern. */
+async function startRefundStripe() {
+  const calls: { body: URLSearchParams; idempotencyKey: string | undefined }[] = [];
+  let next: { status: number; code?: string; type?: string } | null = null;
+  let times = 0;
+  const server = http.createServer((req, res) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (c: Buffer) => chunks.push(c));
+    req.on("end", () => {
+      const body = new URLSearchParams(Buffer.concat(chunks).toString("utf8"));
+      const key = req.headers["idempotency-key"];
+      calls.push({ body, idempotencyKey: typeof key === "string" ? key : undefined });
+      res.setHeader("content-type", "application/json");
+      if (req.url !== "/v1/refunds" || req.method !== "POST") {
+        res.statusCode = 404;
+        res.end("{}");
+        return;
+      }
+      if (next) {
+        const { status, code, type } = next;
+        if (--times <= 0) next = null;
+        res.statusCode = status;
+        res.end(
+          JSON.stringify({ error: { type: type ?? "invalid_request_error", code, message: "x" } }),
+        );
+        return;
+      }
+      res.end(
+        JSON.stringify({
+          id: `re_${calls.length}`,
+          object: "refund",
+          status: "succeeded",
+          amount: Number(body.get("amount")),
+        }),
+      );
+    });
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  return {
+    url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
+    calls,
+    failNext: (status: number, code?: string, type?: string, count = 1) => {
+      times = count;
+      next = { status, ...(code ? { code } : {}), ...(type ? { type } : {}) };
+    },
+    close: () => new Promise<void>((r) => server.close(() => r())),
+  };
+}
 
 function post(body: unknown, user: TestUser | null = admin) {
   return handler(
@@ -529,5 +584,134 @@ describe("admin-actions: system_status", () => {
     expect(empty.stripeMode).toBe("missing");
     expect(empty.required["STRIPE_SECRET_KEY"]).toBe(false);
     expect(empty.required["RESEND_API_KEY"]).toBe(false);
+  });
+});
+
+describe("admin-actions: refund", () => {
+  async function cardOrder() {
+    const r = await paidOrder();
+    const pi = uniq("pi");
+    await sql("update public.orders set stripe_payment_intent_id = $1 where id = $2", [
+      pi,
+      r.order_id,
+    ]);
+    return { ...r, pi };
+  }
+  const refundedCents = async (id: string) =>
+    (
+      await sql<{ refunded_cents: number }>(
+        "select refunded_cents from public.orders where id = $1",
+        [id],
+      )
+    )[0]!.refunded_cents;
+
+  it("ohne Betrag: erstattet den Rest über Stripe, mit Idempotency-Key, und schreibt selbst nichts", async () => {
+    const r = await cardOrder();
+    const before = stripe.calls.length;
+    const res = await post({
+      action: "refund",
+      orderId: r.order_id,
+      reason: "requested_by_customer",
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      refundId: expect.stringMatching(/^re_/),
+      status: "succeeded",
+      amountCents: r.total_cents,
+      remainingCents: 0,
+    });
+    const call = stripe.calls[before]!;
+    expect(call.body.get("payment_intent")).toBe(r.pi);
+    expect(call.body.get("amount")).toBe(String(r.total_cents));
+    expect(call.body.get("reason")).toBe("requested_by_customer");
+    expect(call.body.get("metadata[order_id]")).toBe(r.order_id);
+    expect(call.idempotencyKey).toBe(`refund-${r.order_id}-${r.total_cents}-0`);
+    // Buchung erst durch den Webhook (charge.refunded → record_refund)
+    expect(await refundedCents(r.order_id)).toBe(0);
+  });
+
+  it("Teilbetrag; nach dem Webhook zählt nur der Rest, zu viel wird abgelehnt", async () => {
+    const r = await cardOrder();
+    const first = await post({ action: "refund", orderId: r.order_id, amountCents: 5000 });
+    expect(await first.json()).toMatchObject({
+      amountCents: 5000,
+      remainingCents: r.total_cents - 5000,
+    });
+    await sql("select public.record_refund($1, 5000)", [r.pi]);
+    const before = stripe.calls.length;
+    const tooMuch = await post({
+      action: "refund",
+      orderId: r.order_id,
+      amountCents: r.total_cents - 4999,
+    });
+    expect(tooMuch.status).toBe(400);
+    expect(await tooMuch.json()).toEqual({
+      error: "AMOUNT_TOO_LARGE",
+      remainingCents: r.total_cents - 5000,
+    });
+    expect(stripe.calls.length).toBe(before);
+    const rest = await post({ action: "refund", orderId: r.order_id });
+    expect(await rest.json()).toMatchObject({
+      amountCents: r.total_cents - 5000,
+      remainingCents: 0,
+    });
+    expect(stripe.calls[before]!.idempotencyKey).toBe(
+      `refund-${r.order_id}-${r.total_cents - 5000}-5000`,
+    );
+  });
+
+  it("vollständig erstattet (Status refunded): 409 ORDER_NOT_PAID ohne Stripe-Aufruf", async () => {
+    const r = await cardOrder();
+    await sql("select public.record_refund($1, $2)", [r.pi, r.total_cents]);
+    const before = stripe.calls.length;
+    const res = await post({ action: "refund", orderId: r.order_id });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "ORDER_NOT_PAID" });
+    expect(stripe.calls.length).toBe(before);
+  });
+
+  it("prüft Bestellung, Betrag und Grund", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [2] });
+    const pending = await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }] });
+    expect(await (await post({ action: "refund", orderId: pending.order_id })).json()).toEqual({
+      error: "ORDER_NOT_PAID",
+    });
+    const r = await cardOrder();
+    for (const amountCents of [0, -5, 1.5, "100"])
+      expect(
+        await (await post({ action: "refund", orderId: r.order_id, amountCents })).json(),
+      ).toEqual({ error: "INVALID_AMOUNT" });
+    expect(
+      await (await post({ action: "refund", orderId: r.order_id, reason: "weil ich will" })).json(),
+    ).toEqual({ error: "BAD_REQUEST" });
+    expect((await post({ action: "refund", orderId: "kein-uuid" })).status).toBe(400);
+    expect(
+      (await post({ action: "refund", orderId: "00000000-0000-4000-8000-000000000000" })).status,
+    ).toBe(404);
+    expect((await post({ action: "refund", orderId: r.order_id }, customer)).status).toBe(403);
+  });
+
+  it("Bestellung ohne Stripe-Zahlung (kein PaymentIntent): 409 NO_CARD_PAYMENT", async () => {
+    const r = await paidOrder();
+    const res = await post({ action: "refund", orderId: r.order_id });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "NO_CARD_PAYMENT" });
+  });
+
+  it.each([
+    [400, "charge_already_refunded", undefined, 409, "ALREADY_REFUNDED"],
+    [400, "charge_disputed", undefined, 409, "CHARGE_DISPUTED"],
+    [400, "amount_too_large", undefined, 409, "AMOUNT_TOO_LARGE"],
+    [400, "balance_insufficient", undefined, 409, "INSUFFICIENT_BALANCE"],
+    [403, "", "invalid_request_error", 502, "STRIPE_PERMISSION"],
+    [500, undefined, "api_error", 502, "PAYMENT_PROVIDER"],
+  ])("Stripe-Fehler %s %s wird zu %s %s", async (status, code, type, httpStatus, expected) => {
+    const r = await cardOrder();
+    // stripe-node wiederholt 5xx selbst (zweimal): der Fake scheitert deshalb dreimal
+    stripe.failNext(status as number, code as string | undefined, type as string | undefined, 3);
+    const res = await post({ action: "refund", orderId: r.order_id, amountCents: 100 });
+    expect(res.status).toBe(httpStatus);
+    expect(await res.json()).toEqual({ error: expected });
+    expect(await refundedCents(r.order_id)).toBe(0);
   });
 });

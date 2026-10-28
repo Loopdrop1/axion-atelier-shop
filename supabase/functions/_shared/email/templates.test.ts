@@ -3,11 +3,14 @@ import type { Locale } from "../money.ts";
 import type { ShopInfo } from "./layout.ts";
 import {
   authEmail,
+  cartReminder,
+  cartReminderUrl,
   contactMessage,
   giftCardEmail,
   newsletterConfirm,
   newsletterWelcome,
   orderConfirmation,
+  refundNotice,
   securityNotice,
   shippingConfirmation,
   shopNotification,
@@ -87,6 +90,22 @@ const card = (locale: Locale): GiftCardInfo => ({
   message: "Alles Gute!\n<b>Dein Tom</b>",
 });
 
+function reminderOrder(locale: Locale): OrderData {
+  const base = order(locale, {
+    status: "cancelled",
+    discount_cents: 0,
+    discount_code: null,
+    gift_card_cents: 0,
+  });
+  return {
+    ...base,
+    items: base.items.map((i, n) => ({
+      ...i,
+      image_url: n === 0 ? "https://img.shop.test/anzug-1.webp" : null,
+    })),
+  };
+}
+
 function all(locale: Locale): [string, EmailContent][] {
   const kinds: AuthKind[] = [
     "signup",
@@ -124,6 +143,16 @@ function all(locale: Locale): [string, EmailContent][] {
       shippingConfirmation(order(locale, { tracking_number: null }), shop),
     ],
     ["giftCardEmail", giftCardEmail(card(locale), shop)],
+    ["cartReminder", cartReminder(reminderOrder(locale), shop)],
+    ["refundNotice (teilweise)", refundNotice(order(locale, { refunded_cents: 5000 }), 5000, shop)],
+    [
+      "refundNotice (ganz, storniert)",
+      refundNotice(
+        order(locale, { refunded_cents: 64420, tracking_number: null, shipped_at: null }),
+        64420,
+        shop,
+      ),
+    ],
     [
       "newsletterConfirm",
       newsletterConfirm(
@@ -307,5 +336,68 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     );
     expect(mail.html).toContain('href="https://shop.test/newsletter/abmelden?token=abc"');
     expect(mail.text).toContain("Abmelden: https://shop.test/newsletter/abmelden?token=abc");
+  });
+
+  it("Erinnerung: Artikel mit Bild, Link zum Wiederherstellen, Grund des Versands, kein Rabatt", () => {
+    const de = cartReminder(reminderOrder("de"), shop);
+    expect(de.subject).toBe("Dein Warenkorb wartet auf dich");
+    const url = "https://shop.test/warenkorb/wiederherstellen/0c6b2b9a-0000-4000-8000-000000000002";
+    expect(cartReminderUrl(shop, reminderOrder("de"))).toBe(url);
+    expect(de.text).toContain(`Zum Warenkorb: ${url}`);
+    expect(de.html).toContain(`href="${url}"`);
+    expect(de.html).toContain('src="https://img.shop.test/anzug-1.webp"');
+    expect(de.html.match(/<img /g)).toHaveLength(1);
+    expect(de.text).toContain("Weste");
+    expect(de.text).toContain("angekreuzt");
+    expect(de.html).toContain("«Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse»");
+    expect(de.text).not.toMatch(/Rabatt|Gutschein|Gratis|%|Code/);
+    const en = cartReminder(reminderOrder("en"), shop);
+    expect(en.subject).toBe("Your basket is waiting for you");
+    expect(en.text).toContain(`Go to basket: https://shop.test/en/warenkorb/wiederherstellen/`);
+    expect(en.text).not.toMatch(/discount|gift card|%|code/i);
+  });
+
+  it("Erinnerung: Bilder nur über https, Titel maskiert", () => {
+    const o = reminderOrder("de");
+    o.items[0]!.image_url = "javascript:alert(1)";
+    const mail = cartReminder(o, shop);
+    expect(mail.html).not.toContain("javascript:");
+    expect(mail.html).not.toContain("<img ");
+    expect(mail.html).toContain("Anzug «Zürich» &lt;Navy&gt;");
+  });
+
+  it("Rückerstattung: Betrag, Bestellnummer, Hinweis zur Bank; ganz vs. teilweise", () => {
+    const partial = refundNotice(order("de", { refunded_cents: 5000 }), 5000, shop);
+    expect(partial.subject).toBe("Deine Rückerstattung zur Bestellung AX-10042");
+    expect(partial.text).toMatch(
+      /einen Teil deiner Bestellung AX-10042 zurückerstattet: CHF\s50\.00/,
+    );
+    expect(partial.text).toContain("ein paar Tage");
+    expect(partial.text).not.toContain("storniert");
+    // 5000 von 64420: Rest bleibt offen
+    expect(partial.text).toMatch(/Bestellung AX-10042, Total: CHF\s644\.20/);
+
+    const second = refundNotice(order("de", { refunded_cents: 64420 }), 59420, shop);
+    expect(second.text).toMatch(/vollständig zurückerstattet: CHF\s594\.20/);
+    expect(second.text).toMatch(/Insgesamt zurückerstattet: CHF\s644\.20/);
+    // Schon versandt (Sendungsnummer): Rückgabe, keine Stornierung
+    expect(second.text).not.toContain("storniert");
+
+    const cancelled = refundNotice(
+      order("de", { refunded_cents: 64420, tracking_number: null }),
+      64420,
+      shop,
+    );
+    expect(cancelled.text).toContain("Die Bestellung ist damit storniert");
+    // Geschenkgutschein-Anteil wird erklärt
+    expect(cancelled.text).toContain("Geschenkgutschein bezahlter Anteil");
+
+    const en = refundNotice(order("en", { refunded_cents: 5000 }), 5000, shop);
+    expect(en.subject).toBe("Your refund for order AX-10042");
+    expect(en.text).toMatch(/refunded part of your order AX-10042: CHF\s50\.00/);
+    expect(en.text).toContain("few days");
+    expect(en.text).toContain(
+      "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
+    );
   });
 });

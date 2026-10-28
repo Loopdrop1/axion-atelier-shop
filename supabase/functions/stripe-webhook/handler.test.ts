@@ -92,12 +92,17 @@ function session(orderId: string, extra: Record<string, unknown> = {}) {
   };
 }
 
-async function pendingOrder(price = 10000) {
+async function pendingOrder(
+  price = 10000,
+  opts: { email?: string; locale?: "de" | "en"; remind?: boolean } = {},
+) {
   const p = await makeProduct({ priceCents: price, stocks: [2] });
   const r = await reserve({
     lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }],
-    email: "kundin@example.ch",
+    email: opts.email ?? "kundin@example.ch",
+    ...(opts.locale ? { locale: opts.locale } : {}),
   });
+  if (opts.remind) await rpc("set_order_reminder", [r.order_id, true]);
   return { product: p, order: r };
 }
 
@@ -376,5 +381,203 @@ describe("stripe-webhook", () => {
     const mails = resend.sent.slice(before);
     expect(mails.filter((m: { to: string[] }) => m.to[0] === "kundin@example.ch")).toHaveLength(1);
     expect(mails.filter((m: { to: string[] }) => m.to[0] === "shop@shop.test")).toHaveLength(1);
+  });
+});
+
+describe("stripe-webhook: Warenkorb-Erinnerung", () => {
+  const reminders = (to: string, from: number) =>
+    resend.sent.slice(from).filter((m: { to: string[]; subject: string }) => m.to[0] === to);
+  const sentAt = async (id: string) =>
+    (
+      await sql<{ reminder_sent_at: string | null }>(
+        "select reminder_sent_at from public.orders where id = $1",
+        [id],
+      )
+    )[0]!.reminder_sent_at;
+
+  it("abgelaufene Kasse mit Einwilligung: genau eine Erinnerung mit Artikeln und Wiederherstellungs-Link, ohne Rabatt", async () => {
+    const to = `${uniq("erinnerung")}@example.ch`;
+    const { order } = await pendingOrder(10000, { email: to, remind: true });
+    const before = resend.sent.length;
+    const evt = session(order.order_id, { payment_status: "unpaid" });
+    expect((await deliver("checkout.session.expired", evt)).status).toBe(200);
+    const mails = reminders(to, before);
+    expect(mails).toHaveLength(1);
+    expect(mails[0]!.subject).toBe("Dein Warenkorb wartet auf dich");
+    expect(mails[0]!.text).toContain(
+      `https://shop.test/warenkorb/wiederherstellen/${order.status_token}`,
+    );
+    expect(mails[0]!.text).toMatch(/Test test-/);
+    expect(mails[0]!.html).toContain("Zum Warenkorb");
+    expect(mails[0]!.text).not.toMatch(/Rabatt|Gutschein|%/);
+    expect(mails[0]!.idempotencyKey).toBe(`order-${order.order_id}-reminder`);
+    expect(await sentAt(order.order_id)).not.toBeNull();
+
+    // Zweites Ereignis (neue Ereignis-ID) für dieselbe Bestellung: keine zweite E-Mail
+    await deliver("checkout.session.expired", evt);
+    expect(reminders(to, before)).toHaveLength(1);
+  });
+
+  it("englische Bestellung: englische Erinnerung mit /en-Link", async () => {
+    const to = `${uniq("reminder")}@example.ch`;
+    const { order } = await pendingOrder(10000, { email: to, locale: "en", remind: true });
+    const before = resend.sent.length;
+    await deliver(
+      "checkout.session.expired",
+      session(order.order_id, { payment_status: "unpaid" }),
+    );
+    const mails = reminders(to, before);
+    expect(mails).toHaveLength(1);
+    expect(mails[0]!.subject).toBe("Your basket is waiting for you");
+    expect(mails[0]!.text).toContain(
+      `https://shop.test/en/warenkorb/wiederherstellen/${order.status_token}`,
+    );
+  });
+
+  it("ohne Einwilligung: Stornierung ja, E-Mail nein", async () => {
+    const to = `${uniq("keine")}@example.ch`;
+    const { product, order } = await pendingOrder(10000, { email: to });
+    const before = resend.sent.length;
+    await deliver(
+      "checkout.session.expired",
+      session(order.order_id, { payment_status: "unpaid" }),
+    );
+    expect(reminders(to, before)).toHaveLength(0);
+    expect(await stockOf(product.variants[0]!.id)).toBe(2);
+    expect(await sentAt(order.order_id)).toBeNull();
+  });
+
+  it("selbst zurückgekehrt (customer_cancelled) oder Zahlung fehlgeschlagen: keine Erinnerung", async () => {
+    const to = `${uniq("zurueck")}@example.ch`;
+    const a = await pendingOrder(10000, { email: to, remind: true });
+    await rpc("cancel_checkout_by_token", [a.order.status_token]);
+    const b = await pendingOrder(10000, { email: to, remind: true });
+    const before = resend.sent.length;
+    await deliver(
+      "checkout.session.expired",
+      session(a.order.order_id, { payment_status: "unpaid" }),
+    );
+    await deliver(
+      "checkout.session.async_payment_failed",
+      session(b.order.order_id, { payment_status: "unpaid" }),
+    );
+    expect(reminders(to, before)).toHaveLength(0);
+  });
+
+  it("nicht, wenn die Person danach bestellt hat", async () => {
+    const to = `${uniq("danach")}@example.ch`;
+    const first = await pendingOrder(10000, { email: to, remind: true });
+    const second = await pendingOrder(10000, { email: to });
+    await deliver(
+      "checkout.session.completed",
+      session(second.order.order_id, { customer_details: { email: to, name: "A" } }),
+    );
+    const before = resend.sent.length;
+    await deliver(
+      "checkout.session.expired",
+      session(first.order.order_id, { payment_status: "unpaid" }),
+    );
+    expect(reminders(to, before)).toHaveLength(0);
+  });
+
+  it("E-Mail-Fehler bricht die Stornierung nicht ab; ein späteres Ereignis holt die Erinnerung nach, ohne Doppelversand", async () => {
+    const to = `${uniq("fehler")}@example.ch`;
+    const { product, order } = await pendingOrder(10000, { email: to, remind: true });
+    const before = resend.sent.length;
+    const evt = session(order.order_id, { payment_status: "unpaid" });
+    resend.failNext();
+    expect((await deliver("checkout.session.expired", evt)).status).toBe(200);
+    expect(await stockOf(product.variants[0]!.id)).toBe(2);
+    expect(await sentAt(order.order_id)).toBeNull();
+    expect(reminders(to, before)).toHaveLength(0);
+    await deliver("checkout.session.expired", evt);
+    expect(reminders(to, before)).toHaveLength(1);
+    await deliver("checkout.session.expired", evt);
+    expect(reminders(to, before)).toHaveLength(1);
+  });
+});
+
+describe("stripe-webhook: Rückerstattungs-E-Mail", () => {
+  const charge = (pi: unknown, amount: number) => ({
+    id: uniq("ch"),
+    object: "charge",
+    payment_intent: pi,
+    amount_refunded: amount,
+  });
+  const refundMails = (to: string, from: number) =>
+    resend.sent
+      .slice(from)
+      .filter(
+        (m: { to: string[]; subject: string }) =>
+          m.to[0] === to && /Rückerstattung|refund/i.test(m.subject),
+      );
+
+  async function paid(email: string, locale?: "de" | "en") {
+    const { order } = await pendingOrder(10000, { email, ...(locale ? { locale } : {}) });
+    const s = session(order.order_id, { customer_details: { email, name: "A" } });
+    await deliver("checkout.session.completed", s);
+    return { order, pi: s.payment_intent as string };
+  }
+
+  it("Teilrückerstattung, dann Rest: je eine E-Mail mit dem jeweiligen Betrag; Wiederholungen senden nichts", async () => {
+    const to = `${uniq("teil")}@example.ch`;
+    const { order, pi } = await paid(to);
+    const before = resend.sent.length;
+    const partial = charge(pi, 4000);
+    const evtId = uniq("evt");
+    expect((await deliver("charge.refunded", partial, evtId)).status).toBe(200);
+    let mails = refundMails(to, before);
+    expect(mails).toHaveLength(1);
+    expect(mails[0]!.subject).toBe(`Deine Rückerstattung zur Bestellung AX-${order.order_number}`);
+    expect(mails[0]!.text).toMatch(/einen Teil/);
+    expect(mails[0]!.text).toMatch(/CHF.40\.00/);
+    expect(mails[0]!.text).toMatch(/ein paar Tage/);
+    expect(mails[0]!.idempotencyKey).toBe(`order-${order.order_id}-refund-4000`);
+
+    // Stripe wiederholt dasselbe Ereignis, und ein anderes Ereignis meldet denselben Stand
+    await deliver("charge.refunded", partial, evtId);
+    await deliver("charge.refunded", charge(pi, 4000));
+    expect(refundMails(to, before)).toHaveLength(1);
+
+    await deliver("charge.refunded", charge(pi, 10000));
+    mails = refundMails(to, before);
+    expect(mails).toHaveLength(2);
+    expect(mails[1]!.text).toMatch(/vollständig/);
+    expect(mails[1]!.text).toMatch(/CHF.60\.00/);
+    expect(mails[1]!.text).toMatch(/Insgesamt zurückerstattet: CHF.100\.00/);
+    expect(mails[1]!.text).toMatch(/storniert/);
+    expect(mails[1]!.idempotencyKey).toBe(`order-${order.order_id}-refund-10000`);
+  });
+
+  it("Vollrückerstattung auf Englisch", async () => {
+    const to = `${uniq("full")}@example.ch`;
+    const { order, pi } = await paid(to, "en");
+    const before = resend.sent.length;
+    await deliver("charge.refunded", charge(pi, 10000));
+    const mails = refundMails(to, before);
+    expect(mails).toHaveLength(1);
+    expect(mails[0]!.subject).toBe(`Your refund for order AX-${order.order_number}`);
+    expect(mails[0]!.text).toMatch(/in full/);
+    expect(mails[0]!.text).toMatch(/few days/);
+  });
+
+  it("E-Mail-Fehler: 500, Stripe wiederholt, dann genau eine E-Mail", async () => {
+    const to = `${uniq("rfehler")}@example.ch`;
+    const { pi } = await paid(to);
+    const before = resend.sent.length;
+    const evt = charge(pi, 2500);
+    const evtId = uniq("evt");
+    resend.failNext();
+    expect((await deliver("charge.refunded", evt, evtId)).status).toBe(500);
+    expect((await deliver("charge.refunded", evt, evtId)).status).toBe(200);
+    expect(refundMails(to, before)).toHaveLength(1);
+    await deliver("charge.refunded", evt, evtId);
+    expect(refundMails(to, before)).toHaveLength(1);
+  });
+
+  it("unbekannte Zahlung: nichts zu senden", async () => {
+    const before = resend.sent.length;
+    expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(200);
+    expect(resend.sent.length).toBe(before);
   });
 });
