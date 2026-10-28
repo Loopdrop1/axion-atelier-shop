@@ -13,6 +13,7 @@ import {
   refundNotice,
   securityNotice,
   shippingConfirmation,
+  lowStockAlert,
   shopNotification,
   trackingUrl,
   type AuthKind,
@@ -399,5 +400,28 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(en.text).toContain(
       "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
     );
+  });
+});
+
+describe("lowStockAlert", () => {
+  it("nennt Produkt, Grösse und Restbestand, Null als ausverkauft, escaped HTML", () => {
+    const mail = lowStockAlert(
+      {
+        orderNumber: 7,
+        threshold: 2,
+        items: [
+          { title: "Anzug <b>", color: "Navy", size: "50", stock: 1 },
+          { title: "Gürtel", color: null, size: "One Size", stock: 0 },
+        ],
+      },
+      shop,
+    );
+    expect(mail.subject).toBe("Bestand knapp: 2 Artikel, davon 1 ausverkauft");
+    expect(mail.text).toContain("Anzug <b>, Navy, Grösse 50: noch 1");
+    expect(mail.text).toContain("Gürtel, Einheitsgrösse: ausverkauft");
+    expect(mail.text).toContain("AX-7");
+    expect(mail.text).toContain("https://shop.test/admin/produkte");
+    expect(mail.html).toContain("Anzug &lt;b&gt;");
+    expect(mail.html).not.toContain("Anzug <b>");
   });
 });

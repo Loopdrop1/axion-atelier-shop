@@ -1,6 +1,6 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDeps } from "../_shared/deps.ts";
 import { readEnv } from "../_shared/env.ts";
 import { createUser, pool, sql, uniq, type TestUser } from "../../tests/helpers.ts";
@@ -13,6 +13,7 @@ import {
   startFakeResend,
   startFakeSupabase,
 } from "../../tests/fakes/servers.ts";
+import { resetPostTokenCache } from "../_shared/swiss-post.ts";
 import { createAdminActionsHandler } from "./handler.ts";
 
 let supa: Awaited<ReturnType<typeof startFakeSupabase>>;
@@ -731,5 +732,186 @@ describe("admin-actions: refund", () => {
     expect(res.status).toBe(httpStatus);
     expect(await res.json()).toEqual({ error: expected });
     expect(await refundedCents(r.order_id)).toBe(0);
+  });
+});
+
+describe("admin-actions: Post-Etikett (Fake, nicht gegen die echte Post-API getestet)", () => {
+  const POST_ENV = {
+    POST_CLIENT_ID: "post-id-geheim",
+    POST_CLIENT_SECRET: "post-secret-geheim",
+    POST_FRANKING_LICENSE: "60999999",
+    SHOP_NAME: "Axion",
+    SHOP_ADDRESS: "Musterstrasse 1, 8000 Zürich",
+  };
+  let requests: { url: string; body: string }[] = [];
+  let labelReply: () => Response;
+
+  function postHandler(env: Record<string, string> = POST_ENV) {
+    const deps = createDeps(
+      readEnv(
+        (k) =>
+          ({
+            SUPABASE_URL: supa.url,
+            SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
+            SUPABASE_ANON_KEY: ANON_KEY,
+            SITE_URL: "https://shop.test",
+            ...env,
+          })[k],
+      ),
+    );
+    deps.post = {
+      ...deps.post,
+      sleep: async () => undefined,
+      fetchImpl: (async (url: string, init: RequestInit) => {
+        requests.push({ url, body: String(init.body) });
+        if (url.includes("/OAuth/token"))
+          return new Response(JSON.stringify({ access_token: "tok", expires_in: 3600 }));
+        return labelReply();
+      }) as typeof fetch,
+    };
+    return createAdminActionsHandler(deps);
+  }
+
+  const call = (h: (req: Request) => Promise<Response>, body: unknown, user = admin) =>
+    h(
+      new Request("https://fn.test/admin-actions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://shop.test",
+          authorization: `Bearer ${fakeJwt({ sub: user.id, email: user.email })}`,
+        },
+        body: JSON.stringify(body),
+      }),
+    );
+
+  beforeEach(() => {
+    requests = [];
+    resetPostTokenCache();
+    labelReply = () =>
+      new Response(
+        JSON.stringify({
+          item: { identCode: "99.60.123456.12345678", label: ["UERGLUV0aWtldHQ="] },
+        }),
+      );
+  });
+
+  it("liefert identCode und PDF, schickt die Lieferadresse der Bestellung und markiert nichts als versendet", async () => {
+    const r = await paidOrder();
+    const res = await call(postHandler(), { action: "post_label", orderId: r.order_id });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      identCode: "99.60.123456.12345678",
+      labelPdfBase64: "UERGLUV0aWtldHQ=",
+      warnings: [],
+    });
+    const sent = JSON.parse(requests.find((q) => q.url.includes("generateAddressLabel"))!.body);
+    expect(sent).toMatchObject({
+      frankingLicense: "60999999",
+      customer: { name1: "Axion", street: "Musterstrasse 1", zip: "8000", city: "Zürich" },
+      item: {
+        itemID: `AX-${r.order_number}`,
+        recipient: { name1: "Max Muster", street: "Dorfstrasse 2", zip: "8498", city: "Gibswil" },
+        attributes: { przl: ["ECO"] },
+      },
+    });
+    const row = await sql<{ status: string; tracking_number: string | null }>(
+      "select status, tracking_number from public.orders where id = $1",
+      [r.order_id],
+    );
+    expect(row[0]).toEqual({ status: "paid", tracking_number: null });
+  });
+
+  it("ohne Secrets: 409 POST_NOT_CONFIGURED, kein Aufruf bei der Post", async () => {
+    const r = await paidOrder();
+    const res = await call(postHandler({ SITE_URL: "https://shop.test" }), {
+      action: "post_label",
+      orderId: r.order_id,
+    });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "POST_NOT_CONFIGURED" });
+    expect(requests).toHaveLength(0);
+  });
+
+  it("nur bezahlte, noch nicht versendete Bestellungen; nur Schweiz und Liechtenstein", async () => {
+    const h = postHandler();
+    const pending = await reserve({
+      lines: [
+        {
+          variant_id: (await makeProduct({ priceCents: 1000, stocks: [2] })).variants[0]!.id,
+          quantity: 1,
+        },
+      ],
+      email: "offen@example.ch",
+    });
+    expect((await call(h, { action: "post_label", orderId: pending.order_id })).status).toBe(409);
+    const shipped = await paidOrder();
+    await post({
+      action: "ship",
+      orderId: shipped.order_id,
+      trackingNumber: "99.00.123456",
+      notify: false,
+    });
+    expect(
+      await (await call(h, { action: "post_label", orderId: shipped.order_id })).json(),
+    ).toEqual({
+      error: "ORDER_NOT_PAID",
+    });
+    const abroad = await paidOrder();
+    await sql(
+      "update public.orders set shipping_address = jsonb_set(shipping_address, '{country}', '\"DE\"') where id = $1",
+      [abroad.order_id],
+    );
+    const res = await call(h, { action: "post_label", orderId: abroad.order_id });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "POST_NOT_DOMESTIC" });
+    expect((await call(h, { action: "post_label", orderId: "kaputt" })).status).toBe(400);
+    expect(requests).toHaveLength(0);
+  });
+
+  it("Fehler der Post werden zu klaren Codes, ohne Texte der Post oder Secrets", async () => {
+    labelReply = () =>
+      new Response(
+        JSON.stringify({ errors: [{ code: "E0042", message: "recipient zip invalid: 8498" }] }),
+        {
+          status: 400,
+        },
+      );
+    const r = await paidOrder();
+    const res = await call(postHandler(), { action: "post_label", orderId: r.order_id });
+    expect(res.status).toBe(422);
+    const text = await res.text();
+    expect(JSON.parse(text)).toEqual({ error: "POST_ADDRESS_INVALID" });
+    expect(text).not.toContain("geheim");
+    labelReply = () => new Response("", { status: 503 });
+    expect((await call(postHandler(), { action: "post_label", orderId: r.order_id })).status).toBe(
+      503,
+    );
+  });
+
+  it("Absender nicht lesbar (SHOP_ADDRESS fehlt): 409 POST_SENDER_INVALID", async () => {
+    const r = await paidOrder();
+    const res = await call(postHandler({ ...POST_ENV, SHOP_ADDRESS: "" }), {
+      action: "post_label",
+      orderId: r.order_id,
+    });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "POST_SENDER_INVALID" });
+  });
+
+  it("nur Admins", async () => {
+    const r = await paidOrder();
+    expect(
+      (await call(postHandler(), { action: "post_label", orderId: r.order_id }, customer)).status,
+    ).toBe(403);
+  });
+
+  it("system_status meldet nur ein Boolean «swissPost», nie einen Wert", async () => {
+    const on = await (await call(postHandler(), { action: "system_status" })).text();
+    expect(JSON.parse(on).swissPost).toBe(true);
+    for (const v of ["post-id-geheim", "post-secret-geheim", "60999999"])
+      expect(on).not.toContain(v);
+    const partial = await call(postHandler({ POST_CLIENT_ID: "x" }), { action: "system_status" });
+    expect((await partial.json()).swissPost).toBe(false);
   });
 });

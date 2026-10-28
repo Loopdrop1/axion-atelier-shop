@@ -22,6 +22,13 @@ import {
 } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
+import {
+  createPostLabel,
+  isPostConfigured,
+  parseSender,
+  PostError,
+  type PostErrorCode,
+} from "../_shared/swiss-post.ts";
 import { COPY_LIMITS, draftProductCopy } from "../_shared/copywrite.ts";
 import { TRANSLATE_LIMITS, TranslateError, translateToEnglish } from "../_shared/translate.ts";
 
@@ -178,6 +185,47 @@ async function translate(
     if (error.code === "UNAVAILABLE") throw new HttpError(503, "TRANSLATION_UNAVAILABLE");
     if (error.code === "RATE_LIMITED") throw new HttpError(429, "RATE_LIMITED");
     throw new HttpError(502, "TRANSLATION_FAILED");
+  }
+}
+
+const POST_STATUS: Record<PostErrorCode, number> = {
+  POST_NOT_CONFIGURED: 409,
+  POST_SENDER_INVALID: 409,
+  POST_ADDRESS_INVALID: 422,
+  POST_AUTH_FAILED: 502,
+  POST_LICENSE_INVALID: 502,
+  POST_RATE_LIMITED: 503,
+  POST_UNAVAILABLE: 503,
+  POST_REJECTED: 502,
+  POST_BAD_RESPONSE: 502,
+};
+
+/** Post-Etikett (Digital Commerce API «Barcode») für eine bezahlte, noch nicht versendete Bestellung in die Schweiz
+ *  oder nach Liechtenstein. Markiert NICHT als versendet: Das Admin trägt die Sendungsnummer (identCode) in
+ *  «Versenden» ein und löst dort die Versandmeldung aus. Noch nicht gegen die echte API getestet (swiss-post.ts). */
+async function postLabel(deps: Deps, body: Record<string, unknown>): Promise<Response> {
+  if (!isPostConfigured(deps.post)) throw new HttpError(409, "POST_NOT_CONFIGURED");
+  const order = await loadOrder(deps, uuid(body["orderId"]));
+  if (order.kind !== "cart" || order.status !== "paid") throw new HttpError(409, "ORDER_NOT_PAID");
+  const country = order.shipping_address?.country?.toUpperCase();
+  if (country !== "CH" && country !== "LI") throw new HttpError(409, "POST_NOT_DOMESTIC");
+  try {
+    const sender = parseSender(deps.env.shopName, deps.env.shopAddress);
+    const label = await createPostLabel(
+      deps.post,
+      order as OrderRecord & { phone?: string | null },
+      sender,
+    );
+    return json(200, {
+      identCode: label.identCode,
+      labelPdfBase64: label.labelPdfBase64,
+      warnings: label.warnings,
+    });
+  } catch (error) {
+    if (!(error instanceof PostError)) throw error;
+    // Nur die Codes der Post ins Log, nie Adresse oder Etikett
+    console.error("Post-Etikett fehlgeschlagen", error.code, error.detail.join(","));
+    throw new HttpError(POST_STATUS[error.code], error.code);
   }
 }
 
@@ -366,9 +414,12 @@ function systemStatus(deps: Deps): Response {
     SHOP_VAT_RATE: env.vatRate !== null,
     STRIPE_REQUIRE_TERMS: env.stripeRequireTerms,
   };
+  // Optional: Post-Etiketten (POST_CLIENT_ID, POST_CLIENT_SECRET, POST_FRANKING_LICENSE), nur Ja/Nein
+  const swissPost = isPostConfigured(deps.post);
   return json(200, {
     required,
     optional,
+    swissPost,
     stripeMode: stripeMode(env.stripeSecretKey),
     emailFromIsOnboarding: /onboarding@resend\.dev/i.test(env.emailFrom),
     // ALLOW_PREVIEW_ORIGINS muss vor dem Livegang weg
@@ -399,6 +450,8 @@ export function createAdminActionsHandler(deps: Deps) {
         return refund(deps, admin.id, body);
       case "draft_copy":
         return draftCopy(deps, admin.id, body);
+      case "post_label":
+        return postLabel(deps, body);
       case "system_status":
         return systemStatus(deps);
       default:

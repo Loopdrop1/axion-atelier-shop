@@ -5,10 +5,12 @@ import { sendEmail } from "./email/send.ts";
 import {
   cartReminder,
   giftCardEmail,
+  lowStockAlert,
   orderConfirmation,
   refundNotice,
   shippingConfirmation,
   shopNotification,
+  type LowStockItem,
   type OrderData,
 } from "./email/templates.ts";
 
@@ -133,4 +135,38 @@ export async function sendRefundNotice(deps: Deps, paymentIntentId: string): Pro
   );
   await deps.rpc("mark_refund_notified", { p_order_id: order.id, p_cents: order.refunded_cents });
   return true;
+}
+
+/**
+ * Meldung an den Shop, wenn eine bezahlte Bestellung den Bestand einer Grösse auf die Schwelle oder darunter bringt
+ * (LOW_STOCK_THRESHOLD, Standard 2). Gemeldet werden nur Grössen, die mit dieser Bestellung die Schwelle erreicht
+ * haben (`low_stock_after_order`: Bestand jetzt <= Schwelle, Bestand + bestellte Menge > Schwelle), also nicht
+ * jede weitere Bestellung. Der Bestand wird schon beim Reservieren abgebucht; die Meldung kommt trotzdem erst bei
+ * Zahlungseingang, damit abgelaufene Kassen nichts auslösen. Ein Resend-Schlüssel pro Bestellung verhindert
+ * Doppelsendungen bei wiederholten Ereignissen. Wirft nie: Ein Fehler hier darf die Verbuchung nicht kippen.
+ * Gibt die Zahl der gemeldeten Artikel zurück.
+ */
+export async function sendLowStockAlert(deps: Deps, order: OrderData): Promise<number> {
+  try {
+    if (order.kind !== "cart") return 0;
+    const threshold = deps.env.lowStockThreshold;
+    const items = await deps.rpc<(LowStockItem | null)[]>("low_stock_after_order", {
+      p_order_id: order.id,
+      p_threshold: threshold,
+    });
+    const low = (items ?? []).filter((i): i is LowStockItem => i !== null);
+    if (low.length === 0) return 0;
+    const to = await notifyAddress(deps);
+    if (!to) return 0;
+    await sendEmail(
+      to,
+      lowStockAlert({ orderNumber: order.number, threshold, items: low }, deps.shop),
+      deps.mail,
+      `order-${order.id}-lowstock`,
+    );
+    return low.length;
+  } catch (error) {
+    console.error("Bestandsmeldung fehlgeschlagen", error instanceof Error ? error.message : error);
+    return 0;
+  }
 }

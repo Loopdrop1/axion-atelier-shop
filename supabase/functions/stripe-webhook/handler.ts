@@ -6,6 +6,7 @@ import type { Deps } from "../_shared/deps.ts";
 import { json } from "../_shared/http.ts";
 import {
   sendCartReminder,
+  sendLowStockAlert,
   sendPaidEmails,
   sendRefundNotice,
   type OrderRecord,
@@ -50,7 +51,7 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
       : (session.payment_intent?.id ?? null);
   const shipping = session.collected_information?.shipping_details ?? null;
   const address = shipping?.address ?? null;
-  const result = await deps.rpc<{ order: OrderRecord }>("complete_order", {
+  const result = await deps.rpc<{ order: OrderRecord; newly_paid?: boolean }>("complete_order", {
     p_order_id: orderId,
     p_payment: {
       session_id: session.id,
@@ -71,6 +72,9 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
         : null,
     },
   });
+  // Bestandsmeldung an den Shop nur beim ersten Verbuchen und vor den Kundenmails: Scheitert deren Versand und
+  // Stripe wiederholt, ist die Bestellung dann nicht mehr «neu». Fängt Fehler selbst ab (Verbuchung bleibt gültig).
+  if (result.newly_paid !== false) await sendLowStockAlert(deps, result.order);
   await sendPaidEmails(deps, result.order);
 }
 

@@ -89,6 +89,21 @@ export function adminErrorText(error: unknown): string {
       "Der Stripe-Schlüssel darf keine Rückerstattungen auslösen (Recht «Refunds: Schreiben» fehlt).",
     PAYMENT_PROVIDER:
       "Stripe ist gerade nicht erreichbar oder hat die Rückerstattung abgelehnt. Bitte später erneut versuchen oder im Stripe-Dashboard prüfen.",
+    POST_NOT_CONFIGURED:
+      "Post-Etiketten sind nicht eingerichtet (Secrets POST_CLIENT_ID, POST_CLIENT_SECRET, POST_FRANKING_LICENSE).",
+    POST_NOT_DOMESTIC:
+      "Post-Etiketten gibt es nur für Lieferungen in die Schweiz und nach Liechtenstein.",
+    POST_SENDER_INVALID:
+      "Die Absenderadresse (Secret SHOP_ADDRESS) muss das Format «Strasse Nr, PLZ Ort» haben.",
+    POST_ADDRESS_INVALID:
+      "Die Post hat die Lieferadresse abgelehnt oder sie ist unvollständig. Bitte die Adresse prüfen oder das Etikett von Hand erstellen.",
+    POST_AUTH_FAILED:
+      "Die Anmeldung bei der Post ist fehlgeschlagen. Bitte POST_CLIENT_ID und POST_CLIENT_SECRET prüfen.",
+    POST_LICENSE_INVALID: "Die Post hat die Frankierlizenz (POST_FRANKING_LICENSE) abgelehnt.",
+    POST_RATE_LIMITED: "Die Post bremst gerade. Bitte in einer Minute erneut versuchen.",
+    POST_UNAVAILABLE: "Die Post ist gerade nicht erreichbar. Bitte später erneut versuchen.",
+    POST_REJECTED: "Die Post hat das Etikett abgelehnt. Bitte das Etikett von Hand erstellen.",
+    POST_BAD_RESPONSE: "Die Antwort der Post war unvollständig. Bitte erneut versuchen.",
     INVALID_TRACKING: "Die Sendungsnummer ist ungültig.",
     INVALID_AMOUNT: "Der Betrag ist ungültig.",
     INVALID_EMAIL: "Die E-Mail-Adresse ist ungültig.",
@@ -247,6 +262,8 @@ export async function clearClientErrors(): Promise<void> {
 export interface SystemStatus {
   required: Record<string, boolean>;
   optional: Record<string, boolean>;
+  /** Post-Etiketten: POST_CLIENT_ID, POST_CLIENT_SECRET und POST_FRANKING_LICENSE gesetzt (optional, ungetestet) */
+  swissPost?: boolean;
   stripeMode: "test" | "live" | "unknown" | "missing";
   emailFromIsOnboarding: boolean;
   previewOriginsAllowed: boolean;
@@ -415,6 +432,14 @@ export function shipOrder(orderId: string, trackingNumber: string, notify: boole
     orderId,
     trackingNumber: trackingNumber.trim() || undefined,
     notify,
+  });
+}
+
+/** Post-Etikett (Digital Commerce API, noch ungetestet) für eine bezahlte Bestellung. Markiert nicht als versendet. */
+export function postLabel(orderId: string) {
+  return action<{ identCode: string; labelPdfBase64: string; warnings: string[] }>({
+    action: "post_label",
+    orderId,
   });
 }
 

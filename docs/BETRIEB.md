@@ -132,6 +132,21 @@ Ruhig vorgehen, zuerst feststellen, dann beheben. Notizen mit Uhrzeit führen.
 | monatlich     | Sicherung (Abschnitt 3), Uptime-Monitor kontrollieren (Testmeldung)                                               |
 | quartalsweise | Wiederherstellung üben, Pakete aktualisieren (`docs/DEPLOYMENT.md`, Abschnitt 10), Zugänge im Admin prüfen        |
 
+## 6. Post-Etiketten und Bestandsmeldung
+
+**Post-Etiketten (optional, noch nicht mit der echten Post getestet).** Admin → Bestellung → «Versenden» → «Etikett (Post) erstellen»
+lädt das A6-Etikett als PDF (Digital Commerce API «Barcode») und trägt die Sendungsnummer ein; erst «Als versendet markieren»
+informiert die Kundschaft. Voraussetzung: Geschäftskundenkonto bei der Post, API-Zugang und Frankierlizenz, Secrets
+`POST_CLIENT_ID`, `POST_CLIENT_SECRET`, `POST_FRANKING_LICENSE` (siehe `supabase/functions/README.md`). Jeder Klick erzeugt ein
+neues Etikett (kostenpflichtig). Erster Einsatz: mit einer Testbestellung nach Zürich prüfen, ob Adresse, Absender und Produkt
+(B-Post `ECO` / A-Post `PRI`) auf dem Etikett stimmen. Fehlermeldungen im Admin nennen die Ursache (Anmeldung, Lizenz, Adresse,
+Post nicht erreichbar); technische Codes der Post stehen im Funktionsprotokoll von `admin-actions` (nie Adresse oder Etikett).
+Geht es nicht, das Etikett wie bisher bei der Post erstellen und die Nummer von Hand eintragen.
+
+**Bestandsmeldung.** Fällt der Bestand einer Grösse mit einer bezahlten Bestellung auf `LOW_STOCK_THRESHOLD` (Standard 2) oder
+darunter, kommt eine E-Mail «Bestand knapp: …» bzw. «Ausverkauft: …» an die Bestelladresse (Admin → Einstellungen,
+sonst `SHOP_NOTIFY_EMAIL`). Pro Bestellung eine Meldung, nur für Grössen, die die Schwelle neu erreicht haben.
+
 ## Marketing-Anbindungen
 
 Produktfeed (`/feeds/google.xml`), Search Console, Bing und Plausible: Einrichtung Schritt für Schritt in

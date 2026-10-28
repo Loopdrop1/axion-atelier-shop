@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.client-error]
 verify_jwt = false
+
+[functions.return-request]
+verify_jwt = false

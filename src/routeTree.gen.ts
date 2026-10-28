@@ -39,6 +39,7 @@ import { Route as Char123LocaleChar125ImpressumRouteImport } from './routes/{-$l
 import { Route as Char123LocaleChar125KontaktRouteImport } from './routes/{-$locale}/kontakt'
 import { Route as Char123LocaleChar125KontoRouteImport } from './routes/{-$locale}/konto'
 import { Route as Char123LocaleChar125MerklisteRouteImport } from './routes/{-$locale}/merkliste'
+import { Route as Char123LocaleChar125RetoureRouteImport } from './routes/{-$locale}/retoure'
 import { Route as Char123LocaleChar125SucheRouteImport } from './routes/{-$locale}/suche'
 import { Route as Char123LocaleChar125UeberUnsRouteImport } from './routes/{-$locale}/ueber-uns'
 import { Route as Char123LocaleChar125VersandUndRueckgabeRouteImport } from './routes/{-$locale}/versand-und-rueckgabe'
@@ -226,6 +227,12 @@ const Char123LocaleChar125MerklisteRoute =
     path: '/merkliste',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
+const Char123LocaleChar125RetoureRoute =
+  Char123LocaleChar125RetoureRouteImport.update({
+    id: '/retoure',
+    path: '/retoure',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 const Char123LocaleChar125SucheRoute =
   Char123LocaleChar125SucheRouteImport.update({
     id: '/suche',
@@ -402,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -456,6 +464,7 @@ export interface FileRoutesByTo {
   '/{-$locale}/impressum': typeof Char123LocaleChar125ImpressumRoute
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -514,6 +523,7 @@ export interface FileRoutesById {
   '/{-$locale}/kontakt': typeof Char123LocaleChar125KontaktRoute
   '/{-$locale}/konto': typeof Char123LocaleChar125KontoRouteWithChildren
   '/{-$locale}/merkliste': typeof Char123LocaleChar125MerklisteRoute
+  '/{-$locale}/retoure': typeof Char123LocaleChar125RetoureRoute
   '/{-$locale}/suche': typeof Char123LocaleChar125SucheRoute
   '/{-$locale}/ueber-uns': typeof Char123LocaleChar125UeberUnsRoute
   '/{-$locale}/versand-und-rueckgabe': typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -573,6 +583,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/kontakt'
     | '/{-$locale}/konto'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -627,6 +638,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/impressum'
     | '/{-$locale}/kontakt'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -684,6 +696,7 @@ export interface FileRouteTypes {
     | '/{-$locale}/kontakt'
     | '/{-$locale}/konto'
     | '/{-$locale}/merkliste'
+    | '/{-$locale}/retoure'
     | '/{-$locale}/suche'
     | '/{-$locale}/ueber-uns'
     | '/{-$locale}/versand-und-rueckgabe'
@@ -934,6 +947,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125MerklisteRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
     }
+    '/{-$locale}/retoure': {
+      id: '/{-$locale}/retoure'
+      path: '/retoure'
+      fullPath: '/{-$locale}/retoure'
+      preLoaderRoute: typeof Char123LocaleChar125RetoureRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
     '/{-$locale}/suche': {
       id: '/{-$locale}/suche'
       path: '/suche'
@@ -1157,6 +1177,7 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125KontaktRoute: typeof Char123LocaleChar125KontaktRoute
   Char123LocaleChar125KontoRoute: typeof Char123LocaleChar125KontoRouteWithChildren
   Char123LocaleChar125MerklisteRoute: typeof Char123LocaleChar125MerklisteRoute
+  Char123LocaleChar125RetoureRoute: typeof Char123LocaleChar125RetoureRoute
   Char123LocaleChar125SucheRoute: typeof Char123LocaleChar125SucheRoute
   Char123LocaleChar125UeberUnsRoute: typeof Char123LocaleChar125UeberUnsRoute
   Char123LocaleChar125VersandUndRueckgabeRoute: typeof Char123LocaleChar125VersandUndRueckgabeRoute
@@ -1188,6 +1209,7 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
     Char123LocaleChar125KontaktRoute: Char123LocaleChar125KontaktRoute,
     Char123LocaleChar125KontoRoute: Char123LocaleChar125KontoRouteWithChildren,
     Char123LocaleChar125MerklisteRoute: Char123LocaleChar125MerklisteRoute,
+    Char123LocaleChar125RetoureRoute: Char123LocaleChar125RetoureRoute,
     Char123LocaleChar125SucheRoute: Char123LocaleChar125SucheRoute,
     Char123LocaleChar125UeberUnsRoute: Char123LocaleChar125UeberUnsRoute,
     Char123LocaleChar125VersandUndRueckgabeRoute:

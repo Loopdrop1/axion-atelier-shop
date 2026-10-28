@@ -27,6 +27,17 @@ describe("serverChecks", () => {
   });
 });
 
+describe("Post-Etiketten", () => {
+  it("erscheint als optionale Prüfung, nur wenn der Server das Feld liefert", () => {
+    expect(serverChecks(status()).some((c) => c.id === "swiss-post")).toBe(false);
+    const off = serverChecks(status({ swissPost: false })).find((c) => c.id === "swiss-post");
+    expect(off).toMatchObject({ ok: false, optional: true });
+    expect(serverChecks(status({ swissPost: true })).find((c) => c.id === "swiss-post")?.ok).toBe(
+      true,
+    );
+  });
+});
+
 describe("Stripe-Modus", () => {
   it("beschriftet fehlenden Schlüssel und unbekannten Modus verschieden", () => {
     const label = (mode: SystemStatus["stripeMode"]) =>

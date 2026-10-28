@@ -696,6 +696,70 @@ export const de = {
     invalidPostalCode: "Bitte gib eine vierstellige PLZ ein.",
     editData: "Daten bearbeiten",
   },
+  returns: {
+    title: "Retoure anmelden",
+    metaDescription:
+      "Melde eine Rücksendung zu deiner Axion-Bestellung an: Bestellnummer und E-Mail-Adresse genügen.",
+    eyebrow: "Rückgabe",
+    intro:
+      "Gib deine Bestellnummer und die E-Mail-Adresse der Bestellung ein, wähle die Stücke und den Grund. Danach schicken wir dir per E-Mail die Hinweise zur Rücksendung.",
+    cta: "Retoure anmelden",
+    accountLink: "Retoure anmelden",
+    accountHint: (days: number) =>
+      `Rückgabe innert ${days} Tagen ab Erhalt, ungetragen und mit Etiketten.`,
+    orderNumber: "Bestellnummer",
+    orderNumberHint: "Steht in der Bestätigungs-E-Mail, zum Beispiel AX-10001.",
+    email: "E-Mail-Adresse der Bestellung",
+    lookup: "Bestellung suchen",
+    looking: "Wir suchen deine Bestellung …",
+    otherOrder: "Andere Bestellung",
+    itemsTitle: "Welche Stücke schickst du zurück?",
+    itemsHint: "Wähle die Stücke, die Menge und für jedes einen Grund.",
+    deadline: (date: string) => `Rückgabe möglich bis ${date}.`,
+    selectItem: (title: string) => `${title} zurückgeben`,
+    quantity: "Menge",
+    quantityOf: (n: number) => `von ${n}`,
+    reason: "Grund",
+    reasonPlaceholder: "Grund wählen",
+    reasons: {
+      too_small: "Zu klein",
+      too_large: "Zu gross",
+      style: "Gefällt mir nicht",
+      quality: "Qualität",
+      wrong_item: "Falsches Stück erhalten",
+      other: "Anderer Grund",
+    },
+    comment: "Kommentar (freiwillig)",
+    commentHint: "Zum Beispiel was nicht gepasst hat. Höchstens 1000 Zeichen.",
+    privacy: "Wir verwenden deine Angaben nur, um die Retoure zu bearbeiten.",
+    submit: "Retoure anmelden",
+    sending: "Wird gesendet …",
+    prefilled: "Bestellung aus deinem Konto übernommen. Bitte bestätige die E-Mail-Adresse.",
+    errors: {
+      invalidOrderNumber: "Bitte gib die Bestellnummer ein, zum Beispiel AX-10001.",
+      notFound:
+        "Zu dieser Bestellnummer und E-Mail-Adresse finden wir keine Bestellung, die zurückgegeben werden kann. Bitte prüfe beide Angaben.",
+      windowClosed: (days: number) =>
+        `Die Rückgabefrist von ${days} Tagen ist für diese Bestellung abgelaufen. Schreib uns bei Fragen über das Kontaktformular.`,
+      nothingReturnable:
+        "Für diese Bestellung ist keine Rücksendung mehr offen: Alles ist bereits angemeldet oder erstattet.",
+      itemsNotReturnable:
+        "Diese Auswahl ist nicht mehr möglich, zum Beispiel weil sie schon angemeldet wurde. Bitte suche die Bestellung neu.",
+      rateLimited: "Zu viele Anfragen. Bitte versuche es in ein paar Minuten erneut.",
+      noItem: "Bitte wähle mindestens ein Stück.",
+      noReason: "Bitte wähle für jedes Stück einen Grund.",
+      commentTooLong: "Der Kommentar ist zu lang (höchstens 1000 Zeichen).",
+    },
+    notConfigured: "Retouren können ab dem Livegang online angemeldet werden.",
+    doneTitle: "Retoure angemeldet",
+    done: (ref: string, order: string) =>
+      `Danke, deine Retoure ${ref} zur Bestellung ${order} ist angemeldet.`,
+    doneMail:
+      "Wir haben dir eine E-Mail mit den Hinweisen zur Rücksendung geschickt. Packe die Stücke ungetragen und mit Etiketten ein, lege die Bestellnummer bei und schicke das Paket an die Adresse in der E-Mail.",
+    doneMailFailed:
+      "Die Bestätigungs-E-Mail konnte nicht verschickt werden. Deine Anmeldung ist trotzdem gespeichert: Wir melden uns bei dir.",
+    another: "Weitere Retoure anmelden",
+  },
   giftCard: {
     title: "Geschenkgutschein",
     metaDescription:

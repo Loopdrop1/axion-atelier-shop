@@ -5012,6 +5012,75 @@ button.text-link {
   color: #5a5952;
 }
 
+/* Retoure anmelden (/retoure) */
+.return-form {
+  display: grid;
+  gap: 20px;
+  margin-top: 28px;
+  max-width: 640px;
+}
+.return-form > .notice {
+  margin: 0;
+}
+.return-items {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.return-item {
+  display: grid;
+  grid-template-columns: 24px 64px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+.return-item:first-of-type {
+  border-top: 1px solid var(--line);
+}
+.return-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--green);
+}
+.return-item h3 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.return-item p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.return-item-fields {
+  grid-column: 3;
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.return-item-fields .field {
+  margin: 0;
+}
+@media (max-width: 480px) {
+  .return-item-fields {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+}
+.return-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.return-cta {
+  margin-top: 32px;
+}
+
 /* Motion: Einstieg, Parallaxe, Bild-Enthüllung, Raster-Staffelung, Bildflug Karte → Produktseite.
    Alles nur ohne «weniger Bewegung»; ohne JS bzw. ohne Browser-Unterstützung bleibt der Inhalt ruhig sichtbar. */
 .hero-line {
