@@ -15,6 +15,7 @@ import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
 import { CheckoutSummary } from "./checkout-summary";
 import { FreeShippingBar } from "./free-shipping-bar";
+import { DeliveryEstimate } from "./delivery-estimate";
 import { ProductCard } from "./product-card";
 export function EmptyState({
   title,
@@ -290,6 +291,7 @@ export function CartContents({
             {t.checkout.toCheckout}
           </Button>
           <span className="checkout-note">{t.checkout.estimateNote}</span>
+          <DeliveryEstimate className="in-cart" />
           <p className="cart-trust">
             {shippingLabel(settings, locale)} · {t.home.benefits.returns(shopConfig.returnDays)}
           </p>

@@ -13,7 +13,7 @@
 - [x] German content/legal routes, size advice and launch protection
 - [x] Desktop/mobile verification and architecture notes
 - [x] Lovable Cloud connected: migrations applied, buckets and policies, edge functions deployed, e-mail sign-in configured
-- [ ] Public image buckets blocked by the workspace policy — enable public buckets (Settings → Privacy & Security), then set `product-images` and `site-media` public
+- [x] Public image buckets: `product-images` and `site-media` are public (checked in Cloud, size and MIME limits set)
 - [ ] Secrets from the client: Stripe key and webhook secret, Resend key and sender, shop notify/contact addresses and address
 - [ ] First admin account: sign up in the shop, confirm the e-mail, then grant the `admin` role
 - [ ] Products, categories and images entered through Admin (the database starts empty)

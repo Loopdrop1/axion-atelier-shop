@@ -323,6 +323,7 @@ export const de = {
     material: "Material",
     care: "Pflege",
     origin: "Herkunft",
+    materialExplain: "Was bedeutet das?",
     features: "Ausstattung",
     consultTitle: "Persönlicher Service",
     consultText: "Fragen zu Grösse, Lieferung oder Rückgabe? Wir helfen dir gerne weiter.",

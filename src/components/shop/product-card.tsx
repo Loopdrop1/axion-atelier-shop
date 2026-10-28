@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Photo } from "./primitives";
 import { useAddToCart } from "./use-add-to-cart";
 import { formatPrice, formatDiscount, discountPercent } from "@/lib/commerce/format";
+import { materialLine } from "@/lib/commerce/material-line";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { isOnSale } from "@/lib/commerce/sale";
 import { useWishlist, useShopUI } from "@/lib/commerce/stores";
@@ -39,6 +40,7 @@ export function ProductCard({
   const setCart = useShopUI((s) => s.setCart);
   const onSale = isOnSale(product);
   const single = oneSizeVariant(product);
+  const material = materialLine(product.details);
   return (
     <article className="product-card">
       <div className="product-card-image">
@@ -129,6 +131,7 @@ export function ProductCard({
         {product.color.name}
         {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
       </p>
+      {material && <p className="product-material">{material}</p>}
       <div className="price">
         {product.priceRange.min.amount < product.priceRange.max.amount
           ? t.product.from(formatPrice(product.priceRange.min, locale))

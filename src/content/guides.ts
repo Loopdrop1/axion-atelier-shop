@@ -581,4 +581,144 @@ export const guides: Record<GuideSlug, Guide> = {
       { label: "Häufige Fragen", path: "/haeufige-fragen" },
     ],
   },
+  "stoffe-und-qualitaet": {
+    intro:
+      "Hinter «Schurwolle», «Super 120’s» oder «Baumwoll-Popeline» steckt mehr, als die Etikette auf den ersten Blick verrät. Wer die wichtigsten Begriffe kennt, liest die Materialangabe eines Stücks wie eine Zutatenliste: Sie sagt, wie sich der Stoff trägt, wann er passt und wie du ihn pflegst. Dieser Ratgeber erklärt die gängigen Stoffe sachlich und ohne Versprechen, die kein Etikett halten kann.",
+    sections: [
+      {
+        heading: "Schurwolle und Merino",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Schurwolle ist Wolle von lebenden Schafen, die zum ersten Mal verarbeitet wird. Sie ist der klassische Anzugstoff, weil sie Feuchtigkeit aufnimmt und wieder abgibt, Wärme reguliert und nach dem Tragen von selbst aus der Falte fällt. Merinowolle stammt von der Merinorasse und hat besonders feine, weiche Fasern. Deshalb kratzt sie weniger und eignet sich auch für Strick auf der Haut.",
+          },
+          {
+            type: "paragraph",
+            text: "Steht auf dem Etikett nur «Wolle» oder «Schurwolle» ohne Zusatz, ist das kein Mangel. Entscheidend sind Faserfeinheit, Garn, Gewebe und Verarbeitung zusammen, nicht ein einzelner Begriff.",
+          },
+        ],
+      },
+      {
+        heading: "Super 100’s bis 150’s: was die Zahl wirklich sagt",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Die Super-Zahl beschreibt die Feinheit der Wollfaser: Je höher die Zahl, desto dünner ist die Faser im Durchschnitt. Grob gerechnet liegt Super 100’s bei etwa 18,5 und Super 150’s bei etwa 16 Mikrometern, einem Mikrometer entspricht ein Tausendstel Millimeter.",
+          },
+          {
+            type: "paragraph",
+            text: "Feinere Fasern machen den Stoff weicher und geschmeidiger, oft auch mit einem leichten Glanz. Sie sind aber nicht automatisch besser. Sehr feine Gewebe scheuern schneller durch und knittern leichter, ein etwas gröberer Stoff ist dafür oft robuster und für den täglichen Einsatz im Büro die vernünftigere Wahl. Die Zahl sagt nichts darüber, wie gut ein Stoff gewebt, ausgerüstet und verarbeitet ist. Sie ist eine Angabe zur Faser, kein Qualitätsversprechen.",
+          },
+        ],
+      },
+      {
+        heading: "Tuchgewicht und Jahreszeit",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Das Tuchgewicht, auch Grammatur genannt, wird in Gramm pro Quadratmeter angegeben. Es verrät, wie dicht und schwer ein Stoff ist. Als grobe Richtwerte, die sich je nach Messung unterscheiden, gilt:",
+          },
+          {
+            type: "bullets",
+            items: [
+              "**Leicht (unter etwa 250 g/m²):** luftig und für warme Tage gedacht, fällt weich, knittert aber schneller.",
+              "**Mittel (etwa 250 bis 320 g/m²):** der Allrounder für die meisten Monate im Jahr und für Büro und Feier gleichermassen.",
+              "**Schwer (über etwa 320 g/m²):** warm, stabil im Fall und für Herbst und Winter.",
+            ],
+          },
+          {
+            type: "paragraph",
+            text: "Ein leichter Stoff ist nicht zwingend kühler: Auch die Bindung und die Faser bestimmen, wie viel Luft durchkommt. Wer nur einen Anzug für das ganze Jahr sucht, fährt mit einem mittleren Gewicht in Marineblau oder Anthrazit am besten. Eine Auswahl findest du bei den [Anzügen](/kollektion/anzuege).",
+          },
+        ],
+      },
+      {
+        heading: "Leinen und Baumwolle",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Leinen wird aus Flachs gewonnen. Es ist luftig, nimmt Feuchtigkeit gut auf und fühlt sich bei Hitze kühl an. Es knittert, und das gehört zu seinem Charakter. Mischungen mit Wolle oder Baumwolle behalten die Frische, fallen aber ruhiger.",
+          },
+          {
+            type: "paragraph",
+            text: "Bei Baumwolle zählt vor allem die Webart, die bei [Hemden](/kollektion/hemden) den Ton angibt:",
+          },
+          {
+            type: "bullets",
+            items: [
+              "**Popeline:** dicht und glatt gewebt, leicht glänzend und fein. Der Klassiker fürs Businesshemd.",
+              "**Oxford:** gröbere Struktur mit sichtbarer Körnung, robust und etwas lässiger. Typisch für Hemden mit Button-down-Kragen.",
+              "**Twill:** diagonale Rippe, weicher Fall und weniger Knitter. Häufig bei Hosen und Hemden.",
+            ],
+          },
+        ],
+      },
+      {
+        heading: "Kaschmir",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Kaschmir ist das feine Unterhaar der Kaschmirziege. Der Stoff ist sehr weich und wärmt bei geringem Gewicht, besonders im [Strick](/kollektion/strick). Er ist aber empfindlicher gegen Abrieb und bildet an stark beanspruchten Stellen leichter Knötchen. Mischungen mit einem Anteil Kaschmir geben Wolle zusätzliche Weichheit und bleiben dabei strapazierfähiger als reines Kaschmir. Behandle Kaschmir schonend, trage ihn nicht jeden Tag und lass ihn zwischen den Einsätzen ruhen.",
+          },
+        ],
+      },
+      {
+        heading: "Futter: ganz, halb oder ungefüttert",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Das Futter im Inneren eines Sakkos beeinflusst Tragekomfort und Fall. Ein vollständig gefüttertes Sakko gleitet leicht über das Hemd, hält die Form und wärmt etwas mehr. Bei halb gefütterten Sakkos deckt das Futter nur einen Teil des Rückens ab, das Sakko wird leichter und luftiger. Ungefütterte Modelle sind am leichtesten, haben aber weniger Struktur.",
+          },
+          {
+            type: "paragraph",
+            text: "Als Futtermaterial begegnen dir oft Cupro und Viskose. Beide werden aus Zellulose gewonnen und gelten als angenehm atmungsaktiv.",
+          },
+        ],
+      },
+      {
+        heading: "Pflege nach Stoff",
+        blocks: [
+          {
+            type: "paragraph",
+            text: "Wolle lüftest und bürstest du, Leinen und Baumwolle lassen sich je nach Etikett einfacher waschen, Kaschmir braucht besondere Rücksicht. Die Pflegesymbole auf dem Etikett und die Angaben bei den Produktdetails gehen immer vor. Die Handgriffe für Anzüge findest du im Ratgeber [Anzug pflegen](/ratgeber/anzug-pflegen), weitere Antworten unter [Häufige Fragen](/haeufige-fragen).",
+          },
+        ],
+      },
+    ],
+    summary: [
+      "Die Super-Zahl beschreibt die Faserfeinheit der Wolle, nicht die Qualität des fertigen Stoffs.",
+      "Das Tuchgewicht bestimmt die Jahreszeit: leicht für Wärme, mittel fürs ganze Jahr, schwer für den Winter.",
+      "Leinen knittert von Natur aus, Popeline ist glatt, Oxford robust, Twill weich fallend.",
+      "Kaschmir ist weich und empfindlich; Mischungen mit Wolle sind strapazierfähiger.",
+      "Halb gefütterte Sakkos sind leichter und luftiger als voll gefütterte.",
+    ],
+    faq: [
+      {
+        question: "Ist Super 150’s besser als Super 110’s?",
+        answer:
+          "Nicht automatisch. Die Zahl sagt, wie fein die Wollfaser ist. Feinere Stoffe fühlen sich weicher an, sind aber oft empfindlicher. Für den Alltag zählt auch, wie der Stoff gewebt und verarbeitet ist.",
+      },
+      {
+        question: "Welches Tuchgewicht passt für ein ganzes Jahr?",
+        answer:
+          "Ein mittleres Gewicht von ungefähr 250 bis 320 Gramm pro Quadratmeter ist der übliche Kompromiss. Es ist im Sommer nicht zu warm und im Winter mit einem Mantel gut tragbar.",
+      },
+      {
+        question: "Was ist der Unterschied zwischen Popeline und Oxford?",
+        answer:
+          "Popeline ist dicht, glatt und fein, Oxford hat eine gröbere, sichtbare Struktur und wirkt lässiger. Beide bestehen aus Baumwolle, nur die Webart unterscheidet sich.",
+      },
+      {
+        question: "Warum bildet Kaschmir Knötchen?",
+        answer:
+          "Die feinen, kurzen Fasern verhaken sich an Reibungsstellen und bilden kleine Knötchen. Das ist normal. Mit einem Kamm für Strick lassen sie sich vorsichtig entfernen.",
+      },
+    ],
+    related: [
+      { label: "Anzüge", path: "/kollektion/anzuege" },
+      { label: "Hemden", path: "/kollektion/hemden" },
+      { label: "Strick", path: "/kollektion/strick" },
+      { label: "Anzug pflegen", path: "/ratgeber/anzug-pflegen" },
+    ],
+  },
 };

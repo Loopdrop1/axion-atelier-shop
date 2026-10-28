@@ -141,6 +141,8 @@ test("Startseite: Look direkt kaufen – Grössen wählen, ganzer Look oder nur 
   await expect(drawer.getByRole("heading", { name: "Dein Warenkorb" })).toBeVisible();
   await expect(drawer.locator(".cart-line")).toHaveCount(3);
   expect(await cartLines(page)).toEqual(chosen.map((variantId) => ({ variantId, quantity: 1 })));
+  // Escape erst, wenn der Fokus im Warenkorb liegt (unter Last setzt Radix ihn erst nach der Einblendung)
+  await expect(drawer.locator(":focus")).toHaveCount(1);
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
 

@@ -17,6 +17,8 @@ import { getProductsByHandles, type Product } from "@/lib/commerce";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
+import { materialLine } from "@/lib/commerce/material-line";
+import { DeliveryEstimate } from "./delivery-estimate";
 import { Panel } from "./panel";
 import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
@@ -136,14 +138,16 @@ export function ProductPage({
   const soldOutSingle = !!onlyVariant && !onlyVariant.availableForSale;
   const fitNote =
     product.details.fit && product.details.fit !== product.fit ? product.details.fit : "";
+  const headline = materialLine(product.details);
   const facts = [
     {
       label: t.product.fit,
       value: [product.fit ? fitLabel(product.fit) : "", fitNote].filter(Boolean).join(". "),
+      explain: false,
     },
-    { label: t.product.material, value: product.details.material ?? "" },
-    { label: t.product.origin, value: product.details.origin ?? "" },
-    { label: t.product.care, value: product.details.care ?? "" },
+    { label: t.product.material, value: product.details.material ?? "", explain: true },
+    { label: t.product.origin, value: product.details.origin ?? "", explain: false },
+    { label: t.product.care, value: product.details.care ?? "", explain: false },
   ].filter((f) => f.value.trim());
   const addSelected = () => {
     const variant = product.variants.find((v) => v.title === size && v.availableForSale);
@@ -213,6 +217,7 @@ export function ProductPage({
                 {product.color.name}
                 {product.fit ? ` · ${fitLabel(product.fit)}` : ""}
               </p>
+              {headline && <p className="product-material-line">{headline}</p>}
               {sample && <p className="sample-notice">{t.product.sampleNotice}</p>}
             </div>
             <div className="product-details">
@@ -225,7 +230,21 @@ export function ProductPage({
                   {facts.map((f) => (
                     <div key={f.label}>
                       <dt>{f.label}</dt>
-                      <dd>{f.value}</dd>
+                      <dd>
+                        {f.value}
+                        {f.explain && (
+                          <>
+                            {" "}
+                            <Link
+                              className="fact-link"
+                              to="/{-$locale}/ratgeber/$slug"
+                              params={{ locale: lp, slug: "stoffe-und-qualitaet" }}
+                            >
+                              {t.product.materialExplain}
+                            </Link>
+                          </>
+                        )}
+                      </dd>
                     </div>
                   ))}
                 </dl>
@@ -335,6 +354,8 @@ export function ProductPage({
             <ShareButton title={product.title} />
             <StockAlertForm product={product} />
             <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
+            {/* Nur mit lieferbarer Grösse; Platzhalter gleicher Höhe, bis das Datum im Browser berechnet ist */}
+            {product.variants.some((v) => v.availableForSale) && <DeliveryEstimate />}
             <p className="trust-line">
               {t.home.benefits.returns(shopConfig.returnDays)} ·{" "}
               <Link to="/{-$locale}/versand-und-rueckgabe" params={{ locale: lp }}>

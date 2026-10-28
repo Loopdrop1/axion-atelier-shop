@@ -20,6 +20,7 @@ import { DEFAULT_SETTINGS, estimateTotals } from "@/lib/commerce/source";
 import { useCart } from "@/lib/commerce/stores";
 import { useSession } from "@/lib/account/session";
 import { FreeShippingBar } from "./free-shipping-bar";
+import { DeliveryEstimate } from "./delivery-estimate";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -361,6 +362,7 @@ export function CheckoutSummary({
           row(t.checkout.giftCard, `−${formatCents(totals.giftCardCents, locale)}`)}
         {row(t.checkout.total, formatCents(totals.totalCents, locale), "checkout-total")}
       </div>
+      <DeliveryEstimate className="in-checkout" />
       {totals.totalCents === 0 && <p className="form-notice">{t.checkout.giftCardCoversAll}</p>}
       {backendConfigured && (
         <div className="checkout-email">

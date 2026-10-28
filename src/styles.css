@@ -5723,3 +5723,75 @@ button.search-chip:hover {
   font-size: 1.1rem;
   margin: 0 0 14px;
 }
+
+/* Lieferschätzung: Platz wird vorab reserviert, das Datum erscheint erst im Browser (kein Layoutsprung) */
+.delivery-estimate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  margin: 0 0 14px;
+  font-size: var(--fs-small);
+  color: var(--ink);
+}
+.delivery-estimate svg {
+  flex: none;
+  color: var(--gold);
+}
+.delivery-note:has(+ .delivery-estimate) {
+  margin-bottom: 8px;
+}
+.delivery-estimate + .trust-line {
+  margin-top: 0;
+}
+.delivery-estimate.in-cart {
+  margin: 8px 0 0;
+  font-size: 12px;
+  min-height: 20px;
+  justify-content: center;
+}
+.delivery-estimate.in-checkout {
+  margin: 12px 0 0;
+}
+
+/* Produktkarte: Material und Herkunft als ruhige Zeile unter Farbe und Passform (eine Zeile, kürzt statt umzubrechen) */
+.product-description:has(+ .product-material) {
+  margin-bottom: 2px;
+}
+.product-material {
+  margin: 0 0 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Produktseite: Material und Herkunft direkt unter dem Titel, Erklär-Link in den Details */
+.product-material-line {
+  margin: 4px 0 0;
+  font-size: var(--fs-small);
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.fact-link {
+  white-space: nowrap;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--gold);
+}
+.fact-link:hover {
+  color: var(--ink);
+}
+@media (max-width: 420px) {
+  /* Schmale Bildschirme: Platz für zwei Zeilen reservieren, damit ein Umbruch nichts verschiebt */
+  .delivery-estimate {
+    min-height: 40px;
+    align-items: flex-start;
+  }
+  .delivery-estimate svg {
+    margin-top: 2px;
+  }
+}
