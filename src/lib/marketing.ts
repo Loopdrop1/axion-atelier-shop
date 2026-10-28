@@ -8,6 +8,16 @@ interface MarketingConfig {
   verification: { google: string; bing: string };
 }
 
+// Seiten mit Zugangs-Token im Pfad (Bestellstatus, Warenkorb-Link) und das Kundenkonto gehen nicht an Plausible.
+const PRIVATE_PATHS = [
+  "/bestellung/*",
+  "/warenkorb/wiederherstellen/*",
+  "/benachrichtigung/**",
+  "/newsletter/**",
+  "/konto/**",
+];
+export const ANALYTICS_EXCLUDE = PRIVATE_PATHS.flatMap((p) => [p, `/en${p}`]).join(",");
+
 const HOSTNAME = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
 const TOKEN = /^[\w-]{10,200}$/;
 
@@ -26,7 +36,14 @@ export function marketingHead(
   const domain = plausibleDomain(config);
   const scripts =
     domain && config.launched && !options.admin && !options.dev
-      ? [{ src: "https://plausible.io/js/script.js", defer: true, "data-domain": domain }]
+      ? [
+          {
+            src: "https://plausible.io/js/script.exclusions.js",
+            defer: true,
+            "data-domain": domain,
+            "data-exclude": ANALYTICS_EXCLUDE,
+          },
+        ]
       : [];
   const verify = (name: string, value: string) => {
     const token = value.trim();

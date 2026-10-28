@@ -1,5 +1,5 @@
 // Eine Bestellung im Admin: Versand melden, E-Mails erneut senden, Retoure einbuchen, interne Notiz.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ExternalLink, Printer } from "lucide-react";
@@ -481,6 +481,14 @@ function RefundPanel({ order, onDone }: { order: AdminOrder; onDone: () => void 
   useEffect(() => setAmount((remaining / 100).toFixed(2)), [remaining]);
   const cents = parseChf(amount);
   const valid = cents !== null && cents >= 1 && cents <= remaining;
+  // Ein Vorgang = eine requestId: Wiederholung nach Fehler oder Timeout erstattet nicht doppelt, eine weitere
+  // Rückerstattung (nach Erfolg oder mit anderem Betrag/Grund) bekommt eine neue.
+  const request = useRef({ key: "", id: "" });
+  const requestId = () => {
+    const key = `${cents}-${reason}`;
+    if (request.current.key !== key) request.current = { key, id: crypto.randomUUID() };
+    return request.current.id;
+  };
   return (
     <Panel
       title="Rückerstatten"
@@ -526,7 +534,9 @@ function RefundPanel({ order, onDone }: { order: AdminOrder; onDone: () => void 
               order.id,
               cents!,
               reason as "requested_by_customer" | "duplicate" | "fraudulent",
+              requestId(),
             );
+            request.current = { key: "", id: "" };
             if (r.status === "succeeded" || r.status === "pending")
               notify.ok(
                 `${chf(r.amountCents)} bei Stripe zurückgezahlt. Hier erscheint der Betrag, sobald Stripe ihn meldet.`,

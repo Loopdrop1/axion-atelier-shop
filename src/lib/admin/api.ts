@@ -452,10 +452,13 @@ export function refundOrder(
   orderId: string,
   amountCents?: number,
   reason?: "requested_by_customer" | "duplicate" | "fraudulent",
+  /** Gleich bei Wiederholung desselben Vorgangs (Doppelklick, Timeout), neu für jede weitere Rückerstattung */
+  requestId?: string,
 ) {
   return action<RefundResult>({
     action: "refund",
     orderId,
+    ...(requestId ? { requestId } : {}),
     ...(amountCents !== undefined ? { amountCents } : {}),
     ...(reason ? { reason } : {}),
   });
@@ -511,18 +514,27 @@ export async function openOrderIds(limit = 100): Promise<string[]> {
   return (data ?? []).map((o) => o.id);
 }
 
-/** Ids der bezahlten, versendeten und zurückerstatteten Bestellungen im Zeitraum (nach Zahlungsdatum). */
-export async function paidOrderIds(from: Date, to: Date): Promise<string[]> {
-  const { data, error } = await db()
-    .from("orders")
-    .select("id")
-    .in("status", ["paid", "shipped", "refunded"])
-    .gte("paid_at", from.toISOString())
-    .lt("paid_at", to.toISOString())
-    .order("paid_at", { ascending: true })
-    .limit(5000);
-  fail(error);
-  return (data ?? []).map((o) => o.id);
+/** Ids der bezahlten, versendeten und zurückerstatteten Bestellungen im Zeitraum (nach Zahlungsdatum). Seitenweise,
+ *  weil die API höchstens 1000 Zeilen pro Abfrage liefert; `max` + 1 genügt, um «zu viele» zu erkennen. */
+export async function paidOrderIds(from: Date, to: Date, max = 5000): Promise<string[]> {
+  const PAGE = 1000;
+  const ids: string[] = [];
+  for (let offset = 0; ids.length <= max; offset += PAGE) {
+    const { data, error } = await db()
+      .from("orders")
+      .select("id")
+      .in("status", ["paid", "shipped", "refunded"])
+      .gte("paid_at", from.toISOString())
+      .lt("paid_at", to.toISOString())
+      .order("paid_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + PAGE - 1);
+    fail(error);
+    const page = (data ?? []).map((o) => o.id);
+    ids.push(...page);
+    if (page.length < PAGE) break;
+  }
+  return ids;
 }
 
 /** Bestellungen mit Positionen für den Export (Zeitraum nach Bezahlung). */

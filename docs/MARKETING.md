@@ -104,8 +104,9 @@ das bleibt **vom Kunden zu bestätigen**. Es ist kostenpflichtig (Testphase vorh
 2. In `src/config/shop.ts` den Wert bei `analytics.plausibleDomain` eintragen, genau dieselbe Domain.
 3. Im Datenschutztext (`src/content/pages.ts` und `pages-en.ts`, Ziffer 6, Punkt «Besucherstatistik») erscheint nun automatisch ein Absatz. Er enthält eine Klammer `[Vor Livegang zu bestätigen: …]`: Angaben prüfen (Anbieter, Auftragsbearbeitung), die Klammer entfernen und beide Sprachen im Gleichschritt halten.
 4. Veröffentlichen. Das Skript lädt nur mit `launched: true`, nie im Admin und nie in der Entwicklung, mit `defer` (blockiert nichts).
-5. Eigene Ereignisse: «Add to Cart» (Stück in den Warenkorb) und «Begin Checkout» (Weiterleitung zur Kasse). Unter Plausible → Settings → Goals → **Add goal** → «Custom event» mit genau diesen Namen anlegen, dann erscheinen sie im Bericht.
-6. Test: Shop mit der echten Adresse öffnen (nicht über die Vorschau-Adresse), in Plausible sollte nach wenigen Sekunden «Current visitors» 1 zeigen. Werbeblocker können die Messung verhindern (gewollt).
+5. Ausgenommen sind Seiten mit Zugangs-Token im Pfad (Bestellstatus, Warenkorb-Link aus der Erinnerung), Bestätigungsseiten und das Kundenkonto (`ANALYTICS_EXCLUDE` in `src/lib/marketing.ts`, Skript `script.exclusions.js`). Wird im Plausible-Konto später das neue, seitenbezogene Skript angeboten, diese Ausnahmen dort genauso eintragen.
+6. Eigene Ereignisse: «Add to Cart» (Stück in den Warenkorb) und «Begin Checkout» (Weiterleitung zur Kasse). Unter Plausible → Settings → Goals → **Add goal** → «Custom event» mit genau diesen Namen anlegen, dann erscheinen sie im Bericht.
+7. Test: Shop mit der echten Adresse öffnen (nicht über die Vorschau-Adresse), in Plausible sollte nach wenigen Sekunden «Current visitors» 1 zeigen. Werbeblocker können die Messung verhindern (gewollt).
 
 Ausschalten: `plausibleDomain` wieder leeren; Skript und Datenschutz-Absatz verschwinden.
 

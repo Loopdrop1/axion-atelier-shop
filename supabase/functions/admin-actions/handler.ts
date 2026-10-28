@@ -271,6 +271,12 @@ async function refund(
   const reason = body["reason"];
   if (reason !== undefined && reason !== null && !REFUND_REASONS.includes(reason as never))
     throw new HttpError(400, "BAD_REQUEST");
+  const requestId = body["requestId"];
+  if (
+    requestId !== undefined &&
+    (typeof requestId !== "string" || !/^[\w-]{8,64}$/.test(requestId))
+  )
+    throw new HttpError(400, "BAD_REQUEST");
   try {
     const result = await deps.stripe.refunds.create(
       {
@@ -279,9 +285,14 @@ async function refund(
         ...(reason ? { reason: reason as (typeof REFUND_REASONS)[number] } : {}),
         metadata: { order_id: order.id, order_number: String(order.number), admin_id: adminId },
       },
-      // Derselbe Klick (Doppelklick, Wiederholung nach Timeout) erstattet nur einmal; nach dem Webhook hat sich
-      // refunded_cents geändert, ein weiterer Teilbetrag ist dann eine neue Anfrage.
-      { idempotencyKey: `refund-${order.id}-${requested}-${refunded}` },
+      // Derselbe Vorgang (Doppelklick, Wiederholung nach Timeout) erstattet nur einmal. Die Seite schickt pro
+      // Vorgang eine requestId, damit ein zweiter gleicher Teilbetrag vor dem Webhook nicht verschluckt wird; ohne
+      // sie zählt der gebuchte Stand (refunded_cents ändert sich erst mit dem Webhook).
+      {
+        idempotencyKey: requestId
+          ? `refund-${order.id}-${requestId}`
+          : `refund-${order.id}-${requested}-${refunded}`,
+      },
     );
     return json(200, {
       refundId: result.id,

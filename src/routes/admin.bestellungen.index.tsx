@@ -356,7 +356,7 @@ function ExportDialog({ mode, onClose }: { mode: ExportMode | null; onClose: () 
     setBusy(true);
     try {
       if (mode === "accounting") {
-        const ids = await paidOrderIds(start, endMidnight);
+        const ids = await paidOrderIds(start, endMidnight, MAX_ACCOUNTING_ORDERS);
         if (ids.length > MAX_ACCOUNTING_ORDERS) throw new AdminError("TOO_MANY_ORDERS");
         const full = await getOrdersByIds(ids, (done, total) => setProgress(`${done} / ${total}`));
         downloadCsv(

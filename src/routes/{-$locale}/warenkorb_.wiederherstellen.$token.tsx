@@ -49,7 +49,12 @@ function Page() {
         const resolved = await resolveCart(wanted, locale);
         const plan = planRestore(wanted, resolved);
         setOutcome(
-          applyRestore(wanted, plan, (id, qty, stock) => useCart.getState().add(id, qty, stock)),
+          applyRestore(
+            wanted,
+            plan,
+            (id, qty, stock) => useCart.getState().add(id, qty, stock),
+            (id) => useCart.getState().lines.find((l) => l.variantId === id)?.quantity ?? 0,
+          ),
         );
       } catch {
         setOutcome("error");

@@ -660,6 +660,24 @@ describe("admin-actions: refund", () => {
     );
   });
 
+  it("requestId bestimmt den Idempotency-Key; ungültige requestId ist 400", async () => {
+    const r = await cardOrder();
+    const before = stripe.calls.length;
+    const ok = await post({
+      action: "refund",
+      orderId: r.order_id,
+      amountCents: 1000,
+      requestId: "3f1c2b8e-1111-4aaa-8bbb-0123456789ab",
+    });
+    expect(ok.status).toBe(200);
+    expect(stripe.calls[before]!.idempotencyKey).toBe(
+      `refund-${r.order_id}-3f1c2b8e-1111-4aaa-8bbb-0123456789ab`,
+    );
+    const bad = await post({ action: "refund", orderId: r.order_id, requestId: "x y" });
+    expect(bad.status).toBe(400);
+    expect(stripe.calls.length).toBe(before + 1);
+  });
+
   it("vollständig erstattet (Status refunded): 409 ORDER_NOT_PAID ohne Stripe-Aufruf", async () => {
     const r = await cardOrder();
     await sql("select public.record_refund($1, $2)", [r.pi, r.total_cents]);

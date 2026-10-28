@@ -60,20 +60,21 @@ export function planRestore(wanted: RestoreLine[], resolved: Cart): RestorePlan 
 
 export type RestoreOutcome = "done" | "partial" | "none" | "invalid";
 
-/** Legt den Plan in den Warenkorb (über dessen add, das Bestand und Höchstmenge zusätzlich prüft). */
+/** Legt den Plan in den Warenkorb (über dessen add, das Bestand und Höchstmenge zusätzlich prüft). Ergänzt nur bis
+ *  zur gewünschten Menge (`have`: schon im Warenkorb), damit ein zweiter Klick auf den Link nichts verdoppelt. */
 export function applyRestore(
   wanted: RestoreLine[],
   plan: RestorePlan,
   add: (id: string, quantity: number, stock: number) => { added: number },
+  have: (id: string) => number = () => 0,
 ): RestoreOutcome {
   if (wanted.length === 0) return "invalid";
-  let added = 0;
   let reduced = plan.reduced;
   for (const a of plan.adds) {
-    const result = add(a.variantId, a.quantity, a.stock);
-    added += result.added;
-    if (result.added < a.quantity) reduced = true;
+    const missing = a.quantity - have(a.variantId);
+    if (missing <= 0) continue;
+    if (add(a.variantId, missing, a.stock).added < missing) reduced = true;
   }
-  if (added === 0 && plan.adds.length === 0) return "none";
+  if (plan.adds.length === 0) return "none";
   return plan.unavailable > 0 || reduced ? "partial" : "done";
 }

@@ -100,6 +100,8 @@ describe("planRestore", () => {
 describe("applyRestore", () => {
   const add = (id: string, quantity: number, stock: number) =>
     useCart.getState().add(id, quantity, stock);
+  const have = (id: string) =>
+    useCart.getState().lines.find((l) => l.variantId === id)?.quantity ?? 0;
 
   it("alles verfügbar: in den Warenkorb, Ergebnis done", () => {
     const wanted = [
@@ -133,8 +135,24 @@ describe("applyRestore", () => {
         { id: "b", quantity: 1, stock: 0 },
       ]),
     );
-    expect(applyRestore(wanted, plan, add)).toBe("partial");
-    // 2 vorhanden + 2 gewünscht, Bestand 3: höchstens 3
+    expect(applyRestore(wanted, plan, add, have)).toBe("partial");
+    // 2 vorhanden, 2 gewünscht: nichts dazu (der Link ergänzt nur bis zur Menge der Bestellung)
+    expect(useCart.getState().lines).toEqual([{ variantId: "a", quantity: 2 }]);
+  });
+
+  it("zweiter Klick auf den Link verdoppelt nichts", () => {
+    const wanted = [{ variantId: "a", quantity: 2 }];
+    const plan = planRestore(wanted, cart([{ id: "a", quantity: 2, stock: 5 }]));
+    expect(applyRestore(wanted, plan, add, have)).toBe("done");
+    expect(applyRestore(wanted, plan, add, have)).toBe("done");
+    expect(useCart.getState().lines).toEqual([{ variantId: "a", quantity: 2 }]);
+  });
+
+  it("ergänzt eine kleinere vorhandene Menge bis zur Bestellung", () => {
+    useCart.setState({ lines: [{ variantId: "a", quantity: 1 }] });
+    const wanted = [{ variantId: "a", quantity: 3 }];
+    const plan = planRestore(wanted, cart([{ id: "a", quantity: 3, stock: 5 }]));
+    expect(applyRestore(wanted, plan, add, have)).toBe("done");
     expect(useCart.getState().lines).toEqual([{ variantId: "a", quantity: 3 }]);
   });
 
