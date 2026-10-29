@@ -62,7 +62,9 @@ describe("Warenkorb", () => {
     useCart.setState({ lines: [{ variantId: "anzug-48", quantity: 5 }] });
     render(<CartContents />);
     await waitFor(() => expect(useCart.getState().lines[0]?.quantity).toBe(2));
-    expect(await screen.findByText("Mengen wurden an den Lagerbestand angepasst.")).toBeVisible();
+    expect(
+      await screen.findByText("Mengen wurden angepasst (Lagerbestand oder Höchstmenge)."),
+    ).toBeVisible();
   });
 
   it("Entfernen zeigt «Rückgängig» und stellt die Menge wieder her", async () => {

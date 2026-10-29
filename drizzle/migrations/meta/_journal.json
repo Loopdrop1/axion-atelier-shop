@@ -134,6 +134,13 @@
       "when": 1792700000000,
       "tag": "0018_axion_audit_followups",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792710000000,
+      "tag": "0019_axion_checkout_limits",
+      "breakpoints": true
     }
   ]
 }

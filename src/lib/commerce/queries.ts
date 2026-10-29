@@ -37,7 +37,7 @@ export interface CollectionSearch {
   sort?: "newest" | "price-asc" | "price-desc" | undefined;
 }
 
-/** Filter aus der Adresse (?groesse=48,50&farbe=Marine …) für filterProducts. */
+/** Filter aus der Adresse (?groesse=48,50&farbe=marine …) für filterProducts; Farbe als Schlüssel (alte Links mit Namen passen auch). */
 export function filtersFromSearch(handle: string, s: CollectionSearch): ProductFilters {
   return {
     collection: handle,

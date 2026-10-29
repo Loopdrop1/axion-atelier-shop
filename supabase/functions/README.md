@@ -28,7 +28,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `{ kind: "cart", lines: [{ variantId, quantity }], email?, discountCode?, giftCardCode?, locale }` → `200 { url, orderNumber }`
 - `remind?: true` (nur beim Warenkorb, ausdrückliche Einwilligung aus dem unangekreuzten Häkchen «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse»; jeder andere Wert gilt als Nein): Die Kasse speichert nach der Reservierung `orders.reminder_opt_in = true` (RPC `set_order_reminder`, `service_role`). Scheitert das, läuft die Kasse trotzdem weiter.
 - `{ kind: "gift_card", amountCents, recipientName?, recipientEmail?, senderName?, message?, email?, locale }` → `200 { url, orderNumber }`
-- `409 { error: "OUT_OF_STOCK", items: [{ variantId, available }] }`, `422 { error: "DISCOUNT_INVALID" | "GIFT_CARD_INVALID", reason }`, `400 INVALID_LINES | INVALID_EMAIL | INVALID_RECIPIENT_EMAIL | INVALID_AMOUNT | BAD_REQUEST`, `429 RATE_LIMITED | TOO_MANY_CHECKOUTS` (pro IP 20 in 30 Minuten, pro E-Mail 10, höchstens 3 offen), `502 PAYMENT_PROVIDER`
+- `409 { error: "OUT_OF_STOCK", items: [{ variantId, available }] }`, `422 { error: "DISCOUNT_INVALID" | "GIFT_CARD_INVALID", reason }`, `400 INVALID_LINES | INVALID_EMAIL | INVALID_RECIPIENT_EMAIL | INVALID_AMOUNT | BAD_REQUEST`, `429 RATE_LIMITED | TOO_MANY_CHECKOUTS` (pro IP 20 in 30 Minuten und höchstens 8 neue Kassen in 35 Minuten, ohne erkennbare IP gemeinsam 30 in 30 Minuten, pro E-Mail 10, höchstens 3 offen; Mengen: höchstens 3 Stück je Grösse und 20 je Bestellung, sonst `400 INVALID_LINES` mit `detail.reason` `quantity` bzw. `order_quantity`; `checkout_guard` und `reserve_checkout`, Migration `20261029002000_checkout_limits.sql` bzw. Cloud `0019`), `502 PAYMENT_PROVIDER`
 - Decken Gutschein oder Rabatt alles, läuft die Bestellung trotzdem über Stripe (Session ohne Zahlbetrag): Stripe verlangt keine Zahlung, erfasst aber die Lieferadresse.
 - `{ kind: "release", token }` (nach Abbruch in Stripe): beendet zuerst die Stripe-Session und gibt die Reservierung nur frei, wenn Stripe sie als abgelaufen meldet. Eine schon bezahlte Session bleibt bestehen.
 
@@ -162,6 +162,7 @@ nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche An
 | `20261028001600_checkout_reminder`     | `0015_axion_checkout_reminder`     | gleich                                                                         |
 | `20261029001700_return_requests`       | `0016_axion_return_requests`       | gleich                                                                         |
 | `20261029001800_low_stock_alert`       | `0017_axion_low_stock_alert`       | gleich                                                                         |
+| `20261029002000_checkout_limits`       | `0019_axion_checkout_limits`       | gleich                                                                         |
 
 Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
 `NNNN_snapshot.json` mit der vorigen `id` als `prevId`).

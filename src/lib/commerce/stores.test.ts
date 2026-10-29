@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MAX_PER_LINE,
+  MAX_PER_ORDER,
+  clampLines,
+  consumeClampedOnLoad,
   RECENT_MAX,
   lineMax,
   useCart,
@@ -36,7 +39,7 @@ describe("Warenkorb: Menge begrenzen", () => {
     expect(add("v1", 1, 1)).toEqual({ added: 1, capped: null, max: 1 });
     expect(add("v1", 1, 1)).toEqual({ added: 0, capped: "stock", max: 1 });
     expect(useCart.getState().lines).toEqual([{ variantId: "v1", quantity: 1 }]);
-    expect(add("v2", 5, 3)).toEqual({ added: 3, capped: "stock", max: 3 });
+    expect(add("v2", 5, 2)).toEqual({ added: 2, capped: "stock", max: 2 });
   });
 
   it("add: ohne Bestand gilt die Höchstmenge pro Grösse", () => {
@@ -50,6 +53,62 @@ describe("Warenkorb: Menge begrenzen", () => {
     const result = useCart.getState().add("v1", 1, 2);
     expect(result.added).toBe(0);
     expect(useCart.getState().lines[0]?.quantity).toBe(4);
+  });
+});
+
+describe("Warenkorb: Höchstmengen 3 je Grösse und 20 je Bestellung", () => {
+  beforeEach(() => useCart.setState({ lines: [] }));
+
+  it("Konstanten", () => {
+    expect(MAX_PER_LINE).toBe(3);
+    expect(MAX_PER_ORDER).toBe(20);
+  });
+
+  it("add: begrenzt die Gesamtzahl auf 20 und meldet «order»", () => {
+    const { add } = useCart.getState();
+    for (let i = 0; i < 6; i++) expect(add(`v${i}`, 3, 50).added).toBe(3);
+    expect(add("v6", 3, 50)).toEqual({ added: 2, capped: "order", max: 3 });
+    expect(add("v7", 1, 50)).toEqual({ added: 0, capped: "order", max: 3 });
+    expect(useCart.getState().lines.reduce((s, l) => s + l.quantity, 0)).toBe(20);
+  });
+
+  it("quantity: Stepper kann weder 3 je Grösse noch 20 insgesamt überschreiten", () => {
+    useCart.setState({
+      lines: [
+        ...Array.from({ length: 6 }, (_, i) => ({ variantId: `v${i}`, quantity: 3 })),
+        { variantId: "last", quantity: 1 },
+      ],
+    });
+    useCart.getState().quantity("last", 3);
+    expect(useCart.getState().lines.at(-1)?.quantity).toBe(2);
+    useCart.getState().quantity("v0", 9);
+    expect(useCart.getState().lines[0]?.quantity).toBe(3);
+  });
+
+  it("clampLines: kürzt alte Mengen und lässt Gültiges unverändert", () => {
+    const ok = [{ variantId: "a", quantity: 3 }];
+    expect(clampLines(ok)).toBe(ok);
+    const old = [
+      { variantId: "a", quantity: 10 },
+      ...Array.from({ length: 6 }, (_, i) => ({ variantId: `b${i}`, quantity: 3 })),
+    ];
+    const out = clampLines(old);
+    expect(out[0]?.quantity).toBe(3);
+    expect(out.reduce((s, l) => s + l.quantity, 0)).toBe(20);
+    expect(clampLines([{ variantId: "z", quantity: 0 }])).toEqual([]);
+  });
+
+  it("Laden aus dem Speicher: ältere Warenkörbe werden gekürzt und melden das einmal", async () => {
+    consumeClampedOnLoad();
+    localStorage.setItem(
+      "axion-cart",
+      JSON.stringify({ state: { lines: [{ variantId: "alt", quantity: 10 }] }, version: 0 }),
+    );
+    await useCart.persist.rehydrate();
+    expect(useCart.getState().lines).toEqual([{ variantId: "alt", quantity: 3 }]);
+    expect(consumeClampedOnLoad()).toBe(true);
+    expect(consumeClampedOnLoad()).toBe(false);
+    localStorage.removeItem("axion-cart");
   });
 });
 

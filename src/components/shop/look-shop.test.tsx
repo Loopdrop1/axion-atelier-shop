@@ -49,7 +49,7 @@ const vest = testProduct("weste-limmat-marine", 129, [testVariant("weste-m", tru
 vest.title = "Weste «Limmat»";
 const shoes = testProduct("oxford-nero-schwarz", 239, [testVariant("oxford-42", true, 239)], {
   category: "schuhe",
-  color: { name: "Schwarz", hex: "#000000" },
+  color: { key: "schwarz", name: "Schwarz", hex: "#000000" },
 });
 shoes.title = "Oxford «Nero»";
 
@@ -167,7 +167,7 @@ describe("Startseite: Look direkt kaufen", () => {
       { ...testVariant("krawatte-os", true, 89), title: "One Size" },
     ]);
     tie.title = "Seidenkrawatte «Morcote»";
-    tie.color = { name: "Bordeaux", hex: "#6B1E2E" };
+    tie.color = { key: "bordeaux", name: "Bordeaux", hex: "#6B1E2E" };
     render(<LookShop products={[suit, tie]} total="Ganzes Outfit" />);
     expect(size("Seidenkrawatte «Morcote», Bordeaux")).toHaveValue("krawatte-os");
     fireEvent.change(size(SUIT), { target: { value: "anzug-46" } });

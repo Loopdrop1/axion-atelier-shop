@@ -9,6 +9,7 @@ import { defaultAnnouncements } from "./shipping-text";
 import type { ShopSettings } from "./source";
 import type { CategoryRow, ProductRow } from "./rows";
 import { parseVariants } from "./variants";
+import { colorKeys } from "./color-key";
 import type {
   Collection,
   HomeContent,
@@ -136,7 +137,7 @@ export function mapProduct(
     category: slug,
     categoryTitle: pick(category.name_de, category.name_en, locale),
     model: row.model,
-    color: { name: color, hex: row.color_hex },
+    color: { ...colorKeys(row.color_name_de, row.color_name_en), name: color, hex: row.color_hex },
     fit: row.fit ?? undefined,
     tags: row.tags,
     occasions: row.occasions.filter((o): o is Occasion =>

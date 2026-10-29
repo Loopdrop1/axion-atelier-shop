@@ -25,7 +25,7 @@ export function testProduct(
     category: "anzuege",
     categoryTitle: "Anzüge",
     model: handle,
-    color: { name: "Marine", hex: "#1E3A2F" },
+    color: { key: "marine", name: "Marine", hex: "#1E3A2F" },
     tags: [],
     occasions: [],
     description: "",

@@ -112,6 +112,9 @@ describe("mapProduct", () => {
     expect(p.description).toBe("Beschreibung");
     expect(p.details.material).toBe("Schurwolle");
     expect(p.color.name).toBe("Navy");
+    // Sprachneutraler Schlüssel für den Farbfilter, englischer Name als Ausweichschlüssel
+    expect(p.color.key).toBe("marine");
+    expect(p.color.aliases).toEqual(["navy"]);
     expect(p.categoryTitle).toBe("Suits");
     expect(pick("Deutsch", "English", "de")).toBe("Deutsch");
   });

@@ -106,10 +106,14 @@ async function storeVatRate(deps: Deps, orderId: string): Promise<void> {
     .catch((e) => console.error("MWST-Satz nicht gespeichert", e));
 }
 
+/** Höchstmengen (gleich wie MAX_PER_LINE/MAX_PER_ORDER im Shop und in reserve_checkout). */
+const MAX_PER_LINE = 3;
+const MAX_PER_ORDER = 20;
+
 function parseLines(value: unknown): { variant_id: string; quantity: number }[] {
-  if (!Array.isArray(value) || value.length === 0 || value.length > 30)
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_PER_ORDER)
     throw new HttpError(400, "INVALID_LINES");
-  return value.map((l) => {
+  const lines = value.map((l) => {
     const line = l as { variantId?: unknown; quantity?: unknown };
     if (typeof line.variantId !== "string" || !UUID.test(line.variantId))
       throw new HttpError(400, "INVALID_LINES");
@@ -117,12 +121,21 @@ function parseLines(value: unknown): { variant_id: string; quantity: number }[] 
       typeof line.quantity !== "number" ||
       !Number.isInteger(line.quantity) ||
       line.quantity < 1 ||
-      line.quantity > 10
+      line.quantity > MAX_PER_LINE
     ) {
-      throw new HttpError(400, "INVALID_LINES");
+      throw new HttpError(400, "INVALID_LINES", { detail: { reason: "quantity" } });
     }
     return { variant_id: line.variantId, quantity: line.quantity };
   });
+  // Dieselbe Grösse kann in mehreren Zeilen stehen: reserve_checkout zählt sie zusammen, hier auch.
+  const perVariant = new Map<string, number>();
+  for (const l of lines)
+    perVariant.set(l.variant_id, (perVariant.get(l.variant_id) ?? 0) + l.quantity);
+  if ([...perVariant.values()].some((q) => q > MAX_PER_LINE))
+    throw new HttpError(400, "INVALID_LINES", { detail: { reason: "quantity" } });
+  if (lines.reduce((sum, l) => sum + l.quantity, 0) > MAX_PER_ORDER)
+    throw new HttpError(400, "INVALID_LINES", { detail: { reason: "order_quantity" } });
+  return lines;
 }
 
 async function cancelQuietly(deps: Deps, orderId: string, reason: string) {
