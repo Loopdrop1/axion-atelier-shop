@@ -98,7 +98,14 @@ async function subscribe(
 async function confirm(deps: Deps, body: Record<string, unknown>): Promise<Response> {
   const t = token(body["token"]);
   const result = await deps.rpc<ConfirmResult>("newsletter_confirm", { p_token: t });
-  if (result.status === "confirmed" && result.newly_confirmed && result.email) {
+  // Willkommens-E-Mail bei der Bestätigung und bei jedem wiederholten Klick, solange es einen Code gibt: Der
+  // Idempotency-Key (24 h bei Resend) verhindert Doppelversand, danach geht derselbe Code erneut raus.
+  // Das Token ist das Geheimnis; ein neuer Code entsteht nie.
+  if (
+    result.status === "confirmed" &&
+    result.email &&
+    (result.newly_confirmed || result.welcome_code)
+  ) {
     const locale = toLocale(result.locale);
     const welcome = newsletterWelcome(
       {

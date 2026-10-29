@@ -127,6 +127,13 @@
       "when": 1792690000000,
       "tag": "0017_axion_low_stock_alert",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792700000000,
+      "tag": "0018_axion_audit_followups",
+      "breakpoints": true
     }
   ]
 }
