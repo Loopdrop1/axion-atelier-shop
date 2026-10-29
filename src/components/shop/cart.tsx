@@ -4,7 +4,15 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
-import { MAX_PER_LINE, lineMax, useCart, useShopUI } from "@/lib/commerce/stores";
+import {
+  MAX_PER_LINE,
+  MAX_PER_ORDER,
+  consumeClampedOnLoad,
+  lineMax,
+  totalQuantity,
+  useCart,
+  useShopUI,
+} from "@/lib/commerce/stores";
 import { sizeText } from "@/lib/commerce/one-size";
 import { listProducts, resolveCart, type Cart as CartType, type Product } from "@/lib/commerce";
 import { formatPrice } from "@/lib/commerce/format";
@@ -105,6 +113,7 @@ export function CartContents({
     if (!hydrated) return;
     let live = true;
     setFailed(false);
+    if (consumeClampedOnLoad()) setNotice(t.cart.reduced);
     resolveCart(lines, locale)
       .then((c) => {
         if (!live) return;
@@ -201,6 +210,7 @@ export function CartContents({
       </>
     );
   const subtotalCents = Math.round(cart.subtotal.amount * 100);
+  const orderTotal = totalQuantity(lines);
   return (
     <div className={page ? "cart-layout" : ""}>
       <div ref={list}>
@@ -212,7 +222,8 @@ export function CartContents({
         )}
         {cart.lines.map((l, index) => {
           const max = l.variant.availableForSale ? lineMax(l.variant.stock) : 0;
-          const atMax = l.variant.availableForSale && l.quantity >= max;
+          const orderFull = orderTotal >= MAX_PER_ORDER;
+          const atMax = l.variant.availableForSale && (l.quantity >= max || orderFull);
           const limitId = `cart-limit-${l.variantId}`;
           return (
             <div className="cart-line" key={l.variantId}>
@@ -256,7 +267,7 @@ export function CartContents({
                       variant="icon"
                       aria-label={t.cart.increase}
                       aria-describedby={atMax ? limitId : undefined}
-                      disabled={!l.variant.availableForSale || l.quantity >= max}
+                      disabled={!l.variant.availableForSale || l.quantity >= max || orderFull}
                       onClick={() => quantity(l.variantId, l.quantity + 1)}
                     >
                       <Plus />
@@ -274,7 +285,13 @@ export function CartContents({
                 </div>
                 {/* Immer vorhanden, damit Screenreader die Grenze beim Erreichen vorlesen */}
                 <p className="line-limit" id={limitId} role="status">
-                  {atMax ? (max < MAX_PER_LINE ? t.cart.onlyLeft(max) : t.cart.maxPerLine) : ""}
+                  {!atMax
+                    ? ""
+                    : l.quantity < max
+                      ? t.cart.maxPerOrder
+                      : max < MAX_PER_LINE
+                        ? t.cart.onlyLeft(max)
+                        : t.cart.maxPerLine}
                 </p>
               </div>
             </div>

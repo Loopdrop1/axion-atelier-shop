@@ -9,6 +9,7 @@ import { isOneSizeTitle } from "@/lib/commerce/one-size";
 import { formatPrice } from "@/lib/commerce/format";
 import { filtersFromSearch, type CollectionSearch } from "@/lib/commerce/queries";
 import { filterProducts, type Collection, type Product } from "@/lib/commerce";
+import { colorFacets, selectedColorKeys } from "@/lib/commerce/color-key";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { occasionHandles } from "./shell";
 import { GuideLinks } from "./guides";
@@ -58,6 +59,13 @@ export function CollectionPage({
     t.occasions[search.anlass]
       ? search.anlass
       : undefined;
+  // Farben stehen als sprachneutraler Schlüssel in der Adresse (alte Links mit Namen werden umgedeutet)
+  const colors = colorFacets(catalogue);
+  const colorLabels = new Map(colors.map((c) => [c.key, c.label]));
+  const selected = (key: GroupKey): string[] =>
+    key === "farbe"
+      ? selectedColorKeys(search.farbe, catalogue)
+      : (search[key]?.split(",").filter(Boolean) ?? []);
   const label = (key: string, v: string) =>
     key === "passform"
       ? fitLabel(v)
@@ -65,7 +73,9 @@ export function CollectionPage({
         ? (t.occasions[v] ?? v)
         : key === "groesse" && isOneSizeTitle(v)
           ? t.product.oneSize
-          : v.charAt(0).toUpperCase() + v.slice(1);
+          : ((s: string) => s.charAt(0).toUpperCase() + s.slice(1))(
+              key === "farbe" ? (colorLabels.get(v) ?? v) : v,
+            );
   const change = (key: keyof CollectionSearch, value: string | number | undefined) => {
     navigate({
       to: "/{-$locale}/kollektion/$handle",
@@ -77,7 +87,7 @@ export function CollectionPage({
     });
   };
   const toggle = (key: GroupKey, value: string) => {
-    const list = search[key]?.split(",") || [];
+    const list = selected(key);
     change(
       key,
       key === "anlass"
@@ -100,7 +110,7 @@ export function CollectionPage({
   const shoes = sizes(true);
   const groups = [
     { key: "groesse" as const, values: [...new Set([...clothing, ...shoes])].sort(bySize) },
-    { key: "farbe" as const, values: [...new Set(catalogue.map((p) => p.color.name))] },
+    { key: "farbe" as const, values: colors.map((c) => c.key) },
     {
       key: "passform" as const,
       values: [...new Set(catalogue.flatMap((p) => (p.fit ? [p.fit] : [])))],
@@ -119,13 +129,13 @@ export function CollectionPage({
     filterProducts(catalogue, {
       ...filtersFromSearch("alle", search),
       [FACET[key]]:
-        key === "anlass" ? value : [...new Set([...(search[key]?.split(",") ?? []), value])],
+        key === "anlass" ? value : [...new Set([...selected(key), value])],
     }).length;
   const options = (g: (typeof groups)[number], location: string) => {
     const choices = (values: string[], section = "") =>
       values.map((v) => {
         const controlId = `${id}-${location}-${g.key}-${section}-${slug(v)}`;
-        const checked = Boolean(search[g.key]?.split(",").includes(v));
+        const checked = selected(g.key).includes(v);
         const count = facetCount(g.key, v);
         return (
           <label
@@ -311,8 +321,7 @@ export function CollectionPage({
             const text =
               key === "preis"
                 ? t.collections.upTo(formatPrice(Number(value), locale))
-                : String(value)
-                    .split(",")
+                : (key === "farbe" ? selected("farbe") : String(value).split(","))
                     .map((v) => label(key, v))
                     .join(", ");
             return (

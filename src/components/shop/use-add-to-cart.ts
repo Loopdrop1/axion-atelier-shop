@@ -22,7 +22,9 @@ export function useAddToCart() {
           ? t.cart.cappedMany
           : first.capped === "stock"
             ? t.cart.onlyLeft(first.max)
-            : t.cart.maxPerLine,
+            : first.capped === "order"
+              ? t.cart.maxPerOrder
+              : t.cart.maxPerLine,
     );
     return results;
   };

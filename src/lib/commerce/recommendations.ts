@@ -27,7 +27,7 @@ export function recommendationScore(product: Product, candidate: Product): numbe
   const rank = complements.indexOf(candidate.category);
   if (rank >= 0) score += 30 - rank * 3;
   else if (candidate.category === product.category) score += 4;
-  if (candidate.color.name === product.color.name) score += 6;
+  if (candidate.color.key === product.color.key) score += 6;
   // Ähnlicher Preis: bis +8 bei gleichem Preis, nichts ab dem Doppelten bzw. der Hälfte
   const a = product.priceRange.min.amount;
   const b = candidate.priceRange.min.amount;

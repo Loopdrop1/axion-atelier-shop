@@ -42,7 +42,12 @@ export interface Product {
   /** Name der Kategorie in der aktuellen Sprache */
   categoryTitle: string;
   model: string;
-  color: { name: string; hex: string };
+  /**
+   * Farbe: `key` ist sprachneutral (aus dem deutschen Namen, z. B. «marine») und steht im Farbfilter
+   * der Adresse; `name` ist der Name in der aktuellen Sprache; `aliases` sind weitere Schlüssel
+   * (englischer Name) für ältere Links.
+   */
+  color: { key: string; name: string; hex: string; aliases?: string[] | undefined };
   /** Passform als Code («Slim Fit», «Regular Fit»), Anzeige über die Übersetzungen */
   fit?: string | undefined;
   tags: string[];

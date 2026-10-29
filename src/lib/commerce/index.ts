@@ -17,6 +17,7 @@ import {
   type SizeGuideTable,
 } from "./mapping";
 import type { CategoryRow } from "./rows";
+import { colorMatchesValue } from "./color-key";
 import { rankRecommendations } from "./recommendations";
 import { isOnSale } from "./sale";
 import { loadCatalog, loadSettings } from "./source";
@@ -82,7 +83,8 @@ export function filterProducts(all: Product[], filters: ProductFilters = {}): Pr
       !p.variants.some((v) => v.availableForSale && filters.sizes?.includes(v.title))
     )
       return false;
-    if (filters.colors?.length && !filters.colors.includes(p.color.name)) return false;
+    if (filters.colors?.length && !filters.colors.some((c) => colorMatchesValue(p.color, c)))
+      return false;
     if (filters.fits?.length && (!p.fit || !filters.fits.includes(p.fit))) return false;
     if (filters.priceMax !== undefined && p.priceRange.min.amount > filters.priceMax) return false;
     return true;

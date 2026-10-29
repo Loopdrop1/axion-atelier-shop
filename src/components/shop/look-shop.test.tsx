@@ -49,7 +49,7 @@ const vest = testProduct("weste-limmat-marine", 129, [testVariant("weste-m", tru
 vest.title = "Weste «Limmat»";
 const shoes = testProduct("oxford-nero-schwarz", 239, [testVariant("oxford-42", true, 239)], {
   category: "schuhe",
-  color: { name: "Schwarz", hex: "#000000" },
+  color: { key: "schwarz", name: "Schwarz", hex: "#000000" },
 });
 shoes.title = "Oxford «Nero»";
 

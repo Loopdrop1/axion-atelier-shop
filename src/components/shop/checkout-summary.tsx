@@ -19,7 +19,7 @@ import {
 import { formatCents, formatDiscount } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";
 import { DEFAULT_SETTINGS, estimateTotals } from "@/lib/commerce/source";
-import { useCart } from "@/lib/commerce/stores";
+import { clampLines, useCart } from "@/lib/commerce/stores";
 import { useSession } from "@/lib/account/session";
 import { FreeShippingBar } from "./free-shipping-bar";
 import { DeliveryEstimate } from "./delivery-estimate";
@@ -268,6 +268,11 @@ export function CheckoutSummary({
       case "OUT_OF_STOCK":
         result.items?.forEach((i) => setQuantity(i.variantId, i.available));
         onNotice(t.checkout.outOfStock);
+        break;
+      case "INVALID_LINES":
+        // Menge über der Höchstmenge (z. B. ein älterer Warenkorb): kürzen statt eine Fehlermeldung zu zeigen
+        useCart.setState((s) => ({ lines: clampLines(s.lines) }));
+        onNotice(t.cart.reduced);
         break;
       case "DISCOUNT_INVALID":
         setDiscount(null);
