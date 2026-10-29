@@ -78,14 +78,19 @@ async function subscribe(
   if (result.status === "rate_limited") throw new HttpError(429, "RATE_LIMITED");
   if (result.status === "pending" && result.token && result.email) {
     const locale = toLocale(result.locale);
-    await sendEmail(
-      result.email,
-      newsletterConfirm(
-        { locale, confirmUrl: link(deps, locale, "bestaetigen", result.token) },
-        deps.shop,
-      ),
-      deps.mail,
-    );
+    try {
+      await sendEmail(
+        result.email,
+        newsletterConfirm(
+          { locale, confirmUrl: link(deps, locale, "bestaetigen", result.token) },
+          deps.shop,
+        ),
+        deps.mail,
+      );
+    } catch (error) {
+      console.error("Bestätigungs-E-Mail (Newsletter) fehlgeschlagen", error);
+      throw new HttpError(502, "EMAIL_FAILED");
+    }
   }
   return json(200, { ok: true });
 }
@@ -93,7 +98,14 @@ async function subscribe(
 async function confirm(deps: Deps, body: Record<string, unknown>): Promise<Response> {
   const t = token(body["token"]);
   const result = await deps.rpc<ConfirmResult>("newsletter_confirm", { p_token: t });
-  if (result.status === "confirmed" && result.newly_confirmed && result.email) {
+  // Willkommens-E-Mail bei der Bestätigung und bei jedem wiederholten Klick, solange es einen Code gibt: Der
+  // Idempotency-Key (24 h bei Resend) verhindert Doppelversand, danach geht derselbe Code erneut raus.
+  // Das Token ist das Geheimnis; ein neuer Code entsteht nie.
+  if (
+    result.status === "confirmed" &&
+    result.email &&
+    (result.newly_confirmed || result.welcome_code)
+  ) {
     const locale = toLocale(result.locale);
     const welcome = newsletterWelcome(
       {

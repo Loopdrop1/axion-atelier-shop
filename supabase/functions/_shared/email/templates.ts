@@ -19,6 +19,8 @@ export interface EmailContent {
   subject: string;
   html: string;
   text: string;
+  /** Zusätzliche Mail-Header (z. B. List-Unsubscribe). */
+  headers?: Record<string, string>;
 }
 
 export interface OrderItem {
@@ -402,8 +404,8 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
   const items = itemsBlock(order);
   const address = addressLines(order.shipping_name, order.shipping_address, order.locale);
   const intro = de
-    ? "Gute Nachricht: Wir haben deine Bestellung der Post übergeben. Sie ist in der Regel in 1 bis 3 Arbeitstagen bei dir."
-    : "Good news: we have handed your order to Swiss Post. It usually arrives within 1 to 3 working days.";
+    ? "Gute Nachricht: Wir haben deine Bestellung der Post übergeben. Sie ist in der Regel in 2 bis 5 Arbeitstagen bei dir."
+    : "Good news: we have handed your order to Swiss Post. It usually arrives within 2 to 5 working days.";
   const noTracking = de
     ? "Eine Sendungsnummer liegt uns für diese Sendung nicht vor. Schreib uns gern, wenn du den Stand wissen möchtest."
     : "We do not have a tracking number for this parcel. Get in touch if you would like an update.";
@@ -547,8 +549,12 @@ export interface StockAlertItem {
   size: string;
 }
 
-const itemLine = (item: StockAlertItem, de: boolean) =>
-  `${item.title}, ${item.color}, ${de ? "Grösse" : "size"} ${item.size}`;
+const itemLine = (item: StockAlertItem, de: boolean) => {
+  const size = item.size
+    ? sizeText(item.size, de ? "Grösse" : "size", de ? "Einheitsgrösse" : "One size")
+    : null;
+  return [item.title, item.color, size].filter(Boolean).join(", ");
+};
 
 /** Double Opt-in für «Benachrichtigen, wenn wieder da» (eine einzige Mail bei Wiederverfügbarkeit). */
 export function stockAlertConfirm(
@@ -705,6 +711,7 @@ export function newsletterWelcome(
     subject,
     html: layout({ locale: data.locale, subject, preheader: intro, body, shop, footerNote }),
     text,
+    headers: { "List-Unsubscribe": `<${data.unsubscribeUrl}>` },
   };
 }
 
@@ -951,16 +958,16 @@ export function cartReminderUrl(shop: ShopInfo, order: OrderData): string {
 export function cartReminder(order: OrderData, shop: ShopInfo): EmailContent {
   const de = order.locale !== "en";
   const t = T[order.locale];
-  const subject = de ? "Dein Warenkorb wartet auf dich" : "Your basket is waiting for you";
+  const subject = de ? "Dein Warenkorb wartet auf dich" : "Your cart is waiting for you";
   const intro = de
     ? "Du hast deinen Kauf bei Axion nicht abgeschlossen. Deine Auswahl haben wir hier für dich zusammengestellt. Wenn du magst, legst du sie mit einem Klick wieder in den Warenkorb."
-    : "You did not complete your purchase at Axion. We have put your selection together here. If you like, you can place it back in your basket with one click.";
+    : "You did not complete your purchase at Axion. We have put your selection together here. If you like, you can place it back in your cart with one click.";
   const stock = de
     ? "Wir können Stücke nicht dauerhaft für dich zurücklegen. Was noch verfügbar ist, siehst du im Warenkorb."
-    : "We cannot hold pieces for you indefinitely. You will see what is still available in your basket.";
+    : "We cannot hold pieces for you indefinitely. You will see what is still available in your cart.";
   const why = de
     ? "Du erhältst diese E-Mail einmalig, weil du im Warenkorb «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse» angekreuzt hast. Weitere Erinnerungen folgen nicht."
-    : "You are receiving this email once because you ticked “Remind me by email if I do not complete my purchase” in your basket. No further reminders will follow.";
+    : "You are receiving this email once because you ticked “Remind me by email if I do not complete my purchase” in your cart. No further reminders will follow.";
   const url = cartReminderUrl(shop, order);
   const detail = (i: OrderItem) =>
     [i.color, i.size ? sizeText(i.size, t.size, t.oneSize) : null]
@@ -980,7 +987,7 @@ export function cartReminder(order: OrderData, shop: ShopInfo): EmailContent {
       return `<tr>${image}<td style="padding:8px 0;vertical-align:top;font-family:Helvetica, Arial, sans-serif;font-size:14px;line-height:1.5;color:#141414;">${esc(i.title)}<br><span style="color:#5F5F5F;font-size:13px;">${detail(i)}${qty}</span></td><td align="right" style="padding:8px 0;vertical-align:top;font-family:Helvetica, Arial, sans-serif;font-size:14px;color:#141414;white-space:nowrap;">${esc(formatChf(i.line_total_cents, order.locale))}</td></tr>`;
     })
     .join("");
-  const cta = de ? "Zum Warenkorb" : "Go to basket";
+  const cta = de ? "Zum Warenkorb" : "Go to cart";
   const text = [
     subject,
     "",
@@ -1043,11 +1050,22 @@ export function refundNotice(order: OrderData, amountCents: number, shop: ShopIn
     : de
       ? `Wir haben dir einen Teil deiner Bestellung ${no} zurückerstattet: ${L(amountCents)}.`
       : `We have refunded part of your order ${no}: ${L(amountCents)}.`;
-  const cancelNote = cancelled
-    ? de
-      ? "Die Bestellung ist damit storniert; es wird nichts mehr geliefert."
-      : "The order is therefore cancelled; nothing further will be delivered."
-    : "";
+  // Gutscheinkauf: Der Code ist schon per E-Mail verschickt; record_refund kürzt das Guthaben und sperrt
+  // den Gutschein bei voller Rückerstattung. «Es wird nichts mehr geliefert» passt hier nicht.
+  const cancelNote =
+    order.kind === "gift_card"
+      ? full
+        ? de
+          ? "Der Geschenkgutschein ist damit nicht mehr gültig."
+          : "The gift card is therefore no longer valid."
+        : de
+          ? "Das Guthaben des Geschenkgutscheins ist entsprechend reduziert."
+          : "The gift card balance has been reduced accordingly."
+      : cancelled
+        ? de
+          ? "Die Bestellung ist damit storniert; es wird nichts mehr geliefert."
+          : "The order is therefore cancelled; nothing further will be delivered."
+        : "";
   const bank = de
     ? "Der Betrag geht auf das ursprüngliche Zahlungsmittel zurück. Je nach Bank dauert es ein paar Tage, bis er auf deinem Konto sichtbar ist."
     : "The amount goes back to your original payment method. Depending on your bank, it can take a few days before it appears on your account.";

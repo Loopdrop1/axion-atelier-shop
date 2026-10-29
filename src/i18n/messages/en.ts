@@ -93,7 +93,7 @@ export const en: Messages = {
     newsletterTitle: "Newsletter",
     newsletterText: "Be the first to hear about new pieces, combinations and offers.",
     madeBy: "Made by Flowrenix.com",
-    welcomeOffer: (percent: number) => `${percent}% off your first order.`,
+    welcomeOffer: (percent: number) => `${percent}% off your next order.`,
     social: "Axion on social media",
     socialLabels: {
       instagram: "Axion on Instagram",
@@ -151,7 +151,7 @@ export const en: Messages = {
       intro:
         "Do you have a question about a piece or your order? Write to us and we will reply as soon as possible.",
       title: "Reach us directly",
-      hours: "Opening hours",
+      hours: "Available",
     },
   },
   contactForm: {
@@ -343,7 +343,7 @@ export const en: Messages = {
       confirmTitle: "Confirm your alert",
       confirmIntro: "One more click and we will let you know as soon as the size is back.",
       confirmButton: "Confirm alert",
-      confirmed: "Confirmed. We will email you once as soon as the size is back.",
+      confirmed: "Confirmed. We will email you once, as soon as the size is back.",
       invalid: "This link is invalid or has expired.",
     },
     zoomImage: (n: number) => `Enlarge image ${n}`,
@@ -389,6 +389,7 @@ export const en: Messages = {
     relaxed: "No exact matches. These pieces come closest to your search:",
     didYouMean: "Did you mean",
     ignored: "not applied",
+    notFound: (words: string) => `Not found: ${words}`,
     noneUpTo: (max: string, min: string) =>
       `Nothing up to ${max}. The most affordable pieces start at ${min}.`,
     saleLink: "Go to the sale collection",
@@ -453,6 +454,7 @@ export const en: Messages = {
     description: "The pieces you selected at Axion.",
     loading: "Loading cart …",
     emptyTitle: "Your cart is empty",
+    emptyTitlePage: "Nothing selected yet",
     emptyText: "Find the pieces that suit your look.",
     decrease: "Decrease quantity",
     increase: "Increase quantity",
@@ -486,12 +488,11 @@ export const en: Messages = {
     remindHint:
       "A single reminder to this address, no advertising. You can leave it unticked; your order works the same.",
     restore: {
-      title: "Your basket",
-      description: "We are putting your selection back in your basket.",
-      working: "Putting your pieces back in your basket …",
-      done: "Your pieces are back in your basket.",
-      partial:
-        "Some pieces are no longer available in that quantity. We have adjusted your basket.",
+      title: "Your cart",
+      description: "We are putting your selection back in your cart.",
+      working: "Putting your pieces back in your cart …",
+      done: "Your pieces are back in your cart.",
+      partial: "Some pieces are no longer available in that quantity. We have adjusted your cart.",
       none: "Unfortunately none of this selection is available any more.",
       invalid: "This link has expired or is not valid. You can keep browsing the shop.",
       error: "That did not work. Please try again in a few minutes.",
@@ -515,6 +516,7 @@ export const en: Messages = {
     cancelled: "Payment was cancelled. Your pieces are still in your cart.",
     outOfStock: "Not everything is still available. We have updated your cart.",
     giftCardCoversAll: "Your gift card covers the full amount. There is nothing left to pay.",
+    nothingToPay: "Nothing left to pay with your discount code.",
     giftCardBalance: (amount: string) => `Balance: ${amount}`,
     discountReasons: {
       not_found: "This discount code does not exist.",
@@ -633,7 +635,7 @@ export const en: Messages = {
     shippingAddress: "Shipping address",
     paymentMethod: "Payment method",
     data: "Your details",
-    dataIntro: "We use these details for your next orders.",
+    dataIntro: "Your personal details for your account.",
     address: "Address",
     street: "Street and number",
     addressLine2: "Address line 2",
@@ -645,6 +647,7 @@ export const en: Messages = {
     changeEmailIntro: "We will send a confirmation link to the new address.",
     newEmail: "New email address",
     changeEmailSent: "Please confirm the change using the link in your email.",
+    changeEmailOther: "Enter a different address",
     changePassword: "Change password",
     deleteTitle: "Delete account",
     deleteText:

@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { shopConfig } from "@/config/shop";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
 import { backendConfigured } from "@/lib/backend";
-import { checkGiftCard, releaseCheckout, startCheckout } from "@/lib/commerce/checkout";
+import {
+  checkGiftCard,
+  releaseCheckout,
+  startCheckout,
+  takePendingCheckout,
+} from "@/lib/commerce/checkout";
 import { formatCents, formatDate, formatFrancs } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";
 import { pageHead } from "@/lib/commerce/seo";
@@ -42,12 +47,21 @@ function GiftCardPage() {
   const { abgebrochen } = Route.useSearch();
   const { data: settings = DEFAULT_SETTINGS } = useQuery(settingsQuery());
   const [cancelled, setCancelled] = useState(false);
+  // Neuer Kauf erst nach der Freigabe: Die offene Bestellung zählt sonst noch gegen die Kassen-Sperre.
+  const [releasing, setReleasing] = useState(Boolean(abgebrochen));
 
-  // Zurück aus der Stripe-Kasse ohne Zahlung: Reservierung freigeben und Adresse aufräumen.
+  // Zurück aus der Stripe-Kasse ohne Zahlung (cancel_url, oder «Zurück» im Browser mit neu geladener Seite):
+  // Reservierung freigeben und Adresse aufräumen.
   useEffect(() => {
+    const pending = takePendingCheckout();
+    const token = abgebrochen ?? pending;
+    if (!token) return;
+    setReleasing(true);
+    void releaseCheckout(token)
+      .catch(() => false)
+      .finally(() => setReleasing(false));
     if (!abgebrochen) return;
     setCancelled(true);
-    void releaseCheckout(abgebrochen);
     void navigate({
       to: "/{-$locale}/geschenkgutschein",
       params: { locale: lp },
@@ -63,7 +77,11 @@ function GiftCardPage() {
       <p className="page-intro">{t.giftCard.intro(settings.giftCardValidYears)}</p>
       {cancelled && <Notice>{t.giftCard.cancelled}</Notice>}
       {!backendConfigured && <Notice>{t.giftCard.notConfigured}</Notice>}
-      <GiftCardForm minCents={settings.giftCardMinCents} maxCents={settings.giftCardMaxCents} />
+      <GiftCardForm
+        minCents={settings.giftCardMinCents}
+        maxCents={settings.giftCardMaxCents}
+        releasing={releasing}
+      />
       <BalanceCheck />
       <p className="checkout-note">
         {t.giftCard.terms}{" "}
@@ -76,7 +94,15 @@ function GiftCardPage() {
   );
 }
 
-function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: number }) {
+function GiftCardForm({
+  minCents,
+  maxCents,
+  releasing = false,
+}: {
+  minCents: number;
+  maxCents: number;
+  releasing?: boolean;
+}) {
   const t = useT();
   const locale = useLocale();
   const lp = useLocaleParam();
@@ -107,12 +133,16 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
 
   useEffect(() => setEmail((current) => current || storedEmail), [storedEmail]);
 
-  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: Knopf wieder freigeben.
+  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: zuerst die Reservierung
+  // freigeben, dann Knopf wieder freigeben.
   useEffect(() => {
     const show = (e: PageTransitionEvent) => {
       if (!e.persisted) return;
-      paying.current = false;
-      setBusy(false);
+      const token = takePendingCheckout();
+      void (token ? releaseCheckout(token).catch(() => false) : Promise.resolve(false)).then(() => {
+        paying.current = false;
+        setBusy(false);
+      });
     };
     window.addEventListener("pageshow", show);
     return () => window.removeEventListener("pageshow", show);
@@ -125,7 +155,7 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (paying.current) return;
+    if (paying.current || releasing) return;
     setError("");
     const next: typeof errors = {};
     if (!amountValid) next.amount = t.giftCard.invalidAmount;
@@ -300,7 +330,7 @@ function GiftCardForm({ minCents, maxCents }: { minCents: number; maxCents: numb
           />
         )}
         {error && <Notice kind="error">{error}</Notice>}
-        <Button type="submit" disabled={!backendConfigured || busy}>
+        <Button type="submit" disabled={!backendConfigured || busy || releasing}>
           {busy ? t.checkout.redirecting : t.giftCard.buy}
         </Button>
         <p className="checkout-note">

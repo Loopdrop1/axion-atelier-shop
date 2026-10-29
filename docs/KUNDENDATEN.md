@@ -65,7 +65,7 @@ in Lovable veröffentlichen.
 | Prozent des Willkommensrabatts | Admin → Einstellungen → Newsletter (ganze Zahl 1 bis 50)                                               | Kein Rabatt: Footer und Konto zeigen keinen Hinweis, die Willkommens-Mail enthält keinen Code |
 | Newsletter-Programm und Sitz   | Datenschutz, Ziffer 4 (Platzhalter «Den Newsletter versenden wir mit …»), `pages.ts` und `pages-en.ts` | Datenschutz bleibt Entwurf                                                                    |
 
-Der Text im Footer («{n} % auf deine erste Bestellung») kommt automatisch aus diesem Wert. Der Einwilligungstext
+Der Text im Footer («{n} % auf deine nächste Bestellung») kommt automatisch aus diesem Wert. Der Einwilligungstext
 (`supabase/functions/_shared/consent.ts`, Version `newsletter-v2`) erwähnt den Rabatt als Gegenleistung; ändert sich
 der Wortlaut, `CONSENT_VERSION` erhöhen und `src/i18n/messages` angleichen. Newsletter und Bestell-Mails enthalten
 keine Öffnungs- oder Klickverfolgung im Code. **Kontrollieren:** In Resend → Domains darf «Open tracking» und «Click

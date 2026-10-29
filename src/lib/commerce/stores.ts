@@ -22,7 +22,7 @@ export function lineMax(stock?: number): number {
 
 interface CartStore {
   lines: { variantId: string; quantity: number }[];
-  /** Eingelöste Codes und E-Mail bleiben beim Wechsel zwischen Seitenleiste und Warenkorbseite erhalten. */
+  /** Eingelöste Codes und E-Mail bleiben beim Wechsel zwischen Seitenleiste und Warenkorbseite erhalten (nur im Speicher, nicht im localStorage). */
   discountCode: string;
   giftCardCode: string;
   email: string;
@@ -73,7 +73,13 @@ export const useCart = create<CartStore>()(
       setEmail: (email) => set({ email }),
       clear: () => set({ lines: [], discountCode: "", giftCardCode: "" }),
     }),
-    { name: "axion-cart", storage: createJSONStorage(() => localStorage), skipHydration: true },
+    {
+      name: "axion-cart",
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
+      // Nur Positionen bleiben im Browser; Gutschein, Rabattcode und E-Mail gelten nur für diese Sitzung.
+      partialize: (s) => ({ lines: s.lines }),
+    },
   ),
 );
 /** Schreibzugriff auf die Merkliste im Konto; gesetzt, solange eine Person angemeldet und abgeglichen ist. */

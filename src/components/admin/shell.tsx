@@ -160,7 +160,23 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <Loading />
       </AdminBare>
     );
-  if (role.isError || !role.data)
+  if (role.isError)
+    return (
+      <AdminBare>
+        <h1>Prüfung fehlgeschlagen</h1>
+        <p className="admin-muted">
+          Die Admin-Rechte konnten gerade nicht geprüft werden (Verbindung oder Server). Bitte
+          versuche es noch einmal.
+        </p>
+        <Button variant="admin" onClick={() => void role.refetch()}>
+          Erneut versuchen
+        </Button>{" "}
+        <Button variant="outline" onClick={() => void out()}>
+          Abmelden
+        </Button>
+      </AdminBare>
+    );
+  if (!role.data)
     return (
       <AdminBare>
         <h1>Kein Zugriff</h1>

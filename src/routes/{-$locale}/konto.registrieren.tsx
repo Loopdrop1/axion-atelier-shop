@@ -2,7 +2,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import { localePrefix } from "@/i18n/locale";
 import { MIN_PASSWORD, signUp } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";
@@ -11,6 +12,13 @@ import { Field, Notice, safeNext, useProblemText } from "@/components/account/fo
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const Route = createFileRoute("/{-$locale}/konto/registrieren")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.registerTitle, t.metaDescription, "/konto/registrieren", locale, {
+      noindex: true,
+    });
+  },
   validateSearch: (s: Record<string, unknown>): { weiter?: string | undefined } => ({
     weiter: typeof s["weiter"] === "string" ? s["weiter"] : undefined,
   }),

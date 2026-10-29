@@ -17,10 +17,19 @@ type GroupKey = "groesse" | "farbe" | "passform" | "anlass";
 // Adress-Parameter → Feld in ProductFilters
 const FACET = { groesse: "sizes", farbe: "colors", passform: "fits", anlass: "occasion" } as const;
 // Einheitsgrösse steht am Ende der Liste
-const bySize = (a: string, b: string) =>
-  Number(isOneSizeTitle(a)) - Number(isOneSizeTitle(b)) ||
-  Number(a) - Number(b) ||
-  a.localeCompare(b);
+const LETTER_SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+const sizeRank = (v: string): [number, number] => {
+  if (isOneSizeTitle(v)) return [3, 0];
+  const n = parseFloat(v.replace(",", "."));
+  if (Number.isFinite(n)) return [0, n];
+  const i = LETTER_SIZES.indexOf(v.trim().toUpperCase());
+  return i >= 0 ? [1, i] : [2, 0];
+};
+export const bySize = (a: string, b: string) => {
+  const [ga, na] = sizeRank(a);
+  const [gb, nb] = sizeRank(b);
+  return ga - gb || na - nb || a.localeCompare(b);
+};
 const slug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 export function CollectionPage({
   collection,

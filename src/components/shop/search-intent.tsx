@@ -77,7 +77,8 @@ function useIntentChips(intent: SearchIntent | undefined): IntentChip[] {
       label: s.sale,
       remove: (i) => ({ ...i, sale: false }),
     });
-  if (intent.neu) chips.push({ key: "neu", label: s.neu, remove: (i) => ({ ...i, neu: false }) });
+  if (intent.neu)
+    chips.push({ key: "neu", check: "neu", label: s.neu, remove: (i) => ({ ...i, neu: false }) });
   if (intent.cheap)
     chips.push({ key: "cheap", label: s.cheap, remove: (i) => ({ ...i, cheap: false }) });
   if (intent.gift)
@@ -144,6 +145,9 @@ export function RelaxedNotes({
   return (
     <>
       <p className="search-note">{t.search.relaxed}</p>
+      {checks.includes("terms") && result.intent.terms.length > 0 && (
+        <p className="search-note">{t.search.notFound(result.intent.terms.join(", "))}</p>
+      )}
       {checks.includes("maxPrice") && maxPrice !== undefined && (
         <p className="search-note">
           {t.search.noneUpTo(

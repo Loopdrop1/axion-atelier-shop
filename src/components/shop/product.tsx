@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { SIZES } from "@/lib/commerce/variants";
 import { outfitKey } from "./outfit-key";
-import { sizesFor, useOutfit } from "./outfit";
+import { isSoldOut, sizesFor, useOutfit } from "./outfit";
 import { OutfitRow } from "./outfit-row";
 import { useAddToCart } from "./use-add-to-cart";
 import { Link } from "@tanstack/react-router";
@@ -135,7 +135,7 @@ export function ProductPage({
   const shownCompare = pick ? pick.compareAtPrice : product.compareAtPrice;
   const hasRange = product.priceRange.min.amount < product.priceRange.max.amount;
   const priceText = formatPrice(shownPrice, locale);
-  const soldOutSingle = !!onlyVariant && !onlyVariant.availableForSale;
+  const allSoldOut = isSoldOut(product);
   const fitNote =
     product.details.fit && product.details.fit !== product.fit ? product.details.fit : "";
   const headline = materialLine(product.details);
@@ -189,6 +189,7 @@ export function ProductPage({
                 key={i}
                 className={galleryIndex === i ? "active" : ""}
                 aria-label={t.product.image(i + 1)}
+                aria-current={galleryIndex === i ? "true" : undefined}
                 onClick={() =>
                   gallery.current?.scrollTo({
                     left: i * gallery.current.clientWidth,
@@ -283,6 +284,7 @@ export function ProductPage({
                   params={{ locale: lp, handle: p.handle }}
                   aria-label={p.color.name}
                   title={p.color.name}
+                  aria-current={p.handle === product.handle ? "page" : undefined}
                   className={`swatch ${p.handle === product.handle ? "active" : ""}`}
                   style={{ "--swatch": p.color.hex } as CSSProperties}
                 />
@@ -304,6 +306,11 @@ export function ProductPage({
                     {t.product.sizeGuide}
                   </Button>
                 </div>
+                {allSoldOut && settings.hideSoldOut && (
+                  <p className="size-hint" role="status">
+                    {t.product.soldOut}
+                  </p>
+                )}
                 <div className="size-grid" ref={sizeSelector}>
                   {sizesFor(product, settings.hideSoldOut).map((v) => (
                     <Button
@@ -329,12 +336,8 @@ export function ProductPage({
             </p>
             <div ref={mainAdd} className="add-row">
               {/* Wie die Leiste unten: ohne Grösse «Grösse wählen», Einheitsgrösse ausverkauft gesperrt */}
-              <Button disabled={soldOutSingle} onClick={size ? addSelected : chooseSize}>
-                {soldOutSingle
-                  ? t.product.soldOut
-                  : size
-                    ? t.product.addToCart
-                    : t.product.chooseSize}
+              <Button disabled={allSoldOut} onClick={size ? addSelected : chooseSize}>
+                {allSoldOut ? t.product.soldOut : size ? t.product.addToCart : t.product.chooseSize}
               </Button>
               <Button
                 variant="tailored"
@@ -352,10 +355,13 @@ export function ProductPage({
               </p>
             )}
             <ShareButton title={product.title} />
-            <StockAlertForm product={product} />
-            <p className="delivery-note">{t.product.deliveryNote(shipping)}</p>
-            {/* Nur mit lieferbarer Grösse; Platzhalter gleicher Höhe, bis das Datum im Browser berechnet ist */}
-            {product.variants.some((v) => v.availableForSale) && <DeliveryEstimate />}
+            <StockAlertForm key={product.handle} product={product} />
+            {/* Mit lieferbarer Grösse nennt DeliveryEstimate das Lieferfenster; die Versandzeile
+                wiederholt dann keine Lieferdauer. Platzhalter gleicher Höhe, bis das Datum im Browser berechnet ist */}
+            <p className="delivery-note">
+              {allSoldOut ? t.product.deliveryNote(shipping) : shipping}
+            </p>
+            {!allSoldOut && <DeliveryEstimate />}
             <p className="trust-line">
               {t.home.benefits.returns(shopConfig.returnDays)} ·{" "}
               <Link to="/{-$locale}/versand-und-rueckgabe" params={{ locale: lp }}>
@@ -457,6 +463,9 @@ export function ProductPage({
                   setZoom((zoom - 1 + product.images.length) % product.images.length);
               }}
               tabIndex={0}
+              role="group"
+              aria-roledescription="carousel"
+              aria-label={t.product.zoomImage(zoom + 1)}
             >
               <Photo
                 image={product.images[zoom]}
@@ -510,8 +519,17 @@ export function ProductPage({
         <div className="mobile-add-bar">
           <span className="price">{!pick && hasRange ? t.product.from(priceText) : priceText}</span>
           {/* Einheitsgrösse ausverkauft: nichts zu wählen, also auch kein «Grösse wählen» */}
-          <Button onClick={size ? addSelected : chooseSize} disabled={!size && !!onlyVariant}>
-            {size ? t.product.addToCart : onlyVariant ? t.product.soldOut : t.product.chooseSize}
+          <Button
+            onClick={size ? addSelected : chooseSize}
+            disabled={allSoldOut || (!size && !!onlyVariant)}
+          >
+            {allSoldOut
+              ? t.product.soldOut
+              : size
+                ? t.product.addToCart
+                : onlyVariant
+                  ? t.product.soldOut
+                  : t.product.chooseSize}
           </Button>
         </div>
       )}
@@ -609,7 +627,11 @@ function RecentlyViewed({ current }: { current: string }) {
       .slice(0, 4);
     add(current);
     let alive = true;
-    if (handles.length) getProductsByHandles(handles, locale).then((p) => alive && setProducts(p));
+    if (handles.length)
+      getProductsByHandles(handles, locale)
+        .then((p) => alive && setProducts(p))
+        // Nur ein Zusatzblock: bei einem Ladefehler bleibt er einfach weg
+        .catch(() => undefined);
     else setProducts([]);
     return () => {
       alive = false;

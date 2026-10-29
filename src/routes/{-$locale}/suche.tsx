@@ -128,7 +128,7 @@ function SearchPage() {
           </Link>
         </p>
       )}
-      <p className="text-muted mb-8">
+      <p className="text-muted mb-8" role="status">
         {t.common.results(result.products.length)}
         {q ? t.search.for(q) : ""}
       </p>

@@ -168,6 +168,7 @@ export async function listMyOrders(): Promise<OrderSummary[]> {
     .from("orders")
     .select("id, number, status, kind, total_cents, created_at")
     .neq("status", "pending")
+    .or("paid_at.not.is.null,status.neq.cancelled")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data;

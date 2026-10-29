@@ -39,6 +39,14 @@ export function organizationLd(locale: Locale) {
       name: shopConfig.brand,
       url: pageUrl("/", locale),
       inLanguage: locale === "en" ? "en" : "de-CH",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${pageUrl("/suche", locale)}?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
     },
   ];
 }

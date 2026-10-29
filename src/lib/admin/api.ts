@@ -562,22 +562,44 @@ export async function paidOrderIds(from: Date, to: Date, max = 5000): Promise<st
   return ids;
 }
 
+/** Alle Zeilen einer Abfrage, seitenweise (die API liefert höchstens 1000 pro Abfrage). Die Abfrage braucht eine
+ *  stabile Sortierung (mit eindeutigem Tiebreaker), damit sich die Seiten nicht überlappen. */
+async function fetchAllRows<T>(
+  page: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: T[] | null; error: PostgrestError | null }>,
+  max = Infinity,
+): Promise<T[]> {
+  const PAGE = 1000;
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += PAGE) {
+    const { data, error } = await page(offset, offset + PAGE - 1);
+    fail(error);
+    const chunk = data ?? [];
+    rows.push(...chunk);
+    if (chunk.length < PAGE || rows.length >= max) break;
+  }
+  return rows.slice(0, max);
+}
+
 /** Bestellungen mit Positionen für den Export (Zeitraum nach Bezahlung). */
 export async function exportOrders(from: Date, to: Date) {
-  const { data, error } = await db()
-    .from("orders")
-    .select(
-      `number, kind, status, email, created_at, paid_at, shipped_at, subtotal_cents, discount_cents, discount_code,
+  return fetchAllRows((lo, hi) =>
+    db()
+      .from("orders")
+      .select(
+        `number, kind, status, email, created_at, paid_at, shipped_at, subtotal_cents, discount_cents, discount_code,
        gift_card_cents, shipping_cents, total_cents, refunded_cents, shipping_name, shipping_address, payment_method,
        tracking_number, order_items(title, size, color, quantity, unit_price_cents, line_total_cents)`,
-    )
-    .in("status", ["paid", "shipped", "refunded"])
-    .gte("paid_at", from.toISOString())
-    .lt("paid_at", to.toISOString())
-    .order("paid_at", { ascending: true })
-    .limit(5000);
-  fail(error);
-  return data ?? [];
+      )
+      .in("status", ["paid", "shipped", "refunded"])
+      .gte("paid_at", from.toISOString())
+      .lt("paid_at", to.toISOString())
+      .order("paid_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(lo, hi),
+  );
 }
 
 // Katalog -------------------------------------------------------------------------------------------
@@ -901,14 +923,18 @@ export const STOCK_LIST_LIMIT = 2000;
 export const MOVEMENTS_LIMIT = 200;
 
 export async function listStock(): Promise<StockRow[]> {
-  const { data, error } = await db()
-    .from("product_variants")
-    .select(
-      "id, size, stock, active, sku, barcode, sort, product:products(id, handle, title_de, color_name_de, status)",
-    )
-    .limit(STOCK_LIST_LIMIT);
-  fail(error);
-  return ((data ?? []) as unknown as StockRow[]).sort(
+  const data = await fetchAllRows(
+    (lo, hi) =>
+      db()
+        .from("product_variants")
+        .select(
+          "id, size, stock, active, sku, barcode, sort, product:products(id, handle, title_de, color_name_de, status)",
+        )
+        .order("id", { ascending: true })
+        .range(lo, hi),
+    STOCK_LIST_LIMIT,
+  );
+  return (data as unknown as StockRow[]).sort(
     (a, b) =>
       (a.product?.title_de ?? "").localeCompare(b.product?.title_de ?? "", "de") ||
       (a.product?.color_name_de ?? "").localeCompare(b.product?.color_name_de ?? "", "de") ||
@@ -987,12 +1013,12 @@ export async function listGiftCards(search: string): Promise<GiftCard[]> {
 export async function listGiftCardTransactions(giftCardId: string) {
   const { data, error } = await db()
     .from("gift_card_transactions")
-    .select("*, order:orders(number)")
+    .select("*, order:orders(id, number)")
     .eq("gift_card_id", giftCardId)
     .order("created_at", { ascending: false });
   fail(error);
   return (data ?? []) as unknown as (Tables<"gift_card_transactions"> & {
-    order: { number: number } | null;
+    order: { id: string; number: number } | null;
   })[];
 }
 
@@ -1033,13 +1059,14 @@ export async function updateGiftCard(
 export type Subscriber = Tables<"newsletter_subscribers">;
 
 export async function listSubscribers(): Promise<Subscriber[]> {
-  const { data, error } = await db()
-    .from("newsletter_subscribers")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10000);
-  fail(error);
-  return data ?? [];
+  return fetchAllRows((lo, hi) =>
+    db()
+      .from("newsletter_subscribers")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(lo, hi),
+  );
 }
 
 export async function deleteSubscriber(id: string) {

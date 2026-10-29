@@ -70,13 +70,13 @@ export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailC
         `Verpacke die Stücke ungetragen, mit allen Etiketten und möglichst in der Originalverpackung.`,
         `Lege einen Zettel mit der Bestellnummer ${order} und der Retourennummer ${ref} bei.`,
         `Schicke das Paket an: ${address}`,
-        `Sobald die Rücksendung bei uns eingetroffen ist und wir sie geprüft haben, erstatten wir den Kaufpreis der zurückgegebenen Stücke auf das ursprüngliche Zahlungsmittel.`,
+        `Sobald die Rücksendung bei uns eingetroffen ist und wir sie geprüft haben, erstatten wir den Kaufpreis der zurückgegebenen Stücke auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.`,
       ]
     : [
         `Pack the pieces unworn, with all tags and preferably in the original packaging.`,
         `Include a note with the order number ${order} and the return number ${ref}.`,
         `Send the parcel to: ${address}`,
-        `Once your return has arrived and we have checked it, we refund the price of the returned pieces to the original payment method.`,
+        `Once your return has arrived and we have checked it, we refund the price of the returned pieces to the original payment method. Amounts paid with a gift card are credited back to the gift card.`,
       ];
   const note = de
     ? `Details zu Frist, Rücksendekosten und Rückerstattung stehen unter ${info}`

@@ -455,11 +455,16 @@ describe("checkout: Erinnerung an abgebrochene Kasse (Einwilligung)", () => {
       remind: true,
     });
     expect(res.status).toBe(200);
-    const { orderNumber } = (await res.json()) as { orderNumber: number };
-    const row = await sql<{ reminder_opt_in: boolean | null }>(
-      "select reminder_opt_in from public.orders where number = $1",
+    const { orderNumber, statusToken } = (await res.json()) as {
+      orderNumber: number;
+      statusToken: string;
+    };
+    const row = await sql<{ reminder_opt_in: boolean | null; status_token: string }>(
+      "select reminder_opt_in, status_token from public.orders where number = $1",
       [orderNumber],
     );
     expect(row[0]!.reminder_opt_in).toBe(false);
+    // Die Seite braucht das Token, um die Reservierung bei «Zurück» im Browser freizugeben
+    expect(statusToken).toBe(row[0]!.status_token);
   });
 });

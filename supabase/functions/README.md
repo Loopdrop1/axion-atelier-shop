@@ -42,7 +42,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 
 ## newsletter
 
-- `{ action: "subscribe", email, consent: true, locale, source?: "footer" | "account" | "checkout", website?: "" }` → immer `200 { ok: true }` (verrät nicht, ob die Adresse schon eingetragen ist). `website` ist ein verstecktes Feld gegen Bots und muss leer bleiben. Wortlaut und Version der Einwilligung legt der Server fest (`_shared/consent.ts`, gespeichert als «[newsletter-v2] Text»); der Formulartext in `src/i18n/messages` muss dazu passen (Test `consent.test.ts`). `400 INVALID_EMAIL | CONSENT_REQUIRED`, `429 RATE_LIMITED`.
+- `{ action: "subscribe", email, consent: true, locale, source?: "footer" | "account" | "checkout", website?: "" }` → `200 { ok: true }` (verrät nicht, ob die Adresse schon eingetragen ist). `website` ist ein verstecktes Feld gegen Bots und muss leer bleiben. Wortlaut und Version der Einwilligung legt der Server fest (`_shared/consent.ts`, gespeichert als «[newsletter-v2] Text»); der Formulartext in `src/i18n/messages` muss dazu passen (Test `consent.test.ts`). `400 INVALID_EMAIL | CONSENT_REQUIRED`, `429 RATE_LIMITED`, `502 EMAIL_FAILED` (Bestätigungs-E-Mail nicht versendet).
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "unsubscribed" | "invalid" }`
 - `{ action: "unsubscribe", token }` → `200 { status: "unsubscribed" | "invalid" }`
 - Links in den E-Mails: `/newsletter/bestaetigen?token=…` und `/newsletter/abmelden?token=…` (mit `/en` davor auf Englisch). Die Seiten lösen die Aktion erst per Klick aus, damit Link-Scanner von Mailprogrammen nichts bestätigen.
@@ -51,7 +51,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 
 «Benachrichtigen, wenn wieder da» mit Double Opt-in (Tabelle `stock_alerts`, Migration `20261021000900_stock_alerts.sql` bzw. Cloud `0008`).
 
-- `{ action: "request", variantId, email, locale, website }` → `200 { ok: true }` (verrät nie, ob die Adresse schon eingetragen ist; schickt die Bestätigungs-E-Mail mit Link auf `/benachrichtigung/bestaetigen?token=…`). Nur aktive, ausverkaufte Grössen: `409 IN_STOCK`, `404 VARIANT_NOT_FOUND`, `400 INVALID_EMAIL | BAD_REQUEST`, `429 RATE_LIMITED` (5 pro Adresse, 10 pro IP, 200 gesamt pro Stunde).
+- `{ action: "request", variantId, email, locale, website }` → `200 { ok: true }` (verrät nie, ob die Adresse schon eingetragen ist; schickt die Bestätigungs-E-Mail mit Link auf `/benachrichtigung/bestaetigen?token=…`). Nur aktive, ausverkaufte Grössen: `409 IN_STOCK`, `404 VARIANT_NOT_FOUND`, `400 INVALID_EMAIL | BAD_REQUEST`, `429 RATE_LIMITED` (5 pro Adresse, 10 pro IP, 200 gesamt pro Stunde), `502 EMAIL_FAILED` (Bestätigungs-E-Mail nicht versendet).
 - `{ action: "confirm", token }` → `200 { status: "confirmed" | "invalid" }`.
 - Versand nach dem Aufstocken: `admin-actions` → `notify_restock` (unten). Nach dem Versand wird die Adresse entfernt; unbestätigte und benachrichtigte Einträge nach 30 Tagen gelöscht.
 
@@ -62,7 +62,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - `{ action: "lookup", orderNumber, email }` → `200 { status: "ok", orderNumber, deadline, items: [{ orderItemId, title, size, color, image, quantity }] }` mit den noch zurückgebbaren Stücken (`quantity` = bestellt minus bereits angemeldet; abgelehnte Anmeldungen zählen nicht). `orderNumber` darf `AX-10001`, `#10001` oder `10001` sein. Nur bezahlte oder versendete Warenkorb-Bestellungen, E-Mail ohne Beachtung der Schreibweise. `404 NOT_FOUND` ist **einheitlich** für unbekannte Nummer, falsche Adresse und nicht bezahlte Bestellungen (verrät nie, ob eine Bestellung existiert). Erst wenn die Adresse passt: `409 RETURN_WINDOW_CLOSED { returnDays }` (Frist ab `shipped_at`, sonst `paid_at`; `SHOP_RETURN_DAYS`, Standard 14, gleich wie `returnDays` in `src/config/shop.ts`, Test `src/lib/returns.test.ts`) und `409 NOTHING_RETURNABLE` (alles angemeldet oder ganz erstattet).
 - `{ action: "submit", orderNumber, email, items: [{ orderItemId, quantity, reason }], comment?, locale, requestId?, website? }` → `200 { status: "ok", returnNumber: "R-1001", orderNumber, emailed }`. `reason`: `too_small | too_large | style | quality | wrong_item | other`; 1 bis 20 verschiedene Positionen, Menge 1 bis 10 (zusätzlich ≤ noch zurückgebbar), Kommentar höchstens 1000 Zeichen (`400 COMMENT_TOO_LONG`). Fehler wie bei lookup, dazu `409 ITEMS_NOT_RETURNABLE` (Menge, fremde oder doppelte Position) und `400 BAD_REQUEST`. `requestId` (UUID aus dem Formular) macht doppeltes Absenden unschädlich: dieselbe Anmeldung wird nochmals geliefert, nichts wird zweimal angelegt.
 - Mails (Resend, Idempotency-Key `return-<id>-customer` und `return-<id>-shop`): Bestätigung an die Kundschaft mit allgemeinen Hinweisen (ungetragen einpacken, Bestell- und Retourennummer beilegen, an `SHOP_ADDRESS` schicken; **kein** Rücksendeetikett und keine Kostenübernahme versprochen) und Meldung an die Bestelladresse (Admin → Einstellungen, sonst `SHOP_NOTIFY_EMAIL`, sonst `SHOP_CONTACT_EMAIL`) mit Reply-To an die Kundschaft. Scheitert eine Mail, bleibt die Anmeldung gespeichert (`emailed: false`, sichtbar im Admin → Retouren).
-- Bremsen (`private.hit_rate_limit`, nur als Hash gezählt): lookup pro IP 30, pro Adresse 15, pro Bestellnummer 20, gesamt 500 pro Stunde; submit pro IP 10 und pro Adresse 5 pro Stunde (dazu dieselben Bestellnummer- und Gesamtgrenzen) → `429 RATE_LIMITED`.
+- Bremsen (`private.hit_rate_limit`, nur als Hash gezählt): lookup pro IP 30, pro Adresse 15, pro Bestellnummer 20, gesamt 3000 pro Stunde (Schlüssel `return-global`, von lookup und submit gemeinsam genutzt); submit pro IP 10 und pro Adresse 5 pro Stunde (dazu dieselben Bestellnummer- und Gesamtgrenzen) → `429 RATE_LIMITED`.
 - Admin → Retouren (`/admin/retouren`) liest und ändert `status` (`requested → received → refunded | rejected`) und `admin_note` per RLS; Erstattung und «Retoure einbuchen» bleiben an der Bestellung.
 
 ## search-assist
@@ -160,6 +160,8 @@ nicht aus; jede Migration wird einmal von Hand in Cloud ausgeführt). Gleiche An
 | `20261027001400_client_errors`         | `0013_axion_client_errors`         | gleich                                                                         |
 | `20261027001500_client_errors_prune`   | `0014_axion_client_errors_prune`   | gleich                                                                         |
 | `20261028001600_checkout_reminder`     | `0015_axion_checkout_reminder`     | gleich                                                                         |
+| `20261029001700_return_requests`       | `0016_axion_return_requests`       | gleich                                                                         |
+| `20261029001800_low_stock_alert`       | `0017_axion_low_stock_alert`       | gleich                                                                         |
 
 Eine neue Migration kommt in beide Ordner (neue Nummer, Eintrag in `drizzle/migrations/meta/_journal.json` und ein leerer
 `NNNN_snapshot.json` mit der vorigen `id` als `prevId`).

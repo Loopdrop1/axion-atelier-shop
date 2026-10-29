@@ -2,13 +2,21 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import { requestPasswordReset } from "@/lib/account/api";
 import { Field, Notice, useProblemText } from "@/components/account/form";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const Route = createFileRoute("/{-$locale}/konto/passwort-vergessen")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.forgotTitle, t.metaDescription, "/konto/passwort-vergessen", locale, {
+      noindex: true,
+    });
+  },
   component: ForgotPasswordPage,
 });
 

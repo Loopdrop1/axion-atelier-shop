@@ -8,6 +8,8 @@ import { formatPrice, formatDiscount, discountPercent } from "@/lib/commerce/for
 import { materialLine } from "@/lib/commerce/material-line";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { isOnSale } from "@/lib/commerce/sale";
+import { useShopSettings } from "@/lib/commerce/use-settings";
+import { isSoldOut, sizesFor } from "./outfit";
 import { useWishlist, useShopUI } from "@/lib/commerce/stores";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import type { Product } from "@/lib/commerce";
@@ -38,7 +40,9 @@ export function ProductCard({
   const toggle = useWishlist((s) => s.toggle);
   const addToCart = useAddToCart();
   const setCart = useShopUI((s) => s.setCart);
+  const settings = useShopSettings();
   const onSale = isOnSale(product);
+  const soldOut = isSoldOut(product);
   const single = oneSizeVariant(product);
   const material = materialLine(product.details);
   return (
@@ -62,13 +66,15 @@ export function ProductCard({
             <Photo image={product.images[1]} className="second-image" sizes={SIZES.card} />
           )}
         </Link>
-        {(product.tags.includes("muster") || onSale || product.tags.includes("neu")) && (
+        {(product.tags.includes("muster") || onSale || product.tags.includes("neu") || soldOut) && (
           <span className={`product-badge ${product.tags.includes("muster") ? "is-sample" : ""}`}>
             {product.tags.includes("muster")
               ? t.product.badgeSample
               : onSale
                 ? t.product.badgeSale
-                : t.product.badgeNew}
+                : product.tags.includes("neu")
+                  ? t.product.badgeNew
+                  : t.product.soldOut}
           </span>
         )}
         <Button
@@ -101,7 +107,7 @@ export function ProductCard({
                 <span>{t.product.outfitSoldOut}</span>
               )
             ) : (
-              product.variants.map((v) => (
+              sizesFor(product, settings.hideSoldOut).map((v) => (
                 <Button
                   variant="icon"
                   key={v.id}

@@ -346,7 +346,7 @@ test("Warenkorb bis Bestellung: Rabattcode, Gutschein, E-Mail, danach leerer War
   });
 
   await open(page, "/warenkorb");
-  await expect(page.getByText("Dein Warenkorb ist noch leer")).toBeVisible();
+  await expect(page.getByText("Noch nichts ausgewählt")).toBeVisible();
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
@@ -360,7 +360,7 @@ test("Ausverkauft beim Bezahlen: Warenkorb wird angepasst und erklärt", async (
   await expect(
     page.getByText("Nicht mehr alles ist verfügbar. Wir haben deinen Warenkorb angepasst."),
   ).toBeVisible();
-  await expect(page.getByText("Dein Warenkorb ist noch leer")).toBeVisible();
+  await expect(page.getByText("Noch nichts ausgewählt")).toBeVisible();
 });
 
 test("Abbruch in der Stripe-Kasse gibt die Reservierung frei", async ({ page, request }) => {

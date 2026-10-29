@@ -34,7 +34,9 @@ export function EmptyState({
   useEffect(() => {
     if (!suggest) return;
     let live = true;
-    listProducts({ collection: "neu" }, locale).then((p) => live && setNewest(p.slice(0, 4)));
+    listProducts({ collection: "neu" }, locale)
+      .then((p) => live && setNewest(p.slice(0, 4)))
+      .catch(() => undefined);
     return () => {
       live = false;
     };
@@ -152,6 +154,8 @@ export function CartContents({
   const removeLine = (l: CartType["lines"][number], index: number) => {
     focusAfterRemove.current = index;
     remove(l.variantId);
+    // Ausverkaufte Zeilen lassen sich nicht wieder einlegen: kein «Rückgängig» anbieten
+    if (!l.variant.availableForSale || l.variant.stock <= 0) return;
     setUndo({
       variantId: l.variantId,
       quantity: l.quantity,
@@ -189,7 +193,11 @@ export function CartContents({
       <>
         {undoNotice}
         {notice && <p className="form-notice">{notice}</p>}
-        <EmptyState title={t.cart.emptyTitle} text={t.cart.emptyText} suggest={page} />
+        <EmptyState
+          title={page ? t.cart.emptyTitlePage : t.cart.emptyTitle}
+          text={t.cart.emptyText}
+          suggest={page}
+        />
       </>
     );
   const subtotalCents = Math.round(cart.subtotal.amount * 100);

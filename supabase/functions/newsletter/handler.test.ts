@@ -151,6 +151,17 @@ describe("newsletter: anmelden", () => {
     expect(await badMail.json()).toEqual({ error: "INVALID_EMAIL" });
   });
 
+  it("scheitert die Bestätigungs-E-Mail: 502 EMAIL_FAILED", async () => {
+    resend.failNext();
+    const res = await post({
+      action: "subscribe",
+      email: `${uniq("mailfail")}@example.ch`,
+      consent: CONSENT,
+    });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "EMAIL_FAILED" });
+  });
+
   it("mehr als 3 Anmeldungen derselben Adresse pro Stunde: 429", async () => {
     const email = `${uniq("oft")}@example.ch`;
     for (let i = 0; i < 3; i++)
@@ -219,6 +230,34 @@ describe("newsletter: bestätigen und abmelden", () => {
       const mail = resend.sent[before]!;
       expect(mail.text).toContain("10% off your next order");
       expect(mail.text).toMatch(/WILLKOMMEN-[A-HJ-NP-Z2-9]{10}/);
+    } finally {
+      await sql("update public.shop_settings set newsletter_welcome_percent = null");
+    }
+  });
+
+  it("wiederholter Klick mit Willkommensrabatt: derselbe Code, derselbe Idempotency-Key, kein neuer Code", async () => {
+    await sql("update public.shop_settings set newsletter_welcome_percent = 10");
+    try {
+      const email = `${uniq("nochmal")}@example.ch`;
+      let before = resend.sent.length;
+      await post({ action: "subscribe", email, consent: CONSENT, locale: "de" });
+      const t = tokenFrom(resend.sent[before]!.text, "bestaetigen");
+      before = resend.sent.length;
+      await post({ action: "confirm", token: t });
+      const again = await post({ action: "confirm", token: t });
+      expect(await again.json()).toEqual({ status: "confirmed" });
+      const mails = resend.sent.slice(before);
+      expect(mails).toHaveLength(2);
+      const code = (m: (typeof mails)[number]) => m.text.match(/WILLKOMMEN-[A-HJ-NP-Z2-9]{10}/)![0];
+      expect(code(mails[1]!)).toBe(code(mails[0]!));
+      expect(mails[0]!.idempotencyKey).toBe(`newsletter-welcome-${t.slice(0, 16)}`);
+      expect(mails[1]!.idempotencyKey).toBe(mails[0]!.idempotencyKey);
+      expect(mails[1]!.to).toEqual(mails[0]!.to);
+      const codes = await sql(
+        "select 1 from public.discount_codes where note = 'Newsletter-Willkommensrabatt' and code = $1",
+        [code(mails[0]!)],
+      );
+      expect(codes).toHaveLength(1);
     } finally {
       await sql("update public.shop_settings set newsletter_welcome_percent = null");
     }

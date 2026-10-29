@@ -69,7 +69,7 @@ export function ContactForm() {
 
   if (state === "sent") {
     return (
-      <p className="contact-done" role="status">
+      <p className="contact-done" role="status" tabIndex={-1} ref={(el) => el?.focus()}>
         {f.sent}
       </p>
     );

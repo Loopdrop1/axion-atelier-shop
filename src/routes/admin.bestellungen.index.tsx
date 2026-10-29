@@ -27,7 +27,7 @@ import {
   type OrderFilter,
   type VariantCodes,
 } from "@/lib/admin/api";
-import { accountingRows } from "@/lib/admin/accounting-export";
+import { accountingRows, paymentLabel } from "@/lib/admin/accounting-export";
 import { downloadCsv } from "@/lib/admin/csv";
 import { zurichDate, zurichMidnight } from "@/lib/admin/dates";
 import { centsToInput } from "@/lib/admin/money";
@@ -109,9 +109,13 @@ function Orders() {
     try {
       const ids = selected.size ? [...selected] : await openOrderIds();
       const orders = (await getOrdersByIds(ids))
-        .filter((o) => o.kind === "cart" && o.shipping_address)
+        .filter((o) => o.kind === "cart" && o.shipping_address && o.status === "paid")
         .sort((a, b) => a.number - b.number);
-      if (!orders.length) return notify.warn("Keine Bestellungen zum Drucken.");
+      if (!orders.length) return notify.warn("Keine bezahlten Bestellungen zum Drucken.");
+      const skipped = ids.length - orders.length;
+      if (selected.size && skipped > 0) {
+        notify.warn(`${skipped} nicht bezahlte oder bereits versendete Bestellungen übersprungen.`);
+      }
       const codes = await getVariantCodes(
         orders.flatMap((o) => o.items.flatMap((i) => i.variant_id ?? [])),
       );
@@ -125,7 +129,16 @@ function Orders() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    void navigate({ search: (s) => ({ ...s, suche: term.trim() || undefined, seite: undefined }) });
+    const suche = term.trim() || undefined;
+    // Eine Suche ohne gewählte Ansicht gilt für alle Bestellungen, nicht nur für «Zu versenden»
+    void navigate({
+      search: (s) => ({
+        ...s,
+        suche,
+        ansicht: suche && !s.ansicht ? "all" : s.ansicht,
+        seite: undefined,
+      }),
+    });
   }
 
   return (
@@ -426,7 +439,7 @@ function ExportDialog({ mode, onClose }: { mode: ExportMode | null; onClose: () 
           centsToInput(o.shipping_cents),
           centsToInput(o.total_cents),
           centsToInput(o.refunded_cents),
-          o.payment_method ?? "",
+          paymentLabel(o.payment_method),
           o.tracking_number ?? "",
         ];
         const items = o.order_items.length ? o.order_items : [null];

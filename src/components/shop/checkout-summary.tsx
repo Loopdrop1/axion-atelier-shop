@@ -11,7 +11,9 @@ import type { Cart } from "@/lib/commerce";
 import {
   checkDiscount,
   checkGiftCard,
+  releaseCheckout,
   startCheckout,
+  takePendingCheckout,
   type DiscountCheck,
 } from "@/lib/commerce/checkout";
 import { formatCents, formatDiscount } from "@/lib/commerce/format";
@@ -130,7 +132,8 @@ export function CheckoutSummary({
   const [discountError, setDiscountError] = useState("");
   const [gift, setGift] = useState<{ balance: number } | null>(null);
   const [giftError, setGiftError] = useState("");
-  const [checking, setChecking] = useState(false);
+  const [checkingDiscount, setCheckingDiscount] = useState(false);
+  const [checkingGift, setCheckingGift] = useState(false);
   const [showCodes, setShowCodes] = useState(Boolean(discountCode || giftCardCode));
   const [email, setEmail] = useState(storedEmail);
   const [emailError, setEmailError] = useState("");
@@ -141,12 +144,16 @@ export function CheckoutSummary({
   const paying = useRef(false);
   const [error, setError] = useState("");
 
-  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: Knopf wieder freigeben.
+  // «Zurück» von Stripe holt die Seite aus dem bfcache mit gesetztem busy: zuerst die eigene Reservierung
+  // freigeben (sonst blockiert sie Bestand, Gutschein und Rabattcode bis zum Ablauf), dann Knopf freigeben.
   useEffect(() => {
     const show = (e: PageTransitionEvent) => {
       if (!e.persisted) return;
-      paying.current = false;
-      setBusy(false);
+      const token = takePendingCheckout();
+      void (token ? releaseCheckout(token).catch(() => false) : Promise.resolve(false)).then(() => {
+        paying.current = false;
+        setBusy(false);
+      });
     };
     window.addEventListener("pageshow", show);
     return () => window.removeEventListener("pageshow", show);
@@ -167,7 +174,7 @@ export function CheckoutSummary({
       return;
     }
     let live = true;
-    setChecking(true);
+    setCheckingDiscount(true);
     checkDiscount(discountCode, subtotalCents)
       .then((r) => {
         if (!live) return;
@@ -190,7 +197,7 @@ export function CheckoutSummary({
         }
       })
       .catch(() => live && setDiscountError(t.common.networkError))
-      .finally(() => live && setChecking(false));
+      .finally(() => live && setCheckingDiscount(false));
     return () => {
       live = false;
     };
@@ -203,7 +210,7 @@ export function CheckoutSummary({
       return;
     }
     let live = true;
-    setChecking(true);
+    setCheckingGift(true);
     checkGiftCard(giftCardCode)
       .then((r) => {
         if (!live) return;
@@ -219,7 +226,7 @@ export function CheckoutSummary({
         }
       })
       .catch(() => live && setGiftError(t.common.networkError))
-      .finally(() => live && setChecking(false));
+      .finally(() => live && setCheckingGift(false));
     return () => {
       live = false;
     };
@@ -312,7 +319,7 @@ export function CheckoutSummary({
               applied={discount?.code ?? null}
               detail={discount?.label || undefined}
               error={discountError}
-              busy={checking}
+              busy={checkingDiscount}
               onApply={(code) => {
                 setDiscountError("");
                 setDiscountCode(code);
@@ -330,7 +337,7 @@ export function CheckoutSummary({
                 gift ? t.checkout.giftCardBalance(formatCents(gift.balance, locale)) : undefined
               }
               error={giftError}
-              busy={checking}
+              busy={checkingGift}
               onApply={(code) => {
                 setGiftError("");
                 setGiftCardCode(normalizeGiftCode(code));
@@ -366,7 +373,11 @@ export function CheckoutSummary({
         {row(t.checkout.total, formatCents(totals.totalCents, locale), "checkout-total")}
       </div>
       <DeliveryEstimate className="in-checkout" />
-      {totals.totalCents === 0 && <p className="form-notice">{t.checkout.giftCardCoversAll}</p>}
+      {totals.totalCents === 0 && (
+        <p className="form-notice">
+          {totals.giftCardCents > 0 ? t.checkout.giftCardCoversAll : t.checkout.nothingToPay}
+        </p>
+      )}
       {backendConfigured && (
         <div className="checkout-email">
           {user?.email ? (
@@ -417,7 +428,10 @@ export function CheckoutSummary({
           {error}
         </p>
       )}
-      <Button disabled={!backendConfigured || busy || blocked} onClick={pay}>
+      <Button
+        disabled={!backendConfigured || busy || blocked || checkingDiscount || checkingGift}
+        onClick={pay}
+      >
         {busy
           ? t.checkout.redirecting
           : totals.totalCents === 0

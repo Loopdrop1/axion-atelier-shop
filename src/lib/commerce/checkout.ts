@@ -64,7 +64,7 @@ export type CheckoutInput =
     };
 
 export type CheckoutResult =
-  | { ok: true; url: string; orderNumber: number }
+  | { ok: true; url: string; orderNumber: number; statusToken?: string | undefined }
   | {
       ok: false;
       error: string;
@@ -74,8 +74,15 @@ export type CheckoutResult =
 
 export async function startCheckout(input: CheckoutInput): Promise<CheckoutResult> {
   trackEvent(input.kind === "cart" ? "Begin Checkout" : "Begin Checkout Gift Card");
-  const result = await callFunction<{ url: string; orderNumber: number }>("checkout", input);
-  if (result.ok) return { ok: true, url: result.data.url, orderNumber: result.data.orderNumber };
+  const result = await callFunction<{ url: string; orderNumber: number; statusToken?: string }>(
+    "checkout",
+    input,
+  );
+  if (result.ok) {
+    const statusToken = result.data.statusToken;
+    if (statusToken) rememberCheckout(statusToken);
+    return { ok: true, url: result.data.url, orderNumber: result.data.orderNumber, statusToken };
+  }
   const items = result.body["items"];
   const reason = result.body["reason"];
   return {
@@ -103,6 +110,44 @@ export async function getOrderStatus(token: string): Promise<OrderStatus | null>
   const { data, error } = await (await getSupabase()).rpc("get_order_status", { p_token: token });
   if (error) throw error;
   return (data as unknown as OrderStatus | null) ?? null;
+}
+
+// Offene Kasse dieses Tabs: «Zurück» im Browser statt «Abbrechen» bei Stripe ruft die cancel_url nie auf.
+// Das Token bleibt im Speicher (bfcache) und in sessionStorage (Seite neu geladen), damit die Seite die
+// Reservierung (Bestand, Gutschein, Rabattcode) sofort freigeben kann statt erst nach Ablauf der Session.
+const PENDING_KEY = "axion.checkout.pending";
+let pendingToken: string | null = null;
+
+export function rememberCheckout(token: string) {
+  pendingToken = token;
+  try {
+    sessionStorage.setItem(PENDING_KEY, token);
+  } catch {
+    // Ohne sessionStorage bleibt nur der Speicher der Seite
+  }
+}
+
+/** Token der offenen Kasse holen und vergessen (null, wenn keine offen ist). */
+export function takePendingCheckout(): string | null {
+  let token = pendingToken;
+  pendingToken = null;
+  try {
+    token ??= sessionStorage.getItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+  } catch {
+    // sessionStorage gesperrt: nur der Speicher der Seite zählt
+  }
+  return token;
+}
+
+/** Nach der Zahlung (Danke-Seite) nichts mehr freigeben. */
+export function forgetCheckout(token: string) {
+  if (pendingToken === token) pendingToken = null;
+  try {
+    if (sessionStorage.getItem(PENDING_KEY) === token) sessionStorage.removeItem(PENDING_KEY);
+  } catch {
+    // nichts zu tun
+  }
 }
 
 /** Nach Abbruch in der Stripe-Kasse: Reservierung über das Token aus der cancel_url freigeben. */

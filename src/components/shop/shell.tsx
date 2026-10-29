@@ -28,7 +28,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { LanguageSwitch } from "./language-switch";
 import { NewsletterForm } from "./newsletter-form";
 import { WishlistSync } from "./wishlist-sync";
-import { installClientErrorReporting } from "@/lib/client-errors";
+import { installClientErrorReporting, reportClientError } from "@/lib/client-errors";
 import { occasionHandles } from "./nav-handles";
 
 export { occasionHandles };
@@ -36,11 +36,19 @@ export { occasionHandles };
 // Warenkorb, Menü und Suche sind erst nach dem Öffnen nötig: eigener Chunk, im Leerlauf nachgeladen
 const ShellOverlays = lazy(() => import("./shell-overlays"));
 
-/** Schlägt das Nachladen der Panels fehl (z. B. nach einem Deploy), bleibt die Seite benutzbar. */
-class OverlayBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+/** Schlägt das Nachladen der Panels fehl (z. B. nach einem Deploy), bleibt die Seite benutzbar:
+ *  Der Fehler wird gemeldet, und die Shell öffnet statt der Panels die Seiten (siehe ShopShell). */
+class OverlayBoundary extends Component<
+  { children: ReactNode; onFail: () => void },
+  { failed: boolean }
+> {
   override state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  override componentDidCatch(error: unknown) {
+    reportClientError(error);
+    this.props.onFail();
   }
   override render() {
     return this.state.failed ? null : this.props.children;
@@ -91,6 +99,15 @@ export function ShopShell({ children }: { children: ReactNode }) {
 
   const { cartOpen, setCart, menuOpen, setMenu, searchOpen, setSearch } = useShopUI();
   const [overlaysReady, setOverlaysReady] = useState(false);
+  // React.lazy behält ein fehlgeschlagenes Laden: Warenkorb und Suche dann als Seite öffnen, das Menü mit neu geladener Seite
+  const [overlaysFailed, setOverlaysFailed] = useState(false);
+  useEffect(() => {
+    if (!overlaysFailed || !(cartOpen || menuOpen || searchOpen)) return;
+    const prefix = locale === "en" ? "/en" : "";
+    if (cartOpen) window.location.assign(`${prefix}/warenkorb`);
+    else if (searchOpen) window.location.assign(`${prefix}/suche`);
+    else window.location.reload();
+  }, [overlaysFailed, cartOpen, menuOpen, searchOpen, locale]);
   // Einmal geöffnet bleibt das Overlay-Paket eingehängt (Schliessanimation, Suchtext)
   useEffect(() => {
     if (cartOpen || menuOpen || searchOpen) setOverlaysReady(true);
@@ -349,7 +366,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
       </main>
       <Footer />
       {(overlaysReady || cartOpen || menuOpen || searchOpen) && (
-        <OverlayBoundary>
+        <OverlayBoundary onFail={() => setOverlaysFailed(true)}>
           <Suspense fallback={null}>
             <ShellOverlays categories={categories} wishes={wishes} />
           </Suspense>

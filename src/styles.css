@@ -361,6 +361,9 @@ svg {
 .site-header.hidden-header {
   transform: translateY(-130%);
 }
+.site-header.hidden-header:focus-within {
+  transform: none;
+}
 .header-inner {
   height: 88px;
   display: flex;
@@ -1375,12 +1378,21 @@ svg {
   width: 30px;
   height: 30px;
 }
+@media (pointer: coarse) {
+  .stepper button {
+    width: 40px;
+    height: 40px;
+  }
+}
 .cart-summary {
   margin-top: 30px;
 }
 .cart-summary > p {
   display: flex;
   justify-content: space-between;
+}
+.cart-summary:not(.checkout-summary) > p:not(.cart-trust) {
+  margin-bottom: 16px;
 }
 .cart-summary .shop-button {
   width: 100%;
@@ -1629,6 +1641,7 @@ svg {
   color: var(--muted);
   margin-bottom: 24px;
   display: flex;
+  align-items: center;
   gap: 9px;
 }
 
@@ -1783,11 +1796,14 @@ svg {
   justify-content: center;
   gap: 20px;
 }
-.content-page {
+/* Lesespalte links bündig mit Logo und Footer: der Container bleibt volle Breite,
+   nur die Inhalte sind auf 850px begrenzt (sonst zentriert margin:auto die Spalte). */
+:where(.content-page) > * {
   max-width: 850px;
 }
 .content-page h1 {
   font-size: 3.6rem;
+  margin-bottom: 22px;
 }
 .content-page h2 {
   font-size: 1.6rem;
@@ -2728,31 +2744,6 @@ svg {
     position: absolute;
     right: 0;
   }
-  .gallery-dots {
-    gap: 0;
-  }
-  .gallery-dots button {
-    width: 24px;
-    height: 24px;
-    background: transparent;
-    position: relative;
-  }
-  .gallery-dots button::after {
-    content: "";
-    position: absolute;
-    top: 9px;
-    left: 9px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--line);
-  }
-  .gallery-dots button.active {
-    background: transparent;
-  }
-  .gallery-dots button.active::after {
-    background: var(--green);
-  }
   .hotspot-card {
     position: relative;
     left: auto;
@@ -3198,6 +3189,13 @@ button.text-link {
 
 /* Kundenkonto */
 .account-narrow {
+  max-width: 520px;
+}
+/* Auf dem Seitencontainer selbst (Retoure, Bestätigungsseiten): links bündig wie die Kontoseiten. */
+.container.account-narrow {
+  max-width: 1440px;
+}
+:where(.container.account-narrow) > * {
   max-width: 520px;
 }
 .account-form {
@@ -3659,6 +3657,23 @@ button.text-link {
 }
 .newsletter-form.on-dark .consent {
   color: color-mix(in oklab, var(--sand) 75%, transparent);
+}
+.newsletter-form.on-dark .consent input {
+  appearance: none;
+  margin-inline: 0;
+  border: 1px solid color-mix(in oklab, var(--sand) 60%, transparent);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.newsletter-form.on-dark .consent input:checked {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: inset 0 0 0 3px var(--deep);
+}
+.newsletter-form.on-dark .consent input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 .newsletter-form.on-dark .form-error {
   color: oklch(0.82 0.08 25);
