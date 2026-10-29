@@ -34,7 +34,7 @@ export const Route = createFileRoute("/{-$locale}/kollektion/$handle")({
     return {
       ...pageHead(
         c?.title || t.notFoundTitle,
-        c?.description || t.notFoundDescription,
+        c ? c.description || c.title : t.notFoundDescription,
         `/kollektion/${params.handle}`,
         locale,
       ),

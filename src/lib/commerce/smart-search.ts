@@ -99,7 +99,7 @@ const CATEGORY_WORDS: Record<string, string[]> = {
     "tuxedo",
     "kombination",
   ],
-  sakkos: ["sakko", "sakkos", "blazer", "jackett", "veston", "jacket", "jackets"],
+  sakkos: ["sakko", "sakkos", "blazer", "jackett", "veston", "jacket", "jackets", "dinnerjacket"],
   hosen: ["hose", "hosen", "trousers", "pants", "chino", "chinos", "anzughose"],
   hemden: ["hemd", "hemden", "shirt", "shirts", "businesshemd", "oxfordhemd"],
   westen: ["weste", "westen", "gilet", "waistcoat", "vest"],
@@ -140,6 +140,14 @@ const CATEGORY_WORDS: Record<string, string[]> = {
     "stiefel",
     "monk",
     "sneaker",
+    "mokassin",
+    "mocassin",
+    "slipper",
+    "stiefelette",
+    "stiefeletten",
+    "halbschuh",
+    "schnuerschuh",
+    "brogue",
   ],
   accessoires: [
     "accessoire",
@@ -148,15 +156,21 @@ const CATEGORY_WORDS: Record<string, string[]> = {
     "accessories",
     "krawatte",
     "tie",
+    "ties",
+    "pochette",
+    "schleife",
+    "hosentraeger",
     "fliege",
     "bowtie",
     "guertel",
+    "gurtel",
     "belt",
     "socken",
     "socks",
     "einstecktuch",
     "pocketsquare",
     "manschettenknoepfe",
+    "manschettenknopfe",
     "cufflinks",
     "schal",
     "scarf",
@@ -196,12 +210,12 @@ const COLOR_GROUPS: Record<string, string[]> = {
   weiss: ["weiss", "white"],
 };
 const COLOR_WORDS: Record<string, string[]> = {
-  blau: ["blau", "blue", "navy", "marine", "nachtblau", "hellblau", "dunkelblau"],
+  blau: ["blau", "blue", "navy", "marine", "nachtblau", "midnight", "hellblau", "dunkelblau"],
   grau: ["grau", "grey", "gray", "anthrazit", "charcoal", "hellgrau", "mittelgrau"],
   schwarz: ["schwarz", "black", "onyx"],
   braun: ["braun", "brown", "cognac", "espresso", "dunkelbraun"],
   beige: ["beige", "sand", "kamel", "camel"],
-  gruen: ["gruen", "green", "oliv", "olive", "salbei", "sage"],
+  gruen: ["gruen", "grun", "green", "oliv", "olive", "salbei", "sage"],
   rot: ["rot", "red", "bordeaux", "burgundy", "weinrot", "bordo", "bordeau"],
   weiss: ["weiss", "white"],
 };
@@ -273,7 +287,7 @@ const CONTEXT_WORDS = new Set([
 const CHEAP_WORDS = ["guenstig", "billig", "preiswert", "cheap", "affordable"];
 // Füllwörter ohne Bedeutung für die Suche; «fit»/«passform» sind nur Begleiter von «slim»/«regular»
 const STOP = new Set(
-  "fuer fur ein eine einen einem der die das den dem mit und oder in im am an zu zum zur von ich suche brauche moechte mir mein meine was passt passend outfit look kombi style stil zu grosse groesse gr size for a an the with and or in on to my i need looking want something etwas chf fr franken fit passform schnitt cut".split(
+  "fuer fur ein eine einen einem der die das den dem mit und oder in im am an zu zum zur von ich suche brauche moechte mir mein meine was passt passend ab men mens mans male herr herren mann maenner herrenmode damen outfit look kombi style stil zu grosse groesse gr size for a an the with and or in on to my i need looking want something etwas chf fr franken fit passform schnitt cut".split(
     " ",
   ),
 );
@@ -314,10 +328,20 @@ export function parseQuery(query: string): SearchIntent {
   };
   let text = normalize(query);
   // Preis: «unter 500», «bis CHF 300», «< 400», «ab 200», «200-400»
-  const range = text.match(/(\d{2,5})\s*(?:-|bis|to)\s*(\d{2,5})/);
+  const range = text.match(
+    /(?:\b(?:ab|von|from)\s+)?(?:chf|fr\.?)?\s*(\d{2,5})\s*(-|bis|to)\s*(?:chf|fr\.?)?\s*(\d{2,5})/,
+  );
   if (range) {
-    intent.minPrice = Number(range[1]);
-    intent.maxPrice = Number(range[2]);
+    const [from, to] = [Number(range[1]), Number(range[3])];
+    const explicit = /chf|fr\.|\b(?:ab|von|from)\b/.test(range[0]);
+    const inSizes = (n: number) => n >= 36 && n <= 60;
+    if (range[2] === "-" && !explicit && inSizes(from) && inSizes(to)) {
+      // «Hemd 39-40»: Kragenweiten, kein Preis
+      intent.size = String(from);
+    } else {
+      intent.minPrice = from;
+      intent.maxPrice = to;
+    }
     text = text.replace(range[0], " ");
   }
   const max = text.match(
@@ -332,7 +356,15 @@ export function parseQuery(query: string): SearchIntent {
     intent.minPrice = Number(min[1]);
     text = text.replace(min[0], " ");
   }
+  // «100 CHF», «CHF 100», «100 Franken» ohne Stichwort: Obergrenze
+  const bare = text.match(/(\d{2,5})\s*(?:chf|franken|fr\b\.?)|(?:chf|fr\.?)\s*(\d{2,5})/);
+  if (bare) {
+    if (intent.maxPrice === undefined && intent.minPrice === undefined)
+      intent.maxPrice = Number(bare[1] ?? bare[2]);
+    text = text.replace(bare[0], " ");
+  }
   const tokens = text
+    .replace(/dinner jacket/g, "dinnerjacket")
     .replace(/black tie/g, "blacktie")
     .replace(/bow tie/g, "bowtie")
     .replace(/pocket square/g, "pocketsquare")
@@ -528,6 +560,7 @@ const OCCASION_WEIGHT: Record<string, number> = {
 /** Lockern in dieser Reihenfolge, bis es Treffer gibt (das Unwichtigste zuerst). */
 const RELAX: Check[] = ["size", "minPrice", "neu", "fit", "colors", "maxPrice"];
 const RELAX_LAST: Check[] = ["sale", "occasions"];
+const ALL_CHECKS: Check[] = ["categories", ...RELAX, ...RELAX_LAST];
 
 export function smartSearch(
   products: Product[],
@@ -567,16 +600,16 @@ export function searchWithIntent(
     if (fixed.products.length && !fixed.relaxed) return { ...fixed, didYouMean };
   }
   const skip = new Set<Check>();
-  const dropped = (terms: boolean): RelaxedCheck[] => {
-    const active = (c: Check) =>
-      c === "size" || c === "fit" || c === "sale" || c === "neu"
-        ? Boolean(intent[c])
-        : c === "maxPrice" || c === "minPrice"
-          ? intent[c] !== undefined
-          : c === "colors" || c === "occasions"
-            ? intent[c].length > 0
-            : false;
-    const list = [...skip].filter(active) as RelaxedCheck[];
+  const isActive = (c: Check) =>
+    c === "size" || c === "fit" || c === "sale" || c === "neu"
+      ? Boolean(intent[c])
+      : c === "maxPrice" || c === "minPrice"
+        ? intent[c] !== undefined
+        : c === "colors" || c === "occasions" || c === "categories"
+          ? intent[c].length > 0
+          : false;
+  const dropped = (terms: boolean, from: Set<Check> = skip): RelaxedCheck[] => {
+    const list = [...from].filter(isActive) as RelaxedCheck[];
     return terms && intent.terms.length ? [...list, "terms"] : list;
   };
   for (const check of RELAX) {
@@ -587,10 +620,22 @@ export function searchWithIntent(
   }
   // Dann unbekannte Wörter ignorieren und nur die erkannten Begriffe zählen, zuletzt auch Sale und Anlass lockern
   const known = { ...intent, terms: [] };
-  if (intent.terms.length && (intent.categories.length || intent.occasions.length || intent.sale)) {
-    const loose = rank(products, known, skip, true);
-    if (loose.length)
-      return { products: loose, intent, relaxed: true, relaxedChecks: dropped(true), didYouMean };
+  if (intent.terms.length && ALL_CHECKS.some((c) => c !== "categories" && isActive(c))) {
+    // Unbekannte Wörter zuerst allein weglassen, dann erst die übrigen Bedingungen schrittweise lockern
+    const knownSkip = new Set<Check>();
+    for (const check of [undefined, ...RELAX, ...RELAX_LAST]) {
+      if (check) knownSkip.add(check);
+      if (!ALL_CHECKS.some((c) => !knownSkip.has(c) && isActive(c))) break;
+      const loose = rank(products, known, knownSkip, true);
+      if (loose.length)
+        return {
+          products: loose,
+          intent,
+          relaxed: true,
+          relaxedChecks: dropped(true, knownSkip),
+          didYouMean,
+        };
+    }
   }
   for (const check of RELAX_LAST) {
     skip.add(check);
@@ -601,35 +646,56 @@ export function searchWithIntent(
   return { products: [], intent, relaxed: true, relaxedChecks: dropped(true), didYouMean };
 }
 
-/** «Meintest du»: unbekannte Wörter durch das nächste Wort aus dem Katalog ersetzen. */
+/** «Meintest du»: unbekannte Wörter durch das nächste Wort aus dem Katalog ersetzen (Schreibweise wie getippt). */
 function correct(products: Product[], query: string, intent: SearchIntent): string | undefined {
   if (!intent.terms.length) return undefined;
-  const vocabulary = new Set(
-    products.flatMap((p) =>
-      normalize(`${p.title} ${p.categoryTitle} ${p.color.name} ${p.details.material ?? ""}`)
-        .split(/[^a-z0-9]+/)
-        .filter((w) => w.length >= 4),
-    ),
-  );
-  let changed = false;
-  let text = normalize(query);
+  const vocabulary = new Map<string, string>();
+  for (const p of products)
+    for (const raw of `${p.title} ${p.categoryTitle} ${p.color.name} ${p.details.material ?? ""}`.split(
+      /[^\p{L}\p{N}]+/u,
+    )) {
+      const key = normalize(raw);
+      if (key.length >= 4 && !vocabulary.has(key))
+        vocabulary.set(key, raw.toLocaleLowerCase("de-CH"));
+    }
+  const replacements = new Map<string, string>();
   for (const term of intent.terms) {
-    if ([...vocabulary].some((w) => w === term)) continue;
+    // Kurze Wörter nicht ersetzen («men», «wool»): zu viele falsche Treffer
+    if (term.length < 5 || vocabulary.has(term)) continue;
     let best: string | undefined;
     let bestDistance = 3;
-    for (const w of vocabulary) {
-      const d = distance(term, w, 2);
+    for (const [key, word] of vocabulary) {
+      const d = distance(term, key, 2);
       if (d < bestDistance) {
-        best = w;
+        best = word;
         bestDistance = d;
       }
     }
-    if (best && bestDistance <= 2) {
-      text = text.replace(term, best);
-      changed = true;
-    }
+    if (best && bestDistance <= 2) replacements.set(term, best);
   }
-  return changed ? text : undefined;
+  let changed = false;
+  const fixed = query
+    .split(/(\s+)/)
+    .map((part) => {
+      const word = replacements.get(normalize(part.replace(/[^\p{L}\p{N}]/gu, "")));
+      if (!word) return part;
+      changed = true;
+      return part[0] === part[0]?.toLocaleUpperCase("de-CH") &&
+        part[0] !== part[0]?.toLocaleLowerCase("de-CH")
+        ? word.charAt(0).toLocaleUpperCase("de-CH") + word.slice(1)
+        : word;
+    })
+    .join("");
+  if (!changed) return undefined;
+  // Eine Korrektur darf Kategorie und Farbe der Anfrage nicht verändern
+  const before = parseQuery(query);
+  const after = parseQuery(fixed);
+  if (
+    !before.categories.every((c) => after.categories.includes(c)) ||
+    !before.colors.every((c) => after.colors.includes(c))
+  )
+    return undefined;
+  return fixed;
 }
 
 /** Ergebnis der KI (nur bekannte Werte) mit der lokalen Erkennung zusammenführen. */
@@ -650,5 +716,3 @@ export function mergeIntent(base: SearchIntent, extra: Partial<SearchIntent>): S
     terms: extra.terms ? extra.terms.map(normalize) : base.terms,
   };
 }
-
-export const COLOR_GROUP_KEYS = Object.keys(COLOR_GROUPS);

@@ -4,7 +4,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import {
   changeEmail,
   deleteMyAccount,
@@ -21,6 +22,11 @@ import { useSignOut } from "@/components/account/use-sign-out";
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export const Route = createFileRoute("/{-$locale}/konto/daten")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.data, t.metaDescription, "/konto/daten", locale, { noindex: true });
+  },
   component: AccountDataPage,
 });
 
@@ -230,7 +236,14 @@ function EmailForm({ current, pending }: { current: string; pending: string }) {
       <h2>{t.account.changeEmail}</h2>
       <p className="text-muted">{t.checkout.signedInAs(current)}</p>
       {state === "sent" ? (
-        <Notice kind="success">{t.account.changeEmailSent}</Notice>
+        <>
+          <Notice kind="success">
+            {t.account.changeEmailSent} {pending || email}
+          </Notice>
+          <Button type="button" variant="outline" onClick={() => setState("idle")}>
+            {t.account.changeEmailOther}
+          </Button>
+        </>
       ) : (
         <form className="account-form" onSubmit={submit} noValidate>
           <p className="text-muted">{t.account.changeEmailIntro}</p>

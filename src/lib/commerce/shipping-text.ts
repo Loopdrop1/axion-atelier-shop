@@ -10,7 +10,8 @@ export function shippingLabel(
   locale: Locale,
 ): string {
   const en = locale === "en";
-  if (settings.shippingCents === 0)
+  // Schwelle 0 heisst: immer gratis (wie freeShippingProgress und die Kasse), nie «ab CHF 0.00».
+  if (settings.shippingCents === 0 || settings.freeShippingFromCents === 0)
     return en ? "Free shipping in Switzerland" : "Gratisversand in der Schweiz";
   if (settings.freeShippingFromCents !== null)
     return en

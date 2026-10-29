@@ -57,7 +57,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
 - **Return (on request):** order number, email address, the pieces returned with quantity and reason, your optional comment, and the time and status of the return.
-- **Reminder about an incomplete purchase (optional):** Only if you tick “Remind me by email if I do not complete my purchase” in your basket, we send you a single email with your items and a link to your basket if the payment does not go through; we store your consent with the order, and without the tick you receive no reminder.
+- **Reminder about an incomplete purchase (optional):** Only if you tick “Remind me by email if I do not complete my purchase” in your cart, we send you a single email with your items and a link to your cart if the payment does not go through; we store your consent with the order, and without the tick you receive no reminder.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
 - **Technical data:** When you visit the website, technical data is generated, such as your IP address, date and time, the page you open, your browser and device. We use it to run the website and keep it secure, for example to protect the forms against misuse.
 - **Technical error reports:** If an error occurs in your browser, the website sends us a short report: the error message, the path of the page (without anything after the question mark), the technical trace of the error (stack), the type of browser and device and the version of the website. The report contains no personal data: no IP address, no email address, no account and nothing you typed. We use it only to find and fix errors.
@@ -80,7 +80,7 @@ We do not sell your data. We only send you advertising by email if you have subs
 We work with carefully selected service providers. They only receive the data they need for their task and process it on our behalf unless stated otherwise here.
 
 - **Website operation:** This website is run with Lovable (Lovable Labs Incorporated, USA, and Lovable Labs Sweden AB, Regeringsgatan 25, 111 53 Stockholm, Sweden) and delivered through the global network of Cloudflare, Inc. (USA). This generates the technical data described in section 2.
-- **Database and customer accounts:** We store orders, customer accounts, gift cards and newsletter subscriptions in Lovable Cloud. Lovable runs the database with Supabase, Inc. (USA) in a data centre in Europe ([location]).
+- **Database and customer accounts:** We store orders, customer accounts, gift cards, newsletter subscriptions, returns and back-in-stock alerts in Lovable Cloud. Lovable runs the database with Supabase, Inc. (USA) in a data centre in Europe ([location]).
 - **Payment:** Payments are processed by Stripe (Stripe Payments Europe, Limited, Ireland, together with Stripe, Inc., USA). Stripe processes your data for the payment on our behalf and, as an independent controller, for its own purposes, for example to prevent fraud and to comply with legal obligations. For TWINT, Apple Pay and Google Pay, the privacy policies of the respective providers and of your bank also apply. Stripe's privacy policy: https://stripe.com/ch/privacy
 - **Klarna:** If you pay with Klarna, Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Sweden, processes your data as an independent controller. Klarna may check your creditworthiness for this purpose, including by automated decisions. Klarna's privacy information: https://www.klarna.com/ch/en/privacy/
 - **Email:** We send order confirmations, messages from the contact form and the shop's other emails through Resend (Plus Five Five, Inc., San Francisco, USA). [We send the newsletter with: newsletter service, registered office.]
@@ -93,7 +93,7 @@ We work with carefully selected service providers. They only receive the data th
 Some of the service providers listed process data outside Switzerland. The Federal Council has found that the countries of the EU and the EEA (for example Ireland, Sweden and Germany) provide adequate data protection. We disclose data to the USA to companies certified under the Swiss-U.S. Data Privacy Framework or on the basis of standard contractual clauses recognised by Switzerland.
 
 ### 6. Cookies and storage in your browser
-We only use what is needed to run the shop:
+We only use what is needed to run the shop and, if listed below, cookieless visitor statistics:
 - **Cart and wishlist** in your browser's local storage (entries \`axion-cart\` and \`axion-wishlist\`). You can delete them in your browser settings at any time.
 - **Recently viewed items** in local storage (entry \`axion-recent\`) and **recent searches** (entry \`axion-recent-searches\`, the last five search terms). Both stay on your device and are not sent to us.
 - **AI search cache** in session storage (entry \`axion-search-assist\`): the answer to a longer search text, so the same question is not asked again. It is deleted when you close the tab.
@@ -101,7 +101,7 @@ We only use what is needed to run the shop:
 - **Login:** When you sign in to your customer account, your browser stores a login key until you sign out.
 - **Cloudflare** sets a cookie (\`__cf_bm\`) that fends off automated attacks and expires after 30 minutes of inactivity.
 - **Payment page:** On its payment page, Stripe sets its own cookies, among other things to prevent fraud. Details are in Stripe's privacy policy.
-- {{analytics}}**Visitor statistics:** We measure use of the website anonymously with Plausible Analytics (Plausible Insights OÜ, Estonia; data processed in the EU). Plausible sets no cookies and builds no profiles of individual visitors. It records the page opened, the referring page, browser, device, rough country of origin and the events "Add to cart" and "Begin checkout", without us recognising you as a person. The legal basis is our interest in improving the website. You can prevent the measurement with your browser's "Do Not Track" setting or an ad blocker. [To be confirmed before launch: provider details and data processing]
+- {{analytics}}**Visitor statistics:** We measure use of the website anonymously with Plausible Analytics (Plausible Insights OÜ, Estonia; data processed in the EU). Plausible sets no cookies and builds no profiles of individual visitors. It records the page opened, the referring page, browser, device, rough country of origin and the events "Add to cart" and "Begin checkout", without us recognising you as a person. The legal basis is our interest in improving the website. You can prevent the measurement with an ad blocker. [To be confirmed before launch: provider details and data processing]
 
 We do not use analytics or advertising cookies on this website. Our emails and the newsletter contain no open or click tracking. You can delete cookies and your browser storage at any time. Without the necessary cookies, however, you cannot complete a purchase.
 
@@ -110,7 +110,8 @@ We keep personal data for as long as we need it for the purposes described:
 - **Orders and receipts:** ten years, as the law requires for business records.
 - **Customer account:** until you delete it. You can do this yourself in your customer account at any time. We then keep your orders, no longer linked to the account, for the statutory period.
 - **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence.
-- **Back-in-stock alert:** we delete your address once the alert has been sent; unconfirmed requests after 30 days.
+- **Returns:** together with the order for the statutory period for business records.
+- **Back-in-stock alert:** We keep confirmed requests until the piece is available again and the alert has been sent; we then delete your address. We delete unconfirmed requests after 30 days.
 - **Gift cards:** until they expire and then for the statutory period for business records.
 - **Messages sent through the contact form:** The shop does not store them; they reach our mailbox as emails. We keep them for as long as we need them for your enquiry.
 - **Protection against misuse:** To stop anyone from using the forms, checkout or gift card check on a massive scale, we count requests per IP address and email address. For this, we store only a hash of the address, not the address itself, together with the count and the time. We delete expired counters on an ongoing basis, usually after two days.
@@ -163,7 +164,7 @@ You can pay with TWINT, credit or debit card (Visa, Mastercard, American Express
 You can redeem one discount code and one gift card per order. Discounts apply to the value of the goods, not to shipping costs and not to the purchase of gift cards. Discount codes are only valid under the stated conditions and cannot be paid out in cash.
 
 ### 5. Delivery
-We deliver with Swiss Post. Delivery usually takes 2 to 5 working days after receipt of payment. As soon as your parcel is on its way, you receive a shipping notification with a tracking number. Partial deliveries are possible at no extra cost to you. We bear the risk of loss and damage in transit until the goods are handed over to you.
+We deliver with Swiss Post. Delivery usually takes 2 to 5 working days from dispatch. Orders paid by 2 pm on a working day are dispatched the same day. As soon as your parcel is on its way, you receive a shipping notification with a tracking number. Partial deliveries are possible at no extra cost to you. We bear the risk of loss and damage in transit until the goods are handed over to you.
 
 ### 6. Gift cards
 - You receive the gift card by email with a personal code. On request, we send it directly to the recipient.
@@ -175,7 +176,7 @@ We deliver with Swiss Post. Delivery usually takes 2 to 5 working days after rec
 ### 7. Voluntary right of return
 Swiss law does not provide for a right of return for online purchases. We voluntarily grant you a right of return of {{returnDays}} days from receipt of the goods.
 - **Conditions:** The goods are unworn, unwashed, unaltered and complete, with all tags and, if possible, in the original packaging. [Excluded are: …]
-- **How to return:** Notify us of the return by email to {{email}}, stating your order number. [Return label: enclosed with the parcel / we send it to you by email / you pay the postage yourself.]
+- **How to return:** Notify us of the return online under "Register a return" (page Shipping and returns) with your order number and email address, or by email to {{email}}. [Return label: enclosed with the parcel / we send it to you by email / you pay the postage yourself.]
 - **Costs:** [Returns are free for you.] or [You bear the return costs of CHF ….]
 - **Refund:** After we have received and checked the goods, we refund the purchase price within [number] days to the original payment method [or as a gift card, as you choose].
 - **Exchange:** You can exchange an item for another size [free of charge] while it is available.
@@ -206,11 +207,11 @@ We may change these terms and conditions at any time. Your order is governed by 
     `
 - **Delivery area:** Switzerland [and Liechtenstein]
 - **Shipping:** with Swiss Post. {{shipping}}
-- **Delivery time:** 2 to 5 working days after payment, tracking number by email
+- **Delivery time:** 2 to 5 working days from dispatch; orders by 2 pm (working days) are dispatched the same day, tracking number by email
 - **Returns:** within {{returnDays}} days of receipt, unworn and with all tags
 - **Register a return:** online with your order number and email address, then we email you the instructions for sending it back
 - **Return shipping:** [free / CHF …], [label included / on request]
-- **Refund:** within [number] days of receiving your return, to the original payment method
+- **Refund:** within [number] days of receiving your return, to the original payment method. Amounts paid with a gift card are credited back to the gift card.
 - **Exchange:** another size [free of charge], while available
 - **Gift cards:** excluded from returns
 - **Defects:** two-year statutory warranty, report by email to {{email}}
@@ -239,7 +240,7 @@ Email us as soon as possible at {{email}}. As long as the parcel has not been sh
 
 ### Delivery
 **How long does delivery take?**
-Usually 2 to 5 working days after payment.
+Usually 2 to 5 working days from dispatch. Orders by 2 pm (working days) are dispatched the same day.
 **How much is shipping?**
 {{shipping}}. You see the exact amount in your cart before you order.
 **Does Axion ship abroad?**
@@ -249,7 +250,7 @@ At the moment we only ship within Switzerland [and to Liechtenstein].
 **Can I return an item?**
 Yes. You can return items within {{returnDays}} days of receipt, unworn and with all tags. Register the return online first, with your order number and email address, under “Register a return” on the Shipping and returns page. The details are in the terms and conditions.
 **When do I get my money back?**
-Within [number] days of receiving your return, to the original payment method.
+Within [number] days of receiving your return, to the original payment method. Amounts paid with a gift card are credited back to the gift card.
 
 ### Payment, gift cards and discount codes
 **How can I pay?**

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import { localePrefix } from "@/i18n/locale";
 import { isOtpType, verifyEmailLink } from "@/lib/account/api";
 import { Notice, safeNext } from "@/components/account/form";
@@ -15,6 +16,13 @@ interface ConfirmSearch {
 }
 
 export const Route = createFileRoute("/{-$locale}/konto/bestaetigen")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.confirmTitle, t.metaDescription, "/konto/bestaetigen", locale, {
+      noindex: true,
+    });
+  },
   validateSearch: (s: Record<string, unknown>): ConfirmSearch => ({
     token_hash: typeof s["token_hash"] === "string" ? s["token_hash"] : undefined,
     type: typeof s["type"] === "string" ? s["type"] : undefined,

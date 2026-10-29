@@ -48,18 +48,23 @@ async function request(deps: Deps, req: Request, body: Record<string, unknown>):
   if (result.status === "pending" && result.token && result.email) {
     const locale = toLocale(result.locale);
     const prefix = locale === "en" ? "/en" : "";
-    await sendEmail(
-      result.email,
-      stockAlertConfirm(
-        {
-          locale,
-          confirmUrl: `${deps.env.siteUrl}${prefix}/benachrichtigung/bestaetigen?token=${result.token}`,
-          item: { title: result.title ?? "", color: result.color ?? "", size: result.size ?? "" },
-        },
-        deps.shop,
-      ),
-      deps.mail,
-    );
+    try {
+      await sendEmail(
+        result.email,
+        stockAlertConfirm(
+          {
+            locale,
+            confirmUrl: `${deps.env.siteUrl}${prefix}/benachrichtigung/bestaetigen?token=${result.token}`,
+            item: { title: result.title ?? "", color: result.color ?? "", size: result.size ?? "" },
+          },
+          deps.shop,
+        ),
+        deps.mail,
+      );
+    } catch (error) {
+      console.error("Bestätigungs-E-Mail (Bestandsmeldung) fehlgeschlagen", error);
+      throw new HttpError(502, "EMAIL_FAILED");
+    }
   }
   return json(200, { ok: true });
 }

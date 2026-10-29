@@ -428,7 +428,7 @@ describe("stripe-webhook: Warenkorb-Erinnerung", () => {
     );
     const mails = reminders(to, before);
     expect(mails).toHaveLength(1);
-    expect(mails[0]!.subject).toBe("Your basket is waiting for you");
+    expect(mails[0]!.subject).toBe("Your cart is waiting for you");
     expect(mails[0]!.text).toContain(
       `https://shop.test/en/warenkorb/wiederherstellen/${order.status_token}`,
     );

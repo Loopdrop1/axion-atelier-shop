@@ -2,12 +2,20 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { useLocaleParam, useT } from "@/i18n";
+import { useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import { MIN_PASSWORD, updatePassword } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";
 import { Field, Notice, useProblemText } from "@/components/account/form";
 
 export const Route = createFileRoute("/{-$locale}/konto/passwort-neu")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.newPasswordTitle, t.metaDescription, "/konto/passwort-neu", locale, {
+      noindex: true,
+    });
+  },
   component: NewPasswordPage,
 });
 

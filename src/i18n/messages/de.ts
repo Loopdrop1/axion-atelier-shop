@@ -94,7 +94,7 @@ export const de = {
     newsletterTitle: "Newsletter",
     newsletterText: "Neue Stücke, Kombinationen und Aktionen zuerst erfahren.",
     madeBy: "Made by Flowrenix.com",
-    welcomeOffer: (percent: number) => `${percent} % auf deine erste Bestellung.`,
+    welcomeOffer: (percent: number) => `${percent} % auf deine nächste Bestellung.`,
     social: "Axion in den sozialen Medien",
     socialLabels: {
       instagram: "Axion auf Instagram",
@@ -395,6 +395,7 @@ export const de = {
     relaxed: "Keine exakten Treffer. Diese Stücke kommen deiner Suche am nächsten:",
     didYouMean: "Meintest du",
     ignored: "nicht berücksichtigt",
+    notFound: (words: string) => `Nicht gefunden: ${words}`,
     noneUpTo: (max: string, min: string) =>
       `Nichts bis ${max}. Die günstigsten Stücke starten bei ${min}.`,
     saleLink: "Zur Sale-Sammlung",
@@ -459,6 +460,8 @@ export const de = {
     description: "Deine ausgewählten Stücke von Axion.",
     loading: "Warenkorb wird geladen …",
     emptyTitle: "Dein Warenkorb ist noch leer",
+    /** Warenkorbseite: die Überschrift «Dein Warenkorb» steht schon darüber. */
+    emptyTitlePage: "Noch nichts ausgewählt",
     emptyText: "Finde die Stücke, die zu deinem Auftritt passen.",
     decrease: "Anzahl reduzieren",
     increase: "Anzahl erhöhen",
@@ -523,6 +526,7 @@ export const de = {
     cancelled: "Die Zahlung wurde abgebrochen. Deine Stücke sind noch im Warenkorb.",
     outOfStock: "Nicht mehr alles ist verfügbar. Wir haben deinen Warenkorb angepasst.",
     giftCardCoversAll: "Dein Gutschein deckt den ganzen Betrag. Du musst nichts mehr bezahlen.",
+    nothingToPay: "Mit deinem Rabattcode ist nichts mehr zu bezahlen.",
     giftCardBalance: (amount: string) => `Guthaben: ${amount}`,
     discountReasons: {
       not_found: "Diesen Rabattcode gibt es nicht.",
@@ -643,7 +647,7 @@ export const de = {
     shippingAddress: "Lieferadresse",
     paymentMethod: "Zahlungsart",
     data: "Deine Daten",
-    dataIntro: "Diese Angaben nutzen wir für deine nächsten Bestellungen.",
+    dataIntro: "Deine persönlichen Angaben für dein Konto.",
     address: "Adresse",
     street: "Strasse und Nr.",
     addressLine2: "Adresszusatz",
@@ -655,6 +659,7 @@ export const de = {
     changeEmailIntro: "Wir schicken einen Bestätigungslink an die neue Adresse.",
     newEmail: "Neue E-Mail-Adresse",
     changeEmailSent: "Bitte bestätige die Änderung mit dem Link in deiner E-Mail.",
+    changeEmailOther: "Andere Adresse eingeben",
     changePassword: "Passwort ändern",
     deleteTitle: "Konto löschen",
     deleteText:

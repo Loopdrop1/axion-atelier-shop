@@ -2,13 +2,19 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { useLocale, useLocaleParam, useT } from "@/i18n";
+import { useLocale, useLocaleParam, useT, messages, toLocale } from "@/i18n";
+import { pageHead } from "@/lib/commerce/seo";
 import { localePrefix } from "@/i18n/locale";
 import { resendConfirmation, signIn } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";
 import { Field, Notice, safeNext, useProblemText } from "@/components/account/form";
 
 export const Route = createFileRoute("/{-$locale}/konto/anmelden")({
+  head: ({ params }) => {
+    const locale = toLocale(params.locale);
+    const t = messages[locale].account;
+    return pageHead(t.signInTitle, t.metaDescription, "/konto/anmelden", locale, { noindex: true });
+  },
   validateSearch: (s: Record<string, unknown>): { weiter?: string | undefined } => ({
     weiter: typeof s["weiter"] === "string" ? s["weiter"] : undefined,
   }),

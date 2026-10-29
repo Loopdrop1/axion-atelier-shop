@@ -27,6 +27,11 @@ describe("Sitemap", () => {
     expect(paths.slice(0, STATIC_PATHS.length)).toEqual([...STATIC_PATHS]);
   });
 
+  it("lässt den Geschenkgutschein weg, wenn die Funktion ausgeschaltet ist", () => {
+    expect(sitemapPaths([], [], true)).toContain("/geschenkgutschein");
+    expect(sitemapPaths([], [], false)).not.toContain("/geschenkgutschein");
+  });
+
   it("maskiert Sonderzeichen im XML", () => {
     expect(buildSitemap("https://x.test", ["/produkt/a&b"])).toContain("/produkt/a&amp;b</loc>");
     expect(englishPath("/")).toBe("/en");

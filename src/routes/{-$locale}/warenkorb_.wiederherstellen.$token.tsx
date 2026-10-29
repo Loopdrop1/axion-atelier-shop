@@ -64,7 +64,8 @@ function Page() {
 
   const goCart = outcome === "done" || outcome === "partial";
   useEffect(() => {
-    if (!goCart) return;
+    // Bei «partial» bleibt die Meldung stehen (WCAG 2.2.1); der Knopf führt zum Warenkorb.
+    if (outcome !== "done") return;
     const timer = window.setTimeout(
       () =>
         void navigate({
@@ -73,7 +74,7 @@ function Page() {
           search: {},
           replace: true,
         }),
-      outcome === "partial" ? 2500 : 1200,
+      1200,
     );
     return () => window.clearTimeout(timer);
   }, [goCart, outcome, lp, navigate]);

@@ -121,10 +121,6 @@ export async function getProductsByHandles(
   });
 }
 
-export async function searchProducts(query: string, locale: Locale = "de"): Promise<Product[]> {
-  return (await searchCatalog(query, locale)).products;
-}
-
 /** Kluge Suche mit erkannter Absicht (Filter), Lockerung und «Meintest du» (smart-search.ts). */
 export async function searchCatalog(
   query: string,

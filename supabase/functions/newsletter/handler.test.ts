@@ -151,6 +151,17 @@ describe("newsletter: anmelden", () => {
     expect(await badMail.json()).toEqual({ error: "INVALID_EMAIL" });
   });
 
+  it("scheitert die Bestätigungs-E-Mail: 502 EMAIL_FAILED", async () => {
+    resend.failNext();
+    const res = await post({
+      action: "subscribe",
+      email: `${uniq("mailfail")}@example.ch`,
+      consent: CONSENT,
+    });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "EMAIL_FAILED" });
+  });
+
   it("mehr als 3 Anmeldungen derselben Adresse pro Stunde: 429", async () => {
     const email = `${uniq("oft")}@example.ch`;
     for (let i = 0; i < 3; i++)

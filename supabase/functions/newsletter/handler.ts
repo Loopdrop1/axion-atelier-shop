@@ -78,14 +78,19 @@ async function subscribe(
   if (result.status === "rate_limited") throw new HttpError(429, "RATE_LIMITED");
   if (result.status === "pending" && result.token && result.email) {
     const locale = toLocale(result.locale);
-    await sendEmail(
-      result.email,
-      newsletterConfirm(
-        { locale, confirmUrl: link(deps, locale, "bestaetigen", result.token) },
-        deps.shop,
-      ),
-      deps.mail,
-    );
+    try {
+      await sendEmail(
+        result.email,
+        newsletterConfirm(
+          { locale, confirmUrl: link(deps, locale, "bestaetigen", result.token) },
+          deps.shop,
+        ),
+        deps.mail,
+      );
+    } catch (error) {
+      console.error("Bestätigungs-E-Mail (Newsletter) fehlgeschlagen", error);
+      throw new HttpError(502, "EMAIL_FAILED");
+    }
   }
   return json(200, { ok: true });
 }

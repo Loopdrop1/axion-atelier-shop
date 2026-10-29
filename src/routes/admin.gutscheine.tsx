@@ -390,8 +390,8 @@ function DetailDialog({
                     {t.order && (
                       <span className="admin-sub">
                         <Link
-                          to="/admin/bestellungen"
-                          search={{ suche: String(t.order.number) }}
+                          to="/admin/bestellungen/$id"
+                          params={{ id: t.order.id }}
                           className="admin-link"
                         >
                           AX-{t.order.number}

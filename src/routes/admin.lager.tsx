@@ -14,6 +14,7 @@ import {
   type MovementRow,
 } from "@/lib/admin/api";
 import { downloadCsv } from "@/lib/admin/csv";
+import { sizeText } from "@/lib/commerce/one-size";
 import { invalidateCatalog } from "@/lib/commerce/source";
 import { StockDialog, type StockTarget } from "@/components/admin/stock-dialog";
 import {
@@ -245,7 +246,11 @@ function Stock() {
                     <td>
                       {m.variant?.product?.title_de ?? "–"} ·{" "}
                       {m.variant?.product?.color_name_de ?? ""}
-                      <span className="admin-sub">Grösse {m.variant?.size ?? "–"}</span>
+                      <span className="admin-sub">
+                        {m.variant
+                          ? sizeText(m.variant.size, "Grösse", "Einheitsgrösse")
+                          : "Grösse –"}
+                      </span>
                     </td>
                     <td className="num">
                       <span className={m.delta > 0 ? "admin-plus" : "admin-minus"}>

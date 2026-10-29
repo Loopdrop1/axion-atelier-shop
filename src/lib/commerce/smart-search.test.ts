@@ -84,3 +84,45 @@ describe("smartSearch auf dem Musterkatalog", () => {
     expect(await handles("black oxford shoes", "en")).toContain("oxford-nero-schwarz");
   });
 });
+
+describe("smartSearch Nachbesserungen", () => {
+  it("Herren-Wörter sind Füllwörter und führen nicht zu falschen Korrekturen", async () => {
+    for (const q of ["men suit", "mens suits", "herren anzug", "anzug herren"]) {
+      const r = await searchCatalog(q, "de");
+      expect(r.didYouMean, q).toBeUndefined();
+      expect(r.products.length, q).toBeGreaterThan(0);
+      expect(
+        r.products.every((p) => p.category === "anzuege"),
+        q,
+      ).toBe(true);
+    }
+  });
+  it("lockert nur das unbekannte Wort, nicht Farbe oder Neu", async () => {
+    const black = await searchCatalog("schwarze Lederschuhe", "de");
+    expect(black.relaxedChecks ?? []).not.toContain("colors");
+    expect(black.products[0]?.color.name.toLowerCase()).toMatch(/schwarz|black/);
+    const neu = await searchCatalog("new arrivals", "de");
+    expect(neu.products.length).toBeGreaterThan(0);
+  });
+  it("Kragenweite ist kein Preis; Preisbereiche und CHF-Angaben werden verstanden", () => {
+    const collar = parseQuery("hemd 39-40");
+    expect(collar.minPrice).toBeUndefined();
+    expect(collar.maxPrice).toBeUndefined();
+    expect(collar.size).toBe("39");
+    const range = parseQuery("hemden ab 200 bis 400");
+    expect([range.minPrice, range.maxPrice, range.terms]).toEqual([200, 400, []]);
+    expect(parseQuery("hemd weiss 100 franken").maxPrice).toBe(100);
+    const chf = parseQuery("anzug chf 800");
+    expect([chf.maxPrice, chf.terms]).toEqual([800, []]);
+  });
+  it("versteht Eingaben ohne Umlaut und weitere Synonyme", () => {
+    expect(parseQuery("gruner pullover").colors).toEqual(["gruen"]);
+    expect(parseQuery("pochette").categories).toEqual(["accessoires"]);
+    expect(parseQuery("slipper").categories).toEqual(["schuhe"]);
+    expect(parseQuery("mokassin").categories).toEqual(["schuhe"]);
+  });
+  it("Meintest du behält Schreibweise und Gross-/Kleinschreibung", async () => {
+    const r = await searchCatalog("Kaschmier Pulli", "de");
+    if (r.didYouMean) expect(r.didYouMean).toMatch(/^Kaschmir/);
+  });
+});

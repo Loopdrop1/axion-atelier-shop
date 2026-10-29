@@ -3,6 +3,7 @@ import {
   ACCOUNTING_HEADER,
   accountingRows,
   orderVat,
+  paymentLabel,
   type AccountingOptions,
   type AccountingOrder,
 } from "./accounting-export";
@@ -131,5 +132,14 @@ describe("accountingRows", () => {
     expect(csv.startsWith("﻿Bestellung;Datum;Status;")).toBe(true);
     expect(csv).toContain('\r\nAX-1042;27.10.2026;Versendet;"\'=1+1;x";kunde@example.ch;CH;');
     expect(csv.endsWith("\r\n")).toBe(true);
+  });
+});
+
+describe("paymentLabel", () => {
+  it("übersetzt bekannte Codes, lässt unbekannte stehen und leert fehlende", () => {
+    expect(paymentLabel("apple_pay")).toBe("Apple Pay");
+    expect(paymentLabel("twint")).toBe("TWINT");
+    expect(paymentLabel("sepa")).toBe("sepa");
+    expect(paymentLabel(null)).toBe("");
   });
 });

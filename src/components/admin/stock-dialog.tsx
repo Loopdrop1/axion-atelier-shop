@@ -16,6 +16,7 @@ import {
   waitingForVariant,
   type StockReason,
 } from "@/lib/admin/api";
+import { sizeText } from "@/lib/commerce/one-size";
 import { notify, SelectField, TextField } from "./ui";
 
 export interface StockTarget {
@@ -132,7 +133,7 @@ export function StockDialog({
       <DialogContent className="admin-dialog">
         <DialogHeader>
           <DialogTitle>
-            Bestand ändern: {target.label}, Grösse {target.size}
+            Bestand ändern: {target.label}, {sizeText(target.size, "Grösse", "Einheitsgrösse")}
           </DialogTitle>
         </DialogHeader>
         <p className="admin-muted">Aktuell an Lager: {current}</p>

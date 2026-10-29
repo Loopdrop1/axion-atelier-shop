@@ -78,6 +78,18 @@ describe("stock-alert: anfragen", () => {
     ).toHaveLength(0);
   });
 
+  it("scheitert die Bestätigungs-E-Mail: 502 EMAIL_FAILED", async () => {
+    const variantId = await soldOutVariant();
+    resend.failNext();
+    const res = await post({
+      action: "request",
+      variantId,
+      email: `${uniq("mailfail")}@example.ch`,
+    });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "EMAIL_FAILED" });
+  });
+
   it("ungültige E-Mail oder Variant-ID: 400", async () => {
     const variantId = await soldOutVariant();
     const badMail = await post({ action: "request", variantId, email: "keine-adresse" });

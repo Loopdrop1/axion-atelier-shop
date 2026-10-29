@@ -16,6 +16,14 @@ describe("shippingLabel", () => {
       "Free shipping in Switzerland",
     );
   });
+  it("Schwelle 0 heisst immer gratis, nie «ab CHF 0.00»", () => {
+    expect(shippingLabel({ shippingCents: 900, freeShippingFromCents: 0 }, "de")).toBe(
+      "Gratisversand in der Schweiz",
+    );
+    expect(shippingLabel({ shippingCents: 900, freeShippingFromCents: 0 }, "en")).toBe(
+      "Free shipping in Switzerland",
+    );
+  });
 });
 
 describe("freeShippingProgress", () => {

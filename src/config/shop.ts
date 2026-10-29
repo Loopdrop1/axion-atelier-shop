@@ -38,7 +38,7 @@ export const shopConfig = {
   delivery: {
     dispatchCutoff: "14:00",
     processingDays: 0, // zusätzliche Arbeitstage bis zum Versand
-    // Gleich wie die Lieferzeit in den AGB und auf «Versand und Rückgabe» (2 bis 5 Arbeitstage); nur gemeinsam ändern.
+    // Gleich wie die Lieferzeit in den AGB, im FAQ und auf «Versand und Rückgabe» (2 bis 5 Arbeitstage ab Versand, Versand am selben Tag bis 14 Uhr); nur gemeinsam ändern.
     transitDays: { min: 2, max: 5 }, // Arbeitstage Versand bis Zustellung
   },
   paymentMethods: [

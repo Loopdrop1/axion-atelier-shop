@@ -22,6 +22,7 @@ import {
   updateOrderNote,
   type AdminOrder,
 } from "@/lib/admin/api";
+import { paymentLabel } from "@/lib/admin/accounting-export";
 import { parseChf } from "@/lib/admin/money";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { sizeText } from "@/lib/commerce/one-size";
@@ -47,17 +48,6 @@ import {
 export const Route = createFileRoute("/admin/bestellungen/$id")({
   component: OrderPage,
 });
-
-const PAYMENT: Record<string, string> = {
-  card: "Karte",
-  twint: "TWINT",
-  klarna: "Klarna",
-  apple_pay: "Apple Pay",
-  google_pay: "Google Pay",
-  gift_card: "Geschenkgutschein",
-  discount: "Rabatt",
-  link: "Link",
-};
 
 function stripeUrl(order: AdminOrder): string | null {
   if (!order.stripe_payment_intent_id) return null;
@@ -294,9 +284,7 @@ function OrderView({ order }: { order: AdminOrder }) {
             {order.phone && <p>Telefon: {order.phone}</p>}
           </Panel>
           <Panel title="Zahlung">
-            <p>
-              {order.payment_method ? (PAYMENT[order.payment_method] ?? order.payment_method) : "–"}
-            </p>
+            <p>{paymentLabel(order.payment_method) || "–"}</p>
             {stripe && (
               <p>
                 <a className="admin-link" href={stripe} target="_blank" rel="noopener noreferrer">
@@ -661,13 +649,13 @@ function RestockPanel({ order, onDone }: { order: AdminOrder; onDone: () => void
   return (
     <Panel
       title="Retoure einbuchen"
-      description="Zurückgekommene Stücke wieder an Lager nehmen. Das Geld erstattest du in Stripe."
+      description="Zurückgekommene Stücke wieder an Lager nehmen. Das Geld erstattest du unter «Rückerstatten»."
     >
       <div className="admin-restock">
         {open.map((item) => (
           <label key={item.id}>
             <span>
-              {item.title} {item.size && `· ${item.size}`}
+              {item.title} {item.size && `· ${sizeText(item.size, "Grösse", "Einheitsgrösse")}`}
             </span>
             <select
               className="admin-select"
@@ -734,8 +722,8 @@ function GiftCreditPanel({ order, onDone }: { order: AdminOrder; onDone: () => v
   const [amount, setAmount] = useState((open / 100).toFixed(2));
   const [busy, setBusy] = useState(false);
   useEffect(() => setAmount((open / 100).toFixed(2)), [open]);
-  const cents = Math.round(Number(amount.replace(",", ".")) * 100);
-  const valid = Number.isFinite(cents) && cents >= 1 && cents <= open;
+  const cents = parseChf(amount);
+  const valid = cents !== null && cents >= 1 && cents <= open;
   return (
     <Panel
       title="Gutscheinanteil gutschreiben"
@@ -751,24 +739,26 @@ function GiftCreditPanel({ order, onDone }: { order: AdminOrder; onDone: () => v
             hint={`Höchstens ${chf(open)}. Der Betrag kommt auf den Gutschein zurück.`}
             error={amount && !valid ? `Bitte einen Betrag bis ${chf(open)} angeben.` : undefined}
           />
-          <Button
+          <ConfirmButton
+            label="Auf den Gutschein buchen …"
+            title={`${valid ? chf(cents) : "Betrag"} gutschreiben?`}
+            description={`${valid ? chf(cents) : ""} kommen auf den Geschenkgutschein dieser Bestellung zurück. Das lässt sich nicht rückgängig machen.`}
+            confirmLabel="Jetzt gutschreiben"
             variant="outline"
+            size="default"
+            danger={false}
             disabled={busy || !valid}
-            onClick={async () => {
+            onConfirm={async () => {
               setBusy(true);
               try {
-                const r = await creditGiftCard(order.id, cents);
+                const r = await creditGiftCard(order.id, cents!);
                 notify.ok(`Gutschein: ${chf(r.balance_cents)} Guthaben.`);
                 onDone();
-              } catch (error) {
-                notify.error(error);
               } finally {
                 setBusy(false);
               }
             }}
-          >
-            Auf den Gutschein buchen
-          </Button>
+          />
         </div>
       ) : (
         <p className="admin-muted">Der ganze Gutscheinanteil ist gutgeschrieben.</p>

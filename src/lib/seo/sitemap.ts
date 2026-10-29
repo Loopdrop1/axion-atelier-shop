@@ -1,5 +1,6 @@
 // Sitemap für Suchmaschinen: jede Seite auf Deutsch (ohne Präfix) und Englisch (/en), mit hreflang-Verweisen.
 
+import { shopConfig } from "@/config/shop";
 import { guideSlugs } from "@/content/guides-meta";
 
 /** Öffentliche Seiten ohne Daten aus dem Katalog. Nicht enthalten: Warenkorb, Merkliste, Suche, Konto,
@@ -33,9 +34,14 @@ export function englishPath(path: string): string {
 }
 
 /** Pfade aus Katalog und festen Seiten, ohne Duplikate, in stabiler Reihenfolge. */
-export function sitemapPaths(collections: string[], products: string[]): string[] {
+export function sitemapPaths(
+  collections: string[],
+  products: string[],
+  giftCards: boolean = shopConfig.features.giftCards,
+): string[] {
   const paths = [
-    ...STATIC_PATHS,
+    // Der Gutschein-Pfad antwortet mit 404, wenn die Funktion ausgeschaltet ist.
+    ...STATIC_PATHS.filter((p) => giftCards || p !== "/geschenkgutschein"),
     ...collections.map((h) => `/kollektion/${encodeURIComponent(h)}`),
     ...products.map((h) => `/produkt/${encodeURIComponent(h)}`),
   ];

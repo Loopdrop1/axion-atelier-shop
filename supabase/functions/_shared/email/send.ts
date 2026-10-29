@@ -45,6 +45,7 @@ export async function sendEmail(
           subject: content.subject,
           html: content.html,
           text: content.text,
+          ...(content.headers ? { headers: content.headers } : {}),
           ...(cfg.replyTo ? { reply_to: cfg.replyTo } : {}),
         }),
       },

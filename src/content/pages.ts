@@ -157,7 +157,7 @@ Wir verkaufen deine Daten nicht. Werbung per E-Mail senden wir dir nur, wenn du 
 Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten nur die Daten, die sie für ihre Aufgabe brauchen, und bearbeiten sie in unserem Auftrag, soweit hier nichts anderes steht.
 
 - **Website-Betrieb:** Diese Website wird mit Lovable betrieben (Lovable Labs Incorporated, USA, und Lovable Labs Sweden AB, Regeringsgatan 25, 111 53 Stockholm, Schweden) und über das weltweite Netzwerk von Cloudflare, Inc. (USA) ausgeliefert. Dabei fallen die technischen Daten aus Ziffer 2 an.
-- **Datenbank und Kundenkonten:** Bestellungen, Kundenkonten, Gutscheine und Newsletter-Anmeldungen speichern wir in Lovable Cloud. Lovable betreibt die Datenbank mit Supabase, Inc. (USA) in einem Rechenzentrum in Europa ([Ort]).
+- **Datenbank und Kundenkonten:** Bestellungen, Kundenkonten, Gutscheine, Newsletter-Anmeldungen, Retouren und Benachrichtigungen bei Wiederverfügbarkeit speichern wir in Lovable Cloud. Lovable betreibt die Datenbank mit Supabase, Inc. (USA) in einem Rechenzentrum in Europa ([Ort]).
 - **Zahlung:** Die Bezahlung läuft über Stripe (Stripe Payments Europe, Limited, Irland, zusammen mit Stripe, Inc., USA). Stripe bearbeitet deine Daten für die Zahlung in unserem Auftrag und für eigene Zwecke, etwa zur Betrugsbekämpfung und zur Erfüllung gesetzlicher Pflichten, als eigene Verantwortliche. Bei TWINT, Apple Pay und Google Pay gelten zusätzlich die Datenschutzbestimmungen der jeweiligen Anbieter und deiner Bank. Datenschutzerklärung von Stripe: https://stripe.com/ch/privacy
 - **Klarna:** Wenn du mit Klarna bezahlst, bearbeitet die Klarna Bank AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, deine Daten als eigene Verantwortliche. Klarna kann dafür deine Kreditwürdigkeit prüfen, auch mit automatisierten Entscheidungen. Datenschutzhinweise von Klarna: https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_ch/privacy
 - **E-Mail:** Bestellbestätigungen, Nachrichten aus dem Kontaktformular und die übrigen E-Mails des Shops versenden wir über Resend (Plus Five Five, Inc., San Francisco, USA). [Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]
@@ -170,7 +170,7 @@ Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten
 Einige der genannten Dienstleister bearbeiten Daten ausserhalb der Schweiz. Für die Länder der EU und des EWR (zum Beispiel Irland, Schweden und Deutschland) hat der Bundesrat einen angemessenen Datenschutz festgestellt. In die USA geben wir Daten an Unternehmen bekannt, die unter dem Swiss-U.S. Data Privacy Framework zertifiziert sind, oder gestützt auf von der Schweiz anerkannte Standardvertragsklauseln.
 
 ### 6. Cookies und Speicher im Browser
-Wir verwenden nur, was für den Betrieb des Shops nötig ist:
+Wir verwenden nur, was für den Betrieb des Shops nötig ist, und, falls unten aufgeführt, eine cookielose Besucherstatistik:
 - **Warenkorb und Merkliste** im Local Storage deines Browsers (Einträge \`axion-cart\` und \`axion-wishlist\`). Du kannst sie in den Browser-Einstellungen jederzeit löschen.
 - **Zuletzt angesehene Stücke** im Local Storage (Eintrag \`axion-recent\`) und **letzte Suchen** (Eintrag \`axion-recent-searches\`, die letzten fünf Suchbegriffe). Beide bleiben auf deinem Gerät und werden nicht an uns übermittelt.
 - **Zwischenspeicher der KI-Suche** im Session Storage (Eintrag \`axion-search-assist\`): die Antwort auf einen längeren Suchtext, damit dieselbe Frage nicht erneut gestellt wird. Er wird beim Schliessen des Tabs gelöscht.
@@ -178,7 +178,7 @@ Wir verwenden nur, was für den Betrieb des Shops nötig ist:
 - **Anmeldung:** Wenn du dich im Kundenkonto anmeldest, speichert dein Browser einen Anmeldeschlüssel, bis du dich abmeldest.
 - **Cloudflare** setzt ein Cookie (\`__cf_bm\`), das automatisierte Angriffe abwehrt und nach 30 Minuten Inaktivität abläuft.
 - **Bezahlseite:** Auf der Bezahlseite von Stripe setzt Stripe eigene Cookies, unter anderem zur Betrugsbekämpfung. Details stehen in der Datenschutzerklärung von Stripe.
-- {{analytics}}**Besucherstatistik:** Wir messen die Nutzung der Website anonym mit Plausible Analytics (Plausible Insights OÜ, Estland; Datenverarbeitung in der EU). Plausible setzt keine Cookies und legt keine Profile einzelner Besucher an. Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Gerät, grobes Herkunftsland sowie die Ereignisse «In den Warenkorb» und «Zur Kasse», ohne dass wir dich als Person erkennen. Rechtsgrundlage ist unser Interesse, die Website zu verbessern. Du kannst die Messung mit der Einstellung «Do Not Track» deines Browsers oder einem Werbeblocker verhindern. [Vor Livegang zu bestätigen: Angaben zum Anbieter und Auftragsbearbeitung]
+- {{analytics}}**Besucherstatistik:** Wir messen die Nutzung der Website anonym mit Plausible Analytics (Plausible Insights OÜ, Estland; Datenverarbeitung in der EU). Plausible setzt keine Cookies und legt keine Profile einzelner Besucher an. Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Gerät, grobes Herkunftsland sowie die Ereignisse «In den Warenkorb» und «Zur Kasse», ohne dass wir dich als Person erkennen. Rechtsgrundlage ist unser Interesse, die Website zu verbessern. Du kannst die Messung mit einem Werbeblocker verhindern. [Vor Livegang zu bestätigen: Angaben zum Anbieter und Auftragsbearbeitung]
 
 Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Unsere E-Mails und der Newsletter enthalten kein Öffnungs- und Klicktracking. Du kannst Cookies und den Speicher deines Browsers jederzeit löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
 
@@ -187,7 +187,8 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Bestellungen und Belege:** zehn Jahre, wie es das Gesetz für Geschäftsunterlagen verlangt.
 - **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
 - **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
-- **Benachrichtigung bei Wiederverfügbarkeit:** Nach dem Versand der Benachrichtigung löschen wir deine Adresse; unbestätigte Anfragen nach 30 Tagen.
+- **Retouren:** zusammen mit der Bestellung während der gesetzlichen Frist für Geschäftsunterlagen.
+- **Benachrichtigung bei Wiederverfügbarkeit:** Bestätigte Anfragen bewahren wir auf, bis das Stück wieder verfügbar ist und die Benachrichtigung versendet wurde; danach löschen wir deine Adresse. Unbestätigte Anfragen löschen wir nach 30 Tagen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
 - **Schutz vor Missbrauch:** Damit niemand Formulare, Kasse oder Gutscheinprüfung massenhaft benutzt, zählen wir Anfragen pro IP-Adresse und E-Mail-Adresse. Gespeichert wird dafür nur ein Prüfwert (Hash), nicht die Adresse selbst, zusammen mit der Anzahl und dem Zeitpunkt. Abgelaufene Zähler löschen wir laufend, in der Regel nach zwei Tagen.
@@ -240,7 +241,7 @@ Du kannst mit TWINT, Kredit- oder Debitkarte (Visa, Mastercard, American Express
 Pro Bestellung kannst du einen Rabattcode und einen Geschenkgutschein einlösen. Rabatte gelten auf den Warenwert, nicht auf Versandkosten und nicht auf den Kauf von Geschenkgutscheinen. Rabattcodes gelten nur zu den angegebenen Bedingungen und sind nicht in bar auszahlbar.
 
 ### 5. Lieferung
-Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2 bis 5 Arbeitstage nach Zahlungseingang. Sobald dein Paket unterwegs ist, erhältst du eine Versandmeldung mit Sendungsnummer. Teillieferungen sind möglich, ohne Mehrkosten für dich. Bis zur Übergabe der Ware an dich tragen wir das Risiko für Verlust und Beschädigung auf dem Transport.
+Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2 bis 5 Arbeitstage ab Versand. Bestellungen, die an einem Arbeitstag bis 14 Uhr bezahlt sind, versenden wir am selben Tag. Sobald dein Paket unterwegs ist, erhältst du eine Versandmeldung mit Sendungsnummer. Teillieferungen sind möglich, ohne Mehrkosten für dich. Bis zur Übergabe der Ware an dich tragen wir das Risiko für Verlust und Beschädigung auf dem Transport.
 
 ### 6. Geschenkgutscheine
 - Du erhältst den Gutschein per E-Mail mit einem persönlichen Code. Auf Wunsch senden wir ihn direkt an die beschenkte Person.
@@ -252,7 +253,7 @@ Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2
 ### 7. Freiwilliges Rückgaberecht
 Das Schweizer Recht sieht für Online-Käufe kein Rückgaberecht vor. Wir gewähren dir freiwillig ein Rückgaberecht von {{returnDays}} Tagen ab Erhalt der Ware.
 - **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. [Ausgeschlossen sind: …]
-- **So gehst du vor:** Melde die Rückgabe per E-Mail an {{email}} mit deiner Bestellnummer. [Rücksendeetikett: liegt dem Paket bei / senden wir dir per E-Mail / du frankierst selbst.]
+- **So gehst du vor:** Melde die Rückgabe online unter «Retoure anmelden» (Seite Versand und Rückgabe) mit Bestellnummer und E-Mail-Adresse an, oder per E-Mail an {{email}}. [Rücksendeetikett: liegt dem Paket bei / senden wir dir per E-Mail / du frankierst selbst.]
 - **Kosten:** [Die Rücksendung ist für dich gratis.] oder [Die Rücksendekosten von CHF … trägst du.]
 - **Rückerstattung:** Nach Eingang und Prüfung der Ware erstatten wir den Kaufpreis innert [Anzahl] Tagen auf das ursprüngliche Zahlungsmittel [oder als Gutschein, nach deiner Wahl].
 - **Umtausch:** Eine andere Grösse kannst du [gratis] tauschen, solange sie verfügbar ist.
@@ -283,11 +284,11 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
     `
 - **Liefergebiet:** Schweiz [und Liechtenstein]
 - **Versand:** mit der Schweizerischen Post. {{shipping}}
-- **Lieferzeit:** 2 bis 5 Arbeitstage nach Zahlungseingang, Sendungsnummer per E-Mail
+- **Lieferzeit:** 2 bis 5 Arbeitstage ab Versand; Bestellungen bis 14 Uhr (Arbeitstage) versenden wir am selben Tag, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
 - **Retoure anmelden:** online mit Bestellnummer und E-Mail-Adresse, danach schicken wir dir die Hinweise zur Rücksendung per E-Mail
 - **Rücksendung:** [gratis / CHF …], [Etikett liegt bei / auf Anfrage]
-- **Rückerstattung:** innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel
+- **Rückerstattung:** innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
 - **Umtausch:** andere Grösse [gratis], solange verfügbar
 - **Gutscheine:** vom Rückgaberecht ausgenommen
 - **Mängel:** zwei Jahre Gewährleistung nach Gesetz, Meldung per E-Mail an {{email}}
@@ -316,7 +317,7 @@ Schreib uns möglichst schnell an {{email}}. Solange das Paket noch nicht unterw
 
 ### Lieferung
 **Wie lange dauert die Lieferung?**
-In der Regel 2 bis 5 Arbeitstage nach Zahlungseingang.
+In der Regel 2 bis 5 Arbeitstage ab Versand. Bestellungen bis 14 Uhr (Arbeitstage) versenden wir am selben Tag.
 **Was kostet der Versand?**
 {{shipping}}. Den genauen Betrag siehst du im Warenkorb, bevor du bestellst.
 **Liefert Axion ins Ausland?**
@@ -326,7 +327,7 @@ Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 **Kann ich etwas zurückgeben?**
 Ja. Du kannst Artikel innert {{returnDays}} Tagen ab Erhalt zurückgeben, ungetragen und mit allen Etiketten. Melde die Rücksendung vorab online an, mit Bestellnummer und E-Mail-Adresse unter «Retoure anmelden» auf der Seite Versand und Rückgabe. Die Details stehen in den AGB.
 **Wann bekomme ich mein Geld zurück?**
-Innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel.
+Innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
 
 ### Zahlung, Gutscheine und Rabattcodes
 **Wie kann ich bezahlen?**

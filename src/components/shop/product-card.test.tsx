@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useCart, useShopUI } from "@/lib/commerce/stores";
 import { testProduct, testVariant } from "@/test/products";
+import { DEFAULT_SETTINGS } from "@/lib/commerce/source";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -20,6 +21,7 @@ vi.mock("@tanstack/react-router", () => ({
     </a>
   ),
 }));
+vi.mock("@/lib/commerce/use-settings", () => ({ useShopSettings: () => DEFAULT_SETTINGS }));
 vi.mock("@/i18n", async (orig) => {
   const actual = (await orig()) as typeof import("@/i18n");
   return {
@@ -81,5 +83,16 @@ describe("Produktkarte: Schnellauswahl", () => {
       screen.getByRole("button", { name: "Anzug «Limmat», Marine, Grösse 46 hinzufügen" }),
     );
     expect(useCart.getState().lines).toEqual([{ variantId: "anzug-46", quantity: 1 }]);
+  });
+});
+
+describe("Produktkarte: ausverkauft", () => {
+  it("zeigt das Kennzeichen «Ausverkauft», wenn keine Grösse lieferbar ist", () => {
+    const p = testProduct("hemd-x", 120, [
+      { ...testVariant("hemd-x-m", false, 120), title: "M" },
+      { ...testVariant("hemd-x-l", false, 120), title: "L" },
+    ]);
+    render(<ProductCard product={p} />);
+    expect(document.querySelector(".product-badge")).toHaveTextContent(/ausverkauft/i);
   });
 });

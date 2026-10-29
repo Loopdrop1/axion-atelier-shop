@@ -84,7 +84,7 @@ export function NewsletterForm({
 
   if (state === "sent") {
     return (
-      <p className="newsletter-done" role="status">
+      <p className="newsletter-done" role="status" tabIndex={-1} ref={(el) => el?.focus()}>
         {t.newsletter.sent}
       </p>
     );

@@ -65,6 +65,11 @@ const PAYMENT: Record<string, string> = {
   link: "Link",
 };
 
+/** Lesbare Zahlungsart für Listen und Exporte; unbekannte Codes bleiben unverändert, fehlende werden leer. */
+export function paymentLabel(code: string | null | undefined): string {
+  return code ? (PAYMENT[code] ?? code) : "";
+}
+
 /** MWST-Satz und enthaltener Betrag (Rappen) einer Bestellung; null, wenn keine MWST ausgewiesen wird. */
 export function orderVat(
   order: AccountingOrder,
@@ -114,7 +119,7 @@ export function accountingRows(
         centsToInput(o.refunded_cents),
         vat ? String(vat.rate) : "",
         vat ? centsToInput(vat.cents) : "",
-        o.payment_method ? (PAYMENT[o.payment_method] ?? o.payment_method) : "",
+        paymentLabel(o.payment_method),
         o.stripe_payment_intent_id ?? "",
       ];
     }),

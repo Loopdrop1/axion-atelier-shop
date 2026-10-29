@@ -19,7 +19,7 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
     return {
       ...pageHead(
         p ? `${p.title}, ${p.color.name}` : t.notFoundTitle,
-        p?.description || t.notFoundDescription,
+        p ? p.description || `${p.title}, ${p.color.name}` : t.notFoundDescription,
         path,
         locale,
         { image: p?.images[0] ? new URL(p.images[0].url, shopConfig.siteUrl).href : undefined },
@@ -37,8 +37,10 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
                 color: p.color.name,
                 ...(p.details.material ? { material: p.details.material } : {}),
                 category: p.categoryTitle,
-                image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href),
-                description: p.description,
+                ...(p.images.length
+                  ? { image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href) }
+                  : {}),
+                ...(p.description ? { description: p.description } : {}),
                 url: pageUrl(path, locale),
                 offers: {
                   "@type": "AggregateOffer",

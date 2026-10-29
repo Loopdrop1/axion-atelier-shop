@@ -5,7 +5,9 @@ import {
   authEmail,
   cartReminder,
   cartReminderUrl,
+  backInStock,
   contactMessage,
+  stockAlertConfirm,
   giftCardEmail,
   newsletterConfirm,
   newsletterWelcome,
@@ -353,8 +355,8 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(de.html).toContain("«Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse»");
     expect(de.text).not.toMatch(/Rabatt|Gutschein|Gratis|%|Code/);
     const en = cartReminder(reminderOrder("en"), shop);
-    expect(en.subject).toBe("Your basket is waiting for you");
-    expect(en.text).toContain(`Go to basket: https://shop.test/en/warenkorb/wiederherstellen/`);
+    expect(en.subject).toBe("Your cart is waiting for you");
+    expect(en.text).toContain(`Go to cart: https://shop.test/en/warenkorb/wiederherstellen/`);
     expect(en.text).not.toMatch(/discount|gift card|%|code/i);
   });
 
@@ -401,6 +403,29 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
       "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
     );
   });
+
+  it("Rückerstattung eines Gutscheinkaufs: Gutschein ungültig statt «nichts mehr geliefert»", () => {
+    const gift = (locale: Locale, refunded: number) =>
+      order(locale, {
+        kind: "gift_card",
+        refunded_cents: refunded,
+        shipped_at: null,
+        tracking_number: null,
+      });
+    const full = refundNotice(gift("de", 64420), 64420, shop);
+    expect(full.text).toContain("Der Geschenkgutschein ist damit nicht mehr gültig.");
+    expect(full.text).not.toContain("geliefert");
+    expect(full.html).toContain("nicht mehr gültig");
+    const fullEn = refundNotice(gift("en", 64420), 64420, shop);
+    expect(fullEn.text).toContain("The gift card is therefore no longer valid.");
+    expect(fullEn.text).not.toContain("delivered");
+    const partial = refundNotice(gift("de", 5000), 5000, shop);
+    expect(partial.text).toContain("Guthaben des Geschenkgutscheins ist entsprechend reduziert");
+    expect(partial.text).not.toContain("nicht mehr gültig");
+    expect(refundNotice(gift("en", 5000), 5000, shop).text).toContain(
+      "gift card balance has been reduced",
+    );
+  });
 });
 
 describe("lowStockAlert", () => {
@@ -423,5 +448,42 @@ describe("lowStockAlert", () => {
     expect(mail.text).toContain("https://shop.test/admin/produkte");
     expect(mail.html).toContain("Anzug &lt;b&gt;");
     expect(mail.html).not.toContain("Anzug <b>");
+  });
+});
+
+describe("stock alert mails with One Size", () => {
+  const item = { title: "Schal", color: "Grau", size: "One Size" };
+  it("never says «Grösse One Size»", () => {
+    const de = stockAlertConfirm({ locale: "de", confirmUrl: "https://shop.test/c", item }, shop);
+    const en = backInStock({ locale: "en", productUrl: "https://shop.test/p", item }, shop);
+    expect(de.text).toContain("Schal, Grau, Einheitsgrösse");
+    expect(de.text).not.toContain("Grösse One Size");
+    expect(en.text).toContain("Schal, Grau, One size");
+    expect(en.text).not.toContain("size One Size");
+    const real = backInStock(
+      { locale: "de", productUrl: "https://shop.test/p", item: { ...item, size: "48" } },
+      shop,
+    );
+    expect(real.text).toContain("Grösse 48");
+  });
+  it("skips an empty colour without a double comma", () => {
+    const mail = backInStock(
+      { locale: "de", productUrl: "https://shop.test/p", item: { ...item, color: "", size: "48" } },
+      shop,
+    );
+    expect(mail.text).toContain("Schal, Grösse 48");
+    expect(mail.text).not.toContain(", ,");
+  });
+});
+
+describe("shipping mail and headers", () => {
+  it("promises the same delivery range as the order confirmation", () => {
+    expect(shippingConfirmation(order("de"), shop).text).toContain("2 bis 5 Arbeitstagen");
+    expect(shippingConfirmation(order("en"), shop).text).toContain("2 to 5 working days");
+  });
+  it("newsletter welcome sets List-Unsubscribe", () => {
+    const url = "https://shop.test/newsletter/abmelden?token=abc";
+    const mail = newsletterWelcome({ locale: "de", unsubscribeUrl: url }, shop);
+    expect(mail.headers).toEqual({ "List-Unsubscribe": `<${url}>` });
   });
 });

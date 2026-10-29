@@ -69,6 +69,13 @@ export function SearchOverlay() {
           }
         }}
       />
+      <p role="status" className="sr-only">
+        {query.trim() && result
+          ? products.length
+            ? t.common.results(products.length)
+            : t.search.none
+          : ""}
+      </p>
       {!query.trim() ? (
         <div className="search-start">
           {recent.length > 0 && (
@@ -112,7 +119,7 @@ export function SearchOverlay() {
           )}
           <RelaxedNotes result={result ?? undefined} onNavigate={close} />
           {result && result.intent.categories.length > 0 && (
-            <div className="search-pills" aria-label={t.search.categories}>
+            <div className="search-pills" role="group" aria-label={t.search.categories}>
               {result.intent.categories.map((c) => (
                 <Link
                   key={c}

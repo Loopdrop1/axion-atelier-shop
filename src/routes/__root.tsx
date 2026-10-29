@@ -1,9 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import {
   Outlet,
   createRootRouteWithContext,
-  useRouter,
   useRouterState,
   HeadContent,
   Scripts,
@@ -17,11 +15,10 @@ import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal
 import jostLatin from "@fontsource-variable/jost/files/jost-latin-wght-normal.woff2?url";
 import { ShopShell } from "@/components/shop/shell";
 import { MissingPage } from "@/components/shop/missing-page";
+import { PageError } from "@/components/shop/page-error";
 import { shopConfig } from "@/config/shop";
 import { htmlLang, useLocale, useT } from "@/i18n";
-import { reportClientError } from "@/lib/client-errors";
 import { marketingHead } from "@/lib/marketing";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   const t = useT();
@@ -35,38 +32,9 @@ function NotFoundComponent() {
   );
 }
 
+/** Letzte Stufe: nur wenn die Shell selbst ausfällt (Seitenfehler fängt RouteError in router.tsx). */
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
-  const router = useRouter();
-  const t = useT();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-    reportClientError(error);
-  }, [error]);
-
-  // Sprache aus dem Pfad, damit «Zur Startseite» nicht von Englisch auf Deutsch springt
-  const home =
-    typeof window !== "undefined" && /^\/en(\/|$)/.test(window.location.pathname) ? "/en" : "/";
-  return (
-    <main className="error-page">
-      <p className="eyebrow">Axion</p>
-      <h1>{t.errorPage.title}</h1>
-      <p>{t.errorPage.text}</p>
-      <div className="error-page-actions">
-        <Button
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-        >
-          {t.common.retry}
-        </Button>
-        <Button variant="tailored" asChild>
-          <a href={home}>{t.common.toHome}</a>
-        </Button>
-      </div>
-    </main>
-  );
+  return <PageError error={error} reset={reset} />;
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({

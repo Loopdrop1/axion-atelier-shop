@@ -66,7 +66,7 @@ export function StockAlertForm({ product }: { product: Product }) {
     <details className="stock-alert">
       <summary>{s.toggle}</summary>
       {state === "sent" ? (
-        <p className="newsletter-done" role="status">
+        <p className="newsletter-done" role="status" tabIndex={-1} ref={(el) => el?.focus()}>
           {s.sent}
         </p>
       ) : (
@@ -88,6 +88,12 @@ export function StockAlertForm({ product }: { product: Product }) {
                 ))}
               </select>
             </>
+          )}
+          {/* Nur eine echte Grösse ausverkauft: vorgewählt, aber genannt, damit klar ist, wofür man sich einträgt */}
+          {!single && soldOut.length === 1 && (
+            <p className="stock-alert-size">
+              {s.size} {soldOut[0]!.title}
+            </p>
           )}
           <label htmlFor={`${id}-email`}>{s.email}</label>
           <div className="newsletter-row">

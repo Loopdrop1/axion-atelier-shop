@@ -8,7 +8,7 @@ import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_sh
 import { toLocale, type Locale } from "../_shared/money.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 import { sizeText } from "../_shared/size.ts";
-import { INTEGRATION_ID } from "../_shared/stripe.ts";
+import { INTEGRATION_ID, logStripeError } from "../_shared/stripe.ts";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -141,7 +141,7 @@ async function createSession(
       idempotencyKey: `session-${orderId}`,
     });
   } catch (error) {
-    console.error("Stripe-Session fehlgeschlagen", error);
+    logStripeError("Stripe-Session fehlgeschlagen", error);
     await cancelQuietly(deps, orderId, "stripe_error");
     throw new HttpError(502, "PAYMENT_PROVIDER");
   }
@@ -203,7 +203,7 @@ async function cartCheckout(
       );
       couponId = coupon.id;
     } catch (error) {
-      console.error("Stripe-Coupon fehlgeschlagen", error);
+      logStripeError("Stripe-Coupon fehlgeschlagen", error);
       await cancelQuietly(deps, reservation.order_id, "stripe_error");
       throw new HttpError(502, "PAYMENT_PROVIDER");
     }
@@ -275,7 +275,12 @@ async function cartCheckout(
     p_session_id: session.id,
     p_expires_at: new Date(expiresAt * 1000).toISOString(),
   });
-  return json(200, { url: session.url, orderNumber: reservation.order_number });
+  return json(200, {
+    url: session.url,
+    orderNumber: reservation.order_number,
+    // Für «Zurück» im Browser: Die Seite gibt die Reservierung damit sofort frei (wie die cancel_url).
+    statusToken: reservation.status_token,
+  });
 }
 
 async function giftCardCheckout(
@@ -355,7 +360,12 @@ async function giftCardCheckout(
     p_session_id: session.id,
     p_expires_at: new Date(expiresAt * 1000).toISOString(),
   });
-  return json(200, { url: session.url, orderNumber: reservation.order_number });
+  return json(200, {
+    url: session.url,
+    orderNumber: reservation.order_number,
+    // Für «Zurück» im Browser: Die Seite gibt die Reservierung damit sofort frei (wie die cancel_url).
+    statusToken: reservation.status_token,
+  });
 }
 
 /**

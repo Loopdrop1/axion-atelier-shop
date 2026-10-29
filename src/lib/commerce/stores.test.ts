@@ -142,3 +142,17 @@ describe("useWishlist.toggle mit Konto", () => {
     setWishlistRemote(null);
   });
 });
+
+describe("Warenkorb: Persistenz", () => {
+  it("speichert nur die Positionen, nie Gutschein, Rabattcode oder E-Mail", () => {
+    const partialize = useCart.persist.getOptions().partialize!;
+    const saved = partialize({
+      ...useCart.getState(),
+      lines: [{ variantId: "v1", quantity: 2 }],
+      discountCode: "SOMMER",
+      giftCardCode: "AXN-AAAA-BBBB-CCCC",
+      email: "a@b.ch",
+    });
+    expect(saved).toEqual({ lines: [{ variantId: "v1", quantity: 2 }] });
+  });
+});

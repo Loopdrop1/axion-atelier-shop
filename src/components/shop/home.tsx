@@ -69,8 +69,8 @@ export function HomePage({
     : categories.length
       ? { id: "kollektionen", label: t.home.scrollCueCollections }
       : undefined;
-  const active = lookProducts.find((p) => p.handle === hotspot);
-  const activeSpot = look.hotspots.find((h) => h.handle === active?.handle);
+  const activeSpot = look.hotspots.find((h) => h.key === hotspot);
+  const active = lookProducts.find((p) => p.handle === activeSpot?.handle);
   return (
     <>
       <Hero content={content.hero} next={next} />
@@ -164,13 +164,13 @@ export function HomePage({
                   <Photo image={look.image} sizes={SIZES.half} />
                   {look.hotspots.map((h) => (
                     <Button
-                      key={h.handle}
+                      key={h.key}
                       variant="icon"
-                      className={`hotspot hotspot-${h.key} ${hotspot === h.handle ? "active" : ""}`}
+                      className={`hotspot hotspot-${h.key} ${hotspot === h.key ? "active" : ""}`}
                       style={{ left: `${h.x}%`, top: `${h.y}%` } as CSSProperties}
                       aria-label={t.home.viewHotspot(h.label)}
-                      aria-expanded={hotspot === h.handle}
-                      onClick={() => setHotspot(hotspot === h.handle ? null : h.handle)}
+                      aria-expanded={hotspot === h.key}
+                      onClick={() => setHotspot(hotspot === h.key ? null : h.key)}
                     >
                       <Plus />
                     </Button>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { messages, toLocale, useLocale, useLocaleParam, useT } from "@/i18n";
 import { backendConfigured } from "@/lib/backend";
 import { trackingUrl } from "@/lib/account/api";
-import { getOrderStatus, type OrderStatus } from "@/lib/commerce/checkout";
+import { forgetCheckout, getOrderStatus, type OrderStatus } from "@/lib/commerce/checkout";
 import { formatCents } from "@/lib/commerce/format";
 import { pageHead } from "@/lib/commerce/seo";
 import { useCart } from "@/lib/commerce/stores";
@@ -60,6 +60,9 @@ function OrderStatusPage() {
     );
     return () => clearTimeout(timer);
   }, [status.data?.status, startedAt]);
+
+  // Zahlung abgeschlossen: Diese Kasse beim nächsten Besuch im Warenkorb nicht mehr freigeben
+  useEffect(() => forgetCheckout(token), [token]);
 
   // Rückkehr nach der Zahlung: Warenkorb leeren (nur bei Warenkorb-Bestellungen) und «bezahlt» aus der
   // Adresse entfernen, damit ein späterer Aufruf aus dem Verlauf keinen neuen Warenkorb leert.

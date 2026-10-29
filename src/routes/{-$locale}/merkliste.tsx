@@ -7,6 +7,7 @@ import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useWishlist } from "@/lib/commerce/stores";
 import { ProductCard } from "@/components/shop/product-card";
 import { EmptyState } from "@/components/shop/cart";
+import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/{-$locale}/merkliste")({
   head: ({ params }) => {
     const locale = toLocale(params.locale);
@@ -20,29 +21,44 @@ function Wishlist() {
   const locale = useLocale();
   const hydrated = useStoreHydrated(useWishlist.persist);
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const handles = useWishlist((s) => s.handles);
   const prune = useWishlist((s) => s.prune);
   const [products, setProducts] = useState<Product[]>([]);
   useEffect(() => {
     if (!hydrated) return;
     let live = true;
-    getProductsByHandles(handles, locale).then((p) => {
-      if (live) {
-        setProducts(p);
-        setLoaded(true);
-        // Handles, die es nicht mehr gibt (gelöscht, deaktiviert), aus der Merkliste räumen: der Zähler stimmt dann
-        if (p.length < handles.length) prune(p.map((x) => x.handle));
-      }
-    });
+    setFailed(false);
+    getProductsByHandles(handles, locale)
+      .then((p) => {
+        if (live) {
+          setProducts(p);
+          setLoaded(true);
+          // Handles, die es nicht mehr gibt (gelöscht, deaktiviert), aus der Merkliste räumen: der Zähler stimmt dann
+          if (p.length < handles.length) prune(p.map((x) => x.handle));
+        }
+      })
+      // Katalog nicht erreichbar: Hinweis mit «Erneut versuchen» statt endlosem «Lädt …» (wie der Warenkorb)
+      .catch(() => {
+        if (live) setFailed(true);
+      });
     return () => {
       live = false;
     };
-  }, [handles, hydrated, locale, prune]);
+  }, [handles, hydrated, locale, prune, attempt]);
   return (
     <div className="container page-body">
       <p className="eyebrow">{t.wishlist.eyebrow}</p>
       <h1 className="page-title">{t.wishlist.title}</h1>
-      {!hydrated || !loaded ? (
+      {failed ? (
+        <div className="cart-error" role="alert">
+          <p>{t.common.error}</p>
+          <Button variant="tailored" onClick={() => setAttempt((n) => n + 1)}>
+            {t.common.retry}
+          </Button>
+        </div>
+      ) : !hydrated || !loaded ? (
         <p className="text-muted" role="status">
           {t.wishlist.loading}
         </p>

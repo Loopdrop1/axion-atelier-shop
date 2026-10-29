@@ -25,3 +25,9 @@ export const stripeCrypto = Stripe.createSubtleCryptoProvider();
 export const INTEGRATION_ID = "axion_shop_checkout_QZKMRWTB";
 
 export type { Stripe };
+
+/** Nur Typ, Code und Status ins Log: Stripe-Fehlermeldungen können Anfragewerte enthalten (z. B. die E-Mail). */
+export function logStripeError(label: string, error: unknown): void {
+  const e = (error ?? {}) as { type?: unknown; code?: unknown; statusCode?: unknown };
+  console.error(label, e.type, e.code, e.statusCode);
+}

@@ -88,8 +88,9 @@ function HelpPage() {
           </li>
           <li>
             Rückgabe: Bei der Bestellung unter «Retoure einbuchen» die Stücke wieder an Lager
-            nehmen. Das Geld erstattest du im Stripe-Konto (Zahlungen → Zahlung öffnen →
-            Rückerstattung).
+            nehmen. Das Geld erstattest du auf derselben Seite unter «Rückerstatten» (alternativ im
+            Stripe-Dashboard). Wurde mit Geschenkgutschein bezahlt, schreibst du den Gutscheinanteil
+            mit «Gutscheinanteil gutschreiben» zurück.
           </li>
         </ul>
       </Panel>
@@ -121,8 +122,8 @@ function HelpPage() {
             <Link to="/admin/gutscheine" className="admin-link">
               Gutscheine
             </Link>
-            : Gutscheine für den Laden ausstellen, verlorene Codes sperren und das Restguthaben auf
-            einen neuen Gutschein übertragen.
+            : Gutscheine für den Laden ausstellen, verlorene Codes sperren und bei Bedarf neu
+            ausstellen.
           </li>
           <li>
             <Link to="/admin/inhalte" className="admin-link">
