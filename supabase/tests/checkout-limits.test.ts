@@ -70,9 +70,9 @@ describe("checkout_guard: IP-Zähler", () => {
     ]);
   });
 
-  it("mit IP: höchstens 3 Kassen in 35 Minuten, andere IPs und der noip-Zähler bleiben unberührt", async () => {
+  it("mit IP: höchstens 8 Kassen in 35 Minuten, andere IPs und der noip-Zähler bleiben unberührt", async () => {
     const ip = `198.51.100.${Math.floor(Math.random() * 250)}`;
-    for (let i = 0; i < 3; i++) expect(await guard(`${uniq("b")}@example.ch`, ip)).toBe("ok");
+    for (let i = 0; i < 8; i++) expect(await guard(`${uniq("b")}@example.ch`, ip)).toBe("ok");
     expect(await guard(`${uniq("b")}@example.ch`, ip)).toBe("too_many_open");
     expect(await guard(`${uniq("b")}@example.ch`, "198.51.100.251")).toBe("ok");
   });

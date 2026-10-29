@@ -390,11 +390,11 @@ describe("checkout: Schutz vor Missbrauch", () => {
     expect(await stockOf(p.variants[0]!.id)).toBe(7);
   });
 
-  it("höchstens 3 neue Kassen pro IP-Adresse in 35 Minuten (verschiedene E-Mail-Adressen)", async () => {
+  it("höchstens 8 neue Kassen pro IP-Adresse in 35 Minuten (verschiedene E-Mail-Adressen)", async () => {
     const p = await makeProduct({ priceCents: 1000, stocks: [100] });
     const ip = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
     const results: { status: number; body: unknown }[] = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 9; i++) {
       const res = await post(
         {
           kind: "cart",
@@ -406,9 +406,9 @@ describe("checkout: Schutz vor Missbrauch", () => {
       );
       results.push({ status: res.status, body: await res.json() });
     }
-    expect(results.slice(0, 3).every((r) => r.status === 200)).toBe(true);
-    expect(results[3]).toEqual({ status: 429, body: { error: "TOO_MANY_CHECKOUTS" } });
-    expect(await stockOf(p.variants[0]!.id)).toBe(97);
+    expect(results.slice(0, 8).every((r) => r.status === 200)).toBe(true);
+    expect(results[8]).toEqual({ status: 429, body: { error: "TOO_MANY_CHECKOUTS" } });
+    expect(await stockOf(p.variants[0]!.id)).toBe(92);
   });
 
   it("ohne erkennbare IP gilt ein gemeinsamer Zähler (30 in 30 Minuten)", async () => {

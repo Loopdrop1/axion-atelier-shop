@@ -181,8 +181,8 @@ begin
     if not private.hit_rate_limit('checkout-ip:' || v_ip, 20, interval '30 minutes') then
       return 'rate_limited';
     end if;
-    -- Eine Reservierung hält 35 Minuten: von einer IP aus höchstens 3 neue Kassen in dieser Zeit.
-    if not private.hit_rate_limit('checkout-ip-open:' || v_ip, 3, interval '35 minutes') then
+    -- Eine Reservierung hält 35 Minuten: von einer IP aus höchstens 8 neue Kassen in dieser Zeit (genug fürs Hin und Her einer echten Kundin, zu wenig, um Ware zu blockieren).
+    if not private.hit_rate_limit('checkout-ip-open:' || v_ip, 8, interval '35 minutes') then
       return 'too_many_open';
     end if;
   elsif not private.hit_rate_limit('checkout-noip', 30, interval '30 minutes') then
