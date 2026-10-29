@@ -390,11 +390,11 @@ describe("checkout: Schutz vor Missbrauch", () => {
     expect(await stockOf(p.variants[0]!.id)).toBe(7);
   });
 
-  it("höchstens 20 Kassen pro IP-Adresse in 30 Minuten", async () => {
+  it("höchstens 3 neue Kassen pro IP-Adresse in 35 Minuten (verschiedene E-Mail-Adressen)", async () => {
     const p = await makeProduct({ priceCents: 1000, stocks: [100] });
     const ip = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
-    const statuses: number[] = [];
-    for (let i = 0; i < 21; i++) {
+    const results: { status: number; body: unknown }[] = [];
+    for (let i = 0; i < 4; i++) {
       const res = await post(
         {
           kind: "cart",
@@ -404,11 +404,71 @@ describe("checkout: Schutz vor Missbrauch", () => {
         { "cf-connecting-ip": ip },
         liveHandler,
       );
-      statuses.push(res.status);
+      results.push({ status: res.status, body: await res.json() });
     }
-    expect(statuses.slice(0, 20).every((s) => s === 200)).toBe(true);
-    expect(statuses[20]).toBe(429);
-    expect(await stockOf(p.variants[0]!.id)).toBe(80);
+    expect(results.slice(0, 3).every((r) => r.status === 200)).toBe(true);
+    expect(results[3]).toEqual({ status: 429, body: { error: "TOO_MANY_CHECKOUTS" } });
+    expect(await stockOf(p.variants[0]!.id)).toBe(97);
+  });
+
+  it("ohne erkennbare IP gilt ein gemeinsamer Zähler (30 in 30 Minuten)", async () => {
+    await sql("delete from private.rate_limits where key = private.hash_token($1)", [
+      "checkout-noip",
+    ]);
+    const p = await makeProduct({ priceCents: 1000, stocks: [100] });
+    let last = 0;
+    for (let i = 0; i < 31; i++) {
+      const res = await post(
+        {
+          kind: "cart",
+          email: `${uniq("noip")}@example.ch`,
+          lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+        },
+        {},
+        liveHandler,
+      );
+      last = res.status;
+      if (i < 30) expect(res.status).toBe(200);
+    }
+    expect(last).toBe(429);
+    await sql("delete from private.rate_limits where key = private.hash_token($1)", [
+      "checkout-noip",
+    ]);
+  });
+});
+
+describe("checkout: Höchstmengen", () => {
+  const send = (lines: { variantId: string; quantity: number }[]) =>
+    post({ kind: "cart", email: `${uniq("menge")}@example.ch`, lines });
+
+  it("mehr als 3 Stück je Grösse: 400 INVALID_LINES, auch auf mehrere Zeilen verteilt", async () => {
+    const p = await makeProduct({ priceCents: 1000, stocks: [50] });
+    const id = p.variants[0]!.id;
+    for (const lines of [
+      [{ variantId: id, quantity: 4 }],
+      [
+        { variantId: id, quantity: 2 },
+        { variantId: id, quantity: 2 },
+      ],
+    ]) {
+      const res = await send(lines);
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("INVALID_LINES");
+    }
+    expect(await stockOf(id)).toBe(50);
+  });
+
+  it("mehr als 20 Stück je Bestellung: 400 INVALID_LINES; genau 20 gehen", async () => {
+    const p = await makeProduct({ priceCents: 1000, stocks: Array(7).fill(10) });
+    const ids = p.variants.map((v) => v.id);
+    const six = ids.slice(0, 6).map((variantId) => ({ variantId, quantity: 3 }));
+    const over = await send([...six, { variantId: ids[6]!, quantity: 3 }]);
+    expect(over.status).toBe(400);
+    expect(await over.json()).toEqual({
+      error: "INVALID_LINES",
+      detail: { reason: "order_quantity" },
+    });
+    expect((await send([...six, { variantId: ids[6]!, quantity: 2 }])).status).toBe(200);
   });
 });
 

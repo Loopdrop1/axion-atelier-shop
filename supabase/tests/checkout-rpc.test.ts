@@ -132,10 +132,10 @@ describe("reserve_checkout: Fehler", () => {
     expect(unknown.message).toBe("INVALID_LINES");
   });
 
-  it("Mengen ausserhalb 1 bis 10, leere und kaputte Zeilen werden abgelehnt", async () => {
+  it("Mengen ausserhalb 1 bis 3, leere und kaputte Zeilen werden abgelehnt", async () => {
     const p = await makeProduct({ priceCents: 10000, stocks: [50] });
     for (const lines of [
-      [{ variant_id: p.variants[0]!.id, quantity: 11 }],
+      [{ variant_id: p.variants[0]!.id, quantity: 4 }],
       [{ variant_id: p.variants[0]!.id, quantity: 0 }],
       [],
       [{ variant_id: "kaputt", quantity: 1 }],

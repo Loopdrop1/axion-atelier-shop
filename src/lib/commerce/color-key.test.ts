@@ -1,7 +1,13 @@
 // Farbfilter mit sprachneutralem Schlüssel: Sprachwechsel und ältere Links mit Farbnamen.
 import { describe, expect, it } from "vitest";
 import { testProduct, testVariant } from "@/test/products";
-import { colorFacets, colorKey, colorKeys, colorMatchesValue, selectedColorKeys } from "./color-key";
+import {
+  colorFacets,
+  colorKey,
+  colorKeys,
+  colorMatchesValue,
+  selectedColorKeys,
+} from "./color-key";
 import { filterProducts } from "./index";
 import { filtersFromSearch } from "./queries";
 import type { Product } from "./types";

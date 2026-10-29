@@ -28,6 +28,8 @@ describe("Beispielkollektion", () => {
       (await listProducts({ occasion: "gala" })).every((p) => p.occasions.includes("gala")),
     ).toBe(true);
     expect(await listProducts({ colors: ["Marine"] })).toHaveLength(10);
+    expect(await listProducts({ colors: ["marine"] }, "en")).toHaveLength(10);
+    expect(await listProducts({ colors: ["Navy"] })).toHaveLength(10);
     expect(await listProducts({ fits: ["Slim Fit"] })).toHaveLength(14);
     const cheap = await listProducts({ priceMax: 200 });
     expect(cheap).toHaveLength(24);

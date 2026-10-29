@@ -128,8 +128,7 @@ export function CollectionPage({
   const facetCount = (key: GroupKey, value: string) =>
     filterProducts(catalogue, {
       ...filtersFromSearch("alle", search),
-      [FACET[key]]:
-        key === "anlass" ? value : [...new Set([...selected(key), value])],
+      [FACET[key]]: key === "anlass" ? value : [...new Set([...selected(key), value])],
     }).length;
   const options = (g: (typeof groups)[number], location: string) => {
     const choices = (values: string[], section = "") =>

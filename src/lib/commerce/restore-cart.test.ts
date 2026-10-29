@@ -90,7 +90,7 @@ describe("planRestore", () => {
     expect(plan.adds).toEqual([
       { variantId: "ok", quantity: 2, stock: 5 },
       { variantId: "knapp", quantity: 1, stock: 1 },
-      { variantId: "viele", quantity: 10, stock: 40 },
+      { variantId: "viele", quantity: 3, stock: 40 },
     ]);
     expect(plan.unavailable).toBe(3);
     expect(plan.reduced).toBe(true);

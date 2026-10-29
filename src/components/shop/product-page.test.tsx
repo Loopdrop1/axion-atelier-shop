@@ -41,7 +41,7 @@ function tie(available: boolean) {
     { ...testVariant("krawatte-os", available, 89), title: "One Size" },
   ]);
   p.title = "Seidenkrawatte «Morcote»";
-  p.color = { name: "Bordeaux", hex: "#6B1E2E" };
+  p.color = { key: "bordeaux", name: "Bordeaux", hex: "#6B1E2E" };
   return p;
 }
 
