@@ -410,7 +410,10 @@ export type Database = {
           paid_at: string | null
           payment_method: string | null
           phone: string | null
+          refund_notified_cents: number
           refunded_cents: number
+          reminder_opt_in: boolean | null
+          reminder_sent_at: string | null
           shipped_at: string | null
           shipping_address: Json | null
           shipping_cents: number
@@ -453,7 +456,10 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           phone?: string | null
+          refund_notified_cents?: number
           refunded_cents?: number
+          reminder_opt_in?: boolean | null
+          reminder_sent_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
@@ -496,7 +502,10 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string | null
           phone?: string | null
+          refund_notified_cents?: number
           refunded_cents?: number
+          reminder_opt_in?: boolean | null
+          reminder_sent_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
@@ -1133,12 +1142,17 @@ export type Database = {
       }
       finish_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
       forget_stripe_event: { Args: { p_event_id: string }; Returns: undefined }
+      get_cart_reminder: { Args: { p_order_id: string }; Returns: Json }
       get_gift_card_for_email: {
         Args: { p_gift_card_id: string }
         Returns: Json
       }
       get_order_for_email: { Args: { p_order_id: string }; Returns: Json }
       get_order_status: { Args: { p_token: string }; Returns: Json }
+      get_refund_notice: {
+        Args: { p_payment_intent_id: string }
+        Returns: Json
+      }
       get_shop_notify_email: { Args: never; Returns: string }
       issue_gift_card: {
         Args: {
@@ -1153,6 +1167,10 @@ export type Database = {
         }
         Returns: Json
       }
+      low_stock_after_order: {
+        Args: { p_order_id: string; p_threshold: number }
+        Returns: Json
+      }
       mark_order_email_sent: {
         Args: { p_kind: string; p_order_id: string }
         Returns: undefined
@@ -1160,6 +1178,10 @@ export type Database = {
       mark_order_shipped: {
         Args: { p_order_id: string; p_tracking: string }
         Returns: Json
+      }
+      mark_refund_notified: {
+        Args: { p_cents: number; p_order_id: string }
+        Returns: undefined
       }
       newsletter_confirm: { Args: { p_token: string }; Returns: Json }
       newsletter_subscribe: {
@@ -1175,7 +1197,12 @@ export type Database = {
       newsletter_unsubscribe: { Args: { p_token: string }; Returns: Json }
       pending_checkout_by_token: { Args: { p_token: string }; Returns: Json }
       prepare_account_deletion: { Args: { p_user_id: string }; Returns: Json }
+      prune_abandoned_orders: { Args: never; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
+      record_dispute: {
+        Args: { p_note: string; p_payment_intent_id: string }
+        Returns: Json
+      }
       record_refund: {
         Args: { p_payment_intent_id: string; p_refunded_cents: number }
         Returns: Json
@@ -1185,24 +1212,6 @@ export type Database = {
         Returns: string
       }
       release_expired_orders: { Args: { p_grace?: string }; Returns: number }
-      restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
-      return_lookup: {
-        Args: { p_days: number; p_email: string; p_ip: string; p_order_number: number }
-        Returns: Json
-      }
-      return_submit: {
-        Args: {
-          p_comment: string
-          p_days: number
-          p_email: string
-          p_ip: string
-          p_items: Json
-          p_locale: string
-          p_order_number: number
-          p_request_id?: string
-        }
-        Returns: Json
-      }
       reserve_checkout: {
         Args: {
           p_discount_code?: string
@@ -1224,7 +1233,34 @@ export type Database = {
         }
         Returns: Json
       }
+      restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
+      return_lookup: {
+        Args: {
+          p_days: number
+          p_email: string
+          p_ip: string
+          p_order_number: number
+        }
+        Returns: Json
+      }
+      return_submit: {
+        Args: {
+          p_comment: string
+          p_days: number
+          p_email: string
+          p_ip: string
+          p_items: Json
+          p_locale: string
+          p_order_number: number
+          p_request_id?: string
+        }
+        Returns: Json
+      }
       search_assist_guard: { Args: { p_ip: string }; Returns: boolean }
+      set_order_reminder: {
+        Args: { p_opt_in: boolean; p_order_id: string }
+        Returns: undefined
+      }
       set_order_vat_rate: {
         Args: { p_order_id: string; p_rate: number }
         Returns: undefined
