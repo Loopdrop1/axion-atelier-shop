@@ -154,7 +154,7 @@ describe("return-request: lookup", () => {
   it("Frist: ab Versand gerechnet, sonst ab Zahlung; danach RETURN_WINDOW_CLOSED", async () => {
     const shippedRecently = await order({ paidDaysAgo: 30, shippedDaysAgo: 5 });
     expect((await lookup(shippedRecently)).status).toBe(200);
-    const shippedLong = await order({ paidDaysAgo: 30, shippedDaysAgo: 20 });
+    const shippedLong = await order({ paidDaysAgo: 30, shippedDaysAgo: 25 });
     const closed = await lookup(shippedLong);
     expect(closed.status).toBe(409);
     expect(await closed.json()).toEqual({ error: "RETURN_WINDOW_CLOSED", returnDays: 14 });

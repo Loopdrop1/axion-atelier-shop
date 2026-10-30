@@ -35,7 +35,7 @@ Produkt mit Bestand (Musterstücke genügen), ein Postfach, das du lesen kannst,
 1. Stripe-Dashboard, oben rechts auf **Testmodus** (Sandbox) umschalten.
 2. Entwickler → Webhooks → Endpunkt hinzufügen: `<VITE_SUPABASE_URL>/functions/v1/stripe-webhook` (Adresse aus `.env`).
 3. Ereignisse: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
-   `checkout.session.expired`, `charge.refunded`.
+   `checkout.session.expired`, `charge.refunded`, `charge.dispute.created`, `radar.early_fraud_warning.created`.
 4. Signatur-Geheimnis (`whsec_…`) kopieren und als `STRIPE_WEBHOOK_SECRET` in Cloud → Secrets speichern. Die Funktion `stripe-webhook` muss dafür nicht neu veröffentlicht werden; Secrets gelten sofort.
 
 ## 2. Testkarten (Stripe-Dokumentation «Testing»)
@@ -82,6 +82,10 @@ testen; TWINT erst nach der Freischaltung durch Stripe im Livemodus.
    «zurückerstattet», Betrag).
 3. Retoure einbuchen (Bestellung → «Retoure einbuchen»): der Bestand steigt wieder.
 4. Teilrückerstattung an einer zweiten Bestellung: Admin zeigt den Teilbetrag.
+5. Streitfall: Testzahlung mit der Karte `4000 0000 0000 0259` (löst sofort einen Dispute aus). Webhook
+   `charge.dispute.created` kommt an; im Admin ist die Bestellung als «Prüfen» markiert, Notiz «Stripe: Zahlung angefochten
+   (Dispute)». Betrugswarnung: Karte `4000 0000 0000 5423` (Radar-Frühwarnung, kann einige Minuten dauern) → Notiz
+   «Stripe: Betrugswarnung (Radar)». Solche Bestellungen nicht versenden, bevor sie geklärt sind.
 
 ## 6. Geschenkgutschein
 

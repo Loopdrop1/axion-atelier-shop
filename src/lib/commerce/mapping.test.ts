@@ -237,6 +237,30 @@ describe("Beträge im Warenkorb (wie reserve_checkout)", () => {
     expect(t.giftCardCents).toBe(9950);
   });
 
+  it("Rabatt liesse weniger als CHF 0.50 übrig: Rabatt wird gekürzt, 0 bleibt 0", () => {
+    expect(estimateTotals(10000, 9980, 0, DEFAULT_SETTINGS)).toMatchObject({
+      discountCents: 9950,
+      totalCents: 50,
+    });
+    expect(estimateTotals(10000, 10000, 0, DEFAULT_SETTINGS)).toMatchObject({
+      discountCents: 10000,
+      totalCents: 0,
+    });
+    const flat = { ...DEFAULT_SETTINGS, shippingCents: 30, freeShippingFromCents: 40 };
+    expect(estimateTotals(1000, 995, 0, flat)).toMatchObject({
+      discountCents: 980,
+      shippingCents: 30,
+      totalCents: 50,
+    });
+    // Weniger Rabatt erreicht die Gratisversand-Schwelle: ohne Versand nochmals auf 50 Rappen
+    const low = { ...DEFAULT_SETTINGS, shippingCents: 30, freeShippingFromCents: 15 };
+    expect(estimateTotals(1000, 995, 0, low)).toMatchObject({
+      discountCents: 950,
+      shippingCents: 0,
+      totalCents: 50,
+    });
+  });
+
   it("Versand: Pauschale unter der Gratis-Schwelle (nach Rabatt)", () => {
     const settings = { ...DEFAULT_SETTINGS, shippingCents: 900, freeShippingFromCents: 20000 };
     expect(estimateTotals(21000, 2000, 0, settings).shippingCents).toBe(900);

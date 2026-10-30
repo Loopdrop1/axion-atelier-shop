@@ -186,8 +186,9 @@ Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Unsere E-Ma
 ### 7. Wie lange wir Daten aufbewahren
 Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke brauchen:
 - **Bestellungen und Belege:** zehn Jahre, wie es das Gesetz für Geschäftsunterlagen verlangt.
+- **Nicht abgeschlossene Bestellungen (Kasse abgebrochen):** Wir löschen sie nach 30 Tagen.
 - **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
-- **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
+- **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen. Unbestätigte Anmeldungen löschen wir nach 30 Tagen.
 - **Retouren:** zusammen mit der Bestellung während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Benachrichtigung bei Wiederverfügbarkeit:** Bestätigte Anfragen bewahren wir auf, bis das Stück wieder verfügbar ist und die Benachrichtigung versendet wurde; danach löschen wir deine Adresse. Unbestätigte Anfragen löschen wir nach 30 Tagen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.

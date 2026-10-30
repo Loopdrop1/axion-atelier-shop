@@ -374,20 +374,17 @@ describe("checkout: Abbruch bei schon bezahlter Session", () => {
 });
 
 describe("checkout: Schutz vor Missbrauch", () => {
-  it("höchstens 3 offene Kassen pro E-Mail-Adresse", async () => {
+  it("offene Kassen unter derselben E-Mail-Adresse sperren nicht (sonst könnten Fremde eine Kundin aussperren)", async () => {
     const p = await makeProduct({ priceCents: 1000, stocks: [10] });
     const email = `${uniq("viel")}@example.ch`;
-    const once = () =>
+    const once = (i: number) =>
       post(
         { kind: "cart", email, lines: [{ variantId: p.variants[0]!.id, quantity: 1 }] },
-        {},
+        { "cf-connecting-ip": `198.18.${Math.floor(Math.random() * 250)}.${i + 1}` },
         liveHandler,
       );
-    for (let i = 0; i < 3; i++) expect((await once()).status).toBe(200);
-    const fourth = await once();
-    expect(fourth.status).toBe(429);
-    expect(await fourth.json()).toEqual({ error: "TOO_MANY_CHECKOUTS" });
-    expect(await stockOf(p.variants[0]!.id)).toBe(7);
+    for (let i = 0; i < 4; i++) expect((await once(i)).status).toBe(200);
+    expect(await stockOf(p.variants[0]!.id)).toBe(6);
   });
 
   it("höchstens 8 neue Kassen pro IP-Adresse in 35 Minuten (verschiedene E-Mail-Adressen)", async () => {

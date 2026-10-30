@@ -106,9 +106,9 @@ describe("return_lookup", () => {
     });
   });
 
-  it("Frist ab Erhalt (Versand + 5 Tage Zustellung), sonst ab Zahlung", async () => {
-    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 18 }))).status).toBe("ok");
-    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 20 }))).status).toBe(
+  it("Frist ab Erhalt (Versand + 7 Tage Zustellung), sonst ab Zahlung", async () => {
+    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 20 }))).status).toBe("ok");
+    expect((await lookup(await order({ paidDaysAgo: 30, shippedDaysAgo: 22 }))).status).toBe(
       "expired",
     );
     expect((await lookup(await order({ paidDaysAgo: 15 }))).status).toBe("expired");
@@ -139,7 +139,7 @@ describe("return_lookup", () => {
     expect((await lookup(o)).status).toBe("nothing_returnable");
   });
 
-  it("bremst pro Bestellnummer und Adresse (20 pro Stunde) und pro Adresse (15); Fremde sperren niemanden aus", async () => {
+  it("bremst pro Bestellnummer und Adresse (20 pro Stunde); Fremde sperren niemanden aus", async () => {
     const o = await order();
     const answers: string[] = [];
     for (let i = 0; i < 21; i++)
@@ -151,14 +151,16 @@ describe("return_lookup", () => {
     expect(answers[20]).toBe("rate_limited");
     // Die echte Kundschaft kommt trotzdem durch
     expect((await lookup(o, o.email, "10.9.1.99")).status).toBe("ok");
+    // Pro Adresse zählen nur Treffer (Migration 20261030002200): falsche Nummern sperren die Adresse nicht
     const p = await order();
-    const email = `${uniq("viel")}@example.ch`;
     const byEmail: string[] = [];
-    for (let i = 0; i < 16; i++)
+    for (let i = 1; i <= 16; i++)
       byEmail.push(
-        (await rpc<Result>("return_lookup", [p.number + i, email, `10.9.2.${i}`, 14])).status,
+        (await rpc<Result>("return_lookup", [p.number + 50000 + i, p.email, `10.9.2.${i}`, 14]))
+          .status,
       );
-    expect(byEmail[15]).toBe("rate_limited");
+    expect(byEmail.every((s) => s === "not_found")).toBe(true);
+    expect((await lookup(p, p.email, "10.9.2.99")).status).toBe("ok");
   });
 });
 

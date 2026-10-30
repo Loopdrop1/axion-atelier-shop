@@ -171,6 +171,8 @@ export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Pr
     calls: StripeCall[];
     failNextSession: (times?: number) => void;
     completeSession: (id: string) => void;
+    /** Charge mit PaymentIntent für GET /v1/charges/:id */
+    setCharge: (id: string, paymentIntent: string | null) => void;
   }
 > {
   const calls: StripeCall[] = [];
@@ -178,6 +180,7 @@ export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Pr
   // Bezahlte Sessions lassen sich wie bei Stripe nicht mehr beenden.
   const completed = new Set<string>();
   const expired = new Set<string>();
+  const charges = new Map<string, string | null>();
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://x");
     const body = parseStripeForm(await readBody(req));
@@ -235,12 +238,23 @@ export async function startFakeStripe(opts: { paymentMethod?: string } = {}): Pr
         },
       });
     }
+    const charge = url.pathname.match(/^\/v1\/charges\/([^/]+)$/);
+    if (charge && req.method === "GET" && charges.has(charge[1]!)) {
+      return send(res, 200, {
+        id: charge[1],
+        object: "charge",
+        payment_intent: charges.get(charge[1]!),
+      });
+    }
     send(res, 404, { error: { message: `Nicht nachgebaut: ${req.method} ${url.pathname}` } });
   });
   const url = await listen(server);
   return {
     url,
     calls,
+    setCharge: (id: string, paymentIntent: string | null) => {
+      charges.set(id, paymentIntent);
+    },
     failNextSession: (times = 1) => {
       fail = times;
     },

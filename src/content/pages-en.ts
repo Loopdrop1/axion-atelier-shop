@@ -109,8 +109,9 @@ We do not use analytics or advertising cookies on this website. Our emails and t
 ### 7. How long we keep data
 We keep personal data for as long as we need it for the purposes described:
 - **Orders and receipts:** ten years, as the law requires for business records.
+- **Incomplete orders (checkout abandoned):** We delete them after 30 days.
 - **Customer account:** until you delete it. You can do this yourself in your customer account at any time. We then keep your orders, no longer linked to the account, for the statutory period.
-- **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence.
+- **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence. We delete unconfirmed subscriptions after 30 days.
 - **Returns:** together with the order for the statutory period for business records.
 - **Back-in-stock alert:** We keep confirmed requests until the piece is available again and the alert has been sent; we then delete your address. We delete unconfirmed requests after 30 days.
 - **Gift cards:** until they expire and then for the statutory period for business records.
