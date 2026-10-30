@@ -294,6 +294,9 @@ export function CheckoutSummary({
       case "NETWORK":
         setError(t.common.networkError);
         break;
+      case "PAYMENTS_DISABLED":
+        setError(t.checkout.notConnected);
+        break;
       case "RATE_LIMITED":
       case "TOO_MANY_CHECKOUTS":
         setError(t.checkout.tooManyAttempts);
