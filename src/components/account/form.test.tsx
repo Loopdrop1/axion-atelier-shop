@@ -15,6 +15,8 @@ describe("Rücksprung nach Anmeldung und Bestätigung", () => {
     for (const bad of [
       "https://evil.example/konto",
       "//evil.example",
+      "/en//evil.example",
+      "/en/\\evil.example",
       "/\\evil.example",
       "javascript:alert(1)",
       "konto",

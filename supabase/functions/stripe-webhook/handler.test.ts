@@ -575,9 +575,9 @@ describe("stripe-webhook: Rückerstattungs-E-Mail", () => {
     expect(refundMails(to, before)).toHaveLength(1);
   });
 
-  it("unbekannte Zahlung: nichts zu senden", async () => {
+  it("unbekannte Zahlung: 500, damit Stripe wiederholt, und nichts zu senden", async () => {
     const before = resend.sent.length;
-    expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(200);
+    expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(500);
     expect(resend.sent.length).toBe(before);
   });
 });

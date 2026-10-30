@@ -123,9 +123,11 @@ export function Notice({
 export function safeNext(value: unknown, fallback = "/konto"): string {
   if (typeof value !== "string") return fallback;
   const hasControl = [...value].some((c) => c.charCodeAt(0) < 0x20 || c.charCodeAt(0) === 0x7f);
-  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\") || hasControl)
-    return fallback;
+  if (!value.startsWith("/")) return fallback;
+  // Erst das Sprachpräfix entfernen, dann prüfen: sonst wird «/en//host» zu «//host».
   const bare = value.replace(/^\/en(?=\/|$)/, "") || "/";
+  if (!bare.startsWith("/") || bare.startsWith("//") || bare.includes("\\") || hasControl)
+    return fallback;
   return bare;
 }
 

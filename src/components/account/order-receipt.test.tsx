@@ -59,6 +59,29 @@ describe("Kunden-Quittung", () => {
     });
   });
 
+  it("übernimmt den bei der Zahlung gespeicherten MWST-Satz, sonst null (dann gilt die Konfiguration)", () => {
+    expect(
+      orderReceiptData({ ...order, vat_rate: 8.1 } as unknown as OrderDetail, "de").vat_rate,
+    ).toBe(8.1);
+    expect(
+      orderReceiptData({ ...order, vat_rate: "2.60" } as unknown as OrderDetail, "de").vat_rate,
+    ).toBe(2.6);
+    expect(
+      orderReceiptData({ ...order, vat_rate: 0 } as unknown as OrderDetail, "de").vat_rate,
+    ).toBe(0);
+    expect(
+      orderReceiptData({ ...order, vat_rate: null } as unknown as OrderDetail, "de").vat_rate,
+    ).toBeNull();
+    // gespeicherter Satz erzeugt auch ohne MWST-Pflicht in der Konfiguration die MWST-Zeile
+    const withVat = render(
+      <ReceiptDocument
+        data={orderReceiptData({ ...order, vat_rate: 8.1 } as unknown as OrderDetail, "de")}
+      />,
+    ).container;
+    expect(withVat.textContent).toContain("MWST");
+    expect(withVat.textContent).toContain("8.1");
+  });
+
   it("nur bezahlte Bestellungen haben eine Quittung", () => {
     for (const status of ["paid", "shipped", "refunded"])
       expect(receiptAvailable({ status } as never)).toBe(true);

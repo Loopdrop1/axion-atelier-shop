@@ -175,7 +175,7 @@ export async function listMyOrders(): Promise<OrderSummary[]> {
 }
 
 const ORDER_DETAIL =
-  "id, number, status, kind, created_at, paid_at, shipped_at, email, subtotal_cents, discount_cents, discount_code, gift_card_cents, shipping_cents, total_cents, refunded_cents, shipping_name, shipping_address, payment_method, tracking_number, gift_card_purchase, order_items(id, title, size, color, image, handle, unit_price_cents, quantity, line_total_cents)";
+  "id, number, status, kind, created_at, paid_at, shipped_at, email, subtotal_cents, discount_cents, discount_code, gift_card_cents, shipping_cents, total_cents, refunded_cents, vat_rate, shipping_name, shipping_address, payment_method, tracking_number, gift_card_purchase, order_items(id, title, size, color, image, handle, unit_price_cents, quantity, line_total_cents)";
 
 export async function getMyOrder(number: number) {
   if (!backendConfigured) return null;

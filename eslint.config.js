@@ -51,5 +51,11 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // TanStack-Routen müssen `Route` exportieren; Fast Refresh ersetzt dort ohnehin die ganze Routenmodul-Kette.
+    // shadcn-Bausteine (src/components/ui) exportieren Varianten und Hooks neben den Komponenten, wie vom Generator vorgesehen.
+    files: ["src/routes/**/*.{ts,tsx}", "src/components/ui/**/*.{ts,tsx}"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
   eslintPluginPrettier,
 );

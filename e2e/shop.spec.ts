@@ -141,10 +141,13 @@ test("Startseite: Look direkt kaufen – Grössen wählen, ganzer Look oder nur 
   await expect(drawer.getByRole("heading", { name: "Dein Warenkorb" })).toBeVisible();
   await expect(drawer.locator(".cart-line")).toHaveCount(3);
   expect(await cartLines(page)).toEqual(chosen.map((variantId) => ({ variantId, quantity: 1 })));
-  // Escape erst, wenn der Fokus im Warenkorb liegt (unter Last setzt Radix ihn erst nach der Einblendung)
+  // Escape erst, wenn die Schublade ganz offen ist und der Fokus darin liegt (unter Last setzt Radix ihn erst nach der Einblendung)
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveAttribute("data-state", "open");
   await expect(drawer.locator(":focus")).toHaveCount(1);
   await page.keyboard.press("Escape");
-  await expect(drawer).toHaveCount(0);
+  // Ausblend-Animation und Fokus-Rückgabe können unter Last lange dauern: grosszügig warten, aber echten Fehler nicht verstecken
+  await expect(drawer).toHaveCount(0, { timeout: 20000 });
 
   // Englisch: Weste abwählen, nur Anzug und Schuhe dazulegen
   await open(page, "/en");

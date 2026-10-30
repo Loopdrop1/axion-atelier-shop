@@ -141,10 +141,14 @@ export function createStripeWebhookHandler(deps: Deps) {
               ? charge.payment_intent
               : charge.payment_intent?.id;
           if (pi) {
-            await deps.rpc("record_refund", {
+            const refund = await deps.rpc<{ found: boolean }>("record_refund", {
               p_payment_intent_id: pi,
               p_refunded_cents: charge.amount_refunded,
             });
+            // Noch keine Bestellung mit diesem PaymentIntent (checkout.session.completed wartet auf eine
+            // Wiederholung): werfen, damit Stripe auch die Rückerstattung wiederholt, statt sie als erledigt
+            // abzuhaken; sonst wäre die Bestellung später «bezahlt» mit 0 erstattet und würde versandt.
+            if (refund?.found === false) throw new Error("REFUND_ORDER_NOT_FOUND");
             // Wirft bei Versandfehlern: Stripe wiederholt, Betrag und Resend-Schlüssel verhindern doppelte Mails.
             await sendRefundNotice(deps, pi);
           }
