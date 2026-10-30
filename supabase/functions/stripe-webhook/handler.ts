@@ -1,7 +1,9 @@
 // Stripe-Webhook: verbucht Zahlungen (auch ohne Zahlbetrag, wenn ein Gutschein alles deckt), storniert
-// abgelaufene Kassen (mit Einwilligung samt einmaliger Erinnerung), übernimmt Rückerstattungen (mit E-Mail). Jedes Ereignis wird nur einmal verarbeitet; scheitert etwas,
-// gibt es 500 und Stripe wiederholt.
+// abgelaufene Kassen (mit Einwilligung samt einmaliger Erinnerung), übernimmt Rückerstattungen (mit E-Mail) und
+// vermerkt Streitfälle und Radar-Betrugswarnungen an der Bestellung. Jedes Ereignis wird nur einmal verarbeitet;
+// scheitert etwas, gibt es 500 und Stripe wiederholt.
 import type Stripe from "stripe";
+import { RpcError } from "../_shared/db.ts";
 import type { Deps } from "../_shared/deps.ts";
 import { json } from "../_shared/http.ts";
 import {
@@ -82,6 +84,58 @@ async function onPaid(deps: Deps, session: Stripe.Checkout.Session): Promise<voi
   if (mails.status === "rejected") throw mails.reason;
 }
 
+const DISPUTE_NOTE = "Stripe: Zahlung angefochten (Dispute)";
+const FRAUD_WARNING_NOTE = "Stripe: Betrugswarnung (Radar)";
+
+function idOf(ref: string | { id: string } | null | undefined): string | null {
+  if (!ref) return null;
+  return typeof ref === "string" ? ref : (ref.id ?? null);
+}
+
+/** PaymentIntent einer Betrugswarnung: direkt am Ereignis, sonst über die Charge. */
+async function fraudWarningIntent(
+  deps: Deps,
+  warning: Stripe.Radar.EarlyFraudWarning,
+): Promise<string | null> {
+  const direct = idOf(warning.payment_intent);
+  if (direct) return direct;
+  const chargeId = idOf(warning.charge);
+  if (!chargeId) return null;
+  try {
+    const charge = await deps.stripe.charges.retrieve(chargeId);
+    return idOf(charge.payment_intent);
+  } catch (error) {
+    // Fehlt dem eingeschränkten Schlüssel das Recht «Charges: Lesen», hilft keine Wiederholung: protokollieren und
+    // weiter (Stripe zeigt die Warnung trotzdem im Dashboard). Andere Fehler: 500, Stripe wiederholt.
+    if ((error as { type?: string }).type === "StripePermissionError") {
+      console.error("Betrugswarnung: Charge nicht lesbar (Recht «Charges: Lesen» fehlt)", chargeId);
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Streitfall oder Betrugswarnung an der Bestellung vermerken (record_dispute: Admin-Vermerk, Notiz, gekaufter
+ * Gutschein gesperrt). Gehört der PaymentIntent zu keiner Bestellung (andere Zahlung auf demselben Stripe-Konto),
+ * nur protokollieren: Eine Wiederholung durch Stripe änderte daran nichts.
+ */
+async function recordDispute(deps: Deps, paymentIntentId: string | null, note: string) {
+  if (!paymentIntentId) {
+    console.error(`${note}: kein PaymentIntent, nichts vermerkt`);
+    return;
+  }
+  try {
+    await deps.rpc("record_dispute", { p_payment_intent_id: paymentIntentId, p_note: note });
+  } catch (error) {
+    if (error instanceof RpcError && error.code === "ORDER_NOT_FOUND") {
+      console.error(`${note}: keine Bestellung zu ${paymentIntentId}`);
+      return;
+    }
+    throw error;
+  }
+}
+
 export function createStripeWebhookHandler(deps: Deps) {
   return async (req: Request): Promise<Response> => {
     if (req.method !== "POST") return json(405, { error: "METHOD_NOT_ALLOWED" });
@@ -141,15 +195,29 @@ export function createStripeWebhookHandler(deps: Deps) {
               ? charge.payment_intent
               : charge.payment_intent?.id;
           if (pi) {
-            await deps.rpc("record_refund", {
+            const refund = await deps.rpc<{ found: boolean }>("record_refund", {
               p_payment_intent_id: pi,
               p_refunded_cents: charge.amount_refunded,
             });
+            // Noch keine Bestellung mit diesem PaymentIntent (checkout.session.completed wartet auf eine
+            // Wiederholung): werfen, damit Stripe auch die Rückerstattung wiederholt, statt sie als erledigt
+            // abzuhaken; sonst wäre die Bestellung später «bezahlt» mit 0 erstattet und würde versandt.
+            if (refund?.found === false) throw new Error("REFUND_ORDER_NOT_FOUND");
             // Wirft bei Versandfehlern: Stripe wiederholt, Betrag und Resend-Schlüssel verhindern doppelte Mails.
             await sendRefundNotice(deps, pi);
           }
           break;
         }
+        case "charge.dispute.created":
+          await recordDispute(deps, idOf(event.data.object.payment_intent), DISPUTE_NOTE);
+          break;
+        case "radar.early_fraud_warning.created":
+          await recordDispute(
+            deps,
+            await fraudWarningIntent(deps, event.data.object),
+            FRAUD_WARNING_NOTE,
+          );
+          break;
         default:
           break;
       }

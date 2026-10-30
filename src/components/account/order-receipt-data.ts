@@ -32,7 +32,7 @@ export function orderReceiptData(order: OrderDetail, locale: Locale): ReceiptDat
     total_cents: order.total_cents,
     refunded_cents: order.refunded_cents,
     payment_method: order.payment_method,
-    // Der gespeicherte Satz ist für Kundenkonten nicht lesbar: es gilt der Satz der Shop-Konfiguration.
-    vat_rate: null,
+    // Satz zum Zahlungszeitpunkt; ältere Bestellungen ohne gespeicherten Satz: Shop-Konfiguration (im Dokument).
+    vat_rate: order.vat_rate == null ? null : Number(order.vat_rate),
   };
 }

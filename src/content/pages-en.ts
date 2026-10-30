@@ -70,11 +70,12 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - to issue and redeem gift cards and keep track of the remaining balance;
 - to send you the newsletter if you have subscribed and confirmed your subscription by email;
 - to notify you once by email when a sold-out size is back, if you have requested this and confirmed it by email;
+- to remind you once about an unfinished purchase, if you ticked this in your cart;
 - to answer your questions;
 - to run the website securely and reliably and to prevent misuse;
 - to comply with legal obligations, in particular the retention of business records.
 
-We do not sell your data. We only send you advertising by email if you have subscribed to the newsletter. You can unsubscribe at any time using the link in every issue.
+We do not sell your data. We only send you advertising by email if you have subscribed to the newsletter or asked for a reminder in your cart. You can unsubscribe from the newsletter at any time using the link in every issue.
 
 ### 4. Who we disclose data to
 We work with carefully selected service providers. They only receive the data they need for their task and process it on our behalf unless stated otherwise here.
@@ -101,15 +102,16 @@ We only use what is needed to run the shop and, if listed below, cookieless visi
 - **Login:** When you sign in to your customer account, your browser stores a login key until you sign out.
 - **Cloudflare** sets a cookie (\`__cf_bm\`) that fends off automated attacks and expires after 30 minutes of inactivity.
 - **Payment page:** On its payment page, Stripe sets its own cookies, among other things to prevent fraud. Details are in Stripe's privacy policy.
-- {{analytics}}**Visitor statistics:** We measure use of the website anonymously with Plausible Analytics (Plausible Insights OÜ, Estonia; data processed in the EU). Plausible sets no cookies and builds no profiles of individual visitors. It records the page opened, the referring page, browser, device, rough country of origin and the events "Add to cart" and "Begin checkout", without us recognising you as a person. The legal basis is our interest in improving the website. You can prevent the measurement with an ad blocker. [To be confirmed before launch: provider details and data processing]
+- {{analytics}}**Visitor statistics:** We measure use of the website anonymously with Plausible Analytics (Plausible Insights OÜ, Estonia; data processed in the EU). Plausible sets no cookies and builds no profiles of individual visitors. It records the page opened, the referring page, browser, device, rough country of origin and the events "Add to cart", "Begin checkout" and "Gift card checkout", without us recognising you as a person. The legal basis is our interest in improving the website. You can prevent the measurement with an ad blocker. [To be confirmed before launch: provider details and data processing]
 
 We do not use analytics or advertising cookies on this website. Our emails and the newsletter contain no open or click tracking. You can delete cookies and your browser storage at any time. Without the necessary cookies, however, you cannot complete a purchase.
 
 ### 7. How long we keep data
 We keep personal data for as long as we need it for the purposes described:
 - **Orders and receipts:** ten years, as the law requires for business records.
+- **Incomplete orders (checkout abandoned):** We delete them after 30 days.
 - **Customer account:** until you delete it. You can do this yourself in your customer account at any time. We then keep your orders, no longer linked to the account, for the statutory period.
-- **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence.
+- **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence. We delete unconfirmed subscriptions after 30 days.
 - **Returns:** together with the order for the statutory period for business records.
 - **Back-in-stock alert:** We keep confirmed requests until the piece is available again and the alert has been sent; we then delete your address. We delete unconfirmed requests after 30 days.
 - **Gift cards:** until they expire and then for the statutory period for business records.
@@ -151,7 +153,7 @@ The presentation of the products in the shop is not a binding offer. This is how
 5. Check all details and correct them if necessary.
 6. Submit your binding order with the payment button.
 
-Until you submit your order, you can change all entries or cancel the purchase. While you pay, we reserve the items for a short time. After successful payment, you receive an order confirmation by email. The contract is concluded with this confirmation. If an item is no longer available despite the confirmation, we inform you immediately and refund any amounts already paid without delay.
+Until you submit your order, you can change all entries or cancel the purchase. You can order at most 3 pieces per size and at most 20 pieces per order. While you pay, we reserve the items for a short time. After successful payment, you receive an order confirmation by email. The contract is concluded with this confirmation. If an item is no longer available despite the confirmation, we inform you immediately and refund any amounts already paid without delay.
 
 You can order as a guest or open a customer account. [If you are under 18, you need the consent of your parents or legal guardian to place an order.] or [You can order from the age of 16; until you are 18, you need the consent of your parents or legal guardian.]
 

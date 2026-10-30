@@ -147,11 +147,12 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - um Geschenkgutscheine auszustellen, einzulösen und das Restguthaben zu führen;
 - um dir den Newsletter zu senden, wenn du dich angemeldet und die Anmeldung per E-Mail bestätigt hast;
 - um dich einmalig per E-Mail zu informieren, wenn eine ausverkaufte Grösse wieder da ist, sofern du das angefordert und per E-Mail bestätigt hast;
+- um dich einmalig an einen nicht abgeschlossenen Kauf zu erinnern, wenn du das im Warenkorb angekreuzt hast;
 - um deine Fragen zu beantworten;
 - um die Website sicher und funktionsfähig zu betreiben und Missbrauch zu verhindern;
 - um gesetzliche Pflichten zu erfüllen, insbesondere die Aufbewahrung von Geschäftsunterlagen.
 
-Wir verkaufen deine Daten nicht. Werbung per E-Mail senden wir dir nur, wenn du dich für den Newsletter angemeldet hast. Du kannst ihn jederzeit über den Link in jeder Ausgabe abbestellen.
+Wir verkaufen deine Daten nicht. Werbung per E-Mail senden wir dir nur, wenn du dich für den Newsletter angemeldet oder im Warenkorb eine Erinnerung gewünscht hast. Du kannst den Newsletter jederzeit über den Link in jeder Ausgabe abbestellen.
 
 ### 4. Wem wir Daten bekanntgeben
 Wir arbeiten mit sorgfältig ausgewählten Dienstleistern zusammen. Sie erhalten nur die Daten, die sie für ihre Aufgabe brauchen, und bearbeiten sie in unserem Auftrag, soweit hier nichts anderes steht.
@@ -178,15 +179,16 @@ Wir verwenden nur, was für den Betrieb des Shops nötig ist, und, falls unten a
 - **Anmeldung:** Wenn du dich im Kundenkonto anmeldest, speichert dein Browser einen Anmeldeschlüssel, bis du dich abmeldest.
 - **Cloudflare** setzt ein Cookie (\`__cf_bm\`), das automatisierte Angriffe abwehrt und nach 30 Minuten Inaktivität abläuft.
 - **Bezahlseite:** Auf der Bezahlseite von Stripe setzt Stripe eigene Cookies, unter anderem zur Betrugsbekämpfung. Details stehen in der Datenschutzerklärung von Stripe.
-- {{analytics}}**Besucherstatistik:** Wir messen die Nutzung der Website anonym mit Plausible Analytics (Plausible Insights OÜ, Estland; Datenverarbeitung in der EU). Plausible setzt keine Cookies und legt keine Profile einzelner Besucher an. Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Gerät, grobes Herkunftsland sowie die Ereignisse «In den Warenkorb» und «Zur Kasse», ohne dass wir dich als Person erkennen. Rechtsgrundlage ist unser Interesse, die Website zu verbessern. Du kannst die Messung mit einem Werbeblocker verhindern. [Vor Livegang zu bestätigen: Angaben zum Anbieter und Auftragsbearbeitung]
+- {{analytics}}**Besucherstatistik:** Wir messen die Nutzung der Website anonym mit Plausible Analytics (Plausible Insights OÜ, Estland; Datenverarbeitung in der EU). Plausible setzt keine Cookies und legt keine Profile einzelner Besucher an. Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Gerät, grobes Herkunftsland sowie die Ereignisse «In den Warenkorb», «Zur Kasse» und «Gutschein zur Kasse», ohne dass wir dich als Person erkennen. Rechtsgrundlage ist unser Interesse, die Website zu verbessern. Du kannst die Messung mit einem Werbeblocker verhindern. [Vor Livegang zu bestätigen: Angaben zum Anbieter und Auftragsbearbeitung]
 
 Auf dieser Website setzen wir keine Analyse- oder Werbe-Cookies ein. Unsere E-Mails und der Newsletter enthalten kein Öffnungs- und Klicktracking. Du kannst Cookies und den Speicher deines Browsers jederzeit löschen. Ohne die nötigen Cookies funktioniert der Kaufvorgang aber nicht.
 
 ### 7. Wie lange wir Daten aufbewahren
 Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke brauchen:
 - **Bestellungen und Belege:** zehn Jahre, wie es das Gesetz für Geschäftsunterlagen verlangt.
+- **Nicht abgeschlossene Bestellungen (Kasse abgebrochen):** Wir löschen sie nach 30 Tagen.
 - **Kundenkonto:** bis du es löschst. Das kannst du jederzeit selbst im Kundenkonto tun. Deine Bestellungen bewahren wir danach ohne Verbindung zum Konto während der gesetzlichen Frist auf.
-- **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen.
+- **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen. Unbestätigte Anmeldungen löschen wir nach 30 Tagen.
 - **Retouren:** zusammen mit der Bestellung während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Benachrichtigung bei Wiederverfügbarkeit:** Bestätigte Anfragen bewahren wir auf, bis das Stück wieder verfügbar ist und die Benachrichtigung versendet wurde; danach löschen wir deine Adresse. Unbestätigte Anfragen löschen wir nach 30 Tagen.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
@@ -228,7 +230,7 @@ Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestells
 5. Alle Angaben prüfen und bei Bedarf korrigieren.
 6. Die Bestellung mit dem Bezahl-Button verbindlich absenden.
 
-Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
+Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Pro Grösse kannst du höchstens 3 Stück und pro Bestellung höchstens 20 Stück bestellen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
 
 Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. [Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.] oder [Bestellen kannst du ab 16 Jahren; bis 18 Jahre brauchst du die Zustimmung der Eltern oder der gesetzlichen Vertretung.]
 

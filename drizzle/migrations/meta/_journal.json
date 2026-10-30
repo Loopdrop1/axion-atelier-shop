@@ -141,6 +141,20 @@
       "when": 1792710000000,
       "tag": "0019_axion_checkout_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792720000000,
+      "tag": "0020_axion_receipt_vat",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792730000000,
+      "tag": "0021_axion_audit_round2",
+      "breakpoints": true
     }
   ]
 }

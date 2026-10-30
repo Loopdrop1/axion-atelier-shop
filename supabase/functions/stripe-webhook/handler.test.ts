@@ -575,9 +575,9 @@ describe("stripe-webhook: Rückerstattungs-E-Mail", () => {
     expect(refundMails(to, before)).toHaveLength(1);
   });
 
-  it("unbekannte Zahlung: nichts zu senden", async () => {
+  it("unbekannte Zahlung: 500, damit Stripe wiederholt, und nichts zu senden", async () => {
     const before = resend.sent.length;
-    expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(200);
+    expect((await deliver("charge.refunded", charge("pi_unbekannt", 100))).status).toBe(500);
     expect(resend.sent.length).toBe(before);
   });
 });
@@ -723,5 +723,98 @@ describe("stripe-webhook: Bestandsmeldung an den Shop", () => {
     expect((await send(gone.order.order_id)).status).toBe(200);
     expect(alerts(low.order.order_id, before)).toHaveLength(0);
     expect(alerts(gone.order.order_id, before)).toHaveLength(1);
+  });
+});
+
+describe("stripe-webhook: Streitfall und Betrugswarnung", () => {
+  async function paidOrder() {
+    const { order } = await pendingOrder();
+    const s = session(order.order_id);
+    expect((await deliver("checkout.session.completed", s)).status).toBe(200);
+    return { orderId: order.order_id, pi: s.payment_intent };
+  }
+  const flags = (orderId: string) =>
+    sql<{ needs_attention: boolean; admin_note: string | null }>(
+      "select needs_attention, admin_note from public.orders where id = $1",
+      [orderId],
+    ).then((rows: { needs_attention: boolean; admin_note: string | null }[]) => rows[0]!);
+
+  it("charge.dispute.created markiert die Bestellung, die Notiz steht nur einmal da", async () => {
+    const { orderId, pi } = await paidOrder();
+    const dispute = { id: uniq("dp"), object: "dispute", payment_intent: pi, charge: "ch_x" };
+    expect((await deliver("charge.dispute.created", dispute)).status).toBe(200);
+    // Eine zweite Zustellung mit neuer Ereignis-Id hängt die Notiz nicht nochmals an
+    expect((await deliver("charge.dispute.created", dispute)).status).toBe(200);
+    const row = await flags(orderId);
+    expect(row.needs_attention).toBe(true);
+    expect(row.admin_note).toBe("Stripe: Zahlung angefochten (Dispute)");
+  });
+
+  it("radar.early_fraud_warning.created: PaymentIntent direkt oder über die Charge", async () => {
+    const direct = await paidOrder();
+    expect(
+      (
+        await deliver("radar.early_fraud_warning.created", {
+          id: uniq("issfr"),
+          object: "radar.early_fraud_warning",
+          payment_intent: direct.pi,
+          charge: "ch_direct",
+        })
+      ).status,
+    ).toBe(200);
+    expect((await flags(direct.orderId)).admin_note).toBe("Stripe: Betrugswarnung (Radar)");
+
+    const viaCharge = await paidOrder();
+    const chargeId = uniq("ch");
+    stripe.setCharge(chargeId, viaCharge.pi);
+    expect(
+      (
+        await deliver("radar.early_fraud_warning.created", {
+          id: uniq("issfr"),
+          object: "radar.early_fraud_warning",
+          payment_intent: null,
+          charge: chargeId,
+        })
+      ).status,
+    ).toBe(200);
+    expect(await flags(viaCharge.orderId)).toEqual({
+      needs_attention: true,
+      admin_note: "Stripe: Betrugswarnung (Radar)",
+    });
+  });
+
+  it("Streitfall zu einem Gutscheinkauf sperrt den Gutschein", async () => {
+    const r = await rpc<{ order_id: string }>("reserve_gift_card_purchase", [
+      5000,
+      "kaeuferin@example.ch",
+      "de",
+      JSON.stringify({}),
+      null,
+    ]);
+    const s = session(r.order_id, { amount_total: 5000, collected_information: null });
+    await deliver("checkout.session.completed", s);
+    expect(
+      (
+        await deliver("charge.dispute.created", {
+          id: uniq("dp"),
+          object: "dispute",
+          payment_intent: { id: s.payment_intent, object: "payment_intent" },
+        })
+      ).status,
+    ).toBe(200);
+    const card = await sql<{ status: string }>(
+      "select g.status from public.gift_cards g join public.orders o on o.issued_gift_card_id = g.id where o.id = $1",
+      [r.order_id],
+    );
+    expect(card[0]!.status).toBe("disabled");
+  });
+
+  it("unbekannter PaymentIntent: 200 ohne Änderung (keine endlosen Wiederholungen)", async () => {
+    const res = await deliver("charge.dispute.created", {
+      id: uniq("dp"),
+      object: "dispute",
+      payment_intent: uniq("pi_fremd"),
+    });
+    expect(res.status).toBe(200);
   });
 });

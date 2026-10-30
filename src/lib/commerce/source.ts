@@ -131,10 +131,15 @@ export interface Totals {
   totalCents: number;
 }
 
+/** Kleinster Betrag, den Stripe abbucht (CHF 0.50). */
+const MIN_CHARGE_CENTS = 50;
+
 /**
  * Vorschau der Beträge im Warenkorb, gleich gerechnet wie reserve_checkout in der Datenbank
- * (verbindlich rechnet immer der Server): Rabatt, dann Versand, dann Gutschein; bleibt ein Rest
- * unter CHF 0.50 (Stripe-Minimum), wird weniger vom Gutschein genommen.
+ * (verbindlich rechnet immer der Server): Rabatt, dann Versand, dann Gutschein. Stripe verlangt
+ * mindestens CHF 0.50: Liesse der Rabatt weniger übrig, wird er gekürzt (erreicht der Betrag dadurch
+ * die Gratisversand-Schwelle, ohne Versand nochmals auf 50 Rappen); bleibt nach dem Gutschein ein
+ * Rest darunter, wird weniger vom Gutschein genommen.
  */
 export function estimateTotals(
   subtotalCents: number,
@@ -142,12 +147,21 @@ export function estimateTotals(
   giftCardBalanceCents: number,
   settings: ShopSettings,
 ): Totals {
-  const discount = Math.min(Math.max(discountCents, 0), subtotalCents);
-  const shipping = shippingFor(subtotalCents - discount, settings);
+  let discount = Math.min(Math.max(discountCents, 0), subtotalCents);
+  let shipping = shippingFor(subtotalCents - discount, settings);
+  const payable = subtotalCents - discount + shipping;
+  if (discount > 0 && payable >= 1 && payable <= MIN_CHARGE_CENTS - 1) {
+    discount = Math.max(0, subtotalCents + shipping - MIN_CHARGE_CENTS);
+    if (shippingFor(subtotalCents - discount, settings) === 0) {
+      shipping = 0;
+      discount = Math.max(0, subtotalCents - MIN_CHARGE_CENTS);
+    }
+  }
   const due = subtotalCents - discount + shipping;
   let gift = Math.min(Math.max(giftCardBalanceCents, 0), due);
   const rest = due - gift;
-  if (rest >= 1 && rest <= 49) gift = Math.max(0, gift - (50 - rest));
+  if (rest >= 1 && rest <= MIN_CHARGE_CENTS - 1)
+    gift = Math.max(0, gift - (MIN_CHARGE_CENTS - rest));
   return {
     subtotalCents,
     discountCents: discount,

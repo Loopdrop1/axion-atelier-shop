@@ -129,12 +129,16 @@ einschalten.
    Geschäftskonto direkt bei Stripe (Stripe prüft die Identität). Ben bleibt als Teammitglied dabei (Rolle
    Administrator oder Entwickler). Zwei-Faktor-Anmeldung für alle einschalten.
 2. Eingeschränkten Schlüssel (`rk_…`) erstellen, nur mit diesen Rechten: Checkout Sessions **Schreiben**,
-   Coupons **Schreiben**, PaymentIntents **Lesen**, Refunds **Schreiben** (Rückerstatten im Admin). Der Schlüssel kommt nur in die Secrets von Lovable Cloud.
+   Coupons **Schreiben**, PaymentIntents **Lesen**, Refunds **Schreiben** (Rückerstatten im Admin), Charges **Lesen**
+   (Betrugswarnungen ohne PaymentIntent zuordnen). Der Schlüssel kommt nur in die Secrets von Lovable Cloud.
 3. Zahlungsarten im Dashboard einschalten (die Kasse zeigt sie automatisch): Karten, Apple Pay, Google Pay,
    Klarna, TWINT (TWINT erst nach Prüfung durch Stripe, Shop muss öffentlich erreichbar sein, Impressum vollständig).
 4. Webhook: Endpunkt `<VITE_SUPABASE_URL>/functions/v1/stripe-webhook` (Adresse aus der `.env`), Ereignisse
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
-   `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`.
+   `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`,
+   `charge.dispute.created`, `radar.early_fraud_warning.created`. Die letzten beiden markieren die Bestellung im Admin
+   («Prüfen», Notiz «Stripe: Zahlung angefochten (Dispute)» bzw. «Stripe: Betrugswarnung (Radar)») und sperren einen
+   gekauften Gutschein (RPC `record_dispute`); vor dem Versand prüfen, Streitfälle im Stripe-Dashboard beantworten.
    Das Signatur-Geheimnis (`whsec_…`) als `STRIPE_WEBHOOK_SECRET` speichern.
 5. Öffentliche Angaben: Name auf der Kartenabrechnung (z. B. AXION), Support-E-Mail. Mit
    `STRIPE_REQUIRE_TERMS=1` verlangt die Kasse das AGB-Häkchen; dafür in Stripe die Adresse der AGB hinterlegen.

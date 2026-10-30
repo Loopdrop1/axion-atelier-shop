@@ -163,11 +163,11 @@ async function createSession(
 async function cartCheckout(
   deps: Deps,
   body: Record<string, unknown>,
+  lines: { variant_id: string; quantity: number }[],
   email: string,
   userId: string | null,
   locale: Locale,
 ) {
-  const lines = parseLines(body["lines"]);
   const reservation = await deps
     .rpc<Reservation>("reserve_checkout", {
       p_lines: lines,
@@ -438,11 +438,14 @@ export function createCheckoutHandler(deps: Deps) {
     const locale = toLocale(body["locale"]);
     if (body["kind"] !== "gift_card" && body["kind"] !== "cart" && body["kind"] !== undefined)
       throw new HttpError(400, "BAD_REQUEST");
-    await guard(deps, req, email);
-    if (body["kind"] === "gift_card")
+    // Erst prüfen, dann zählen: Ungültige Anfragen dürfen die Limits einer fremden Adresse nicht aufbrauchen.
+    if (!EMAIL.test(email)) throw new HttpError(400, "INVALID_EMAIL");
+    if (body["kind"] === "gift_card") {
+      await guard(deps, req, email);
       return giftCardCheckout(deps, body, email, user?.id ?? null, locale);
-    if (body["kind"] === "cart" || body["kind"] === undefined)
-      return cartCheckout(deps, body, email, user?.id ?? null, locale);
-    throw new HttpError(400, "BAD_REQUEST");
+    }
+    const lines = parseLines(body["lines"]);
+    await guard(deps, req, email);
+    return cartCheckout(deps, body, lines, email, user?.id ?? null, locale);
   });
 }

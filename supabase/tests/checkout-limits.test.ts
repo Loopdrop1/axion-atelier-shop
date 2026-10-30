@@ -77,11 +77,11 @@ describe("checkout_guard: IP-Zähler", () => {
     expect(await guard(`${uniq("b")}@example.ch`, "198.51.100.251")).toBe("ok");
   });
 
-  it("die Grenze pro E-Mail (3 offene Kassen) bleibt bestehen", async () => {
+  it("offene Kassen pro E-Mail sperren nicht mehr (Migration 20261030002200)", async () => {
     const email = `${uniq("c")}@example.ch`;
     const p = await makeProduct({ priceCents: 1000, stocks: [10] });
     for (let i = 0; i < 3; i++)
       await reserve({ lines: [{ variant_id: p.variants[0]!.id, quantity: 1 }], email });
-    expect(await guard(email, `192.0.2.${Math.floor(Math.random() * 250)}`)).toBe("too_many_open");
+    expect(await guard(email, `192.0.2.${Math.floor(Math.random() * 250)}`)).toBe("ok");
   });
 });
