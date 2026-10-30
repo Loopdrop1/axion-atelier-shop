@@ -80,13 +80,18 @@ einschalten.
 
    Kontrolle unter Cloud → Edge functions: Soll sind **11 Funktionen mit `verify_jwt = false`** (`checkout`,
    `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist`,
-   `client-error`, `return-request` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist der
-   Send-Email-Hook von Lovable Cloud (Konto-E-Mails in Axion-Optik, siehe Punkt 6); ohne ihn verschickt Lovable die
-   Standard-E-Mails. Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
+   `client-error`, `return-request` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist mit
+   Lovable Cloud nicht im Einsatz (Lovable verschickt die Konto-E-Mails selbst, Cloud → Emails); er ist nur für ein
+   eigenes Supabase-Projekt als «Send Email Hook» gedacht und antwortet ohne `SEND_EMAIL_HOOK_SECRET` mit 500.
+   Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.
 
 4. Secrets (Cloud → Secrets), Bedeutung in `supabase/functions/README.md`, Abschnitt «Secrets»:
-   - Testphase: `SITE_URL` = `https://id-preview--81384fd7-77a8-4809-b8c3-48b5a9ee05e8.lovable.app`,
-     `ALLOWED_ORIGINS` = dieselbe Adresse (genau diese, kein `ALLOW_PREVIEW_ORIGINS`).
+   - Vor der eigenen Domain: `SITE_URL` = `https://axion-atelier-shop.lovable.app` (veröffentlichte Adresse; dorthin
+     leitet Stripe nach der Zahlung zurück), `ALLOWED_ORIGINS` =
+     `https://id-preview--81384fd7-77a8-4809-b8c3-48b5a9ee05e8.lovable.app` (Editor-Vorschau; genau diese, kein
+     `ALLOW_PREVIEW_ORIGINS`). Fehlt die Adresse, aus der bestellt wird, blockiert der Browser die Antwort und die
+     Kasse meldet «Keine Verbindung». Ohne `STRIPE_SECRET_KEY` meldet sie «Die Kasse wird beim Livegang verbunden»
+     und reserviert nichts.
    - `STRIPE_SECRET_KEY` (Test-Schlüssel `rk_test_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
      `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (bekommt auch die Nachrichten aus dem Kontaktformular),
      `SHOP_ADDRESS`. Optional `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion

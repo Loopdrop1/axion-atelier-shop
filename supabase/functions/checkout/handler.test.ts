@@ -206,6 +206,32 @@ describe("checkout: Warenkorb", () => {
     expect(await stockOf(p.variants[0]!.id)).toBe(1);
   });
 
+  it("ohne Stripe-Schlüssel: 503 PAYMENTS_DISABLED mit CORS, nichts reserviert", async () => {
+    const p = await makeProduct({ priceCents: 10000, stocks: [1] });
+    const env = readEnv(
+      (k) =>
+        ({
+          SUPABASE_URL: supa.url,
+          SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
+          SUPABASE_ANON_KEY: ANON_KEY,
+          SITE_URL: "https://shop.test",
+        })[k],
+    );
+    const res = await post(
+      {
+        kind: "cart",
+        email: "a@example.ch",
+        lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+      },
+      {},
+      createCheckoutHandler(createDeps(env)),
+    );
+    expect(res.status).toBe(503);
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://shop.test");
+    expect(await res.json()).toEqual({ error: "PAYMENTS_DISABLED" });
+    expect(await stockOf(p.variants[0]!.id)).toBe(1);
+  });
+
   it("eingeloggte Kundschaft: Bestellung hängt am Konto, E-Mail aus dem Konto", async () => {
     const user = await createUser();
     const p = await makeProduct({ priceCents: 10000, stocks: [2] });

@@ -440,6 +440,8 @@ export function createCheckoutHandler(deps: Deps) {
       throw new HttpError(400, "BAD_REQUEST");
     // Erst prüfen, dann zählen: Ungültige Anfragen dürfen die Limits einer fremden Adresse nicht aufbrauchen.
     if (!EMAIL.test(email)) throw new HttpError(400, "INVALID_EMAIL");
+    // Ohne Stripe-Schlüssel (vor dem Livegang) nichts reservieren: Der Shop zeigt «noch nicht freigeschaltet».
+    if (!deps.env.stripeSecretKey) throw new HttpError(503, "PAYMENTS_DISABLED");
     if (body["kind"] === "gift_card") {
       await guard(deps, req, email);
       return giftCardCheckout(deps, body, email, user?.id ?? null, locale);

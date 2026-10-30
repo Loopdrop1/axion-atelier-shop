@@ -192,6 +192,7 @@ function GiftCardForm({
       setErrors({ recipientEmail: t.common.invalidEmail });
     else if (result.error === "RATE_LIMITED" || result.error === "TOO_MANY_CHECKOUTS")
       setError(t.checkout.tooManyAttempts);
+    else if (result.error === "PAYMENTS_DISABLED") setError(t.checkout.notConnected);
     else setError(result.error === "NETWORK" ? t.common.networkError : t.checkout.paymentError);
   }
 
