@@ -171,6 +171,7 @@ function all(locale: Locale): [string, EmailContent][] {
           unsubscribeUrl: "https://shop.test/newsletter/abmelden?token=abc",
           welcomeCode: "WILLKOMMEN-ABC123",
           welcomePercent: 10,
+          welcomeDays: 14,
         },
         shop,
       ),
@@ -248,11 +249,11 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(de.text).toMatch(/Total: CHF\s644\.20/);
     expect(de.text).toMatch(/Rabatt \(LAUNCH10\): −CHF\s73\.80/);
     expect(de.text).toMatch(/Geschenkgutschein: −CHF\s20\.00/);
-    expect(de.text).toContain("Versand: Gratis");
+    expect(de.text).toContain("Versand (Post Economy): Gratis");
     expect(de.text).toContain("Bezahlt mit: TWINT");
     expect(de.text).toContain("https://shop.test/bestellung/0c6b2b9a-0000-4000-8000-000000000002");
     const en = orderConfirmation(order("en"), shop);
-    expect(en.text).toContain("Shipping: Free");
+    expect(en.text).toContain("Shipping (Post Economy): Free");
     expect(en.text).toContain(
       "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
     );
@@ -326,7 +327,8 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(normal.text).toContain(
       "https://shop.test/admin/bestellungen/6b1f0c1e-0000-4000-8000-000000000001",
     );
-    expect(normal.text).toContain("Versand: Gratis");
+    expect(normal.text).toContain("Versand (Post Economy): Gratis");
+    expect(normal.text).toContain("Versandart: Post Economy");
     const attention = shopNotification(
       order("de", { needs_attention: true, admin_note: "Bestand fehlte nach Zahlungseingang" }),
       shop,
@@ -334,6 +336,31 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(attention.subject).toMatch(/^Bitte prüfen: Neue Bestellung/);
     expect(attention.text).toContain("Achtung, bitte prüfen: Bestand fehlte nach Zahlungseingang");
     expect(attention.html).toContain("Bestand fehlte nach Zahlungseingang");
+  });
+
+  it("Versandart Priority: Bestätigung, Shop-Meldung und Versandmeldung nennen sie", () => {
+    const priority = order("de", { shipping_method: "priority", shipping_cents: 1500 });
+    const confirm = orderConfirmation(priority, shop);
+    expect(confirm.text).toMatch(/Versand \(Post Priority\): CHF\s15\.00/);
+    expect(confirm.text).toContain(
+      "Mit Post Priority ist die Sendung in der Regel am nächsten Arbeitstag nach dem Versand bei dir.",
+    );
+    expect(orderConfirmation(order("de"), shop).text).toContain(
+      "Die Lieferung dauert 2 bis 5 Arbeitstage.",
+    );
+    const en = orderConfirmation({ ...priority, locale: "en" }, shop);
+    expect(en.text).toMatch(/Shipping \(Post Priority\): CHF\s15\.00/);
+    expect(en.text).toContain("usually arrives on the next working day after dispatch");
+    const note = shopNotification(priority, shop);
+    expect(note.subject).toMatch(/· Post Priority$/);
+    expect(note.text).toContain("Versandart: Post Priority (am selben Arbeitstag versenden)");
+    const shipped = shippingConfirmation(priority, shop);
+    expect(shipped.text).toContain(
+      "Wir haben deine Bestellung der Post übergeben (Post Priority). Sie ist in der Regel am nächsten Arbeitstag bei dir.",
+    );
+    expect(shippingConfirmation(order("en"), shop).text).toContain(
+      "(Post Economy). It usually arrives within 2 to 5 working days.",
+    );
   });
 
   it("Gutschein: Code, Betrag, Gültigkeit und maskierte persönliche Nachricht", () => {
@@ -352,6 +379,38 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     );
     expect(mail.html).toContain('href="https://shop.test/newsletter/abmelden?token=abc"');
     expect(mail.text).toContain("Abmelden: https://shop.test/newsletter/abmelden?token=abc");
+  });
+
+  it("Newsletter-Willkommen: Gültigkeit des Codes aus den Einstellungen, nie fest 90 Tage", () => {
+    const url = "https://shop.test/newsletter/abmelden?token=abc";
+    const welcome = (locale: "de" | "en", welcomeDays: number | null = null) =>
+      newsletterWelcome(
+        {
+          locale,
+          unsubscribeUrl: url,
+          welcomeCode: "WILLKOMMEN-ABC123",
+          welcomePercent: 10,
+          welcomeDays,
+        },
+        shop,
+      );
+    const de = welcome("de", 14);
+    expect(de.text).toContain(
+      "Als Dankeschön erhältst du 10 % auf deine nächste Bestellung. Der Code ist 14 Tage gültig und einmal einlösbar.",
+    );
+    expect(de.html).toContain("Der Code ist 14 Tage gültig und einmal einlösbar.");
+    expect(welcome("en", 30).text).toContain(
+      "you get 10% off your next order. The code is valid for 30 days and can be used once.",
+    );
+    expect(welcome("de", 1).text).toContain("Der Code ist 1 Tag gültig");
+    expect(welcome("en", 1).text).toContain("valid for 1 day and");
+    // Ohne Angabe (Datenbank vor Migration 0024): keine erfundene Gültigkeit
+    for (const mail of [welcome("de"), welcome("en", null)]) {
+      expect(mail.text).not.toMatch(/\d+ (Tage|days)/);
+      expect(mail.text).toContain("WILLKOMMEN-ABC123");
+    }
+    expect(welcome("de").text).toContain("Der Code ist einmal einlösbar.");
+    expect(welcome("en").text).toContain("The code can be used once.");
   });
 
   it("Erinnerung: Artikel mit Bild, Link zum Wiederherstellen, Grund des Versands, kein Rabatt", () => {

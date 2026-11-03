@@ -7,6 +7,12 @@ import { RpcError } from "../_shared/db.ts";
 import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_shared/http.ts";
 import { toLocale, type Locale } from "../_shared/money.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
+import {
+  parseShippingMethod,
+  SHIPPING_METHOD_NAMES,
+  TRANSIT_DAYS,
+  type ShippingMethod,
+} from "../_shared/shipping.ts";
 import { sizeText } from "../_shared/size.ts";
 import { INTEGRATION_ID, logStripeError } from "../_shared/stripe.ts";
 
@@ -32,6 +38,8 @@ interface Reservation {
   discount_code: string | null;
   gift_card_cents: number;
   shipping_cents: number;
+  /** Tatsächliche Versandart (Priority ohne Preis wird zu Economy); fehlt bei alter Datenbank */
+  shipping_method?: ShippingMethod;
   total_cents: number;
   lines: ReservedLine[];
 }
@@ -176,8 +184,11 @@ async function cartCheckout(
       p_discount_code: str(body["discountCode"], 40) ?? null,
       p_gift_card_code: str(body["giftCardCode"], 40) ?? null,
       p_user_id: userId,
+      // Unbekannt → economy; Priority ohne Preis macht reserve_checkout zu Economy.
+      p_shipping_method: parseShippingMethod(body["shippingMethod"]),
     })
     .catch(mapReserveError);
+  const method = parseShippingMethod(reservation.shipping_method);
 
   // Einwilligung zur Erinnerung (Häkchen im Warenkorb, standardmässig aus): nur bei ausdrücklichem true.
   if (body["remind"] === true)
@@ -264,11 +275,11 @@ async function cartCheckout(
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            display_name: locale === "en" ? "Swiss Post" : "Post",
+            display_name: SHIPPING_METHOD_NAMES[method],
             fixed_amount: { amount: stripeShipping, currency: "chf" },
             delivery_estimate: {
-              minimum: { unit: "business_day", value: 2 },
-              maximum: { unit: "business_day", value: 5 },
+              minimum: { unit: "business_day", value: TRANSIT_DAYS[method].min },
+              maximum: { unit: "business_day", value: TRANSIT_DAYS[method].max },
             },
           },
         },

@@ -23,9 +23,12 @@ Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Li
   als Gutschein (Retourenformular, Migration `0022`); mit Gutschein bezahlte Teile immer als Gutschein; ausgeschlossen:
   Sale-Artikel, getragene oder geänderte Artikel, Schuhe mit Gebrauchsspuren
 - Hosen fertig gesäumt (FAQ; Schrittlänge in der Grössentabelle)
-- Gutscheine: feste Beträge CHF 50, 100, 150, 200 und frei ab CHF 25, gültig 30 Jahre
-- Sortiment zum Start: Anzüge, Westen, Schuhe, Hosen, T-Shirts; Anzug = Sakko und Hose als eigene Produkte, verknüpft
-  über «Komplettes Outfit»; Anzüge, Westen und Hosen nur in Zahlengrössen 46 bis 56; Schuhe ganze EU-Grössen
+- Gutscheine: feste Beträge CHF 50, 100, 150, 200 und frei ab CHF 25, gültig 30 Jahre (Standard seit Migration
+  `0024`, im Admin unter Einstellungen änderbar)
+- Sortiment zum Start: Anzüge, Westen, Schuhe, Hosen, T-Shirts (neu); Sakkos, Hemden, Mäntel & Jacken, Strick und
+  Accessoires ausgeblendet, nicht gelöscht (in Cloud mit `supabase/demo/sortiment-start.sql`); Anzug = Sakko (in
+  «Anzüge») und Hose (in «Hosen») als eigene Produkte, gegenseitig verknüpft über «Komplettes Outfit»; Anzüge,
+  Westen und Hosen nur in Zahlengrössen 46 bis 56; Schuhe ganze EU-Grössen
 - «Benachrichtigen, wenn wieder da», Versandbestätigung und Warenkorb-Erinnerung: eingebaut
 - Gast-Bestellung möglich, Rabattcodes ja, Kundenkonto vorhanden
 - Messung: bleibt Plausible (ohne Cookies); Google Analytics nicht eingebaut
@@ -60,8 +63,9 @@ Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Li
 2. **Adresse:** nur «8620 Wetzikon»; Strasse und Nummer fehlen (`contact.address`, Secret `SHOP_ADDRESS`).
 3. **Domain und E-Mail:** `axion.ch` gehört Axion nicht. Gewünscht: axiion.ch, axionss.ch, axion-mode.ch. Erst Domain,
    dann `info@<domain>` (Kontakt, Bestellmeldungen, Datenschutz, Stripe, Resend).
-4. **Newsletter «10 / 14 Tage»:** gelesen als 10 % Willkommensrabatt mit 14 Tagen Gültigkeit; im Admin einstellbar
-   (Admin → Einstellungen). Von Axion bestätigen lassen.
+4. **Newsletter «10 / 14 Tage»:** gelesen als 10 % Willkommensrabatt mit 14 Tagen Gültigkeit; beides im Admin
+   einstellbar (Admin → Einstellungen: Willkommens-Rabatt in % und Gültigkeit des Codes in Tagen, Standard 90 bis
+   Axion bestätigt; die Willkommens-E-Mail nennt die eingestellten Tage). Von Axion bestätigen lassen.
 5. **Produkte, Fotos, Grössentabellen mit Massen (inkl. Schrittlänge), Brand Story, Logo-Datei**: bis Ende November.
 6. **Gratis-Rücksendung mit beiliegendem Etikett** kostet Axion pro Retoure rund CHF 7.50 bis 10.50 (Post, Stand
    Oktober 2026); bei Anzügen ohne Anprobe häufig. Bewusst entscheiden lassen.

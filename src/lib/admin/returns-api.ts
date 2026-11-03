@@ -19,11 +19,18 @@ export interface ReturnRow {
   admin_note: string | null;
   created_at: string;
   updated_at: string;
-  orders: { number: number; status: string; total_cents: number; refunded_cents: number } | null;
+  orders: {
+    number: number;
+    status: string;
+    total_cents: number;
+    refunded_cents: number;
+    /** Mit Gutschein bezahlter Teil: geht immer auf den Gutschein zurück */
+    gift_card_cents: number;
+  } | null;
 }
 
 const COLUMNS =
-  "id, number, order_id, email, locale, status, items, comment, refund_method, admin_note, created_at, updated_at, orders(number, status, total_cents, refunded_cents)";
+  "id, number, order_id, email, locale, status, items, comment, refund_method, admin_note, created_at, updated_at, orders(number, status, total_cents, refunded_cents, gift_card_cents)";
 
 function db() {
   if (!backendConfigured) throw new AdminError("NOT_CONFIGURED");

@@ -183,6 +183,70 @@ describe("checkout: Warenkorb", () => {
     expect(await res.json()).toEqual({ error: "DISCOUNT_INVALID", reason: "not_found" });
   });
 
+  it("Versandart: Economy ist Standard, Priority mit Preis aus der Reservierung, Unbekanntes → Economy", async () => {
+    await sql(
+      "update public.shop_settings set shipping_cents = 900, free_shipping_from_cents = 20000, priority_shipping_cents = 1500",
+    );
+    try {
+      const p = await makeProduct({ priceCents: 25000, stocks: [3] });
+      const checkout = async (shippingMethod: unknown, n: number) => {
+        const res = await post(
+          {
+            kind: "cart",
+            email: "ship@example.ch",
+            ...(shippingMethod === undefined ? {} : { shippingMethod }),
+            lines: [{ variantId: p.variants[0]!.id, quantity: 1 }],
+          },
+          { "cf-connecting-ip": `198.19.7.${n}` },
+        );
+        expect(res.status).toBe(200);
+        const session = stripe.calls.findLast((c) => c.path === "/v1/checkout/sessions")!
+          .body as StripeForm;
+        const rate = session["shipping_options"][0].shipping_rate_data;
+        const order = await sql<{ shipping_method: string; shipping_cents: number }>(
+          "select shipping_method, shipping_cents from public.orders where id = $1",
+          [session["metadata"].order_id],
+        );
+        return { rate, order: order[0] };
+      };
+      // Über der Gratis-Schwelle: Economy gratis
+      const economy = await checkout(undefined, 1);
+      expect(economy.rate).toMatchObject({
+        display_name: "Post Economy",
+        fixed_amount: { amount: "0", currency: "chf" },
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: "2" },
+          maximum: { unit: "business_day", value: "5" },
+        },
+      });
+      expect(economy.order).toEqual({ shipping_method: "economy", shipping_cents: 0 });
+      // Priority kostet immer den Priority-Preis
+      const priority = await checkout("priority", 2);
+      expect(priority.rate).toMatchObject({
+        display_name: "Post Priority",
+        fixed_amount: { amount: "1500", currency: "chf" },
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: "1" },
+          maximum: { unit: "business_day", value: "1" },
+        },
+      });
+      expect(priority.order).toEqual({ shipping_method: "priority", shipping_cents: 1500 });
+      expect((await checkout("express", 3)).order).toEqual({
+        shipping_method: "economy",
+        shipping_cents: 0,
+      });
+      // Priority ohne Preis: Economy
+      await sql("update public.shop_settings set priority_shipping_cents = null");
+      const off = await checkout("priority", 4);
+      expect(off.rate.display_name).toBe("Post Economy");
+      expect(off.order).toEqual({ shipping_method: "economy", shipping_cents: 0 });
+    } finally {
+      await sql(
+        "update public.shop_settings set shipping_cents = 0, free_shipping_from_cents = null, priority_shipping_cents = null",
+      );
+    }
+  });
+
   it("kurzer Stripe-Ausfall: stripe-node wiederholt selbst und die Kasse klappt", async () => {
     const p = await makeProduct({ priceCents: 10000, stocks: [1] });
     stripe.failNextSession(1);

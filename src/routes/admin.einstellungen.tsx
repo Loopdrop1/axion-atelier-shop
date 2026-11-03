@@ -1,5 +1,6 @@
-// Einstellungen: Versandkosten, ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
-// Newsletter, Adresse für Bestellmeldungen, Kundenbewertungen (nur mit shopConfig.features.reviews).
+// Einstellungen: Versandkosten (Economy, optional Priority), ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit,
+// Willkommens-Rabatt im Newsletter (Prozent und Gültigkeit des Codes), Adresse für Bestellmeldungen,
+// Kundenbewertungen (nur mit shopConfig.features.reviews).
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,10 +29,12 @@ function SettingsPage() {
   const [form, setForm] = useState({
     shipping: "",
     freeFrom: "",
+    priority: "",
     giftMin: "",
     giftMax: "",
     giftYears: "",
     welcome: "",
+    welcomeDays: "",
     notify: "",
   });
   const [hideSoldOut, setHideSoldOut] = useState(false);
@@ -45,15 +48,20 @@ function SettingsPage() {
     setForm({
       shipping: centsToInput(s.shipping_cents),
       freeFrom: centsToInput(s.free_shipping_from_cents),
+      priority: centsToInput(s.priority_shipping_cents ?? null),
       giftMin: centsToInput(s.gift_card_min_cents),
       giftMax: centsToInput(s.gift_card_max_cents),
       giftYears: String(s.gift_card_valid_years),
       welcome: s.newsletter_welcome_percent ? String(s.newsletter_welcome_percent) : "",
+      welcomeDays: String(s.newsletter_welcome_days ?? 90),
       notify: s.notify_email ?? "",
     });
     setHideSoldOut(s.hide_sold_out);
     setReviews(Boolean(s.reviews_enabled));
   }, [query.data]);
+
+  // Spalte aus Migration 0024 (Gültigkeit des Willkommenscodes); fehlt sie in Cloud noch, bleibt das Feld weg
+  const hasWelcomeDays = query.data ? "newsletter_welcome_days" in query.data : false;
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -62,6 +70,7 @@ function SettingsPage() {
     setError("");
     const shipping = parseChf(form.shipping || "0");
     const freeFrom = form.freeFrom.trim() ? parseChf(form.freeFrom) : null;
+    const priority = form.priority.trim() ? parseChf(form.priority) : null;
     const giftMin = parseChf(form.giftMin);
     const giftMax = parseChf(form.giftMax);
     const years = Number(form.giftYears);
@@ -69,6 +78,8 @@ function SettingsPage() {
       return setError("Versandkosten in Franken, höchstens CHF 1'000.");
     if (form.freeFrom.trim() && freeFrom === null)
       return setError("Gratisversand ab: Betrag in Franken oder leer.");
+    if (form.priority.trim() && (priority === null || priority > 100000))
+      return setError("Priority-Versand: Betrag in Franken (höchstens CHF 1'000) oder leer.");
     if (
       giftMin === null ||
       giftMax === null ||
@@ -86,6 +97,9 @@ function SettingsPage() {
     const welcome = form.welcome.trim() ? Number(form.welcome.trim().replace("%", "")) : null;
     if (welcome !== null && (!Number.isInteger(welcome) || welcome < 1 || welcome > 50))
       return setError("Willkommens-Rabatt: ganze Prozent von 1 bis 50, oder leer für keinen.");
+    const welcomeDays = Number(form.welcomeDays.trim());
+    if (hasWelcomeDays && (!Number.isInteger(welcomeDays) || welcomeDays < 1 || welcomeDays > 365))
+      return setError("Gültigkeit des Codes: ganze Tage von 1 bis 365.");
     if (form.notify.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.notify.trim()))
       return setError("Die E-Mail-Adresse für Bestellmeldungen ist ungültig.");
     setBusy(true);
@@ -93,10 +107,13 @@ function SettingsPage() {
       await saveSettings({
         shipping_cents: shipping,
         free_shipping_from_cents: freeFrom,
+        priority_shipping_cents: priority,
         gift_card_min_cents: giftMin,
         gift_card_max_cents: giftMax,
         gift_card_valid_years: years,
         newsletter_welcome_percent: welcome,
+        // Ohne Migration 0024 in Cloud fehlt die Spalte: dann nicht mitschicken
+        ...(hasWelcomeDays ? { newsletter_welcome_days: welcomeDays } : {}),
         hide_sold_out: hideSoldOut,
         notify_email: form.notify.trim() || null,
         // Nur mit Schalter im Code: ohne ihn bliebe die Seite /bewertung ein 404, Links in Mails wären falsch
@@ -133,6 +150,13 @@ function SettingsPage() {
             inputMode="decimal"
             value={form.freeFrom}
             onChange={set("freeFrom")}
+          />
+          <TextField
+            label="Priority-Versand (CHF, leer = nicht angeboten)"
+            hint="Mit Betrag wählt die Kundschaft im Warenkorb zwischen Post Economy (Versandkosten oben) und Post Priority (immer dieser Betrag, auch über der Gratis-Schwelle). Zustellung in der Regel am nächsten Arbeitstag."
+            inputMode="decimal"
+            value={form.priority}
+            onChange={set("priority")}
           />
         </div>
         <p className="admin-hint">
@@ -178,7 +202,7 @@ function SettingsPage() {
       </Panel>
       <Panel
         title="Newsletter"
-        description="Rabatt in der Willkommens-E-Mail nach der bestätigten Anmeldung: ein persönlicher Code, einmal einlösbar, 90 Tage gültig."
+        description="Rabatt in der Willkommens-E-Mail nach der bestätigten Anmeldung: ein persönlicher Code, einmal einlösbar, so lange gültig wie unten eingestellt. Die E-Mail nennt die Gültigkeit."
       >
         <div className="admin-form admin-grid-3">
           <TextField
@@ -188,6 +212,15 @@ function SettingsPage() {
             value={form.welcome}
             onChange={set("welcome")}
           />
+          {hasWelcomeDays && (
+            <TextField
+              label="Gültigkeit des Codes (Tage)"
+              hint="1 bis 365. Gilt für neu ausgestellte Codes."
+              inputMode="numeric"
+              value={form.welcomeDays}
+              onChange={set("welcomeDays")}
+            />
+          )}
         </div>
       </Panel>
       <Panel

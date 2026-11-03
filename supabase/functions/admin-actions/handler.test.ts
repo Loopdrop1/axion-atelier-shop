@@ -854,6 +854,26 @@ describe("admin-actions: Post-Etikett (Fake, nicht gegen die echte Post-API gete
     expect(row[0]).toEqual({ status: "paid", tracking_number: null });
   });
 
+  it("Produkt aus der Versandart der Bestellung: Priority → PRI, auch wenn POST_PRODUCT ECO ist", async () => {
+    const r = await paidOrder();
+    await sql("update public.orders set shipping_method = 'priority' where id = $1", [r.order_id]);
+    const res = await call(postHandler(), { action: "post_label", orderId: r.order_id });
+    expect(res.status).toBe(200);
+    const sent = JSON.parse(requests.find((q) => q.url.includes("generateAddressLabel"))!.body);
+    expect(sent.item.attributes).toEqual({ przl: ["PRI"] });
+  });
+
+  it("Economy-Bestellung bleibt ECO, auch wenn POST_PRODUCT PRI ist (nur Rückfallwert)", async () => {
+    const r = await paidOrder();
+    const res = await call(postHandler({ ...POST_ENV, POST_PRODUCT: "PRI" }), {
+      action: "post_label",
+      orderId: r.order_id,
+    });
+    expect(res.status).toBe(200);
+    const sent = JSON.parse(requests.find((q) => q.url.includes("generateAddressLabel"))!.body);
+    expect(sent.item.attributes).toEqual({ przl: ["ECO"] });
+  });
+
   it("ohne Secrets: 409 POST_NOT_CONFIGURED, kein Aufruf bei der Post", async () => {
     const r = await paidOrder();
     const res = await call(postHandler({ SITE_URL: "https://shop.test" }), {

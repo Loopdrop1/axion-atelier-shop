@@ -1,5 +1,6 @@
-// Kasse auf der Warenkorbseite: Rabattcode, Gutschein, E-Mail, Beträge und Weiterleitung zu Stripe.
+// Kasse auf der Warenkorbseite: Rabattcode, Gutschein, Versandart, E-Mail, Beträge und Weiterleitung zu Stripe.
 // Die Beträge hier sind eine Vorschau; verbindlich rechnet der Server (reserve_checkout).
+// Versandart: Die Wahl erscheint nur, wenn Post Priority einen Preis hat (Admin → Einstellungen); sonst Economy wie bisher.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +19,15 @@ import {
 } from "@/lib/commerce/checkout";
 import { formatCents, formatDiscount } from "@/lib/commerce/format";
 import { settingsQuery } from "@/lib/commerce/queries";
-import { DEFAULT_SETTINGS, estimateTotals } from "@/lib/commerce/source";
+import { DEFAULT_SETTINGS, estimateTotals, type ShopSettings } from "@/lib/commerce/source";
+import {
+  effectiveShippingMethod,
+  priorityOffered,
+  SHIPPING_METHOD_NAMES,
+  SHIPPING_METHODS,
+  type ShippingMethod,
+} from "@/lib/commerce/shipping-method";
+import { shopConfig } from "@/config/shop";
 import { clampLines, useCart } from "@/lib/commerce/stores";
 import { useSession } from "@/lib/account/session";
 import { FreeShippingBar } from "./free-shipping-bar";
@@ -105,6 +114,69 @@ function CodeField({
   );
 }
 
+/** Versandart wählen (Radio-Gruppe). Preis je Art wie die Kasse: Economy nach Schwelle, Priority fester Preis. */
+export function ShippingChoice({
+  value,
+  onChange,
+  subtotalCents,
+  discountCents,
+  giftCardCents,
+  settings,
+}: {
+  value: ShippingMethod;
+  onChange: (method: ShippingMethod) => void;
+  subtotalCents: number;
+  discountCents: number;
+  giftCardCents: number;
+  settings: ShopSettings;
+}) {
+  const t = useT();
+  const locale = useLocale();
+  const id = useId();
+  if (!priorityOffered(settings)) return null;
+  const d = shopConfig.delivery;
+  const hint = (method: ShippingMethod) =>
+    method === "priority"
+      ? t.checkout.priorityHint(
+          d.dispatchCutoff,
+          t.checkout.transit(d.priorityTransitDays.min, d.priorityTransitDays.max),
+        )
+      : t.checkout.economyHint(t.checkout.transit(d.transitDays.min, d.transitDays.max));
+  return (
+    <fieldset className="choice-group checkout-shipping">
+      <legend>{t.checkout.shippingMethod}</legend>
+      {SHIPPING_METHODS.map((method) => {
+        const optionId = `${id}-${method}`;
+        const cents = estimateTotals(
+          subtotalCents,
+          discountCents,
+          giftCardCents,
+          settings,
+          method,
+        ).shippingCents;
+        return (
+          <div className="checkout-shipping-option" key={method}>
+            <input
+              type="radio"
+              id={optionId}
+              name={`${id}-shipping`}
+              value={method}
+              checked={value === method}
+              aria-describedby={`${optionId}-hint`}
+              onChange={() => onChange(method)}
+            />
+            <div>
+              <label htmlFor={optionId}>{SHIPPING_METHOD_NAMES[method]}</label>
+              <p id={`${optionId}-hint`}>{hint(method)}</p>
+            </div>
+            <span className="price">{cents > 0 ? formatCents(cents, locale) : t.common.free}</span>
+          </div>
+        );
+      })}
+    </fieldset>
+  );
+}
+
 export function CheckoutSummary({
   cart,
   onNotice,
@@ -140,6 +212,9 @@ export function CheckoutSummary({
   const [busy, setBusy] = useState(false);
   // Einwilligung zur einmaligen Erinnerung (UWG Art. 3 lit. o): standardmässig aus
   const [remind, setRemind] = useState(false);
+  // Gewählte Versandart; ohne Priority-Preis gilt immer Economy
+  const [chosenMethod, setChosenMethod] = useState<ShippingMethod>("economy");
+  const shippingMethod = effectiveShippingMethod(chosenMethod, settings);
   // Sperre gegen Doppelklick (state ist erst nach dem Rendern gesetzt)
   const paying = useRef(false);
   const [error, setError] = useState("");
@@ -233,7 +308,13 @@ export function CheckoutSummary({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Meldungstexte ändern die Prüfung nicht
   }, [giftCardCode]);
 
-  const totals = estimateTotals(subtotalCents, discount?.cents ?? 0, gift?.balance ?? 0, settings);
+  const totals = estimateTotals(
+    subtotalCents,
+    discount?.cents ?? 0,
+    gift?.balance ?? 0,
+    settings,
+    shippingMethod,
+  );
   const blocked = cart.lines.some((l) => !l.variant.availableForSale);
 
   async function pay() {
@@ -254,6 +335,7 @@ export function CheckoutSummary({
       email: user ? undefined : mail,
       discountCode: discount ? discountCode : undefined,
       giftCardCode: gift ? giftCardCode : undefined,
+      shippingMethod,
       remind: remind ? true : undefined,
       locale,
     });
@@ -359,9 +441,20 @@ export function CheckoutSummary({
           </>
         )}
       </div>
-      <FreeShippingBar
-        subtotalCents={totals.subtotalCents}
-        discountCents={totals.discountCents}
+      {/* Gratis ab Schwelle gilt nur für Economy */}
+      {shippingMethod === "economy" && (
+        <FreeShippingBar
+          subtotalCents={totals.subtotalCents}
+          discountCents={totals.discountCents}
+          settings={settings}
+        />
+      )}
+      <ShippingChoice
+        value={shippingMethod}
+        onChange={setChosenMethod}
+        subtotalCents={subtotalCents}
+        discountCents={discount?.cents ?? 0}
+        giftCardCents={gift?.balance ?? 0}
         settings={settings}
       />
       <div className="checkout-totals">
@@ -380,7 +473,7 @@ export function CheckoutSummary({
           row(t.checkout.giftCard, `−${formatCents(totals.giftCardCents, locale)}`)}
         {row(t.checkout.total, formatCents(totals.totalCents, locale), "checkout-total")}
       </div>
-      <DeliveryEstimate className="in-checkout" />
+      <DeliveryEstimate className="in-checkout" method={shippingMethod} />
       {totals.totalCents === 0 && (
         <p className="form-notice">
           {totals.giftCardCents > 0 ? t.checkout.giftCardCoversAll : t.checkout.nothingToPay}

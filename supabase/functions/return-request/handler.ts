@@ -27,6 +27,8 @@ interface OpenItem {
   color: string | null;
   image: string | null;
   quantity: number;
+  /** Beim Kauf im Sale (order_items.on_sale): nicht zurückgebbar; fehlt bei alter Datenbank */
+  on_sale?: boolean;
 }
 
 interface LookupResult {
@@ -106,6 +108,7 @@ async function lookup(deps: Deps, req: Request, body: Record<string, unknown>): 
       color: i.color,
       image: i.image,
       quantity: i.quantity,
+      onSale: i.on_sale === true,
     })),
   });
 }

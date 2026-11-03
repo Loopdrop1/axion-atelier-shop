@@ -22,6 +22,7 @@ import {
 } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
 import { reviewLinkFor, sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
+import { postProductFor } from "../_shared/shipping.ts";
 import {
   createPostLabel,
   isPostConfigured,
@@ -216,8 +217,9 @@ async function postLabel(deps: Deps, body: Record<string, unknown>): Promise<Res
   if (country !== "CH" && country !== "LI") throw new HttpError(409, "POST_NOT_DOMESTIC");
   try {
     const sender = parseSender(deps.env.shopName, deps.env.shopAddress);
+    // Produkt aus der Bestellung (Priority → PRI, Economy → ECO); POST_PRODUCT nur für Bestellungen ohne Angabe.
     const label = await createPostLabel(
-      deps.post,
+      { ...deps.post, product: postProductFor(order.shipping_method, deps.post.product) },
       order as OrderRecord & { phone?: string | null },
       sender,
     );

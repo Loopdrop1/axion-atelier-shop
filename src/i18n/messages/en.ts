@@ -48,6 +48,7 @@ export const en: Messages = {
       sakkos: "Blazers",
       hosen: "Trousers",
       hemden: "Shirts",
+      "t-shirts": "T-shirts",
       westen: "Waistcoats",
       "maentel-jacken": "Coats & jackets",
       strick: "Knitwear",
@@ -380,7 +381,10 @@ export const en: Messages = {
     howToFeet:
       "Measure your foot in the evening from the heel to the longest toe. If you are between two sizes, choose the larger one.",
     between: "Between two sizes? Write to us, we are happy to help.",
-    exchange: (days: number) => `If it does not fit, you can return it within ${days} days.`,
+    exchange: (days: number, freeExchange: boolean) =>
+      freeExchange
+        ? `If it does not fit, you can exchange it for another size free of charge within ${days} days, while available, or return it.`
+        : `If it does not fit, you can return it within ${days} days.`,
     international: "International",
     internationalShort: "Int.",
   },
@@ -535,6 +539,16 @@ export const en: Messages = {
     discount: "Discount",
     giftCard: "Gift card",
     shipping: "Shipping",
+    shippingMethod: "Shipping method",
+    transit: (min: number, max: number) =>
+      min !== max
+        ? `within ${min} to ${max} working days`
+        : min === 1
+          ? "usually on the next working day"
+          : `usually within ${min} working days`,
+    economyHint: (transit: string) => `Delivery ${transit}`,
+    priorityHint: (cutoff: string, transit: string) =>
+      `Dispatched the same working day if you order by ${cutoff}, delivered ${transit}`,
     total: "Total",
     discountCode: "Discount code",
     giftCardCode: "Gift card code",
@@ -753,12 +767,20 @@ export const en: Messages = {
     metaDescription:
       "Register a return for your Axion order: your order number and email address are all you need.",
     eyebrow: "Returns",
-    intro:
-      "Enter your order number and the email address of the order, then choose the pieces and a reason. We will then email you the instructions for sending your return. Returns are free: the label is enclosed in your parcel.",
+    shippingPromise: (p: { freeReturn: boolean; labelEnclosed: boolean }) =>
+      p.freeReturn && p.labelEnclosed
+        ? "Returns are free: the label is enclosed in your parcel."
+        : p.freeReturn
+          ? "Returns are free."
+          : p.labelEnclosed
+            ? "The return label is enclosed in your parcel."
+            : "",
+    intro: (promise: string) =>
+      `Enter your order number and the email address of the order, then choose the pieces and a reason. We will then email you the instructions for sending your return.${promise ? ` ${promise}` : ""}`,
     cta: "Register a return",
     accountLink: "Register a return",
-    accountHint: (days: number) =>
-      `Returns within ${days} days of receipt, unworn and with tags. Returns are free.`,
+    accountHint: (days: number, freeReturn: boolean) =>
+      `Returns within ${days} days of receipt, unworn and with tags.${freeReturn ? " Returns are free." : ""}`,
     orderNumber: "Order number",
     orderNumberHint: "Shown in your confirmation email, for example AX-10001.",
     email: "Email address of the order",
@@ -793,7 +815,10 @@ export const en: Messages = {
       },
     },
     refundHint: (days: number) =>
-      `We refund within ${days} days of your return arriving. Amounts paid with a gift card go back to the gift card.`,
+      `We refund within ${days} days of your return arriving. Amounts paid with a gift card always go back to the gift card.`,
+    saleExcluded: "Sale items are excluded from returns.",
+    nothingSelectable:
+      "No piece in this order can be returned any more: sale items are excluded from returns.",
     comment: "Comment (optional)",
     commentHint: "For example what did not fit. 1000 characters at most.",
     privacy: "We use your details only to process the return.",
@@ -819,10 +844,10 @@ export const en: Messages = {
     doneTitle: "Return registered",
     done: (ref: string, order: string) =>
       `Thank you, your return ${ref} for order ${order} is registered.`,
-    doneMail:
-      "We have emailed you the instructions for sending your return. Pack the pieces unworn and with tags, include the order number and attach the return label enclosed in your parcel. Returns are free.",
+    doneMail: (p: { freeReturn: boolean; labelEnclosed: boolean }) =>
+      `We have emailed you the instructions for sending your return. Pack the pieces unworn and with tags, include the order number${p.labelEnclosed ? " and attach the return label enclosed in your parcel" : ""}.${p.freeReturn ? " Returns are free." : ""}`,
     doneRefund: (method: "original" | "gift_card", days: number) =>
-      `Within ${days} days of your return arriving, we refund the amount ${method === "gift_card" ? "as a gift card" : "to the original payment method"}; amounts paid with a gift card go back to the gift card.`,
+      `Within ${days} days of your return arriving, we refund the amount ${method === "gift_card" ? "as a gift card" : "to the original payment method"}; amounts paid with a gift card always go back to the gift card.`,
     doneMailFailed:
       "We could not send the confirmation email. Your registration is saved anyway: we will get in touch.",
     another: "Register another return",

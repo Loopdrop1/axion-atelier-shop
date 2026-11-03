@@ -1,16 +1,23 @@
 -- Startdaten: Kategorien, Beispielprodukte (Platzhalter) und Inhalte der Startseite.
 -- Bildpfade «asset:…» zeigen auf die im Frontend eingebauten Bilder (src/lib/commerce/media.ts).
+-- Die neun Muster-Kategorien sind hier eingeschaltet (lokale Tests und E2E brauchen sie); «T-Shirts» ist ausgeblendet,
+-- solange ohne Produkte und ohne Bild (es gibt keine passende Muster-Zeichnung). Cloud nutzt zum Start supabase/demo/sortiment-start.sql
+-- (nur Anzüge, Westen, Schuhe, Hosen, T-Shirts eingeschaltet).
 
 insert into public.categories (slug, name_de, name_en, description_de, description_en, image_path, sort) values
   ('anzuege', 'Anzüge', 'Suits', 'Zweiteiler und Dreiteiler aus feiner Schurwolle, ab Lager lieferbar.', 'Two- and three-piece suits in fine wool, ready to ship.', 'asset:muster/anzug-limmat-marine-1', 10),
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),
+  ('t-shirts', 'T-Shirts', 'T-shirts', 'Schlichte T-Shirts, unter dem Sakko oder für sich getragen.', 'Simple T-shirts, worn under a jacket or on their own.', null, 45),
   ('westen', 'Westen', 'Waistcoats', 'Einzeln getragen. Oder als Teil des Ganzen.', 'Worn on its own. Or as part of the whole.', 'asset:muster/weste-limmat-marine-1', 50),
   ('maentel-jacken', 'Mäntel & Jacken', 'Coats & jackets', 'Mäntel und Jacken aus Wolle und Kaschmir für die kalten Monate.', 'Coats and jackets in wool and cashmere for the colder months.', 'asset:muster/mantel-gotthard-kamel-1', 60),
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),
   ('schuhe', 'Schuhe', 'Shoes', 'Der passende Abschluss für deinen Auftritt.', 'The finishing touch for your look.', 'asset:muster/oxford-nero-schwarz-1', 80),
   ('accessoires', 'Accessoires', 'Accessories', 'Krawatten, Einstecktücher, Manschettenknöpfe und Gürtel.', 'Ties, pocket squares, cufflinks and belts.', 'asset:muster/krawatte-morcote-bordeaux-1', 90);
+-- T-Shirts bleibt ohne Produkte ausgeblendet (sonst leere Kategorie im Menü); sortiment-start.sql schaltet sie ein.
+update public.categories set active = false where slug = 't-shirts';
+
 
 -- Muster-Sortiment (Kennzeichen «muster», Bilder = Illustrationen): dieselben 52 Produkte wie supabase/demo/muster-einspielen.sql.
 insert into public.products (handle, category_id, model, status, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, origin_de, origin_en, features_de, features_en, fit_note_de, fit_note_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at)

@@ -82,7 +82,7 @@ export function SizeGuide({ category }: { category?: string }) {
         <Link to="/{-$locale}/kontakt" params={{ locale: lp }}>
           {t.between}
         </Link>{" "}
-        {t.exchange(shopConfig.returnDays)}
+        {t.exchange(shopConfig.returnDays, shopConfig.returns.freeExchange)}
       </p>
     </>
   );

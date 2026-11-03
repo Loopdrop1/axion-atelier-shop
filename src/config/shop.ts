@@ -33,13 +33,25 @@ export const shopConfig = {
     bing: "", // Bing Webmaster Tools, msvalidate.01
   },
   returnDays: 14, // Von Axion bestätigt (Checkliste 3.11.2026).
+  // Rückgabe-Zusagen, von Axion bestätigt (Checkliste 3.11.2026). Texte im Shop (Retourenformular, Konto, Grössentabelle)
+  // und die Retouren-Mails bauen ihre Sätze daraus; gleiche Werte in supabase/functions/_shared/returns.ts
+  // (RETURN_POLICY, Paritätstest in src/lib/returns.test.ts). Die Rechtstexte (pages.ts) separat nachführen.
+  returns: {
+    freeReturn: true, // Rücksendung für die Kundschaft gratis
+    labelEnclosed: true, // Rücksendeetikett liegt dem Paket bei
+    freeExchange: true, // Umtausch in eine andere Grösse gratis, solange verfügbar
+    refundDays: 7, // Rückerstattung innert so vieler Tage nach Eingang
+  },
   // Lieferschätzung (Europe/Zurich): Bestellungen vor dem Annahmeschluss gehen am selben Arbeitstag raus.
   // Von Axion bestätigt: Montag bis Freitag, bis 14 Uhr am selben Tag (Checkliste 3.11.2026).
   delivery: {
     dispatchCutoff: "14:00",
     processingDays: 0, // zusätzliche Arbeitstage bis zum Versand
     // Gleich wie die Lieferzeit in den AGB, im FAQ und auf «Versand und Rückgabe» (2 bis 5 Arbeitstage ab Versand, Versand am selben Tag bis 14 Uhr); nur gemeinsam ändern.
-    transitDays: { min: 2, max: 5 }, // Arbeitstage Versand bis Zustellung
+    transitDays: { min: 2, max: 5 }, // Arbeitstage Versand bis Zustellung (Post Economy)
+    // Post Priority, von Axion zu bestätigen. Nur sichtbar, wenn in Admin → Einstellungen ein Priority-Preis steht.
+    // Gleich wie TRANSIT_DAYS in supabase/functions/_shared/shipping.ts (Paritätstest).
+    priorityTransitDays: { min: 1, max: 1 },
   },
   paymentMethods: [
     "TWINT",

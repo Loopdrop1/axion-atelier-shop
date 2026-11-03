@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ReturnForm } from "@/components/shop/return-form";
 import { messages, toLocale, useT } from "@/i18n";
 import { pageHead } from "@/lib/commerce/seo";
+import { shopConfig } from "@/config/shop";
 
 export const Route = createFileRoute("/{-$locale}/retoure")({
   validateSearch: (s: Record<string, unknown>): { order?: string | undefined } => ({
@@ -24,7 +25,7 @@ function Page() {
     <div className="container page-body account-narrow">
       <p className="eyebrow">{t.returns.eyebrow}</p>
       <h1 className="page-title">{t.returns.title}</h1>
-      <p className="page-intro">{t.returns.intro}</p>
+      <p className="page-intro">{t.returns.intro(t.returns.shippingPromise(shopConfig.returns))}</p>
       <ReturnForm initialOrder={order} />
     </div>
   );

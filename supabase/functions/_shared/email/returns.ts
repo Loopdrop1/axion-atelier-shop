@@ -1,14 +1,16 @@
 // E-Mails zur Retoure: Bestätigung mit Hinweisen an die Kundschaft, Meldung an den Shop.
-// Die Rücksendung ist gratis: Das Rücksendeetikett liegt dem Paket bei. Rückerstattung innert 7 Tagen nach Eingang,
-// je nach Wahl aufs ursprüngliche Zahlungsmittel oder als Gutschein; mit Gutschein bezahlte Beträge gehen auf den
-// Gutschein. Die Rücksendeadresse ist die Adresse des Shops (SHOP_ADDRESS), sonst ein Platzhalter.
+// Die Zusagen (Rücksendung gratis, Etikett liegt bei, Frist der Rückerstattung) kommen aus RETURN_POLICY (returns.ts),
+// nie fest aus dem Text. Rückerstattung je nach Wahl aufs ursprüngliche Zahlungsmittel oder als Gutschein; mit Gutschein
+// bezahlte Beträge gehen immer auf den Gutschein. Die Rücksendeadresse ist die Adresse des Shops (SHOP_ADDRESS), sonst
+// ein Platzhalter.
 import type { Locale } from "../money.ts";
 import {
   REFUND_METHOD_LABELS,
-  REFUND_WITHIN_DAYS,
+  RETURN_POLICY,
   reasonLabel,
   returnRef,
   type RefundMethod,
+  type ReturnPolicy,
 } from "../returns.ts";
 import { sizeText } from "../size.ts";
 import { orderNumber, type EmailContent } from "./templates.ts";
@@ -62,8 +64,37 @@ function itemLines(data: ReturnMailData): string {
     .join("\n");
 }
 
+/** Schritt «Paket zurückschicken» aus den Zusagen: Etikett beigelegt oder Adresse, gratis nur wenn zugesagt. */
+export function sendBackStep(policy: ReturnPolicy, address: string, de: boolean): string {
+  const send = policy.labelEnclosed
+    ? de
+      ? "Klebe das Rücksendeetikett auf, das deinem Paket beiliegt, und gib das Paket bei der Post ab."
+      : "Attach the return label enclosed in your parcel and drop the parcel off at the post office."
+    : de
+      ? "Schicke das Paket mit der Post an uns."
+      : "Send the parcel to us by post.";
+  const free = policy.freeReturn
+    ? de
+      ? " Die Rücksendung ist für dich gratis."
+      : " Returns are free for you."
+    : "";
+  return `${send}${free} ${de ? "Rücksendeadresse" : "Return address"}: ${address}`;
+}
+
+/** Schritt «Rückerstattung» aus den Zusagen und der Wahl der Kundschaft. */
+export function refundStep(policy: ReturnPolicy, giftCard: boolean, de: boolean): string {
+  const days = policy.refundDays;
+  return de
+    ? `Innert ${days} Tagen nach Eingang deiner Rücksendung erstatten wir den Kaufpreis der zurückgegebenen Stücke ${giftCard ? "als Gutschein" : "auf das ursprüngliche Zahlungsmittel"}. Mit einem Gutschein bezahlte Beträge schreiben wir immer dem Gutschein gut.`
+    : `Within ${days} days of your return arriving, we refund the price of the returned pieces ${giftCard ? "as a gift card" : "to the original payment method"}. Amounts paid with a gift card are always credited back to the gift card.`;
+}
+
 /** Bestätigung an die Kundschaft mit Hinweisen zur Rücksendung. */
-export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailContent {
+export function returnConfirmation(
+  data: ReturnMailData,
+  shop: ShopInfo,
+  policy: ReturnPolicy = RETURN_POLICY,
+): EmailContent {
   const de = data.locale !== "en";
   const ref = returnRef(data.returnNumber);
   const order = orderNumber(data.orderNumber);
@@ -74,19 +105,18 @@ export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailC
     ? `Danke, wir haben deine Retoure zur Bestellung ${order} notiert. So geht es weiter:`
     : `Thank you, we have noted your return for order ${order}. Here is what happens next:`;
   const giftCard = data.refundMethod === "gift_card";
-  const days = REFUND_WITHIN_DAYS;
   const steps = de
     ? [
         `Verpacke die Stücke ungetragen, mit allen Etiketten und möglichst in der Originalverpackung.`,
         `Lege einen Zettel mit der Bestellnummer ${order} und der Retourennummer ${ref} bei.`,
-        `Klebe das Rücksendeetikett auf, das deinem Paket beiliegt, und gib das Paket bei der Post ab. Die Rücksendung ist für dich gratis. Rücksendeadresse: ${address}`,
-        `Innert ${days} Tagen nach Eingang deiner Rücksendung erstatten wir den Kaufpreis der zurückgegebenen Stücke ${giftCard ? "als Gutschein" : "auf das ursprüngliche Zahlungsmittel"}. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.`,
+        sendBackStep(policy, address, true),
+        refundStep(policy, giftCard, true),
       ]
     : [
         `Pack the pieces unworn, with all tags and preferably in the original packaging.`,
         `Include a note with the order number ${order} and the return number ${ref}.`,
-        `Attach the return label enclosed in your parcel and drop the parcel off at the post office. Returns are free for you. Return address: ${address}`,
-        `Within ${days} days of your return arriving, we refund the price of the returned pieces ${giftCard ? "as a gift card" : "to the original payment method"}. Amounts paid with a gift card are credited back to the gift card.`,
+        sendBackStep(policy, address, false),
+        refundStep(policy, giftCard, false),
       ];
   const refundLine = `${de ? "Rückerstattung" : "Refund"}: ${REFUND_METHOD_LABELS[data.locale][data.refundMethod]}`;
   const note = de

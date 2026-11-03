@@ -49,6 +49,7 @@ export const de = {
       sakkos: "Sakkos",
       hosen: "Hosen",
       hemden: "Hemden",
+      "t-shirts": "T-Shirts",
       westen: "Westen",
       "maentel-jacken": "Mäntel & Jacken",
       strick: "Strick",
@@ -386,7 +387,10 @@ export const de = {
     howToFeet:
       "Miss deine Fusslänge abends von der Ferse bis zum längsten Zeh. Liegst du zwischen zwei Grössen, wähle die grössere.",
     between: "Zwischen zwei Grössen? Schreib uns, wir helfen gern.",
-    exchange: (days: number) => `Passt es nicht, gibst du es innert ${days} Tagen zurück.`,
+    exchange: (days: number, freeExchange: boolean) =>
+      freeExchange
+        ? `Passt es nicht, tauschst du es innert ${days} Tagen gratis gegen eine andere Grösse, solange verfügbar, oder gibst es zurück.`
+        : `Passt es nicht, gibst du es innert ${days} Tagen zurück.`,
     international: "International",
     internationalShort: "Int.",
   },
@@ -542,6 +546,17 @@ export const de = {
     discount: "Rabatt",
     giftCard: "Geschenkgutschein",
     shipping: "Versand",
+    shippingMethod: "Versandart",
+    /** Zustellung nach dem Versand, aus den Arbeitstagen der Versandart */
+    transit: (min: number, max: number) =>
+      min !== max
+        ? `in ${min} bis ${max} Arbeitstagen`
+        : min === 1
+          ? "in der Regel am nächsten Arbeitstag"
+          : `in der Regel in ${min} Arbeitstagen`,
+    economyHint: (transit: string) => `Lieferung ${transit}`,
+    priorityHint: (cutoff: string, transit: string) =>
+      `Versand am selben Arbeitstag bei Bestellung bis ${cutoff.replace(/:00$/, "").replace(":", ".")} Uhr, Zustellung ${transit}`,
     total: "Total",
     discountCode: "Rabattcode",
     giftCardCode: "Gutscheincode",
@@ -765,12 +780,21 @@ export const de = {
     metaDescription:
       "Melde eine Rücksendung zu deiner Axion-Bestellung an: Bestellnummer und E-Mail-Adresse genügen.",
     eyebrow: "Rückgabe",
-    intro:
-      "Gib deine Bestellnummer und die E-Mail-Adresse der Bestellung ein, wähle die Stücke und den Grund. Danach schicken wir dir per E-Mail die Hinweise zur Rücksendung. Die Rücksendung ist gratis: Das Etikett liegt deinem Paket bei.",
+    /** Zusagen zur Rücksendung aus shopConfig.returns (gratis, Etikett liegt bei); leer, wenn keine gilt */
+    shippingPromise: (p: { freeReturn: boolean; labelEnclosed: boolean }): string =>
+      p.freeReturn && p.labelEnclosed
+        ? "Die Rücksendung ist gratis: Das Etikett liegt deinem Paket bei."
+        : p.freeReturn
+          ? "Die Rücksendung ist gratis."
+          : p.labelEnclosed
+            ? "Das Rücksendeetikett liegt deinem Paket bei."
+            : "",
+    intro: (promise: string) =>
+      `Gib deine Bestellnummer und die E-Mail-Adresse der Bestellung ein, wähle die Stücke und den Grund. Danach schicken wir dir per E-Mail die Hinweise zur Rücksendung.${promise ? ` ${promise}` : ""}`,
     cta: "Retoure anmelden",
     accountLink: "Retoure anmelden",
-    accountHint: (days: number) =>
-      `Rückgabe innert ${days} Tagen ab Erhalt, ungetragen und mit Etiketten. Die Rücksendung ist gratis.`,
+    accountHint: (days: number, freeReturn: boolean) =>
+      `Rückgabe innert ${days} Tagen ab Erhalt, ungetragen und mit Etiketten.${freeReturn ? " Die Rücksendung ist gratis." : ""}`,
     orderNumber: "Bestellnummer",
     orderNumberHint: "Steht in der Bestätigungs-E-Mail, zum Beispiel AX-10001.",
     email: "E-Mail-Adresse der Bestellung",
@@ -805,7 +829,10 @@ export const de = {
       },
     },
     refundHint: (days: number) =>
-      `Wir erstatten innert ${days} Tagen nach Eingang deiner Rücksendung. Mit einem Gutschein bezahlte Beträge kommen auf den Gutschein.`,
+      `Wir erstatten innert ${days} Tagen nach Eingang deiner Rücksendung. Mit einem Gutschein bezahlte Beträge kommen immer auf den Gutschein.`,
+    saleExcluded: "Sale-Artikel sind von der Rückgabe ausgenommen.",
+    nothingSelectable:
+      "In dieser Bestellung ist kein Stück mehr zurückgebbar: Sale-Artikel sind von der Rückgabe ausgenommen.",
     comment: "Kommentar (freiwillig)",
     commentHint: "Zum Beispiel was nicht gepasst hat. Höchstens 1000 Zeichen.",
     privacy: "Wir verwenden deine Angaben nur, um die Retoure zu bearbeiten.",
@@ -831,10 +858,10 @@ export const de = {
     doneTitle: "Retoure angemeldet",
     done: (ref: string, order: string) =>
       `Danke, deine Retoure ${ref} zur Bestellung ${order} ist angemeldet.`,
-    doneMail:
-      "Wir haben dir eine E-Mail mit den Hinweisen zur Rücksendung geschickt. Packe die Stücke ungetragen und mit Etiketten ein, lege die Bestellnummer bei und klebe das Rücksendeetikett auf, das deinem Paket beiliegt. Die Rücksendung ist gratis.",
+    doneMail: (p: { freeReturn: boolean; labelEnclosed: boolean }) =>
+      `Wir haben dir eine E-Mail mit den Hinweisen zur Rücksendung geschickt. Packe die Stücke ungetragen und mit Etiketten ein, lege die Bestellnummer bei${p.labelEnclosed ? " und klebe das Rücksendeetikett auf, das deinem Paket beiliegt" : ""}.${p.freeReturn ? " Die Rücksendung ist gratis." : ""}`,
     doneRefund: (method: "original" | "gift_card", days: number) =>
-      `Innert ${days} Tagen nach Eingang erstatten wir den Betrag ${method === "gift_card" ? "als Gutschein" : "aufs ursprüngliche Zahlungsmittel"}; mit einem Gutschein bezahlte Beträge kommen auf den Gutschein.`,
+      `Innert ${days} Tagen nach Eingang erstatten wir den Betrag ${method === "gift_card" ? "als Gutschein" : "aufs ursprüngliche Zahlungsmittel"}; mit einem Gutschein bezahlte Beträge kommen immer auf den Gutschein.`,
     doneMailFailed:
       "Die Bestätigungs-E-Mail konnte nicht verschickt werden. Deine Anmeldung ist trotzdem gespeichert: Wir melden uns bei dir.",
     another: "Weitere Retoure anmelden",

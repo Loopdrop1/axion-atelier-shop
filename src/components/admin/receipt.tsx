@@ -16,6 +16,7 @@ function receiptData(order: AdminOrder): ReceiptData {
     discount_cents: order.discount_cents,
     discount_code: order.discount_code,
     shipping_cents: order.shipping_cents,
+    shipping_method: order.shipping_method ?? null,
     gift_card_cents: order.gift_card_cents,
     total_cents: order.total_cents,
     refunded_cents: order.refunded_cents,

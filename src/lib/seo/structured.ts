@@ -196,6 +196,8 @@ export function productLd(
         returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: shopConfig.returnDays,
         returnMethod: "https://schema.org/ReturnByMail",
+        // Aus shopConfig.returns, nie fest: nur mit zugesagter Gratis-Rücksendung
+        ...(shopConfig.returns.freeReturn ? { returnFees: "https://schema.org/FreeReturn" } : {}),
       },
     },
     ...reviewLd(p, reviews, reviewsEnabled),

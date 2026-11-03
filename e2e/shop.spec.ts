@@ -558,7 +558,7 @@ test("Geschenkgutschein: Betrag, Empfänger, Vorschau, Weiterleitung und Guthabe
   const errors = watchErrors(page);
   await open(page, "/geschenkgutschein");
   await expect(page.getByRole("heading", { name: "Geschenkgutschein", level: 1 })).toBeVisible();
-  await expect(page.getByText("5 Jahre gültig")).toBeVisible();
+  await expect(page.getByText("30 Jahre gültig")).toBeVisible();
   await page.locator(".choice-chip", { hasText: "Anderer Betrag" }).click();
   await page.getByLabel("Betrag in CHF").fill("10");
   await page.getByLabel("Name der beschenkten Person").fill("Marco");

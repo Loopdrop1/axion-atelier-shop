@@ -1,6 +1,7 @@
 -- Muster-Sortiment für die Vorschau in Lovable Cloud: 52 Platzhalter-Produkte in neun Kategorien (Anzüge, Sakkos,
 -- Hosen, Hemden, Westen, Mäntel und Jacken, Strick, Schuhe, Accessoires) mit Illustrationen statt Fotos, Kennzeichen
--- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite).
+-- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite). Dazu die Kategorie «T-Shirts» ohne
+-- Produkte und ohne Bild. Welche Kategorien zum Start sichtbar sind, regelt supabase/demo/sortiment-start.sql.
 -- Einmal ausführen (Cloud → Datenbank → SQL oder durch Claude). Mehrfach ausführbar: legt nur an, was fehlt,
 -- und überschreibt nichts, was im Admin schon erfasst ist (Kategorien, Startseite, Grössentabellen). Grössen und
 -- Bilder kommen nur an Musterprodukte: Gibt es eine Adresse (handle) schon als echtes Produkt, bleibt es unberührt.
@@ -13,12 +14,18 @@ insert into public.categories (slug, name_de, name_en, description_de, descripti
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),
+  ('t-shirts', 'T-Shirts', 'T-shirts', 'Schlichte T-Shirts, unter dem Sakko oder für sich getragen.', 'Simple T-shirts, worn under a jacket or on their own.', null, 45),
   ('westen', 'Westen', 'Waistcoats', 'Einzeln getragen. Oder als Teil des Ganzen.', 'Worn on its own. Or as part of the whole.', 'asset:muster/weste-limmat-marine-1', 50),
   ('maentel-jacken', 'Mäntel & Jacken', 'Coats & jackets', 'Mäntel und Jacken aus Wolle und Kaschmir für die kalten Monate.', 'Coats and jackets in wool and cashmere for the colder months.', 'asset:muster/mantel-gotthard-kamel-1', 60),
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),
   ('schuhe', 'Schuhe', 'Shoes', 'Der passende Abschluss für deinen Auftritt.', 'The finishing touch for your look.', 'asset:muster/oxford-nero-schwarz-1', 80),
   ('accessoires', 'Accessoires', 'Accessories', 'Krawatten, Einstecktücher, Manschettenknöpfe und Gürtel.', 'Ties, pocket squares, cufflinks and belts.', 'asset:muster/krawatte-morcote-bordeaux-1', 90)
 on conflict (slug) do nothing;
+-- T-Shirts ohne aktive Produkte ausblenden (keine leere Kategorie im Menü); sortiment-start.sql schaltet sie ein.
+update public.categories c set active = false
+  where c.slug = 't-shirts'
+    and not exists (select 1 from public.products p where p.category_id = c.id and p.status = 'active');
+
 
 insert into public.products (handle, category_id, model, status, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, origin_de, origin_en, features_de, features_en, fit_note_de, fit_note_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at)
 select 'anzug-limmat-marine', c.id, 'anzug-limmat', 'active', 'Anzug «Limmat»', 'Limmat Suit', 'Der Anzug «Limmat» besteht aus Sakko und Hose. Kombiniere ihn mit der passenden Weste zu einem Dreiteiler.', 'The Limmat suit consists of a jacket and trousers. Add the matching waistcoat for a three-piece look.', 'Schurwolle (Super 110’s) mit wenig Stretch, Futter aus Cupro', 'Wool (Super 110’s) with a little stretch, cupro lining', 'Chemische Reinigung. Nach dem Tragen auf einem breiten Bügel auslüften.', 'Dry clean. Air on a wide hanger after wearing.', 'Gefertigt in Italien', 'Made in Italy', 'Sakko mit zwei Knöpfen und Reverskragen
