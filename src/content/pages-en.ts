@@ -9,16 +9,15 @@ export const pagesEn: Partial<Record<WrittenPageHandle, WrittenPage>> = {
     `
 **Operator of this online shop**
 {{company}}
-[Legal form]
+Sole proprietorship
 {{address}}
 Switzerland
 
 **Contact**
 Email: {{email}}
-Phone: {{phone}}
 
 **Authorised representative**
-[First and last name, position]
+Vasilis Soufis, owner
 
 **Commercial register**
 Not registered in the commercial register

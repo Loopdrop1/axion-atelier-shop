@@ -5,8 +5,8 @@ export const shopConfig = {
   vatRegistered: false,
   vatRate: 8.1, // Normalsatz in Prozent (Kleider, Schuhe), gilt nur mit vatRegistered
   contact: {
-    company: "[Firmenname]",
-    address: "[Adresse]",
+    company: "Axion, Vasilis Soufis", // Einzelunternehmen: Firma mit Familienname des Inhabers (Art. 945 OR)
+    address: "[Strasse und Nummer], 8620 Wetzikon", // Strasse fehlt noch (Checkliste 3.11.2026)
     email: "[E-Mail-Adresse]",
     phone: "" as string, // Axion: Kontakt nur per E-Mail (Checkliste 3.11.2026)
     hours: "" as string, // freiwillig, leer = ohne

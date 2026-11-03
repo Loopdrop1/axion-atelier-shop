@@ -86,16 +86,15 @@ export const pages = {
     `
 **Anbieterin dieses Online-Shops**
 {{company}}
-[Rechtsform]
+Einzelunternehmen
 {{address}}
 Schweiz
 
 **Kontakt**
 E-Mail: {{email}}
-Telefon: {{phone}}
 
 **Vertretungsberechtigte Person**
-[Vor- und Nachname, Funktion]
+Vasilis Soufis, Inhaber
 
 **Handelsregister**
 Nicht im Handelsregister eingetragen

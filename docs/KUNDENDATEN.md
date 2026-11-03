@@ -32,11 +32,10 @@ Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Li
 
 **Widersprüchlich oder offen, mit Axion klären:**
 
-1. **Rechtsform:** «Einzelunternehmen», aber zwei Inhaber (Vasilis Soufis und Andrea Loris Spasari). Ein
-   Einzelunternehmen hat genau eine Inhaberin oder einen Inhaber, und der Firmenname muss deren Familiennamen enthalten
-   («Axion» allein genügt nicht). Zu zweit ist es eine einfache Gesellschaft (oder Kollektivgesellschaft mit
-   Handelsregister-Pflicht). Bestimmt Impressum, AGB-Vertragspartner und Stripe-Konto. `contact.company` bleibt bis
-   dahin Platzhalter.
+1. **Rechtsform:** «Einzelunternehmen» mit zwei Inhabern ist nicht möglich. Auf Bens Anweisung vom 3.11.2026 vorerst
+   **Vasilis Soufis als Inhaber** eingetragen (Firma «Axion, Vasilis Soufis», Impressum, AGB). Mit Axion bestätigen:
+   Schreibweise des Namens und ob Andrea Loris Spasari Mitinhaber ist (dann einfache Gesellschaft bzw.
+   Kollektivgesellschaft, Texte anpassen).
 2. **Adresse:** nur «8620 Wetzikon». Impressum und Rücksendungen brauchen Strasse und Nummer (`contact.address`,
    Secret `SHOP_ADDRESS`).
 3. **E-Mail info@axion.ch:** `axion.ch` gehört Axion nicht (seit 1999 vergeben, Kauf erst angefragt). Als Domain
@@ -137,8 +136,8 @@ frei; Ben ersetzt die Platzhalter in beiden Sprachen.
 
 **Impressum**
 
-- `[Rechtsform]` (siehe Abschnitt 0, Punkt 1)
-- `[Vor- und Nachname, Funktion]` der vertretungsberechtigten Person bzw. Inhaber
+- Adresse: `[Strasse und Nummer]` in `contact.address` (Ort 8620 Wetzikon steht)
+- Rechtsform und Inhaber vorläufig: Einzelunternehmen, Vasilis Soufis (Abschnitt 0, Punkt 1)
 
 **Datenschutzerklärung**
 
