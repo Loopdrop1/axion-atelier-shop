@@ -212,7 +212,8 @@ describe("Sortiment zum Start (supabase/demo/sortiment-start.sql)", () => {
     await fresh.query(
       "update public.categories set name_de = 'Anzüge (Admin)' where slug = 'anzuege'",
     );
-    expect((await categories()).every((c) => c.active)).toBe(true);
+    // Muster: alles eingeschaltet ausser T-Shirts (ohne Produkte ausgeblendet, keine leere Kategorie im Menü)
+    expect((await categories()).every((c) => c.active === (c.slug !== "t-shirts"))).toBe(true);
     const before = await fingerprint();
     const products = await fresh.query("select count(*)::int as n from public.products");
     expect(products.rows[0].n).toBe(52);
