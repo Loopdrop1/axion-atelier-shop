@@ -807,6 +807,7 @@ export type Database = {
           locale: string
           number: number
           order_id: string
+          refund_method: string
           status: string
           updated_at: string
         }
@@ -821,6 +822,7 @@ export type Database = {
           locale?: string
           number?: number
           order_id: string
+          refund_method?: string
           status?: string
           updated_at?: string
         }
@@ -835,6 +837,7 @@ export type Database = {
           locale?: string
           number?: number
           order_id?: string
+          refund_method?: string
           status?: string
           updated_at?: string
         }
@@ -1252,6 +1255,7 @@ export type Database = {
           p_items: Json
           p_locale: string
           p_order_number: number
+          p_refund_method?: string
           p_request_id?: string
         }
         Returns: Json
