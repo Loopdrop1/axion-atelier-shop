@@ -38,7 +38,11 @@ const OCCASIONS = [
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-export type ProductValues = Omit<Product, "id" | "created_at" | "updated_at">;
+type ModelFields = "model_height_cm" | "model_size";
+/** Model-Angaben nur, wenn gesetzt oder schon vorhanden: So speichert das Admin weiter, solange Migration 0023
+ *  in Cloud fehlt (dann gibt es die Spalten nicht und das Produkt hat die Schlüssel nicht). */
+export type ProductValues = Omit<Product, "id" | "created_at" | "updated_at" | ModelFields> &
+  Partial<Pick<Product, ModelFields>>;
 
 interface FormState {
   title_de: string;
@@ -66,6 +70,9 @@ interface FormState {
   features_de: string;
   features_en: string;
   fit: string;
+  /** Model auf den Bildern: Körpergrösse in cm und getragene Grösse (beides freiwillig) */
+  model_height: string;
+  model_size: string;
   occasions: string[];
   neu: boolean;
   sale: boolean;
@@ -102,6 +109,8 @@ function initial(product: Product | null, categories: Category[]): FormState {
     features_de: p?.features_de ?? "",
     features_en: p?.features_en ?? "",
     fit: p?.fit ?? "",
+    model_height: p?.model_height_cm ? String(p.model_height_cm) : "",
+    model_size: p?.model_size ?? "",
     occasions: p?.occasions ?? [],
     neu: p?.tags.includes("neu") ?? true,
     sale: p?.tags.includes("sale") ?? false,
@@ -220,6 +229,13 @@ export function ProductForm({
       next.compare_at = "Der Streichpreis muss höher sein als der Preis.";
     if (!form.color_name_de.trim()) next.color_name_de = "Pflichtfeld";
     if (!/^#[0-9A-Fa-f]{6}$/.test(form.color_hex)) next.color_hex = "Farbcode wie #1E3A2F";
+    const modelHeight = form.model_height.trim() ? Number(form.model_height) : null;
+    if (
+      modelHeight !== null &&
+      !(Number.isInteger(modelHeight) && modelHeight >= 120 && modelHeight <= 230)
+    )
+      next.model_height = "Körpergrösse in Zentimetern, z. B. 186";
+    if (form.model_size.trim().length > 20) next.model_size = "Höchstens 20 Zeichen";
     setErrors(next);
     if (Object.keys(next).length || price === null) return;
     setBusy(true);
@@ -265,6 +281,12 @@ export function ProductForm({
           features_de: orNull(f.features_de),
           features_en: orNull(f.features_en),
           fit: orNull(f.fit),
+          ...(modelHeight !== null || (product && "model_height_cm" in product)
+            ? { model_height_cm: modelHeight }
+            : {}),
+          ...(orNull(f.model_size) !== null || (product && "model_size" in product)
+            ? { model_size: orNull(f.model_size) }
+            : {}),
           occasions: f.occasions,
           tags: [
             ...(f.neu ? ["neu"] : []),
@@ -535,6 +557,34 @@ export function ProductForm({
                 { value: "Regular Fit", label: "Regular Fit (gerade)" },
               ]}
             />
+          </div>
+        </Panel>
+
+        <Panel title="Model auf den Bildern">
+          <div className="admin-form">
+            <p className="admin-hint">
+              Freiwillig. Erscheint auf der Produktseite unter der Grössenwahl, z. B. «Das Model ist
+              1,86 m gross und trägt Grösse 50 (L).» Hilft bei der Wahl der Grösse. Leer lassen,
+              wenn auf den Bildern kein Model zu sehen ist.
+            </p>
+            <div className="admin-grid-2">
+              <TextField
+                label="Körpergrösse des Models (cm)"
+                hint="Ganze Zentimeter zwischen 120 und 230, z. B. 186"
+                inputMode="numeric"
+                maxLength={3}
+                value={form.model_height}
+                onChange={(e) => set("model_height", e.target.value.replace(/[^\d]/g, ""))}
+                error={errors.model_height}
+              />
+              <TextField
+                label="Getragene Grösse"
+                hint="Wie die Grösse im Shop heisst, z. B. 50 oder M. Der Buchstabe zur Zahl erscheint automatisch."
+                maxLength={20}
+                {...text("model_size")}
+                error={errors.model_size}
+              />
+            </div>
           </div>
         </Panel>
 

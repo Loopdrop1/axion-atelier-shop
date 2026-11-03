@@ -11,10 +11,11 @@ export function isOneSizeTitle(title: string): boolean {
   return ONE_SIZE.test(title.trim());
 }
 
-/** «Grösse 48»; bei Einheitsgrösse das Wort dafür in der Sprache der Seite («Einheitsgrösse» statt
- *  «Grösse One Size», auch wenn die Grösse im Admin «OS» heisst). */
-export function sizeText(size: string, word: string, oneSize: string): string {
-  return isOneSizeTitle(size) ? oneSize : `${word} ${size}`;
+/** «Grösse 48» bzw. mit Buchstabe «Grösse 48 (M)»; bei Einheitsgrösse das Wort dafür in der Sprache der Seite
+ *  («Einheitsgrösse» statt «Grösse One Size», auch wenn die Grösse im Admin «OS» heisst). */
+export function sizeText(size: string, word: string, oneSize: string, letter?: string): string {
+  if (isOneSizeTitle(size)) return oneSize;
+  return letter ? `${word} ${size} (${letter})` : `${word} ${size}`;
 }
 
 /** Die einzige Grösse eines Stücks in Einheitsgrösse, sonst undefined. */

@@ -21,6 +21,7 @@ import { colorMatchesValue } from "./color-key";
 import { rankRecommendations } from "./recommendations";
 import { isOnSale } from "./sale";
 import { loadCatalog, loadSettings } from "./source";
+import { readSizeLetters, type SizeLetters } from "./sizes";
 import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
 
 export type * from "./types";
@@ -40,8 +41,9 @@ async function catalog(locale: Locale): Promise<Catalog> {
     (a, b) => a.sort - b.sort || a.slug.localeCompare(b.slug),
   );
   const bySlug = new Map(categories.map((c) => [c.slug, c]));
+  const letters = readSizeLetters(data.content);
   const products = data.products.flatMap((row) => {
-    const product = mapProduct(row, locale, bySlug);
+    const product = mapProduct(row, locale, bySlug, letters);
     return product ? [product] : [];
   });
   return { products, categories, content: data.content };
@@ -168,6 +170,11 @@ export async function getEditorial(locale: Locale = "de"): Promise<Editorial> {
 
 export async function getSizeGuides(locale: Locale = "de"): Promise<SizeGuideTable[]> {
   return mapSizeGuides((await loadCatalog()).content, locale);
+}
+
+/** Zuordnung Zahl → Buchstabe (Admin → Grössentabellen); ohne gespeicherte Zuordnung leer (nur Zahlen). */
+export async function getSizeLetters(): Promise<SizeLetters> {
+  return readSizeLetters((await loadCatalog()).content);
 }
 
 export async function getAnnouncements(locale: Locale = "de"): Promise<string[]> {

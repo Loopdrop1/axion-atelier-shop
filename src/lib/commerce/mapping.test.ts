@@ -157,6 +157,43 @@ describe("mapProduct", () => {
   });
 });
 
+describe("mapProduct: Grössen und Model", () => {
+  const letters = { "48": "M", "50": "L", "52": "XL" };
+
+  it("Buchstabe zur Zahlengrösse nur mit Zuordnung; ohne Zuordnung bleibt es bei der Zahl", () => {
+    const p = mapProduct(row(), "de", categories, letters)!;
+    expect(p.variants.map((v) => [v.title, v.letter])).toEqual([
+      ["48", "M"],
+      ["50", "L"],
+    ]);
+    expect(mapProduct(row(), "de", categories)!.variants.every((v) => !("letter" in v))).toBe(true);
+  });
+
+  it("Schuhe und Hemden (Kragenweite) bekommen nie einen Buchstaben", () => {
+    for (const slug of ["schuhe", "hemden"]) {
+      const map = new Map([[slug, { ...category, slug }]]);
+      const p = mapProduct(row({ category: { slug } }), "de", map, letters)!;
+      expect(p.variants.some((v) => v.letter)).toBe(false);
+    }
+  });
+
+  it("Model-Angaben: Körpergrösse und Grösse mit Buchstabe; ohne Angaben kein Feld", () => {
+    expect(mapProduct(row(), "de", categories, letters)).not.toHaveProperty("fitModel");
+    expect(
+      mapProduct(row({ model_height_cm: 186, model_size: " 50 " }), "de", categories, letters)!
+        .fitModel,
+    ).toEqual({ heightCm: 186, size: "50", letter: "L" });
+    expect(
+      mapProduct(row({ model_height_cm: null, model_size: "M" }), "de", categories, letters)!
+        .fitModel,
+    ).toEqual({ size: "M" });
+    // Unsinnige Höhe (nur möglich ohne die Prüfung der Datenbank) fällt weg
+    expect(
+      mapProduct(row({ model_height_cm: 18, model_size: "" }), "de", categories, letters),
+    ).not.toHaveProperty("fitModel");
+  });
+});
+
 describe("Startseite und Laufband", () => {
   it("nimmt Inhalte aus site_content, englische Lücken aus dem Deutschen, sonst die Standardtexte", () => {
     const home = mapHomeContent(
@@ -302,8 +339,38 @@ describe("Grössentabellen", () => {
           ["48", "96"],
         ],
         note: "Body measurements",
+        // Ohne gespeicherte Zuordnung keine Spalte «Int.» (nur Zahlen, Entscheid Axion 3.11.2026)
       },
     ]);
+  });
+
+  it("Spalte «Int.» folgt der gespeicherten Zuordnung; leere Zuordnung oder Schuhe: keine Spalte", () => {
+    const withLetters = (letters: Record<string, string>) => ({
+      size_guides: { ...content.size_guides, letters },
+    });
+    expect(mapSizeGuides(withLetters({ "46": "s", "48": "M" }), "de")[0]?.international).toEqual([
+      "S",
+      "M",
+    ]);
+    expect(mapSizeGuides(withLetters({}), "de")[0]).not.toHaveProperty("international");
+    // Nur eine von zwei Zeilen zugeordnet: keine halbe Spalte
+    expect(mapSizeGuides(withLetters({ "46": "S" }), "de")[0]).not.toHaveProperty("international");
+    const shoes = {
+      size_guides: {
+        tables: [
+          {
+            id: "schuhe",
+            categories: ["schuhe"],
+            columns: [{ de: "EU-Grösse" }, { de: "Fusslänge (cm)" }],
+            rows: [
+              ["44", "28.1"],
+              ["46", "29.5"],
+            ],
+          },
+        ],
+      },
+    };
+    expect(mapSizeGuides(shoes, "de")[0]).not.toHaveProperty("international");
   });
 
   it("ohne Tabellen: leere Liste (keine Beispielwerte im Shop)", () => {

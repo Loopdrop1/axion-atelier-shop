@@ -279,6 +279,8 @@ test("Produktseite: Muster-Hinweis, Details, knapper Bestand, Klarna und Service
   // Hinweis auf knappen Bestand erst mit gewählter Grösse, ab 2 Stück; die Meldezone bleibt im Dokument
   const hint = page.getByRole("status").and(page.locator(".stock-hint"));
   await expect(hint).toBeEmpty();
+  // Nur Zahlen (Entscheid Axion 3.11.2026): ohne Zuordnung im Admin kein Buchstabe
+  await expect(page.locator(".size-grid .size-letter")).toHaveCount(0);
   await page.locator(".size-grid").getByRole("button", { name: "46", exact: true }).click();
   await expect(hint).toHaveText("Nur noch 2 an Lager");
   await page.locator(".size-grid").getByRole("button", { name: "48", exact: true }).click();

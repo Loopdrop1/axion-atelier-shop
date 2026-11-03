@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Panel } from "./panel";
 import { ProductCard, useFitLabel } from "./product-card";
 import { isOneSizeTitle } from "@/lib/commerce/one-size";
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { formatPrice } from "@/lib/commerce/format";
 import { filtersFromSearch, type CollectionSearch } from "@/lib/commerce/queries";
 import { filterProducts, type Collection, type Product } from "@/lib/commerce";
@@ -66,16 +67,24 @@ export function CollectionPage({
     key === "farbe"
       ? selectedColorKeys(search.farbe, catalogue)
       : (search[key]?.split(",").filter(Boolean) ?? []);
-  const label = (key: string, v: string) =>
+  // Buchstaben der Kleidergrössen («48 (M)»), aus den Stücken dieser Sammlung; Schuhe nie
+  const sizeLetters = new Map(
+    catalogue
+      .filter((p) => p.category !== "schuhe")
+      .flatMap((p) => p.variants.flatMap((v) => (v.letter ? [[v.title, v.letter] as const] : []))),
+  );
+  const label = (key: string, v: string, section = "") =>
     key === "passform"
       ? fitLabel(v)
       : key === "anlass"
         ? (t.occasions[v] ?? v)
         : key === "groesse" && isOneSizeTitle(v)
           ? t.product.oneSize
-          : ((s: string) => s.charAt(0).toUpperCase() + s.slice(1))(
-              key === "farbe" ? (colorLabels.get(v) ?? v) : v,
-            );
+          : key === "groesse"
+            ? sizeWithLetter(v, section === "shoes" ? undefined : sizeLetters.get(v))
+            : ((s: string) => s.charAt(0).toUpperCase() + s.slice(1))(
+                key === "farbe" ? (colorLabels.get(v) ?? v) : v,
+              );
   const change = (key: keyof CollectionSearch, value: string | number | undefined) => {
     navigate({
       to: "/{-$locale}/kollektion/$handle",
@@ -150,7 +159,7 @@ export function CollectionPage({
               disabled={!checked && !count}
               onChange={() => toggle(g.key, v)}
             />
-            {label(g.key, v)}
+            {label(g.key, v, section)}
             <span className="filter-count" aria-hidden="true">
               {count}
             </span>

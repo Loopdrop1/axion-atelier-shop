@@ -72,6 +72,20 @@ describe("Muster-Sortiment (supabase/demo)", () => {
        from public.products p where handle = 'anzug-limmat-marine'`,
     );
     expect(real).toEqual({ title_de: "Echter Anzug", tags: [], variants: 0, images: 0 });
+    // Model-Angaben nur an Musterstücken (das echte Produkt mit gleicher Adresse bleibt ohne)
+    expect(
+      (
+        await db.query(
+          `select handle, model_height_cm, model_size from public.products
+           where handle in ('anzug-limmat-marine', 'anzug-aare-anthrazit', 'smoking-thur-schwarz')
+           order by handle`,
+        )
+      ).rows,
+    ).toEqual([
+      { handle: "anzug-aare-anthrazit", model_height_cm: 182, model_size: "48" },
+      { handle: "anzug-limmat-marine", model_height_cm: null, model_size: null },
+      { handle: "smoking-thur-schwarz", model_height_cm: 189, model_size: "52" },
+    ]);
     // Bestehende Kategorie und Inhalte werden nicht überschrieben
     expect(
       (

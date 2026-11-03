@@ -1,4 +1,6 @@
 // Grössentabellen aus dem Admin (Admin → Grössentabellen). Ohne passende Tabelle ein Hinweis statt Beispielwerten.
+// Bei Konfektionsgrössen mit Zuordnung steht nach der Grösse die Spalte «Int.» (Buchstabe, siehe sizes.ts).
+import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useMatch } from "@tanstack/react-router";
 import { shopConfig } from "@/config/shop";
@@ -34,9 +36,14 @@ export function SizeGuide({ category }: { category?: string }) {
               <thead>
                 <tr>
                   {tb.columns.map((c, i) => (
-                    <th key={i} scope="col">
-                      {c}
-                    </th>
+                    <Fragment key={i}>
+                      <th scope="col">{c}</th>
+                      {i === 0 && tb.international && (
+                        <th scope="col">
+                          <abbr title={t.international}>{t.internationalShort}</abbr>
+                        </th>
+                      )}
+                    </Fragment>
                   ))}
                 </tr>
               </thead>
@@ -45,9 +52,10 @@ export function SizeGuide({ category }: { category?: string }) {
                   <tr key={r}>
                     {row.map((cell, i) =>
                       i === 0 ? (
-                        <th key={i} scope="row">
-                          {cell}
-                        </th>
+                        <Fragment key={i}>
+                          <th scope="row">{cell}</th>
+                          {tb.international && <td>{tb.international[r]}</td>}
+                        </Fragment>
                       ) : (
                         <td key={i}>{cell}</td>
                       ),

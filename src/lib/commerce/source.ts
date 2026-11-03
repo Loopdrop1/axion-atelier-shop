@@ -3,7 +3,13 @@
 // damit eine Seite mit mehreren Abfragen nur einmal lädt. Änderungen im Admin sind spätestens dann sichtbar.
 import { getSupabase } from "@/lib/supabase-client";
 import { backendConfigured } from "@/lib/backend";
-import { CATEGORY_SELECT, PRODUCT_SELECT, type CatalogData, type ProductRow } from "./rows";
+import {
+  CATEGORY_SELECT,
+  PRODUCT_SELECT,
+  PRODUCT_SELECT_BASE,
+  type CatalogData,
+  type ProductRow,
+} from "./rows";
 
 // Beispielkatalog (Vorschau ohne Backend, Tests) als eigener Teil: Der Shop mit Backend lädt ihn nie mit.
 const sampleCatalog = () => import("./sample-catalog").then((m) => m.sampleCatalog);
@@ -14,16 +20,19 @@ let cache: { at: number; data: Promise<CatalogData> } | null = null;
 async function fetchCatalog(): Promise<CatalogData> {
   if (!backendConfigured) return sampleCatalog();
   const supabase = await getSupabase();
-  const [categories, products, content] = await Promise.all([
+  const productQuery = (select: string) =>
+    supabase.from("products").select(select).eq("status", "active").order("sort").order("handle");
+  const [categories, first, content] = await Promise.all([
     supabase.from("categories").select(CATEGORY_SELECT).order("sort").order("slug"),
-    supabase
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("status", "active")
-      .order("sort")
-      .order("handle"),
+    productQuery(PRODUCT_SELECT),
     supabase.from("site_content").select("key, value"),
   ]);
+  let products = first;
+  // Migration 0023 (Model-Angaben) noch nicht in Cloud: ohne diese Spalten laden statt den Shop anzuhalten
+  if (products.error && /model_(height_cm|size)/.test(products.error.message)) {
+    console.error("Model-Angaben nicht lesbar (Migration 0023 fehlt?):", products.error.message);
+    products = await productQuery(PRODUCT_SELECT_BASE);
+  }
   if (categories.error) throw categories.error;
   if (products.error) throw products.error;
   if (content.error) throw content.error;

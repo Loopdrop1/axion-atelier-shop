@@ -1704,6 +1704,105 @@ svg {
   text-decoration: line-through;
   opacity: 0.35;
 }
+/* Zahl mit Buchstabe darunter («48» / «M»); feste Höhe, damit nichts springt */
+.size-grid button,
+.quick-add button {
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.1;
+  position: relative;
+}
+.size-letter {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.size-grid button.selected .size-letter {
+  color: inherit;
+  opacity: 0.8;
+}
+.quick-add .size-letter {
+  font-size: 9px;
+}
+/* «Deine Grösse» aus dem Grössenfinder: dezenter Punkt oben rechts */
+.size-grid button.is-suggested::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.size-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 16px;
+}
+.model-line {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: -14px 0 18px;
+}
+/* Grössenfinder (Dialog auf der Produktseite, Abschnitt auf «Grössenberatung») */
+.size-finder {
+  display: grid;
+  gap: 20px;
+  padding-bottom: 24px;
+}
+.size-finder-intro,
+.size-finder-privacy {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
+}
+.size-finder-privacy .text-link {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.size-finder-result:empty {
+  display: none;
+}
+.size-finder-result {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.size-finder-result p {
+  margin: 0;
+}
+.size-finder-answer {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--green);
+}
+.size-finder-answer.is-missing {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+.size-finder-soldout {
+  color: oklch(0.48 0.1 60);
+}
+.size-finder-section {
+  margin: 8px 0 56px;
+  display: grid;
+  gap: 18px;
+  max-width: 560px;
+}
+.size-finder-section h2 {
+  margin: 0;
+}
 .add-row {
   display: flex;
   gap: 12px;

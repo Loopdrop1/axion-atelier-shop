@@ -1,4 +1,5 @@
 // Eine Zeile im «Komplettes Outfit» der Produktseite: Bild mit Link, Auswahl mit Name, Preis und Grösse.
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { SIZES } from "@/lib/commerce/variants";
 import { Link } from "@tanstack/react-router";
 import { formatPrice } from "@/lib/commerce/format";
@@ -68,7 +69,7 @@ export function OutfitRow({
         </option>
         {sizesFor(p, hideSoldOut).map((v) => (
           <option key={v.id} value={v.id} disabled={!v.availableForSale}>
-            {isOneSizeTitle(v.title) ? t.product.oneSize : v.title}
+            {isOneSizeTitle(v.title) ? t.product.oneSize : sizeWithLetter(v.title, v.letter)}
             {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
           </option>
         ))}

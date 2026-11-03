@@ -672,6 +672,8 @@ export type Database = {
           material_de: string | null
           material_en: string | null
           model: string
+          model_height_cm: number | null
+          model_size: string | null
           occasions: string[]
           origin_de: string | null
           origin_en: string | null
@@ -706,6 +708,8 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model: string
+          model_height_cm?: number | null
+          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null
@@ -740,6 +744,8 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model?: string
+          model_height_cm?: number | null
+          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null

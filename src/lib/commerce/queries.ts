@@ -11,6 +11,7 @@ import {
   getRecommendations,
   getSiblings,
   getSizeGuides,
+  getSizeLetters,
   listCollections,
   listProducts,
   searchCatalog,
@@ -96,6 +97,9 @@ export const sizeGuideQuery = (locale: Locale) =>
     queryFn: () => getSizeGuides(locale),
     staleTime: 60_000,
   });
+
+export const sizeLettersQuery = () =>
+  queryOptions({ queryKey: ["size-letters"], queryFn: getSizeLetters, staleTime: 60_000 });
 
 const VIRTUAL = new Set(["alle", "neu", "sale"]);
 
