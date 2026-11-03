@@ -318,6 +318,7 @@ export type Database = {
           id: string
           image: string | null
           line_total_cents: number
+          on_sale: boolean
           order_id: string
           product_id: string | null
           quantity: number
@@ -334,6 +335,7 @@ export type Database = {
           id?: string
           image?: string | null
           line_total_cents: number
+          on_sale?: boolean
           order_id: string
           product_id?: string | null
           quantity: number
@@ -350,6 +352,7 @@ export type Database = {
           id?: string
           image?: string | null
           line_total_cents?: number
+          on_sale?: boolean
           order_id?: string
           product_id?: string | null
           quantity?: number
@@ -417,6 +420,7 @@ export type Database = {
           shipped_at: string | null
           shipping_address: Json | null
           shipping_cents: number
+          shipping_method: string
           shipping_name: string | null
           shipping_sent_at: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -463,6 +467,7 @@ export type Database = {
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
+          shipping_method?: string
           shipping_name?: string | null
           shipping_sent_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -509,6 +514,7 @@ export type Database = {
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
+          shipping_method?: string
           shipping_name?: string | null
           shipping_sent_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -868,6 +874,7 @@ export type Database = {
           newsletter_welcome_days: number
           newsletter_welcome_percent: number | null
           notify_email: string | null
+          priority_shipping_cents: number | null
           shipping_cents: number
           updated_at: string
         }
@@ -881,6 +888,7 @@ export type Database = {
           newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
+          priority_shipping_cents?: number | null
           shipping_cents?: number
           updated_at?: string
         }
@@ -894,6 +902,7 @@ export type Database = {
           newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
+          priority_shipping_cents?: number | null
           shipping_cents?: number
           updated_at?: string
         }
@@ -1231,6 +1240,7 @@ export type Database = {
           p_gift_card_code?: string
           p_lines: Json
           p_locale?: string
+          p_shipping_method?: string
           p_user_id?: string
         }
         Returns: Json

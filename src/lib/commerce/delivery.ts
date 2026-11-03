@@ -3,6 +3,7 @@
 // Samstag, Sonntag und die gesamtschweizerischen Feiertage zählen nicht als Arbeitstage.
 import { shopConfig } from "@/config/shop";
 import type { Locale } from "@/i18n/locale";
+import type { ShippingMethod } from "./shipping-method";
 
 export interface DeliveryConfig {
   /** Uhrzeit «HH:MM» (Europe/Zurich), bis zu der bestellt am selben Arbeitstag versendet wird */
@@ -19,6 +20,21 @@ export interface DeliveryEstimate {
   /** Frühestens / spätestens zugestellt, «YYYY-MM-DD» */
   min: string;
   max: string;
+}
+
+/** Lieferschätzung je Versandart: gleicher Annahmeschluss, Priority mit eigenen Transporttagen (in der Regel am
+ *  nächsten Arbeitstag nach dem Versand). */
+export function deliveryConfigFor(
+  method: ShippingMethod,
+  config: DeliveryConfig & {
+    priorityTransitDays: { min: number; max: number };
+  } = shopConfig.delivery,
+): DeliveryConfig {
+  return {
+    dispatchCutoff: config.dispatchCutoff,
+    processingDays: config.processingDays,
+    transitDays: method === "priority" ? config.priorityTransitDays : config.transitDays,
+  };
 }
 
 const ZONE = "Europe/Zurich";

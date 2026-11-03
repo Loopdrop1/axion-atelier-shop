@@ -31,7 +31,8 @@ export interface FunctionEnv {
   /** MWST-Satz in Prozent (SHOP_VAT_RATE), nur setzen, wenn der Shop MWST-pflichtig ist. Wird pro Bestellung gespeichert. */
   vatRate: number | null;
   /** Post-Etiketten (Digital Commerce API «Barcode»), noch ungetestet: POST_CLIENT_ID, POST_CLIENT_SECRET,
-   *  POST_FRANKING_LICENSE, POST_PRODUCT (ECO oder PRI, Standard ECO). Leer = Funktion aus. */
+   *  POST_FRANKING_LICENSE, POST_PRODUCT (ECO oder PRI, Standard ECO; nur Rückfallwert für Bestellungen ohne
+   *  Versandart, sonst gilt orders.shipping_method). Leer = Funktion aus. */
   postClientId: string;
   postClientSecret: string;
   postFrankingLicense: string;

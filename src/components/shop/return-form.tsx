@@ -1,5 +1,6 @@
 // Retoure anmelden: Bestellnummer + E-Mail → Stücke, Menge, Grund und Rückerstattung (Zahlungsmittel oder Gutschein)
-// wählen → anmelden (Edge Function «return-request»).
+// wählen → anmelden (Edge Function «return-request»). Sale-Stücke erscheinen ausgegraut und sind nicht wählbar.
+// Zusagen zur Rücksendung (gratis, Etikett) kommen aus shopConfig.returns.
 // Gastfreundlich; aus dem Kundenkonto kommt die Bestellnummer vorbelegt (?order=…) und die E-Mail-Adresse der Sitzung.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import {
   TextAreaField,
 } from "@/components/account/form";
 import { backendConfigured } from "@/lib/backend";
+import { shopConfig } from "@/config/shop";
 import { useLocale, useLocaleParam, useT, type Messages } from "@/i18n";
 import { useSession } from "@/lib/account/session";
 import { formatDate } from "@/lib/commerce/format";
@@ -157,7 +159,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
           <br />
           {r.done(receipt.returnNumber, `AX-${receipt.orderNumber}`)}
         </Notice>
-        <p>{receipt.emailed ? r.doneMail : r.doneMailFailed}</p>
+        <p>{receipt.emailed ? r.doneMail(shopConfig.returns) : r.doneMailFailed}</p>
         <p>{r.doneRefund(receipt.refundMethod, REFUND_WITHIN_DAYS)}</p>
         <div className="return-actions">
           <Button type="button" variant="outline" onClick={reset}>
@@ -219,6 +221,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
       </form>
     );
 
+  const selectable = lookup.items.some((item) => !item.onSale);
   return (
     <form className="return-form" onSubmit={send} noValidate>
       <div>
@@ -228,6 +231,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
         </p>
       </div>
       {error && <Notice kind="error">{error}</Notice>}
+      {!selectable && <Notice>{r.nothingSelectable}</Notice>}
       <fieldset className="return-items">
         <legend className="sr-only">{r.itemsTitle}</legend>
         {lookup.items.map((item) => {
@@ -235,12 +239,17 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
           const src = imageUrl(item.image, "product-images");
           const fieldId = `${id}-${item.orderItemId}`;
           return (
-            <div className="return-item" key={item.orderItemId}>
+            <div
+              className={`return-item${item.onSale ? " is-excluded" : ""}`}
+              key={item.orderItemId}
+            >
               <input
                 type="checkbox"
                 id={`${fieldId}-check`}
                 aria-label={r.selectItem(item.title)}
-                checked={d?.checked ?? false}
+                aria-describedby={item.onSale ? `${fieldId}-sale` : undefined}
+                disabled={item.onSale}
+                checked={!item.onSale && (d?.checked ?? false)}
                 onChange={(e) => patch(item.orderItemId, { checked: e.target.checked })}
               />
               {src ? (
@@ -264,8 +273,13 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
+                {item.onSale && (
+                  <p className="return-item-note" id={`${fieldId}-sale`}>
+                    {r.saleExcluded}
+                  </p>
+                )}
               </div>
-              {d?.checked && (
+              {d?.checked && !item.onSale && (
                 <div className="return-item-fields">
                   {item.quantity > 1 ? (
                     <SelectField
@@ -342,7 +356,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
       />
       <p className="text-muted">{r.privacy}</p>
       <div className="return-actions">
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" disabled={busy || !selectable}>
           {busy ? r.sending : r.submit}
         </Button>
         <button type="button" className="text-link" onClick={reset}>

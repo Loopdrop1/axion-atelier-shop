@@ -22,7 +22,7 @@ export interface SwissPostConfig {
   clientSecret: string;
   /** Frankierlizenz (Vertragsnummer der Post) */
   frankingLicense: string;
-  /** B-Post (ECO) oder A-Post (PRI) */
+  /** B-Post (ECO) oder A-Post (PRI); admin-actions setzt es aus der Versandart der Bestellung (postProductFor) */
   product: PostProduct;
   /** Telefon und E-Mail der Kundschaft auf dem Etikett (nur wenn die Datenschutzerklärung die Post nennt) */
   sendRecipientContact: boolean;

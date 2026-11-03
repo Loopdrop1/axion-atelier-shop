@@ -129,6 +129,13 @@ function ReturnView({ row }: { row: ReturnRow }) {
             : " – aufs ursprüngliche Zahlungsmittel; mit Gutschein bezahlte Anteile gehen auf den Gutschein."}{" "}
           Innert {REFUND_WITHIN_DAYS} Tagen nach Eingang erstatten.
         </p>
+        {row.orders && row.orders.gift_card_cents > 0 && (
+          <p>
+            <strong>Teils mit Gutschein bezahlt ({chf(row.orders.gift_card_cents)}).</strong> Dieser
+            Anteil geht immer auf den Gutschein zurück, auch wenn die Kundschaft das Zahlungsmittel
+            gewählt hat: in der Bestellung unter «Gutscheinanteil gutschreiben».
+          </p>
+        )}
         <p className="admin-muted">
           Erstattung und «Retoure einbuchen» (Bestand) erledigst du in der Bestellung. Danach hier
           den Status auf «Erstattet» setzen.

@@ -10,6 +10,7 @@ import {
   type CatalogData,
   type ProductRow,
 } from "./rows";
+import type { ShippingMethod } from "./shipping-method";
 
 // Beispielkatalog (Vorschau ohne Backend, Tests) als eigener Teil: Der Shop mit Backend lädt ihn nie mit.
 const sampleCatalog = () => import("./sample-catalog").then((m) => m.sampleCatalog);
@@ -71,6 +72,8 @@ export interface ShopSettings {
   hideSoldOut: boolean;
   /** Willkommensrabatt für den Newsletter in Prozent (Admin → Einstellungen); null = keiner */
   newsletterWelcomePercent: number | null;
+  /** Preis für Post Priority (Admin → Einstellungen); null = nicht angeboten */
+  priorityShippingCents: number | null;
 }
 
 export const DEFAULT_SETTINGS: ShopSettings = {
@@ -81,18 +84,35 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   giftCardValidYears: 30,
   hideSoldOut: false,
   newsletterWelcomePercent: null,
+  priorityShippingCents: null,
 };
+
+/** Priority-Preis getrennt lesen: Fehlt die Spalte (Migration 0025 noch nicht in Cloud), bleibt Priority einfach aus. */
+async function loadPriorityCents(
+  supabase: Awaited<ReturnType<typeof getSupabase>>,
+): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("shop_settings")
+    .select("priority_shipping_cents")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) return null;
+  return data?.priority_shipping_cents ?? null;
+}
 
 export async function loadSettings(): Promise<ShopSettings> {
   if (!backendConfigured) return DEFAULT_SETTINGS;
   const supabase = await getSupabase();
-  const full = await supabase
-    .from("shop_settings")
-    .select(
-      "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out, newsletter_welcome_percent",
-    )
-    .eq("id", 1)
-    .maybeSingle();
+  const [full, priorityShippingCents] = await Promise.all([
+    supabase
+      .from("shop_settings")
+      .select(
+        "shipping_cents, free_shipping_from_cents, gift_card_min_cents, gift_card_max_cents, gift_card_valid_years, hide_sold_out, newsletter_welcome_percent",
+      )
+      .eq("id", 1)
+      .maybeSingle(),
+    loadPriorityCents(supabase),
+  ]);
   let data = full.data;
   if (full.error) {
     // Z. B. Migration 0700 noch nicht ausgeführt (Spalte hide_sold_out fehlt): Versandkosten trotzdem richtig
@@ -119,11 +139,19 @@ export async function loadSettings(): Promise<ShopSettings> {
     giftCardValidYears: data.gift_card_valid_years,
     hideSoldOut: data.hide_sold_out,
     newsletterWelcomePercent: data.newsletter_welcome_percent || null,
+    priorityShippingCents,
   };
 }
 
-/** Versandkosten wie in reserve_checkout: gratis ab Schwelle (Betrag nach Rabatt), sonst Pauschale. */
-export function shippingFor(afterDiscountCents: number, settings: ShopSettings): number {
+/** Versandkosten wie in reserve_checkout: Priority (mit Preis) kostet immer den Priority-Preis; Economy gratis ab
+ *  Schwelle (Betrag nach Rabatt), sonst Pauschale. Priority ohne Preis gilt als Economy. */
+export function shippingFor(
+  afterDiscountCents: number,
+  settings: ShopSettings,
+  method: ShippingMethod = "economy",
+): number {
+  if (method === "priority" && settings.priorityShippingCents !== null)
+    return settings.priorityShippingCents;
   if (
     settings.freeShippingFromCents !== null &&
     afterDiscountCents >= settings.freeShippingFromCents
@@ -138,6 +166,8 @@ export interface Totals {
   shippingCents: number;
   giftCardCents: number;
   totalCents: number;
+  /** Verrechnete Versandart (Priority ohne Preis → Economy) */
+  shippingMethod: ShippingMethod;
 }
 
 /** Kleinster Betrag, den Stripe abbucht (CHF 0.50). */
@@ -147,21 +177,27 @@ const MIN_CHARGE_CENTS = 50;
  * Vorschau der Beträge im Warenkorb, gleich gerechnet wie reserve_checkout in der Datenbank
  * (verbindlich rechnet immer der Server): Rabatt, dann Versand, dann Gutschein. Stripe verlangt
  * mindestens CHF 0.50: Liesse der Rabatt weniger übrig, wird er gekürzt (erreicht der Betrag dadurch
- * die Gratisversand-Schwelle, ohne Versand nochmals auf 50 Rappen); bleibt nach dem Gutschein ein
- * Rest darunter, wird weniger vom Gutschein genommen.
+ * die Gratisversand-Schwelle, ohne Versand nochmals auf 50 Rappen; nur Economy); bleibt nach dem Gutschein ein
+ * Rest darunter, wird weniger vom Gutschein genommen. Post Priority kostet immer den Priority-Preis.
  */
 export function estimateTotals(
   subtotalCents: number,
   discountCents: number,
   giftCardBalanceCents: number,
   settings: ShopSettings,
+  shippingMethod: ShippingMethod = "economy",
 ): Totals {
+  const method: ShippingMethod =
+    shippingMethod === "priority" && settings.priorityShippingCents !== null
+      ? "priority"
+      : "economy";
   let discount = Math.min(Math.max(discountCents, 0), subtotalCents);
-  let shipping = shippingFor(subtotalCents - discount, settings);
+  let shipping = shippingFor(subtotalCents - discount, settings, method);
   const payable = subtotalCents - discount + shipping;
   if (discount > 0 && payable >= 1 && payable <= MIN_CHARGE_CENTS - 1) {
     discount = Math.max(0, subtotalCents + shipping - MIN_CHARGE_CENTS);
-    if (shippingFor(subtotalCents - discount, settings) === 0) {
+    // Gratis ab Schwelle gibt es nur für Economy
+    if (method === "economy" && shippingFor(subtotalCents - discount, settings) === 0) {
       shipping = 0;
       discount = Math.max(0, subtotalCents - MIN_CHARGE_CENTS);
     }
@@ -177,5 +213,6 @@ export function estimateTotals(
     shippingCents: shipping,
     giftCardCents: gift,
     totalCents: due - gift,
+    shippingMethod: method,
   };
 }

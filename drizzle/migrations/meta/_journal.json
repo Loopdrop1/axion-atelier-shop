@@ -176,6 +176,13 @@
       "when": 1792760000000,
       "tag": "0024_axion_sortiment_gift_newsletter",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792770000000,
+      "tag": "0025_axion_checkout_shipping_returns",
+      "breakpoints": true
     }
   ]
 }

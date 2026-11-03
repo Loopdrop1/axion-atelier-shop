@@ -1,7 +1,8 @@
 // Retoure anmelden (Seite /retoure): Gründe, Rückerstattung, Bestellnummer und Aufruf der Edge Function «return-request».
-// Gründe, Rückerstattungsarten und Bestellnummer-Regel sind dieselben wie in supabase/functions/_shared/returns.ts;
-// returns.test.ts prüft das.
+// Gründe, Rückerstattungsarten, Bestellnummer-Regel und Rückgabe-Zusagen (shopConfig.returns) sind dieselben wie in
+// supabase/functions/_shared/returns.ts; returns.test.ts prüft das.
 import { callFunction } from "@/integrations/supabase/functions";
+import { shopConfig } from "@/config/shop";
 
 export const RETURN_REASONS = [
   "too_small",
@@ -19,8 +20,8 @@ export const MAX_RETURN_COMMENT = 1000;
 export const REFUND_METHODS = ["original", "gift_card"] as const;
 export type RefundMethod = (typeof REFUND_METHODS)[number];
 
-/** Tage nach Eingang der Rücksendung, innert derer wir erstatten. */
-export const REFUND_WITHIN_DAYS = 7;
+/** Tage nach Eingang der Rücksendung, innert derer wir erstatten (shopConfig.returns.refundDays). */
+export const REFUND_WITHIN_DAYS: number = shopConfig.returns.refundDays;
 
 /** «AX-10001», «#10001» oder «10001» → 10001; sonst null. */
 export function parseOrderNumber(value: string): number | null {
@@ -36,6 +37,8 @@ export interface ReturnItem {
   image: string | null;
   /** noch zurückgebbare Menge */
   quantity: number;
+  /** Beim Kauf im Sale: von der Rückgabe ausgenommen (nicht wählbar). Ältere Bestellungen: false. */
+  onSale: boolean;
 }
 
 export interface ReturnLookup {
@@ -146,7 +149,8 @@ export function selectionFrom(
   let missingReason = false;
   for (const item of items) {
     const d = drafts[item.orderItemId];
-    if (!d?.checked) continue;
+    // Sale-Stücke lehnt der Server ohnehin ab (return_submit)
+    if (!d?.checked || item.onSale) continue;
     if (!d.reason) {
       missingReason = true;
       continue;
