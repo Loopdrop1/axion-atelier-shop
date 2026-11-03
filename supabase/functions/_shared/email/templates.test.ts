@@ -308,6 +308,19 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     );
   });
 
+  it("Versandmeldung: Bitte um Bewertung nur mit Link (Bewertungen eingeschaltet)", () => {
+    for (const locale of ["de", "en"] as const) {
+      const plain = shippingConfirmation(order(locale), shop);
+      expect(plain.text).not.toMatch(/bewertung|review/i);
+      expect(plain.html).not.toMatch(/bewertung|review/i);
+      const url = `https://shop.test${locale === "en" ? "/en" : ""}/bewertung/${"a".repeat(48)}`;
+      const mail = shippingConfirmation(order(locale), shop, { reviewUrl: url });
+      expect(mail.text).toContain(url);
+      expect(mail.html).toContain(url);
+      expect(mail.text).toContain(locale === "en" ? "valid for 90 days" : "gilt 90 Tage");
+    }
+  });
+
   it("Shop-Meldung: immer Deutsch, Link ins Admin, Hinweis bei Prüfbedarf", () => {
     const normal = shopNotification(order("en"), shop);
     expect(normal.subject).toMatch(/^Neue Bestellung AX-10042 · CHF\s644\.20$/);

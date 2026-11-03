@@ -7,6 +7,7 @@ import {
   getCollection,
   getHomeContent,
   getProduct,
+  getProductReviews,
   getProductsByHandles,
   getRecommendations,
   getSiblings,
@@ -79,6 +80,14 @@ export const productQuery = (handle: string, locale: Locale) =>
         recommendations: await getRecommendations(product, 4, locale),
       };
     },
+  });
+
+/** Freigegebene Bewertungen (nur mit shopConfig.features.reviews; sonst ohne Aufruf null). */
+export const productReviewsQuery = (handle: string) =>
+  queryOptions({
+    queryKey: ["product-reviews", handle],
+    queryFn: () => getProductReviews(handle),
+    staleTime: 60_000,
   });
 
 export const searchQuery = (q: string, locale: Locale) =>

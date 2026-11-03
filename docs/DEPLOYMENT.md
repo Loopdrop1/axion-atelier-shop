@@ -73,14 +73,14 @@ einschalten.
 3. Funktionen veröffentlichen: im **Lovable-Chat** einfügen (kostet wenige Credits):
 
    > Deploy the edge functions checkout, stripe-webhook, newsletter, admin-actions, contact, account-delete,
-   > stock-alert, search-assist, client-error and return-request exactly as they are in supabase/functions, with verify_jwt = false as in
+   > stock-alert, search-assist, client-error, return-request and review exactly as they are in supabase/functions, with verify_jwt = false as in
    > supabase/config.toml. Do not change their code. The functions admin-actions and search-assist use
    > LOVABLE_API_KEY and the Lovable AI gateway with the model google/gemini-2.5-flash; if that model is not
    > available in the gateway, tell me the current default Gemini Flash model id instead of changing the code.
 
-   Kontrolle unter Cloud → Edge functions: Soll sind **11 Funktionen mit `verify_jwt = false`** (`checkout`,
+   Kontrolle unter Cloud → Edge functions: Soll sind **12 Funktionen mit `verify_jwt = false`** (`checkout`,
    `stripe-webhook`, `newsletter`, `admin-actions`, `contact`, `account-delete`, `stock-alert`, `search-assist`,
-   `client-error`, `return-request` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist mit
+   `client-error`, `return-request`, `review` und `auth-email-hook`); ein Test prüft, dass `supabase/config.toml` jede Funktion so führt. `auth-email-hook` ist mit
    Lovable Cloud nicht im Einsatz (Lovable verschickt die Konto-E-Mails selbst, Cloud → Emails); er ist nur für ein
    eigenes Supabase-Projekt als «Send Email Hook» gedacht und antwortet ohne `SEND_EMAIL_HOOK_SECRET` mit 500.
    Nennt Lovable ein anderes Modell, dieses als Secret `TRANSLATE_MODEL` speichern.

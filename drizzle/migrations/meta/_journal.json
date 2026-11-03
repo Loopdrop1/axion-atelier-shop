@@ -183,6 +183,13 @@
       "when": 1792770000000,
       "tag": "0025_axion_checkout_shipping_returns",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792780000000,
+      "tag": "0026_axion_reviews",
+      "breakpoints": true
     }
   ]
 }

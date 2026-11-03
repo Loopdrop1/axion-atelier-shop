@@ -125,3 +125,30 @@ describe("Besucherstatistik im Datenschutztext", () => {
     }
   });
 });
+
+describe("Bewertungen im Datenschutztext", () => {
+  const bullets = (page: WrittenPage) =>
+    page.sections.flatMap((s) => s.blocks).flatMap((b) => (b.type === "bullets" ? b.items : []));
+  it("Daten, Zweck und Speicherdauer in beiden Sprachen, sichtbar nur mit features.reviews", () => {
+    for (const page of [pages.datenschutz, pagesEn.datenschutz!]) {
+      const marked = bullets(page).filter((t) => t.startsWith("{{reviews}}"));
+      expect(marked).toHaveLength(3);
+      // Standard: Schalter aus, nichts davon sichtbar
+      expect(visibleItems(marked, false)).toEqual([]);
+      expect(visibleItems(bullets(page), true).join(" ")).not.toContain("{{reviews}}");
+      const shown = visibleItems(marked, false, true);
+      expect(shown).toHaveLength(3);
+      expect(shown.join(" ")).not.toContain("{{");
+      expect(shown.join(" ")).toMatch(/90/);
+    }
+    expect(visibleItems(bullets(pages.datenschutz)).some((t) => t.includes("Bewertung"))).toBe(
+      false,
+    );
+  });
+
+  it("die Statistik-Marke bleibt unabhängig von der Bewertungs-Marke", () => {
+    const items = ["{{analytics}}A", "{{reviews}}B", "C"];
+    expect(visibleItems(items, true, false)).toEqual(["A", "C"]);
+    expect(visibleItems(items, false, true)).toEqual(["B", "C"]);
+  });
+});

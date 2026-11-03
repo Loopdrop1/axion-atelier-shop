@@ -55,6 +55,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - **Gift cards:** code, value, remaining balance and expiry date, the purchaser's email address and, if provided, the recipient's name and email address, the sender's name and the personal message.
 - **Newsletter (optional):** email address, language, wording and time of your consent, time of your confirmation and of any unsubscription and, if we offer a welcome discount, your personal discount code.
 - **Back-in-stock alert (optional):** email address, language, requested piece and size, and the time of your request and confirmation.
+- {{reviews}}**Reviews (optional):** If you review a piece after a purchase using the link in the shipping confirmation: stars, title, text, the display name you choose, language, time, the piece reviewed and the link to your order, so that only genuine purchases can be reviewed.
 - **Return (on request):** order number, email address, the pieces returned with quantity and reason, your optional comment, and the time and status of the return.
 - **Reminder about an incomplete purchase (optional):** Only if you tick “Remind me by email if I do not complete my purchase” in your cart, we send you a single email with your items and a link to your cart if the payment does not go through; we store your consent with the order, and without the tick you receive no reminder.
 - **Communication:** your name, email address and the content and time of your messages when you contact us through the contact form, by email or by phone.
@@ -70,6 +71,7 @@ This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 - to send you the newsletter if you have subscribed and confirmed your subscription by email;
 - to notify you once by email when a sold-out size is back, if you have requested this and confirmed it by email;
 - to remind you once about an unfinished purchase, if you ticked this in your cart;
+- {{reviews}}to check your review and, once we have approved it, to show it publicly on the product page with display name, stars, title, text and date, without your email address or order details; the basis is your consent when you submit it;
 - to answer your questions;
 - to run the website securely and reliably and to prevent misuse;
 - to comply with legal obligations, in particular the retention of business records.
@@ -113,6 +115,7 @@ We keep personal data for as long as we need it for the purposes described:
 - **Newsletter:** until you unsubscribe. We keep the record of your consent and unsubscription for as long as we need it as evidence. We delete unconfirmed subscriptions after 30 days.
 - **Returns:** together with the order for the statutory period for business records.
 - **Back-in-stock alert:** We keep confirmed requests until the piece is available again and the alert has been sent; we then delete your address. We delete unconfirmed requests after 30 days.
+- {{reviews}}**Reviews:** Published reviews remain for as long as the product is listed in the shop, or until you ask us to delete them; a short message to us is enough. We delete rejected reviews after 90 days. The review link is valid for 90 days.
 - **Gift cards:** until they expire and then for the statutory period for business records.
 - **Messages sent through the contact form:** The shop does not store them; they reach our mailbox as emails. We keep them for as long as we need them for your enquiry.
 - **Protection against misuse:** To stop anyone from using the forms, checkout or gift card check on a massive scale, we count requests per IP address and email address. For this, we store only a hash of the address, not the address itself, together with the count and the time. We delete expired counters on an ongoing basis, usually after two days.

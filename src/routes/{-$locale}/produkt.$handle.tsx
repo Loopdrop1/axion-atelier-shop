@@ -3,14 +3,24 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { messages, toLocale, useLocale } from "@/i18n";
 import { shopConfig } from "@/config/shop";
 import { MissingPage } from "@/components/shop/missing-page";
-import { productQuery } from "@/lib/commerce/queries";
+import { productQuery, productReviewsQuery } from "@/lib/commerce/queries";
 import { pageHead, pageUrl } from "@/lib/commerce/seo";
-import { breadcrumbLd } from "@/lib/seo/structured";
+import { breadcrumbLd, productLd } from "@/lib/seo/structured";
 import { ProductPage } from "@/components/shop/product";
 import { jsonLd } from "@/lib/seo/json-ld";
 export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
-  loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(productQuery(params.handle, toLocale(params.locale))),
+  loader: async ({ context, params }) => {
+    const data = await context.queryClient.ensureQueryData(
+      productQuery(params.handle, toLocale(params.locale)),
+    );
+    // Bewertungen nur mit Schalter (sonst kein Aufruf); ein Fehler darf die Produktseite nicht kippen
+    const reviews = shopConfig.features.reviews
+      ? await context.queryClient
+          .ensureQueryData(productReviewsQuery(params.handle))
+          .catch(() => null)
+      : null;
+    return { ...data, reviews };
+  },
   head: ({ loaderData, params }) => {
     const locale = toLocale(params.locale);
     const t = messages[locale].product;
@@ -28,43 +38,7 @@ export const Route = createFileRoute("/{-$locale}/produkt/$handle")({
         ? [
             {
               type: "application/ld+json",
-              children: jsonLd({
-                "@context": "https://schema.org",
-                "@type": "Product",
-                name: `${p.title}, ${p.color.name}`,
-                brand: { "@type": "Brand", name: shopConfig.brand },
-                sku: p.handle,
-                color: p.color.name,
-                ...(p.details.material ? { material: p.details.material } : {}),
-                category: p.categoryTitle,
-                ...(p.images.length
-                  ? { image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href) }
-                  : {}),
-                ...(p.description ? { description: p.description } : {}),
-                url: pageUrl(path, locale),
-                offers: {
-                  "@type": "AggregateOffer",
-                  priceCurrency: "CHF",
-                  lowPrice: p.priceRange.min.amount,
-                  highPrice: p.priceRange.max.amount,
-                  offerCount: p.variants.length,
-                  availability: p.variants.some((v) => v.availableForSale)
-                    ? "https://schema.org/InStock"
-                    : "https://schema.org/OutOfStock",
-                  itemCondition: "https://schema.org/NewCondition",
-                  hasMerchantReturnPolicy: {
-                    "@type": "MerchantReturnPolicy",
-                    applicableCountry: "CH",
-                    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                    merchantReturnDays: shopConfig.returnDays,
-                    returnMethod: "https://schema.org/ReturnByMail",
-                    // Aus shopConfig.returns, nie fest: nur mit zugesagter Gratis-Rücksendung
-                    ...(shopConfig.returns.freeReturn
-                      ? { returnFees: "https://schema.org/FreeReturn" }
-                      : {}),
-                  },
-                },
-              }),
+              children: jsonLd(productLd(p, path, locale, loaderData?.reviews ?? null)),
             },
             {
               type: "application/ld+json",
@@ -91,9 +65,7 @@ function Product() {
   const locale = useLocale();
   // Startwert aus dem Loader (vom Server mitgeschickt): Server und Browser hydrieren mit denselben Daten,
   // auch wenn der Server-Zwischenspeicher (30 s) nach einer Änderung im Admin noch den alten Stand hat.
-  const { data } = useSuspenseQuery({
-    ...productQuery(handle, locale),
-    initialData: Route.useLoaderData(),
-  });
-  return <ProductPage {...data} />;
+  const { reviews, ...initialData } = Route.useLoaderData();
+  const { data } = useSuspenseQuery({ ...productQuery(handle, locale), initialData });
+  return <ProductPage {...data} reviews={reviews} />;
 }

@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as Char123LocaleChar125RouteRouteImport } from './routes/{-$locale}/route'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnmeldenRouteImport } from './routes/admin.anmelden'
+import { Route as AdminBewertungenRouteImport } from './routes/admin.bewertungen'
 import { Route as AdminEinstellungenRouteImport } from './routes/admin.einstellungen'
 import { Route as AdminFehlerRouteImport } from './routes/admin.fehler'
 import { Route as AdminGroessenRouteImport } from './routes/admin.groessen'
@@ -52,6 +53,7 @@ import { Route as AdminRetourenIndexRouteImport } from './routes/admin.retouren.
 import { Route as AdminRetourenIdRouteImport } from './routes/admin.retouren.$id'
 import { Route as Char123LocaleChar125BenachrichtigungBestaetigenRouteImport } from './routes/{-$locale}/benachrichtigung.bestaetigen'
 import { Route as Char123LocaleChar125BestellungTokenRouteImport } from './routes/{-$locale}/bestellung.$token'
+import { Route as Char123LocaleChar125BewertungTokenRouteImport } from './routes/{-$locale}/bewertung.$token'
 import { Route as Char123LocaleChar125KollektionHandleRouteImport } from './routes/{-$locale}/kollektion.$handle'
 import { Route as Char123LocaleChar125KontoIndexRouteImport } from './routes/{-$locale}/konto.index'
 import { Route as Char123LocaleChar125KontoAnmeldenRouteImport } from './routes/{-$locale}/konto.anmelden'
@@ -97,6 +99,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAnmeldenRoute = AdminAnmeldenRouteImport.update({
   id: '/anmelden',
   path: '/anmelden',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBewertungenRoute = AdminBewertungenRouteImport.update({
+  id: '/bewertungen',
+  path: '/bewertungen',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminEinstellungenRoute = AdminEinstellungenRouteImport.update({
@@ -301,6 +308,12 @@ const Char123LocaleChar125BestellungTokenRoute =
     path: '/bestellung/$token',
     getParentRoute: () => Char123LocaleChar125RouteRoute,
   } as any)
+const Char123LocaleChar125BewertungTokenRoute =
+  Char123LocaleChar125BewertungTokenRouteImport.update({
+    id: '/bewertung/$token',
+    path: '/bewertung/$token',
+    getParentRoute: () => Char123LocaleChar125RouteRoute,
+  } as any)
 const Char123LocaleChar125KollektionHandleRoute =
   Char123LocaleChar125KollektionHandleRouteImport.update({
     id: '/kollektion/$handle',
@@ -398,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/bewertungen': typeof AdminBewertungenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
   '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
@@ -433,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/bewertung/$token': typeof Char123LocaleChar125BewertungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
   '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
@@ -456,6 +471,7 @@ export interface FileRoutesByTo {
   '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/bewertungen': typeof AdminBewertungenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
   '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
@@ -490,6 +506,7 @@ export interface FileRoutesByTo {
   '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/bewertung/$token': typeof Char123LocaleChar125BewertungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
   '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
@@ -516,6 +533,7 @@ export interface FileRoutesById {
   '/llms.txt': typeof LlmsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/anmelden': typeof AdminAnmeldenRoute
+  '/admin/bewertungen': typeof AdminBewertungenRoute
   '/admin/einstellungen': typeof AdminEinstellungenRoute
   '/admin/fehler': typeof AdminFehlerRoute
   '/admin/groessen': typeof AdminGroessenRoute
@@ -551,6 +569,7 @@ export interface FileRoutesById {
   '/admin/retouren/$id': typeof AdminRetourenIdRoute
   '/{-$locale}/benachrichtigung/bestaetigen': typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   '/{-$locale}/bestellung/$token': typeof Char123LocaleChar125BestellungTokenRoute
+  '/{-$locale}/bewertung/$token': typeof Char123LocaleChar125BewertungTokenRoute
   '/{-$locale}/kollektion/$handle': typeof Char123LocaleChar125KollektionHandleRoute
   '/{-$locale}/konto/anmelden': typeof Char123LocaleChar125KontoAnmeldenRoute
   '/{-$locale}/konto/bestaetigen': typeof Char123LocaleChar125KontoBestaetigenRoute
@@ -578,6 +597,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
+    | '/admin/bewertungen'
     | '/admin/einstellungen'
     | '/admin/fehler'
     | '/admin/groessen'
@@ -613,6 +633,7 @@ export interface FileRouteTypes {
     | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/bewertung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
     | '/{-$locale}/konto/bestaetigen'
@@ -636,6 +657,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
+    | '/admin/bewertungen'
     | '/admin/einstellungen'
     | '/admin/fehler'
     | '/admin/groessen'
@@ -670,6 +692,7 @@ export interface FileRouteTypes {
     | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/bewertung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
     | '/{-$locale}/konto/bestaetigen'
@@ -695,6 +718,7 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/sitemap.xml'
     | '/admin/anmelden'
+    | '/admin/bewertungen'
     | '/admin/einstellungen'
     | '/admin/fehler'
     | '/admin/groessen'
@@ -730,6 +754,7 @@ export interface FileRouteTypes {
     | '/admin/retouren/$id'
     | '/{-$locale}/benachrichtigung/bestaetigen'
     | '/{-$locale}/bestellung/$token'
+    | '/{-$locale}/bewertung/$token'
     | '/{-$locale}/kollektion/$handle'
     | '/{-$locale}/konto/anmelden'
     | '/{-$locale}/konto/bestaetigen'
@@ -801,6 +826,13 @@ declare module '@tanstack/react-router' {
       path: '/anmelden'
       fullPath: '/admin/anmelden'
       preLoaderRoute: typeof AdminAnmeldenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bewertungen': {
+      id: '/admin/bewertungen'
+      path: '/bewertungen'
+      fullPath: '/admin/bewertungen'
+      preLoaderRoute: typeof AdminBewertungenRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/einstellungen': {
@@ -1062,6 +1094,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125BestellungTokenRouteImport
       parentRoute: typeof Char123LocaleChar125RouteRoute
     }
+    '/{-$locale}/bewertung/$token': {
+      id: '/{-$locale}/bewertung/$token'
+      path: '/bewertung/$token'
+      fullPath: '/{-$locale}/bewertung/$token'
+      preLoaderRoute: typeof Char123LocaleChar125BewertungTokenRouteImport
+      parentRoute: typeof Char123LocaleChar125RouteRoute
+    }
     '/{-$locale}/kollektion/$handle': {
       id: '/{-$locale}/kollektion/$handle'
       path: '/kollektion/$handle'
@@ -1223,6 +1262,7 @@ interface Char123LocaleChar125RouteRouteChildren {
   Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
   Char123LocaleChar125BenachrichtigungBestaetigenRoute: typeof Char123LocaleChar125BenachrichtigungBestaetigenRoute
   Char123LocaleChar125BestellungTokenRoute: typeof Char123LocaleChar125BestellungTokenRoute
+  Char123LocaleChar125BewertungTokenRoute: typeof Char123LocaleChar125BewertungTokenRoute
   Char123LocaleChar125KollektionHandleRoute: typeof Char123LocaleChar125KollektionHandleRoute
   Char123LocaleChar125NewsletterAbmeldenRoute: typeof Char123LocaleChar125NewsletterAbmeldenRoute
   Char123LocaleChar125NewsletterBestaetigenRoute: typeof Char123LocaleChar125NewsletterBestaetigenRoute
@@ -1258,6 +1298,8 @@ const Char123LocaleChar125RouteRouteChildren: Char123LocaleChar125RouteRouteChil
       Char123LocaleChar125BenachrichtigungBestaetigenRoute,
     Char123LocaleChar125BestellungTokenRoute:
       Char123LocaleChar125BestellungTokenRoute,
+    Char123LocaleChar125BewertungTokenRoute:
+      Char123LocaleChar125BewertungTokenRoute,
     Char123LocaleChar125KollektionHandleRoute:
       Char123LocaleChar125KollektionHandleRoute,
     Char123LocaleChar125NewsletterAbmeldenRoute:
@@ -1281,6 +1323,7 @@ const Char123LocaleChar125RouteRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminAnmeldenRoute: typeof AdminAnmeldenRoute
+  AdminBewertungenRoute: typeof AdminBewertungenRoute
   AdminEinstellungenRoute: typeof AdminEinstellungenRoute
   AdminFehlerRoute: typeof AdminFehlerRoute
   AdminGroessenRoute: typeof AdminGroessenRoute
@@ -1303,6 +1346,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnmeldenRoute: AdminAnmeldenRoute,
+  AdminBewertungenRoute: AdminBewertungenRoute,
   AdminEinstellungenRoute: AdminEinstellungenRoute,
   AdminFehlerRoute: AdminFehlerRoute,
   AdminGroessenRoute: AdminGroessenRoute,

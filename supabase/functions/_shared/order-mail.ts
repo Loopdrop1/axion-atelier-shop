@@ -13,6 +13,7 @@ import {
   type LowStockItem,
   type OrderData,
 } from "./email/templates.ts";
+import { REVIEW_LINK_DAYS, reviewUrl } from "./reviews.ts";
 
 export interface MailState {
   confirmation_sent_at: string | null;
@@ -68,18 +69,47 @@ export async function sendPaidEmails(deps: Deps, order: OrderRecord): Promise<st
   return sent;
 }
 
-/** Versandmeldung. dedupe=false für bewusstes erneutes Senden (sonst blockt Resend 24 h lang denselben Schlüssel). */
+/** Versandmeldung. dedupe=false für bewusstes erneutes Senden (sonst blockt Resend 24 h lang denselben Schlüssel).
+ *  reviewUrl: Link zur Bewertung (nur mit eingeschalteten Bewertungen, siehe reviewLinkFor). */
 export async function sendShippingEmail(
   deps: Deps,
   order: OrderRecord,
-  opts: { dedupe?: boolean } = {},
+  opts: { dedupe?: boolean; reviewUrl?: string | null } = {},
 ): Promise<void> {
   const key =
     opts.dedupe === false
       ? undefined
       : `order-${order.id}-shipping-${order.tracking_number ?? "ohne"}`;
-  await sendEmail(order.email, shippingConfirmation(order, deps.shop), deps.mail, key);
+  await sendEmail(
+    order.email,
+    shippingConfirmation(order, deps.shop, { reviewUrl: opts.reviewUrl ?? null }),
+    deps.mail,
+    key,
+  );
   await deps.rpc("mark_order_email_sent", { p_order_id: order.id, p_kind: "shipping" });
+}
+
+/**
+ * Link zur Bewertung für die Versandmeldung (RPC review_invite_create). null, wenn Bewertungen aus sind
+ * (shop_settings.reviews_enabled), die Bestellung nicht versendet ist oder, ohne replace, schon ein gültiger Link
+ * existiert (dann enthält ihn die erste Versandmeldung). Wirft nie: Ohne Link geht die Versandmeldung trotzdem raus.
+ */
+export async function reviewLinkFor(
+  deps: Deps,
+  order: Pick<OrderData, "id" | "locale">,
+  replace = false,
+): Promise<string | null> {
+  try {
+    const token = await deps.rpc<string | null>("review_invite_create", {
+      p_order_id: order.id,
+      p_days: REVIEW_LINK_DAYS,
+      p_replace: replace,
+    });
+    return token ? reviewUrl(deps.env.siteUrl, order.locale === "en" ? "en" : "de", token) : null;
+  } catch (error) {
+    console.error("Bewertungslink nicht erzeugt", error instanceof Error ? error.message : error);
+    return null;
+  }
 }
 
 function imageUrl(deps: Deps, path: string | null | undefined): string | null {

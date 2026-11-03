@@ -1,5 +1,5 @@
 // Erzeugt den Inhalt von public/robots.txt aus der Shop-Konfiguration (ohne Nebenwirkung, damit ein Test ihn prüfen kann).
-// Private Seiten (Konto, Warenkorb, Bestellstatus, Bestätigungslinks, Retoure, Suche, Admin) bleiben auch nach dem Livegang gesperrt.
+// Private Seiten (Konto, Warenkorb, Bestellstatus, Bestätigungslinks, Retoure, Bewertungslinks, Suche, Admin) bleiben auch nach dem Livegang gesperrt.
 // KI-Suchen (z. B. OAI-SearchBot, PerplexityBot, ClaudeBot) fallen unter «*» und dürfen die öffentlichen Seiten lesen.
 export const PRIVATE_PATHS = [
   "/admin",
@@ -12,6 +12,7 @@ export const PRIVATE_PATHS = [
   "/newsletter/",
   "/benachrichtigung/",
   "/retoure",
+  "/bewertung/",
 ];
 
 export function robotsTxt(config: { launched: boolean; siteUrl: string }): string {

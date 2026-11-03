@@ -16,7 +16,8 @@ export type FunctionName =
   | "stock-alert"
   | "search-assist"
   | "client-error"
-  | "return-request";
+  | "return-request"
+  | "review";
 
 export async function callFunction<T>(
   name: FunctionName,

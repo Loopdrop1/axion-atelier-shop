@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.return-request]
 verify_jwt = false
+
+[functions.review]
+verify_jwt = false

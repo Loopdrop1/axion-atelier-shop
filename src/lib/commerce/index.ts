@@ -21,12 +21,14 @@ import { colorMatchesValue } from "./color-key";
 import { rankRecommendations } from "./recommendations";
 import { isOnSale } from "./sale";
 import { loadCatalog, loadSettings } from "./source";
+import { loadProductReviews, type ProductReviews } from "./reviews";
 import { readSizeLetters, type SizeLetters } from "./sizes";
 import type { Cart, Collection, Editorial, HomeContent, Product, ProductFilters } from "./types";
 
 export type * from "./types";
 export type { RelaxedCheck, SearchIntent, SearchResult } from "./smart-search";
 export type { SizeGuideTable } from "./mapping";
+export type { ProductReview, ProductReviews } from "./reviews";
 export { backendConfigured } from "@/lib/backend";
 
 interface Catalog {
@@ -150,6 +152,11 @@ export async function getRecommendations(
   locale: Locale = "de",
 ): Promise<Product[]> {
   return rankRecommendations(product, (await catalog(locale)).products, count);
+}
+
+/** Freigegebene Kundenbewertungen; null, wenn Bewertungen aus sind (Code oder Admin) oder das Produkt ein Muster ist. */
+export async function getProductReviews(handle: string): Promise<ProductReviews | null> {
+  return loadProductReviews(handle);
 }
 
 export async function getSiblings(product: Product, locale: Locale = "de"): Promise<Product[]> {
