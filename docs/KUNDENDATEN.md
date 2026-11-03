@@ -13,6 +13,11 @@ Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Li
 
 ## 0. Kundencheckliste vom 3.11.2026 (Unterschrift des Kunden ausstehend)
 
+**In Cloud noch auszuführen** (in dieser Reihenfolge, je einmal): Migrationen `drizzle/migrations/0023_axion_size_details.sql`,
+`0024_axion_sortiment_gift_newsletter.sql`, `0025_axion_checkout_shipping_returns.sql`, `0026_axion_reviews.sql`; danach
+die Edge Functions `checkout`, `stripe-webhook`, `admin-actions`, `return-request`, `newsletter` und die neue `review`
+deployen. `supabase/demo/sortiment-start.sql` erst kurz vor dem Livegang, nach `muster-entfernen.sql`.
+
 **Entschieden und umgesetzt** (Code, Rechtstexte, Einstellungen):
 
 - Nicht im Handelsregister, keine UID, nicht MWST-pflichtig (`vatRegistered: false`, Impressum und AGB ohne MWST)

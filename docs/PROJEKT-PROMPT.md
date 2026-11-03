@@ -1,6 +1,6 @@
 # AXION Online-Shop: vollständiger Projekt-Prompt
 
-> Dieser Prompt beschreibt den Shop so, wie er heute gebaut ist (Stand 3. November 2026, Commit `ab1a0e7` plus Block A bis D der Kundencheckliste). Er dient
+> Dieser Prompt beschreibt den Shop so, wie er heute gebaut ist (Stand 3. November 2026, nach Block A bis D der Kundencheckliste, PRs #33 bis #35). Er dient
 > drei Zwecken: (1) einem neuen Entwickler oder einer KI das ganze Projekt in einem Stück übergeben, (2) den Shop
 > von Grund auf neu bauen lassen, (3) als Prüfliste, ob bei Änderungen nichts verloren geht. Wo eine Regel mit
 > «nie» oder «immer» formuliert ist, ist sie verbindlich. Platzhalter in eckigen Klammern liefert der Kunde
@@ -308,8 +308,9 @@ core · commerce · rpc · storage · account · checkout_release · contact_and
 stock_alerts · search_assist · review_fixes · wishlist · image_variants · client_errors · client_errors_prune ·
 checkout_reminder · return_requests · low_stock_alert · audit_followups · checkout_limits · receipt_vat ·
 audit_round2 (in `supabase/migrations/2026…` und als `drizzle/migrations/0000…0021`; alle in Cloud angewendet) ·
-return_refund_method (`0022`, in Cloud angewendet) · weitere ab `0023` aus Block B bis D der Kundencheckliste
-(Liste und Cloud-Status in `docs/KUNDENDATEN.md`).
+return_refund_method (`0022`, in Cloud angewendet) · size_details (`0023`) · sortiment_gift_newsletter (`0024`) ·
+checkout_shipping_returns (`0025`) · reviews (`0026`). `0023` bis `0026` sind in Cloud noch auszuführen, in dieser
+Reihenfolge; danach `supabase/demo/sortiment-start.sql` (erst nach `muster-entfernen.sql`).
 
 ## 16. Stand und offene Punkte
 
