@@ -1,8 +1,10 @@
 // Grössentabellen aus dem Admin (Admin → Grössentabellen). Ohne passende Tabelle ein Hinweis statt Beispielwerten.
+// Bei Konfektionsgrössen mit Zuordnung steht nach der Grösse die Spalte «Int.» (Buchstabe, siehe sizes.ts).
+import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useMatch } from "@tanstack/react-router";
 import { shopConfig } from "@/config/shop";
-import { sizeGuideQuery } from "@/lib/commerce/queries";
+import { sizeGuideQuery, type SizeGuidePageData } from "@/lib/commerce/queries";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 
 /** category: Slug der Kategorie des Produkts; ohne Angabe alle Tabellen (Seite «Grössenberatung»). */
@@ -14,10 +16,10 @@ export function SizeGuide({ category }: { category?: string }) {
   const initial = useMatch({
     from: "/{-$locale}/groessenberatung",
     shouldThrow: false,
-  })?.loaderData;
+  })?.loaderData as SizeGuidePageData | undefined;
   const { data: tables = [], isLoading } = useQuery({
     ...sizeGuideQuery(locale),
-    ...(initial ? { initialData: initial } : {}),
+    ...(initial?.tables ? { initialData: initial.tables } : {}),
   });
   const shown = category
     ? tables.filter((tb) => tb.categories.length === 0 || tb.categories.includes(category))
@@ -34,9 +36,14 @@ export function SizeGuide({ category }: { category?: string }) {
               <thead>
                 <tr>
                   {tb.columns.map((c, i) => (
-                    <th key={i} scope="col">
-                      {c}
-                    </th>
+                    <Fragment key={i}>
+                      <th scope="col">{c}</th>
+                      {i === 0 && tb.international && (
+                        <th scope="col">
+                          <abbr title={t.international}>{t.internationalShort}</abbr>
+                        </th>
+                      )}
+                    </Fragment>
                   ))}
                 </tr>
               </thead>
@@ -45,9 +52,10 @@ export function SizeGuide({ category }: { category?: string }) {
                   <tr key={r}>
                     {row.map((cell, i) =>
                       i === 0 ? (
-                        <th key={i} scope="row">
-                          {cell}
-                        </th>
+                        <Fragment key={i}>
+                          <th scope="row">{cell}</th>
+                          {tb.international && <td>{tb.international[r]}</td>}
+                        </Fragment>
                       ) : (
                         <td key={i}>{cell}</td>
                       ),

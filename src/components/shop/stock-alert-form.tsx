@@ -1,5 +1,6 @@
 // «Benachrichtigen, wenn wieder da» für ausverkaufte Grössen (Double Opt-in über die Edge Function «stock-alert»).
 // Die Antwort verrät nie, ob eine Adresse schon eingetragen ist.
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { useId, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ export function StockAlertForm({ product }: { product: Product }) {
                 <option value="">{s.chooseSize}</option>
                 {soldOut.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.title}
+                    {sizeWithLetter(v.title, v.letter)}
                   </option>
                 ))}
               </select>
@@ -92,7 +93,7 @@ export function StockAlertForm({ product }: { product: Product }) {
           {/* Nur eine echte Grösse ausverkauft: vorgewählt, aber genannt, damit klar ist, wofür man sich einträgt */}
           {!single && soldOut.length === 1 && (
             <p className="stock-alert-size">
-              {s.size} {soldOut[0]!.title}
+              {s.size} {sizeWithLetter(soldOut[0]!.title, soldOut[0]!.letter)}
             </p>
           )}
           <label htmlFor={`${id}-email`}>{s.email}</label>

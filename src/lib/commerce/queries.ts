@@ -11,6 +11,7 @@ import {
   getRecommendations,
   getSiblings,
   getSizeGuides,
+  getSizeLetters,
   listCollections,
   listProducts,
   searchCatalog,
@@ -96,6 +97,16 @@ export const sizeGuideQuery = (locale: Locale) =>
     queryFn: () => getSizeGuides(locale),
     staleTime: 60_000,
   });
+
+/** Loader-Daten der Seite «Grössenberatung» (Startwerte für Tabellen und Zuordnung beim Hydrieren). Eigener Typ,
+ *  weil die Komponenten der Seite den Typ der Route nicht ableiten können (sie gehören selbst zur Route). */
+export interface SizeGuidePageData {
+  tables: Awaited<ReturnType<typeof getSizeGuides>> | undefined;
+  letters: Awaited<ReturnType<typeof getSizeLetters>> | undefined;
+}
+
+export const sizeLettersQuery = () =>
+  queryOptions({ queryKey: ["size-letters"], queryFn: getSizeLetters, staleTime: 60_000 });
 
 const VIRTUAL = new Set(["alle", "neu", "sale"]);
 

@@ -41,6 +41,15 @@ export const sampleCatalog: CatalogData = {
       sort: 40,
     },
     {
+      slug: "t-shirts",
+      name_de: "T-Shirts",
+      name_en: "T-shirts",
+      description_de: "Schlichte T-Shirts, unter dem Sakko oder für sich getragen.",
+      description_en: "Simple T-shirts, worn under a jacket or on their own.",
+      image_path: null,
+      sort: 45,
+    },
+    {
       slug: "westen",
       name_de: "Westen",
       name_en: "Waistcoats",
@@ -119,6 +128,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 48900,
       compare_at_cents: null,
       sort: 0,
+      model_height_cm: 186,
+      model_size: "50",
       created_at: "2026-10-06T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -230,6 +241,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 48900,
       compare_at_cents: null,
       sort: 1,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-28T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -341,6 +354,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 48900,
       compare_at_cents: null,
       sort: 2,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-25T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -452,6 +467,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 45900,
       compare_at_cents: null,
       sort: 10,
+      model_height_cm: 182,
+      model_size: "48",
       created_at: "2026-10-03T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -563,6 +580,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 45900,
       compare_at_cents: null,
       sort: 11,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-20T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -674,6 +693,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 58900,
       compare_at_cents: null,
       sort: 12,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-07T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -785,6 +806,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 42900,
       compare_at_cents: null,
       sort: 13,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-08T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -896,6 +919,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 42900,
       compare_at_cents: 49900,
       sort: 14,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-10T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -1007,6 +1032,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 64900,
       compare_at_cents: null,
       sort: 15,
+      model_height_cm: 189,
+      model_size: "52",
       created_at: "2026-09-30T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -1118,6 +1145,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 46900,
       compare_at_cents: null,
       sort: 16,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-09T07:00:00Z",
       category: {
         slug: "anzuege",
@@ -1229,6 +1258,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 20,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-05T07:00:00Z",
       category: {
         slug: "westen",
@@ -1340,6 +1371,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: 15900,
       sort: 30,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-01T07:00:00Z",
       category: {
         slug: "westen",
@@ -1451,6 +1484,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 31,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-28T07:00:00Z",
       category: {
         slug: "westen",
@@ -1562,6 +1597,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 11900,
       compare_at_cents: null,
       sort: 32,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-08T07:00:00Z",
       category: {
         slug: "westen",
@@ -1673,6 +1710,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 13900,
       compare_at_cents: null,
       sort: 33,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-07T07:00:00Z",
       category: {
         slug: "westen",
@@ -1784,6 +1823,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 14900,
       compare_at_cents: null,
       sort: 34,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-30T07:00:00Z",
       category: {
         slug: "westen",
@@ -1894,6 +1935,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 35,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-09T07:00:00Z",
       category: {
         slug: "westen",
@@ -2005,6 +2048,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 21900,
       compare_at_cents: null,
       sort: 40,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-04T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2125,6 +2170,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 21900,
       compare_at_cents: null,
       sort: 41,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-22T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2243,6 +2290,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 23900,
       compare_at_cents: null,
       sort: 50,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-02T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2361,6 +2410,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 23900,
       compare_at_cents: null,
       sort: 51,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-26T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2479,6 +2530,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 22900,
       compare_at_cents: null,
       sort: 52,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-08T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2598,6 +2651,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 25900,
       compare_at_cents: null,
       sort: 53,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-18T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2716,6 +2771,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 22900,
       compare_at_cents: 26900,
       sort: 54,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-05T07:00:00Z",
       category: {
         slug: "schuhe",
@@ -2836,6 +2893,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 39900,
       compare_at_cents: null,
       sort: 100,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-11T08:00:00Z",
       category: {
         slug: "sakkos",
@@ -2947,6 +3006,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 37900,
       compare_at_cents: null,
       sort: 101,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-24T08:00:00Z",
       category: {
         slug: "sakkos",
@@ -3058,6 +3119,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 44900,
       compare_at_cents: null,
       sort: 102,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-10T08:00:00Z",
       category: {
         slug: "sakkos",
@@ -3169,6 +3232,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 34900,
       compare_at_cents: 42900,
       sort: 103,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-15T08:00:00Z",
       category: {
         slug: "sakkos",
@@ -3280,6 +3345,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 16900,
       compare_at_cents: null,
       sort: 200,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-27T08:00:00Z",
       category: {
         slug: "hosen",
@@ -3391,6 +3458,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 16900,
       compare_at_cents: null,
       sort: 201,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-21T08:00:00Z",
       category: {
         slug: "hosen",
@@ -3501,6 +3570,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 202,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-09T09:00:00Z",
       category: {
         slug: "hosen",
@@ -3611,6 +3682,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 203,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-19T08:00:00Z",
       category: {
         slug: "hosen",
@@ -3720,6 +3793,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 11900,
       compare_at_cents: null,
       sort: 300,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-09T08:00:00Z",
       category: {
         slug: "hemden",
@@ -3847,6 +3922,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 11900,
       compare_at_cents: null,
       sort: 301,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-23T08:00:00Z",
       category: {
         slug: "hemden",
@@ -3979,6 +4056,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 14900,
       compare_at_cents: null,
       sort: 302,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-29T08:00:00Z",
       category: {
         slug: "hemden",
@@ -4107,6 +4186,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 303,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-17T08:00:00Z",
       category: {
         slug: "hemden",
@@ -4236,6 +4317,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 69900,
       compare_at_cents: null,
       sort: 400,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-12T08:00:00Z",
       category: {
         slug: "maentel-jacken",
@@ -4347,6 +4430,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 69900,
       compare_at_cents: null,
       sort: 401,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-26T08:00:00Z",
       category: {
         slug: "maentel-jacken",
@@ -4458,6 +4543,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 79900,
       compare_at_cents: null,
       sort: 402,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-12T08:00:00Z",
       category: {
         slug: "maentel-jacken",
@@ -4568,6 +4655,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 44900,
       compare_at_cents: null,
       sort: 403,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-10T09:00:00Z",
       category: {
         slug: "maentel-jacken",
@@ -4678,6 +4767,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 44900,
       compare_at_cents: 52900,
       sort: 404,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-08T08:00:00Z",
       category: {
         slug: "maentel-jacken",
@@ -4787,6 +4878,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 29900,
       compare_at_cents: null,
       sort: 500,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-12T07:00:00Z",
       category: {
         slug: "strick",
@@ -4887,6 +4980,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 29900,
       compare_at_cents: null,
       sort: 501,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-22T09:00:00Z",
       category: {
         slug: "strick",
@@ -4987,6 +5082,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 17900,
       compare_at_cents: null,
       sort: 502,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-04T08:00:00Z",
       category: {
         slug: "strick",
@@ -5087,6 +5184,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 8900,
       compare_at_cents: null,
       sort: 600,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-11T07:00:00Z",
       category: {
         slug: "accessoires",
@@ -5151,6 +5250,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 8900,
       compare_at_cents: null,
       sort: 601,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-25T08:00:00Z",
       category: {
         slug: "accessoires",
@@ -5215,6 +5316,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 6900,
       compare_at_cents: null,
       sort: 602,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-29T09:00:00Z",
       category: {
         slug: "accessoires",
@@ -5279,6 +5382,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 4900,
       compare_at_cents: null,
       sort: 603,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-16T08:00:00Z",
       category: {
         slug: "accessoires",
@@ -5343,6 +5448,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 14900,
       compare_at_cents: null,
       sort: 604,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-10-08T09:00:00Z",
       category: {
         slug: "accessoires",
@@ -5408,6 +5515,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 605,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-14T08:00:00Z",
       category: {
         slug: "accessoires",
@@ -5507,6 +5616,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 12900,
       compare_at_cents: null,
       sort: 606,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-11T08:00:00Z",
       category: {
         slug: "accessoires",
@@ -5607,6 +5718,8 @@ export const sampleCatalog: CatalogData = {
       price_cents: 2900,
       compare_at_cents: null,
       sort: 607,
+      model_height_cm: null,
+      model_size: null,
       created_at: "2026-09-09T08:00:00Z",
       category: {
         slug: "accessoires",

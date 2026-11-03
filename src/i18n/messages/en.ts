@@ -48,6 +48,7 @@ export const en: Messages = {
       sakkos: "Blazers",
       hosen: "Trousers",
       hemden: "Shirts",
+      "t-shirts": "T-shirts",
       westen: "Waistcoats",
       "maentel-jacken": "Coats & jackets",
       strick: "Knitwear",
@@ -283,6 +284,15 @@ export const en: Messages = {
     chooseSize: "Choose size",
     euSizes: " · EU",
     sizeGuide: "Size chart",
+    sizeFinder: "Which size fits me?",
+    yourSize: (size: string) => `Your size: ${size}`,
+    yourSizeMark: "your size according to the size finder",
+    modelLine: (height: string | null, size: string | null) =>
+      height && size
+        ? `The model is ${height} m tall and wears size ${size}.`
+        : height
+          ? `The model is ${height} m tall.`
+          : `The model wears size ${size ?? ""}.`,
     soldOut: "sold out",
     addToCart: "Add to cart",
     share: "Share",
@@ -375,6 +385,55 @@ export const en: Messages = {
       freeExchange
         ? `If it does not fit, you can exchange it for another size free of charge within ${days} days, while available, or return it.`
         : `If it does not fit, you can return it within ${days} days.`,
+    international: "International",
+    internationalShort: "Int.",
+  },
+  sizeFinder: {
+    title: "Size finder",
+    intro:
+      "A few details are enough. With your chest measurement the recommendation is most precise.",
+    introShoes: "Measure your foot or tell us the EU size you usually wear.",
+    sectionTitle: "Which size fits me?",
+    piece: "Which piece?",
+    height: "Height in cm",
+    heightHint: "For example 182",
+    chest: "Chest in cm (optional)",
+    chestHint: "Measure loosely at the widest point, without a jacket.",
+    foot: "Foot length in cm (optional)",
+    footHint: "From the heel to the longest toe, ideally in the evening.",
+    usual: "The size I usually wear (optional)",
+    usualHint: "As the size is called in our shop, for example 50 or M",
+    usualShoes: "The EU size I usually wear (optional)",
+    usualShoesHint: "For example 43",
+    fit: "How should it fit?",
+    fits: { slim: "Close-fitting", regular: "Regular", relaxed: "Relaxed" },
+    submit: "Find my size",
+    invalid: (min: number, max: number) => `Please enter a number between ${min} and ${max}.`,
+    missing: "Enter your chest measurement or the size you usually wear.",
+    missingShoes: "Enter your foot length or the EU size you usually wear.",
+    notOffered:
+      "We do not carry this size for this piece. With your chest measurement we can find the right one.",
+    result: (size: string) => `We recommend ${size}`,
+    choose: (size: string) => `Choose size ${size}`,
+    basis: {
+      "chest-table": "Based on your chest measurement and the size chart.",
+      "chest-norm":
+        "Based on your chest measurement: the German size is roughly half the chest in centimetres.",
+      usual: "Based on the size you usually wear.",
+      "height-table": "Estimated from your height. With your chest measurement it is more precise.",
+      "foot-table": "Based on your foot length and the size chart.",
+    } as Record<string, string>,
+    shiftDown: "As you like a close fit, one size smaller.",
+    shiftUp: "As you like a relaxed fit, one size larger.",
+    between: "You are between two sizes, so your preferred fit decided.",
+    belowRange: "Your measurements are below the smallest size of this piece.",
+    aboveRange: "Your measurements are above the largest size of this piece.",
+    proportions:
+      "At your height, sleeve and leg length may differ. Compare the lengths in the size chart.",
+    soldOut: "This size is currently sold out. On the product page you can ask to be notified.",
+    privacy: "Your details are only stored in your browser and never sent anywhere.",
+    forget: "Clear details",
+    sizeGuideLink: "View size chart",
   },
   search: {
     title: "Search",

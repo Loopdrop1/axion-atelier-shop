@@ -1,5 +1,6 @@
 // Startseite: den Look neben dem Bild direkt kaufen. Stücke an- oder abwählen, je eine Grösse wählen,
 // dann den ganzen Look oder die Auswahl in den Warenkorb legen (gleiche Regeln wie auf der Produktseite).
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { SIZES } from "@/lib/commerce/variants";
 import { Link } from "@tanstack/react-router";
 import { isOneSizeTitle } from "@/lib/commerce/one-size";
@@ -82,7 +83,9 @@ export function LookShop({ products, total }: { products: Product[]; total: stri
                 </option>
                 {sizesFor(p, settings.hideSoldOut).map((v) => (
                   <option key={v.id} value={v.id} disabled={!v.availableForSale}>
-                    {isOneSizeTitle(v.title) ? t.product.oneSize : v.title}
+                    {isOneSizeTitle(v.title)
+                      ? t.product.oneSize
+                      : sizeWithLetter(v.title, v.letter)}
                     {!v.availableForSale ? ` – ${t.product.soldOut}` : ""}
                   </option>
                 ))}

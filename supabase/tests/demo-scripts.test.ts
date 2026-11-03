@@ -23,18 +23,24 @@ const counts = () =>
             (select count(*)::int from public.products where 'muster' = any (tags)) as muster`,
   );
 
-beforeAll(async () => {
-  await sql(`create database ${NAME}`);
+/** Frische Datenbank mit allen Migrationen, ohne Seed. */
+async function freshDb(name: string): Promise<pg.Client> {
+  await sql(`create database ${name}`);
   const url = new URL(DB_URL);
-  url.pathname = `/${NAME}`;
-  db = new pg.Client({ connectionString: url.toString() });
-  await db.connect();
-  await db.query("set client_min_messages = warning");
-  await db.query(read("scripts/db/supabase-compat.sql"));
+  url.pathname = `/${name}`;
+  const client = new pg.Client({ connectionString: url.toString() });
+  await client.connect();
+  await client.query("set client_min_messages = warning");
+  await client.query(read("scripts/db/supabase-compat.sql"));
   const migrations = readdirSync(path.join(ROOT, "supabase/migrations")).filter((f) =>
     f.endsWith(".sql"),
   );
-  for (const file of migrations.sort()) await db.query(read(`supabase/migrations/${file}`));
+  for (const file of migrations.sort()) await client.query(read(`supabase/migrations/${file}`));
+  return client;
+}
+
+beforeAll(async () => {
+  db = await freshDb(NAME);
 });
 
 afterAll(async () => {
@@ -72,6 +78,20 @@ describe("Muster-Sortiment (supabase/demo)", () => {
        from public.products p where handle = 'anzug-limmat-marine'`,
     );
     expect(real).toEqual({ title_de: "Echter Anzug", tags: [], variants: 0, images: 0 });
+    // Model-Angaben nur an Musterstücken (das echte Produkt mit gleicher Adresse bleibt ohne)
+    expect(
+      (
+        await db.query(
+          `select handle, model_height_cm, model_size from public.products
+           where handle in ('anzug-limmat-marine', 'anzug-aare-anthrazit', 'smoking-thur-schwarz')
+           order by handle`,
+        )
+      ).rows,
+    ).toEqual([
+      { handle: "anzug-aare-anthrazit", model_height_cm: 182, model_size: "48" },
+      { handle: "anzug-limmat-marine", model_height_cm: null, model_size: null },
+      { handle: "smoking-thur-schwarz", model_height_cm: 189, model_size: "52" },
+    ]);
     // Bestehende Kategorie und Inhalte werden nicht überschrieben
     expect(
       (
@@ -117,7 +137,7 @@ describe("Muster-Sortiment (supabase/demo)", () => {
     const categories = (
       await db.query("select slug, active, image_path from public.categories order by slug")
     ).rows as { slug: string; active: boolean; image_path: string | null }[];
-    expect(categories).toHaveLength(9);
+    expect(categories).toHaveLength(10);
     expect(categories.filter((c) => c.image_path !== null)).toEqual([]);
     expect(categories.filter((c) => c.active).map((c) => c.slug)).toEqual(["anzuege"]);
   });
@@ -133,5 +153,86 @@ describe("Muster-Sortiment (supabase/demo)", () => {
     expect(seeded.map((r) => r.handle)).toEqual(
       demo.map((s) => s.replace(/^select '([a-z0-9-]+)'.*$/, "$1")).sort(),
     );
+  });
+});
+
+describe("Sortiment zum Start (supabase/demo/sortiment-start.sql)", () => {
+  const START = ["anzuege", "hosen", "t-shirts", "westen", "schuhe"];
+  const HIDDEN = ["sakkos", "hemden", "maentel-jacken", "strick", "accessoires"];
+  const name = `${NAME}_sortiment`;
+  let fresh: pg.Client;
+  const run = () => fresh.query(read("supabase/demo/sortiment-start.sql"));
+  const categories = async () =>
+    (
+      await fresh.query(
+        "select slug, name_de, name_en, active, image_path, sort from public.categories order by sort, slug",
+      )
+    ).rows as {
+      slug: string;
+      name_de: string;
+      name_en: string | null;
+      active: boolean;
+      image_path: string | null;
+      sort: number;
+    }[];
+  // Fingerabdruck aller Produktdaten (inkl. updated_at): bleibt gleich, wenn das Skript nichts daran ändert
+  const fingerprint = async () =>
+    (
+      await fresh.query(
+        `select (select md5(coalesce(string_agg(p::text, ',' order by p.id), '')) from public.products p) as products,
+                (select md5(coalesce(string_agg(v::text, ',' order by v.id), '')) from public.product_variants v) as variants,
+                (select md5(coalesce(string_agg(i::text, ',' order by i.id), '')) from public.product_images i) as images`,
+      )
+    ).rows[0] as Record<string, string>;
+
+  beforeAll(async () => {
+    fresh = await freshDb(name);
+  });
+
+  afterAll(async () => {
+    await fresh?.end();
+    await sql(`drop database if exists ${name} with (force)`);
+  });
+
+  it("legt auf einer leeren Datenbank die fünf Startkategorien an (ohne Bild), T-Shirts eingeschlossen", async () => {
+    await run();
+    const rows = await categories();
+    expect(rows.map((c) => c.slug)).toEqual(START);
+    expect(rows.every((c) => c.active && c.image_path === null)).toBe(true);
+    expect(rows.find((c) => c.slug === "t-shirts")).toMatchObject({
+      name_de: "T-Shirts",
+      name_en: "T-shirts",
+      sort: 45,
+    });
+  });
+
+  it("blendet mit Muster-Sortiment fünf Kategorien aus, lässt Produkte unverändert und ist wiederholbar", async () => {
+    await fresh.query(read("supabase/demo/muster-einspielen.sql"));
+    // Eine Kategorie hat inzwischen einen eigenen Namen aus dem Admin: bleibt
+    await fresh.query(
+      "update public.categories set name_de = 'Anzüge (Admin)' where slug = 'anzuege'",
+    );
+    expect((await categories()).every((c) => c.active)).toBe(true);
+    const before = await fingerprint();
+    const products = await fresh.query("select count(*)::int as n from public.products");
+    expect(products.rows[0].n).toBe(52);
+
+    await run();
+    await run();
+    const rows = await categories();
+    expect(rows).toHaveLength(10);
+    expect(rows.filter((c) => c.active).map((c) => c.slug)).toEqual(START);
+    expect(
+      rows
+        .filter((c) => !c.active)
+        .map((c) => c.slug)
+        .sort(),
+    ).toEqual([...HIDDEN].sort());
+    expect(rows.find((c) => c.slug === "anzuege")?.name_de).toBe("Anzüge (Admin)");
+    // Ausgeblendet heisst nicht gelöscht: Kategorie samt Bild bleibt
+    expect(rows.find((c) => c.slug === "hemden")?.image_path).toBe(
+      "asset:muster/hemd-rigi-hellblau-1",
+    );
+    expect(await fingerprint()).toEqual(before);
   });
 });

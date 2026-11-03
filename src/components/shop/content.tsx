@@ -5,6 +5,7 @@ import { pagesEn } from "@/content/pages-en";
 import { WrittenContent } from "./written-content";
 import { shopConfig } from "@/config/shop";
 import { SizeGuide } from "./size-guide";
+import { SizeFinderSection } from "./size-finder";
 import { ContactForm } from "./contact-form";
 import { Photo } from "./primitives";
 import type { ShopImage } from "@/lib/commerce";
@@ -57,7 +58,10 @@ export function ContentPage({ handle, image }: { handle: ContentHandle; image?: 
           </Link>
         </>
       ) : handle === "groessenberatung" ? (
-        <SizeGuide />
+        <>
+          <SizeFinderSection />
+          <SizeGuide />
+        </>
       ) : handle === "kontakt" ? (
         <>
           <p>{t.content.contact.intro}</p>

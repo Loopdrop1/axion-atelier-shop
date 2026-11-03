@@ -33,6 +33,12 @@ vi.mock("@/i18n", async (orig) => {
 vi.mock("@/lib/commerce/use-settings", () => ({ useShopSettings: () => DEFAULT_SETTINGS }));
 // Die Grössentabelle lädt Daten und ist in diesen Tests nie offen
 vi.mock("./size-guide", () => ({ SizeGuide: () => null }));
+// Grössenfinder: eigener Test (size-finder.test.tsx); hier nur der Einstieg und «Deine Grösse»
+const suggested = vi.hoisted(() => ({ size: undefined as string | undefined }));
+vi.mock("./size-finder", () => ({
+  ProductSizeFinder: () => null,
+  useSuggestedSize: () => suggested.size,
+}));
 
 import { ProductPage } from "./product";
 
@@ -82,5 +88,62 @@ describe("Produktseite: Einheitsgrösse", () => {
     expect(button).toHaveTextContent("ausverkauft");
     expect(button).toBeDisabled();
     expect(leiste).not.toHaveTextContent("Grösse wählen");
+  });
+});
+
+describe("Produktseite: Grössen mit Buchstaben, Grössenfinder und Model", () => {
+  function suit() {
+    const p = testProduct("anzug-limmat-marine", 489, [
+      { ...testVariant("anzug-48", true, 489), letter: "M" },
+      { ...testVariant("anzug-50", true, 489), letter: "L" },
+      { ...testVariant("anzug-52", false, 489), letter: "XL" },
+    ]);
+    p.fitModel = { heightCm: 186, size: "50", letter: "L" };
+    return p;
+  }
+  beforeEach(() => {
+    suggested.size = undefined;
+  });
+
+  it("Knöpfe zeigen Zahl und Buchstabe, die Model-Zeile die getragene Grösse", () => {
+    render(<ProductPage product={suit()} siblings={[]} outfit={[]} recommendations={[]} />);
+    const grid = document.querySelector<HTMLElement>(".size-grid")!;
+    expect(screen.getByRole("button", { name: "48 (M)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "52 (XL), ausverkauft" })).toBeDisabled();
+    expect(grid.querySelector(".size-letter")).toHaveTextContent("M");
+    expect(
+      screen.getByText("Das Model ist 1,86 m gross und trägt Grösse 50 (L)."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Welche Grösse passt mir?" })).toBeInTheDocument();
+  });
+
+  it("«Deine Grösse»: Einstieg nennt sie, der Knopf ist dezent markiert", () => {
+    suggested.size = "50";
+    render(<ProductPage product={suit()} siblings={[]} outfit={[]} recommendations={[]} />);
+    expect(screen.getByRole("button", { name: "Deine Grösse: 50 (L)" })).toBeInTheDocument();
+    const mark = screen.getByRole("button", {
+      name: "50 (L), deine Grösse laut Grössenfinder",
+    });
+    expect(mark).toHaveClass("is-suggested");
+    // Markiert, aber nicht gewählt: die Wahl bleibt bei der Kundschaft
+    expect(mark).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("ohne Model-Angaben keine Zeile; Accessoires ohne Grössenfinder", () => {
+    const plain = { ...suit(), fitModel: undefined };
+    const { unmount } = render(
+      <ProductPage product={plain} siblings={[]} outfit={[]} recommendations={[]} />,
+    );
+    expect(document.querySelector(".model-line")).toBeNull();
+    unmount();
+    render(
+      <ProductPage
+        product={{ ...plain, category: "accessoires" }}
+        siblings={[]}
+        outfit={[]}
+        recommendations={[]}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Welche Grösse passt mir?" })).toBeNull();
   });
 });

@@ -15,7 +15,7 @@ afterAll(async () => {
 });
 
 describe("Gutschein kaufen", () => {
-  it("reserviert einen Gutscheinkauf und erzeugt beim Zahlen einen Code mit 5 Jahren Gültigkeit", async () => {
+  it("reserviert einen Gutscheinkauf und erzeugt beim Zahlen einen Code mit 30 Jahren Gültigkeit (Standard)", async () => {
     const r = await rpc<{ order_id: string; total_cents: number }>("reserve_gift_card_purchase", [
       10000,
       "kaeufer@example.ch",
@@ -49,8 +49,8 @@ describe("Gutschein kaufen", () => {
     expect(done.gift_card.recipient_email).toBe("lea@example.ch");
     const years =
       (new Date(done.gift_card.expires_at).getTime() - Date.now()) / (365.25 * 86400000);
-    expect(years).toBeGreaterThan(4.9);
-    expect(years).toBeLessThan(5.1);
+    expect(years).toBeGreaterThan(29.9);
+    expect(years).toBeLessThan(30.1);
     const again = await rpc<{ newly_paid: boolean; gift_card: unknown }>("complete_order", [
       r.order_id,
       "{}",

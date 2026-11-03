@@ -1,6 +1,8 @@
 // Grössentabellen pflegen (site_content «size_guides»). Sie erscheinen auf den Produktseiten der gewählten
 // Kategorien und auf der Seite «Grössenberatung». Englisch wird beim Speichern automatisch übersetzt; «auto» bei
 // einem Text heisst: Das Englisch stammt aus der Übersetzung und folgt dem Deutschen.
+// Im selben Block steht die freiwillige Zuordnung Zahl ↔ Buchstabe («letters»: {"48": "M", …}). Leer bzw. ohne
+// Feld zeigt der Shop nur Zahlen (Entscheid Axion 3.11.2026); gespeichert wird das Feld nur mit Einträgen.
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +20,9 @@ import { newId } from "@/lib/admin/content-translate";
 import type { Json } from "@/integrations/supabase/types";
 import { invalidateCatalog } from "@/lib/commerce/source";
 import { useSession } from "@/lib/account/session";
+import { cleanLetter, isNumberSize, readSizeLetters, type SizeLetters } from "@/lib/commerce/sizes";
 import {
+  Badge,
   Bilingual,
   CheckField,
   ConfirmButton,
@@ -163,7 +167,48 @@ function withPairs(tables: Table[], pairs: Pairs): Table[] {
   }));
 }
 
-function toJson(tables: Table[]): Json {
+/** Zuordnung Zahl ↔ Buchstabe im Formular (Reihenfolge nach Zahl). */
+interface LetterRow {
+  id: string;
+  size: string;
+  letter: string;
+}
+interface Letters {
+  rows: LetterRow[];
+}
+const letterRows = (letters: SizeLetters): LetterRow[] =>
+  Object.entries(letters)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([size, letter]) => ({ id: newId(), size, letter }));
+
+function readLetters(value: Json | undefined): Letters {
+  return { rows: letterRows(readSizeLetters({ size_guides: value ?? null })) };
+}
+
+/** Prüft die Zuordnung: jede Zeile Zahl (2–3 Ziffern) und Buchstabe, keine Zahl doppelt. */
+function lettersProblem(rows: LetterRow[]): string | null {
+  const filled = rows.filter((r) => r.size.trim() || r.letter.trim());
+  for (const r of filled) {
+    if (!isNumberSize(r.size))
+      return `«${r.size.trim() || "leer"}» ist keine Zahlengrösse (z. B. 48).`;
+    if (!cleanLetter(r.letter))
+      return `Zu ${r.size.trim()} fehlt ein gültiger Buchstabe (z. B. M, XL oder 3XL).`;
+  }
+  const sizes = filled.map((r) => r.size.trim());
+  const twice = sizes.find((s, i) => sizes.indexOf(s) !== i);
+  return twice ? `Die Grösse ${twice} steht zweimal in der Zuordnung.` : null;
+}
+
+function lettersJson(rows: LetterRow[]): Record<string, string> {
+  return Object.fromEntries(
+    rows
+      .filter((r) => isNumberSize(r.size) && cleanLetter(r.letter))
+      .sort((a, b) => Number(a.size) - Number(b.size))
+      .map((r) => [r.size.trim(), cleanLetter(r.letter)]),
+  );
+}
+
+function toJson(tables: Table[], letters: Letters): Json {
   const clean = (t: Text) => ({
     de: t.de.trim(),
     ...(t.en.trim() ? { en: t.en.trim() } : {}),
@@ -178,6 +223,10 @@ function toJson(tables: Table[]): Json {
       rows: t.rows.map((r) => r.map((cell) => cell.trim())),
       note: clean(t.note),
     })),
+    // Nur mit Einträgen gespeichert: ohne Feld zeigt der Shop nur Zahlen
+    ...(Object.keys(lettersJson(letters.rows)).length
+      ? { letters: lettersJson(letters.rows) }
+      : {}),
   };
 }
 
@@ -187,19 +236,41 @@ function SizeGuidesPage() {
   if (content.isLoading || categories.isLoading) return <Loading />;
   if (content.isError || categories.isError)
     return <ErrorBox error={content.error ?? categories.error} />;
-  return <Editor initial={readTables(content.data?.[KEY])} categories={categories.data ?? []} />;
+  return (
+    <Editor
+      initial={readTables(content.data?.[KEY])}
+      initialLetters={readLetters(content.data?.[KEY])}
+      categories={categories.data ?? []}
+    />
+  );
 }
 
-function Editor({ initial, categories }: { initial: Table[]; categories: Category[] }) {
+function Editor({
+  initial,
+  initialLetters,
+  categories,
+}: {
+  initial: Table[];
+  initialLetters: Letters;
+  categories: Category[];
+}) {
   const queryClient = useQueryClient();
   const { user } = useSession();
   const [tables, setTables] = useState(initial);
   const [base, setBase] = useState(initial);
+  const [letters, setLetters] = useState(initialLetters);
   const [busy, setBusy] = useState(false);
+  const editLetters = (change: (rows: LetterRow[]) => LetterRow[]) =>
+    setLetters((l) => ({ rows: change(l.rows) }));
   const update = (id: string, change: (t: Table) => Table) =>
     setTables((list) => list.map((t) => (t.id === id ? change(t) : t)));
 
   async function save() {
+    const problem = lettersProblem(letters.rows);
+    if (problem) {
+      notify.error(new Error(`Zuordnung Buchstaben: ${problem}`));
+      return;
+    }
     setBusy(true);
     try {
       const translation: AutoTranslateResult = {
@@ -207,10 +278,11 @@ function Editor({ initial, categories }: { initial: Table[]; categories: Categor
         labels: labelsOf(tables),
       };
       const next = withPairs(tables, translation.pairs);
-      await saveContent(KEY, toJson(next), user!.id);
+      await saveContent(KEY, toJson(next, letters), user!.id);
       // Erst nach dem Speichern übernehmen (sonst gälte maschinelles Englisch danach als eigenes)
       setTables(next);
       setBase(next);
+      void queryClient.invalidateQueries({ queryKey: ["size-letters"] });
       invalidateCatalog();
       void queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
       notify.saved(
@@ -456,6 +528,108 @@ function Editor({ initial, categories }: { initial: Table[]; categories: Categor
             </div>
           </Panel>
         ))}
+      </fieldset>
+      <fieldset className="admin-lock" disabled={busy}>
+        <Panel
+          title="Zuordnung Buchstaben"
+          actions={
+            Object.keys(lettersJson(letters.rows)).length ? (
+              <Badge tone="ok">Buchstaben aktiv</Badge>
+            ) : (
+              <Badge tone="muted">Nur Zahlen</Badge>
+            )
+          }
+        >
+          <div className="admin-form">
+            <p className="admin-hint">
+              <strong>Leer lassen = nur Zahlen (Entscheid Axion 3.11.2026).</strong> Anzüge, Westen
+              und Hosen zeigen die Grössen 46–56 ohne Buchstaben.
+            </p>
+            <p className="admin-hint">
+              Nur falls ihr das später ändern wollt: Mit Einträgen hier zeigt der Shop zu jeder
+              Zahlengrösse den Buchstaben (Produktseite, Schnellkauf, Grössenfilter «48 (M)»,
+              Warenkorb, Spalte «Int.» in der Grössentabelle), und der Grössenfinder rechnet «L» in
+              «50» um. Schuhe, Hemden (Kragenweite), Accessoires, die Einheitsgrösse und Stücke mit
+              Buchstabengrössen (z. B. T-Shirts S–XL) bleiben immer, wie sie sind.
+            </p>
+            <div className="table-scroll">
+              <table className="admin-size-grid">
+                <thead>
+                  <tr>
+                    <th scope="col">Grösse (Zahl)</th>
+                    <th scope="col">Buchstabe</th>
+                    <th aria-hidden="true" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {letters.rows.map((row, r) => (
+                    <tr key={row.id}>
+                      <td>
+                        <input
+                          aria-label={`Zuordnung Zeile ${r + 1}, Zahl`}
+                          inputMode="numeric"
+                          maxLength={3}
+                          value={row.size}
+                          onChange={(e) =>
+                            editLetters((rows) =>
+                              rows.map((x) =>
+                                x.id === row.id
+                                  ? { ...x, size: e.target.value.replace(/[^\d]/g, "") }
+                                  : x,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          aria-label={`Zuordnung Zeile ${r + 1}, Buchstabe`}
+                          maxLength={5}
+                          value={row.letter}
+                          onChange={(e) =>
+                            editLetters((rows) =>
+                              rows.map((x) =>
+                                x.id === row.id
+                                  ? { ...x, letter: e.target.value.toUpperCase() }
+                                  : x,
+                              ),
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Zuordnung ${row.size || `Zeile ${r + 1}`} entfernen`}
+                          onClick={() => editLetters((rows) => rows.filter((x) => x.id !== row.id))}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="admin-actions">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={letters.rows.length >= 20}
+                onClick={() =>
+                  editLetters((rows) => [...rows, { id: newId(), size: "", letter: "" }])
+                }
+              >
+                <Plus /> Zeile
+              </Button>
+            </div>
+            <p className="admin-hint">
+              Gespeichert wird mit «Grössentabellen speichern». Alle Zeilen entfernen und speichern:
+              Der Shop zeigt dann nur die Zahlen.
+            </p>
+          </div>
+        </Panel>
       </fieldset>
       <div className="admin-savebar">
         <Button variant="admin" disabled={busy} onClick={() => void save()}>

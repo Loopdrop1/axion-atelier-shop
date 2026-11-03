@@ -49,6 +49,7 @@ export const de = {
       sakkos: "Sakkos",
       hosen: "Hosen",
       hemden: "Hemden",
+      "t-shirts": "T-Shirts",
       westen: "Westen",
       "maentel-jacken": "Mäntel & Jacken",
       strick: "Strick",
@@ -285,6 +286,15 @@ export const de = {
     chooseSize: "Grösse wählen",
     euSizes: " · EU",
     sizeGuide: "Grössentabelle",
+    sizeFinder: "Welche Grösse passt mir?",
+    yourSize: (size: string) => `Deine Grösse: ${size}`,
+    yourSizeMark: "deine Grösse laut Grössenfinder",
+    modelLine: (height: string | null, size: string | null) =>
+      height && size
+        ? `Das Model ist ${height} m gross und trägt Grösse ${size}.`
+        : height
+          ? `Das Model ist ${height} m gross.`
+          : `Das Model trägt Grösse ${size ?? ""}.`,
     soldOut: "ausverkauft",
     addToCart: "In den Warenkorb",
     share: "Teilen",
@@ -381,6 +391,55 @@ export const de = {
       freeExchange
         ? `Passt es nicht, tauschst du es innert ${days} Tagen gratis gegen eine andere Grösse, solange verfügbar, oder gibst es zurück.`
         : `Passt es nicht, gibst du es innert ${days} Tagen zurück.`,
+    international: "International",
+    internationalShort: "Int.",
+  },
+  sizeFinder: {
+    title: "Grössenfinder",
+    intro: "Ein paar Angaben genügen. Mit dem Brustumfang wird die Empfehlung am genauesten.",
+    introShoes: "Miss deine Fusslänge oder nenne die EU-Grösse, die du sonst trägst.",
+    sectionTitle: "Welche Grösse passt mir?",
+    piece: "Für welches Stück?",
+    height: "Körpergrösse in cm",
+    heightHint: "Zum Beispiel 182",
+    chest: "Brustumfang in cm (freiwillig)",
+    chestHint: "Locker an der breitesten Stelle messen, ohne Jacke.",
+    foot: "Fusslänge in cm (freiwillig)",
+    footHint: "Von der Ferse bis zum längsten Zeh, am besten abends.",
+    usual: "Diese Grösse trage ich sonst (freiwillig)",
+    usualHint: "So, wie die Grösse bei uns heisst, zum Beispiel 50 oder M",
+    usualShoes: "EU-Grösse, die ich sonst trage (freiwillig)",
+    usualShoesHint: "Zum Beispiel 43",
+    fit: "Wie soll es sitzen?",
+    fits: { slim: "Eng anliegend", regular: "Normal", relaxed: "Bequem" },
+    submit: "Grösse finden",
+    invalid: (min: number, max: number) => `Bitte eine Zahl zwischen ${min} und ${max} eingeben.`,
+    missing: "Gib deinen Brustumfang oder die Grösse an, die du sonst trägst.",
+    missingShoes: "Gib deine Fusslänge oder die EU-Grösse an, die du sonst trägst.",
+    notOffered:
+      "Diese Grösse führen wir bei diesem Stück nicht. Mit deinem Brustumfang finden wir die passende.",
+    result: (size: string) => `Wir empfehlen ${size}`,
+    choose: (size: string) => `Grösse ${size} wählen`,
+    basis: {
+      "chest-table": "Nach deinem Brustumfang und der Grössentabelle.",
+      "chest-norm":
+        "Nach deinem Brustumfang: Die Konfektionsgrösse entspricht etwa dem halben Brustumfang.",
+      usual: "Nach der Grösse, die du sonst trägst.",
+      "height-table": "Nach deiner Körpergrösse geschätzt. Mit dem Brustumfang wird es genauer.",
+      "foot-table": "Nach deiner Fusslänge und der Grössentabelle.",
+    } as Record<string, string>,
+    shiftDown: "Weil du es eng anliegend magst, eine Grösse kleiner.",
+    shiftUp: "Weil du es bequem magst, eine Grösse grösser.",
+    between: "Du liegst zwischen zwei Grössen, dein Passformwunsch hat entschieden.",
+    belowRange: "Deine Masse liegen unter der kleinsten Grösse dieses Stücks.",
+    aboveRange: "Deine Masse liegen über der grössten Grösse dieses Stücks.",
+    proportions:
+      "Bei deiner Körpergrösse können Ärmel- und Beinlänge abweichen. Vergleiche die Längen in der Grössentabelle.",
+    soldOut:
+      "Diese Grösse ist im Moment ausverkauft. Auf der Produktseite kannst du dich benachrichtigen lassen.",
+    privacy: "Deine Angaben werden nur in deinem Browser gespeichert und nicht übertragen.",
+    forget: "Angaben löschen",
+    sizeGuideLink: "Grössentabelle ansehen",
   },
   search: {
     title: "Suche",

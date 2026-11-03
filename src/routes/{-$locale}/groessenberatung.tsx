@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { toLocale } from "@/i18n";
 import { pageHead } from "@/lib/commerce/seo";
-import { sizeGuideQuery } from "@/lib/commerce/queries";
+import { sizeGuideQuery, sizeLettersQuery, type SizeGuidePageData } from "@/lib/commerce/queries";
 import { ContentPage } from "@/components/shop/content";
 import { contentMeta } from "@/components/shop/content-meta";
 export const Route = createFileRoute("/{-$locale}/groessenberatung")({
@@ -10,10 +10,16 @@ export const Route = createFileRoute("/{-$locale}/groessenberatung")({
     const meta = contentMeta("groessenberatung", locale);
     return pageHead(meta.title, meta.description, "/groessenberatung", locale);
   },
-  // Rückgabe = Startwert für die Abfrage im Browser (gleiche Tabellen wie beim Server-Rendering)
-  loader: ({ context, params }) =>
-    context.queryClient
-      .ensureQueryData(sizeGuideQuery(toLocale(params.locale)))
-      .catch(() => undefined),
+  // Rückgabe = Startwerte für die Abfragen im Browser (gleiche Tabellen und Zuordnung wie beim Server-Rendering,
+  // sonst weicht der Grössenfinder beim Hydrieren ab)
+  loader: async ({ context, params }): Promise<SizeGuidePageData> => {
+    const [tables, letters] = await Promise.all([
+      context.queryClient
+        .ensureQueryData(sizeGuideQuery(toLocale(params.locale)))
+        .catch(() => undefined),
+      context.queryClient.ensureQueryData(sizeLettersQuery()).catch(() => undefined),
+    ]);
+    return { tables, letters };
+  },
   component: () => <ContentPage handle="groessenberatung" />,
 });

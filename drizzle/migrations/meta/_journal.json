@@ -164,6 +164,20 @@
       "breakpoints": true
     },
     {
+      "idx": 23,
+      "version": "7",
+      "when": 1792750000000,
+      "tag": "0023_axion_size_details",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792760000000,
+      "tag": "0024_axion_sortiment_gift_newsletter",
+      "breakpoints": true
+    },
+    {
       "idx": 25,
       "version": "7",
       "when": 1792770000000,

@@ -7,6 +7,7 @@ import { useAddToCart } from "./use-add-to-cart";
 import { formatPrice, formatDiscount, discountPercent } from "@/lib/commerce/format";
 import { materialLine } from "@/lib/commerce/material-line";
 import { oneSizeVariant } from "@/lib/commerce/one-size";
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { isOnSale } from "@/lib/commerce/sale";
 import { useShopSettings } from "@/lib/commerce/use-settings";
 import { isSoldOut, sizesFor } from "./outfit";
@@ -118,11 +119,12 @@ export function ProductCard({
                   }}
                   aria-label={
                     v.availableForSale
-                      ? t.product.addSize(name, v.title)
-                      : t.product.sizeSoldOut(name, v.title)
+                      ? t.product.addSize(name, sizeWithLetter(v.title, v.letter))
+                      : t.product.sizeSoldOut(name, sizeWithLetter(v.title, v.letter))
                   }
                 >
-                  {v.title}
+                  <span className="size-number">{v.title}</span>
+                  {v.letter && <span className="size-letter">{v.letter}</span>}
                   {!v.availableForSale && <span className="sr-only">, {t.product.soldOut}</span>}
                 </Button>
               ))
