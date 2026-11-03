@@ -21,10 +21,10 @@ Phone: {{phone}}
 [First and last name, position]
 
 **Commercial register**
-[Registered in the commercial register of the canton of …, business identification number (UID) {{uid}}] or [Not registered in the commercial register]
+Not registered in the commercial register
 
 **VAT**
-[VAT number CHE-… MWST] or [Not subject to VAT]
+Not subject to VAT
 
 **Liability for content and links**
 We check the content of this website carefully. The operators of external websites we link to are solely responsible for their content.
@@ -45,7 +45,7 @@ Last updated: [Date]
 ### 1. Who is responsible for processing your data
 The controller responsible for processing your personal data on this website and in the online shop is:
 {{company}}, {{address}}, Switzerland
-Email for data protection questions: [Data protection email, otherwise {{email}}]
+Email for data protection questions: {{email}}
 
 This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 
@@ -142,7 +142,7 @@ We may update this privacy policy. The version published on this website applies
 Last updated: [Date]
 
 ### 1. Scope
-These terms and conditions apply to all orders and to the purchase of gift cards in the {{brand}} online shop at [domain]. Your contractual partner is {{company}}, {{address}}, Switzerland, email {{email}} ("we"). We only deliver to addresses in Switzerland [and Liechtenstein].
+These terms and conditions apply to all orders and to the purchase of gift cards in the {{brand}} online shop at [domain]. Your contractual partner is {{company}}, {{address}}, Switzerland, email {{email}} ("we"). We only deliver to addresses in Switzerland and Liechtenstein.
 
 ### 2. Order and conclusion of the contract
 The presentation of the products in the shop is not a binding offer. This is how you order:
@@ -155,10 +155,10 @@ The presentation of the products in the shop is not a binding offer. This is how
 
 Until you submit your order, you can change all entries or cancel the purchase. You can order at most 3 pieces per size and at most 20 pieces per order. While you pay, we reserve the items for a short time. After successful payment, you receive an order confirmation by email. The contract is concluded with this confirmation. If an item is no longer available despite the confirmation, we inform you immediately and refund any amounts already paid without delay.
 
-You can order as a guest or open a customer account. [If you are under 18, you need the consent of your parents or legal guardian to place an order.] or [You can order from the age of 16; until you are 18, you need the consent of your parents or legal guardian.]
+You can order as a guest or open a customer account.
 
 ### 3. Prices
-All prices are final prices in Swiss francs (CHF). [If subject to VAT: They include statutory VAT.] Any shipping costs are shown in the cart and on the payment page before you order. The price shown in the shop at the time of your order applies.
+All prices are final prices in Swiss francs (CHF). Any shipping costs are shown in the cart and on the payment page before you order. The price shown in the shop at the time of your order applies.
 
 ### 4. Payment, discount codes and gift cards
 You can pay with TWINT, credit or debit card (Visa, Mastercard, American Express), Apple Pay, Google Pay or Klarna. Which payment methods appear depends, among other things, on your device and the amount. Payment is triggered when you order and processed by Stripe. If you pay with Klarna, Klarna's terms and payment periods also apply. We do not offer purchase on invoice ourselves.
@@ -170,20 +170,20 @@ We deliver with Swiss Post. Delivery usually takes 2 to 5 working days from disp
 
 ### 6. Gift cards
 - You receive the gift card by email with a personal code. On request, we send it directly to the recipient.
-- The gift card is valid from purchase for the period stated on it ([5 years]). You can check the remaining balance in the shop at any time.
+- The gift card is valid for 30 years from purchase, as stated on it. You can check the remaining balance in the shop at any time.
 - You can redeem the gift card across several orders until the balance is used up. It cannot be paid out in cash. You cannot buy gift cards with discount codes or other gift cards.
 - Anyone who knows the code can redeem it, so keep it safe. If a code has been lost, contact us immediately: as long as the balance has not been redeemed, we block the code and transfer the remaining balance to a new one.
 - Gift cards are excluded from the voluntary right of return. If you return goods that you paid for in full or in part with a gift card, we refund that part as a gift card.
 
 ### 7. Voluntary right of return
 Swiss law does not provide for a right of return for online purchases. We voluntarily grant you a right of return of {{returnDays}} days from receipt of the goods.
-- **Conditions:** The goods are unworn, unwashed, unaltered and complete, with all tags and, if possible, in the original packaging. [Excluded are: …]
-- **How to return:** Notify us of the return online under "Register a return" (page Shipping and returns) with your order number and email address, or by email to {{email}}. [Return label: enclosed with the parcel / we send it to you by email / you pay the postage yourself.]
-- **Costs:** [Returns are free for you.] or [You bear the return costs of CHF ….]
-- **Refund:** After we have received and checked the goods, we refund the purchase price within [number] days to the original payment method [or as a gift card, as you choose].
-- **Exchange:** You can exchange an item for another size [free of charge] while it is available.
+- **Conditions:** The goods are unworn, unwashed, unaltered and complete, with all tags and, if possible, in the original packaging. Sale items, worn items and shoes with signs of wear are excluded.
+- **How to return:** Notify us of the return online under "Register a return" (page Shipping and returns) with your order number and email address, or by email to {{email}}. The return label is enclosed with your parcel.
+- **Costs:** Returns are free for you.
+- **Refund:** After we have received and checked the goods, we refund the purchase price within 7 days, as you choose to the original payment method or as a gift card. Amounts paid with a gift card are credited back to the gift card.
+- **Exchange:** You can exchange an item for another size free of charge while it is available.
 
-[Only for delivery to Liechtenstein: Consumers resident in Liechtenstein also have the statutory right of withdrawal from distance contracts under Liechtenstein law. Consult a specialist.]
+Consumers resident in Liechtenstein additionally have the statutory right of withdrawal from distance contracts under the Liechtenstein Consumer Protection Act; where it goes further than these terms, it takes precedence. [Specialist: add the withdrawal information and model form under Liechtenstein law.]
 
 ### 8. Warranty
 The statutory provisions apply. The warranty period is two years from delivery. Please check the goods when you receive them and notify us of any defects by email to {{email}} as soon as you discover them. In the event of a defect, you can by law demand cancellation of the purchase, a price reduction or a replacement free of defects. We are also happy to offer you a repair if that suits you. Normal wear and tear and damage caused by improper care are not defects.
@@ -198,7 +198,7 @@ We are liable in accordance with the statutory provisions. We are not liable for
 How we process your data is described in our privacy policy.
 
 ### 12. Applicable law and place of jurisdiction
-Swiss law applies, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). The statutory places of jurisdiction apply to disputes. As a consumer, you can take legal action at your place of residence or at our registered office. [Only for delivery to Liechtenstein: For consumers resident in Liechtenstein, the mandatory provisions of the law of their place of residence remain reserved.]
+Swiss law applies, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). The statutory places of jurisdiction apply to disputes. As a consumer, you can take legal action at your place of residence or at our registered office. For consumers resident in Liechtenstein, the mandatory provisions of the law of their place of residence remain reserved.
 
 ### 13. Changes
 We may change these terms and conditions at any time. Your order is governed by the version published at the time of your order.
@@ -207,15 +207,15 @@ We may change these terms and conditions at any time. Your order is governed by 
   "versand-und-rueckgabe": structure(
     "Shipping and returns",
     `
-- **Delivery area:** Switzerland [and Liechtenstein]
+- **Delivery area:** Switzerland and Liechtenstein
 - **Shipping:** with Swiss Post. {{shipping}}
 - **Delivery time:** 2 to 5 working days from dispatch; orders by 2 pm (working days) are dispatched the same day, tracking number by email
 - **Returns:** within {{returnDays}} days of receipt, unworn and with all tags
 - **Register a return:** online with your order number and email address, then we email you the instructions for sending it back
-- **Return shipping:** [free / CHF …], [label included / on request]
-- **Refund:** within [number] days of receiving your return, to the original payment method. Amounts paid with a gift card are credited back to the gift card.
-- **Exchange:** another size [free of charge], while available
-- **Gift cards:** excluded from returns
+- **Return shipping:** free, the label is enclosed with your parcel
+- **Refund:** within 7 days of receiving your return, as you choose to the original payment method or as a gift card. Amounts paid with a gift card are credited back to the gift card.
+- **Exchange:** another size free of charge, while available
+- **Excluded:** gift cards, sale items, worn items and shoes with signs of wear
 - **Defects:** two-year statutory warranty, report by email to {{email}}
 The binding rules are set out in the terms and conditions; the German version is legally binding.
 `,
@@ -246,13 +246,13 @@ Usually 2 to 5 working days from dispatch. Orders by 2 pm (working days) are dis
 **How much is shipping?**
 {{shipping}}. You see the exact amount in your cart before you order.
 **Does Axion ship abroad?**
-At the moment we only ship within Switzerland [and to Liechtenstein].
+At the moment we ship within Switzerland and to Liechtenstein.
 
 ### Returns
 **Can I return an item?**
 Yes. You can return items within {{returnDays}} days of receipt, unworn and with all tags. Register the return online first, with your order number and email address, under “Register a return” on the Shipping and returns page. The details are in the terms and conditions.
 **When do I get my money back?**
-Within [number] days of receiving your return, to the original payment method. Amounts paid with a gift card are credited back to the gift card.
+Within 7 days of receiving your return, as you choose to the original payment method or as a gift card. Amounts paid with a gift card are credited back to the gift card.
 
 ### Payment, gift cards and discount codes
 **How can I pay?**
@@ -262,7 +262,7 @@ With Klarna you can pay later or in instalments, subject to approval by Klarna. 
 **How do I redeem a gift card or discount code?**
 Enter the code in your cart before you go to checkout. You can use one discount code and one gift card per order.
 **How long is a gift card valid?**
-As long as stated on the gift card. You can check the remaining balance at any time on the gift card page.
+30 years from purchase; the date is on the gift card. You can check the remaining balance at any time on the gift card page.
 **Can I send a gift card directly?**
 Yes. Enter the recipient's name and email address when you buy it, and we send the gift card straight to them.
 

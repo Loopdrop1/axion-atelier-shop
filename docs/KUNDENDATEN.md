@@ -11,6 +11,52 @@ Git legen. Sie kommen nur in Cloud → Secrets.
 Platzhalter in eckigen Klammern (`[…]`) in `src/config/shop.ts` und in den Rechtstexten erkennt der Shop selbst:
 Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Livegang (Test `launch-gate`).
 
+## 0. Antworten von Axion (Checkliste, unterschrieben am 3.11.2026)
+
+**Übernommen** (Code, Rechtstexte, Einstellungen):
+
+- Nicht im Handelsregister, keine UID, nicht MWST-pflichtig (`vatRegistered: false`, Impressum und AGB ohne MWST)
+- Kontakt nur per E-Mail: kein Telefon, keine Zeiten (`phone`, `hours` leer); Datenschutzfragen an dieselbe E-Mail
+- Kein Mindestalter (Satz in den AGB gestrichen)
+- Liefergebiet Schweiz und Liechtenstein (AGB, Versand und Rückgabe, FAQ; Secret `SHIPPING_COUNTRIES=CH,LI` setzen)
+- Versand Montag bis Freitag, bis 14 Uhr am selben Tag, 2 bis 5 Arbeitstage (wie bisher)
+- Rückgabe 14 Tage, Rücksendung gratis, Etikett liegt dem Paket bei, Umtausch gratis, Rückerstattung innert 7 Tagen
+  nach Wahl der Kundschaft (Zahlungsmittel oder Gutschein; Wahl im Retourenformular, Migration `0022`), ausgeschlossen:
+  Sale-Artikel, getragene Artikel, Schuhe mit Gebrauchsspuren
+- Gutscheine ab CHF 25, Vorschläge 50/100/150/200, gültig 30 Jahre (Admin → Einstellungen: Gültigkeit 30)
+- «Benachrichtigen, wenn wieder da», Versandbestätigung und Warenkorb-Erinnerung: eingebaut
+- Gast-Bestellung möglich, Rabattcodes ja, Kundenkonto vorhanden
+- Rechtstexte prüft eine Fachperson (Anwalt/Treuhand) vor dem Livegang
+- Gewünschter Livegang 1.1.2027, Unterlagen komplett bis Ende November, Rückmeldung innert 3 Arbeitstagen
+- Admins: Vasilis Soufis, Andrea Loris Spasari (Logins nach der Einrichtung unter Admin → Zugänge)
+
+**Widersprüchlich oder offen, mit Axion klären:**
+
+1. **Rechtsform:** «Einzelunternehmen», aber zwei Inhaber (Vasilis Soufis und Andrea Loris Spasari). Ein
+   Einzelunternehmen hat genau eine Inhaberin oder einen Inhaber, und der Firmenname muss deren Familiennamen enthalten
+   («Axion» allein genügt nicht). Zu zweit ist es eine einfache Gesellschaft (oder Kollektivgesellschaft mit
+   Handelsregister-Pflicht). Bestimmt Impressum, AGB-Vertragspartner und Stripe-Konto. `contact.company` bleibt bis
+   dahin Platzhalter.
+2. **Adresse:** nur «8620 Wetzikon». Impressum und Rücksendungen brauchen Strasse und Nummer (`contact.address`,
+   Secret `SHOP_ADDRESS`).
+3. **E-Mail info@axion.ch:** `axion.ch` gehört Axion nicht (seit 1999 vergeben, Kauf erst angefragt). Als Domain
+   gewünscht: axiion.ch, axionss.ch, axion-mode.ch. Erst Domain festlegen, dann `info@<domain>` (Kontakt,
+   Bestellmeldungen, Konten).
+4. **Datenschutz-Kontakt «Ben»:** Verantwortlich bleibt Axion; Ben ist Auftragsbearbeiter. Im Shop steht deshalb die
+   Axion-Adresse.
+5. **Kategorien:** angekreuzt Anzüge, Westen, Schuhe, Hosen einzeln, T-Shirt; gleichzeitig «Sakko und Hose als eigene
+   Produkte». Dann braucht es auch Sakkos (oder Anzug = Sakko + Hose als Outfit). Im Admin entsprechend anlegen.
+6. **Grössen «beides» (Zahl und Buchstabe), Zuordnung «nein»:** Ohne Zuordnung (z. B. S = 46) lässt sich «beides» nicht
+   anzeigen. Entweder Zuordnung liefern oder nur Zahlen 46 bis 56.
+7. **Newsletter «10 / 14 Tage»:** unklar (Versandrhythmus? Rabatt?). Willkommensrabatt in Prozent oder keiner.
+8. **Kostenpflichtige Optionen angekreuzt, aber «Paket: keines»:** Wahl Economy/Priority in der Kasse, Kundenbewertungen
+   (nur echte Käufe), Google Analytics (braucht Cookie-Hinweis). Nicht gebaut; Preis und Auftrag zuerst klären. Bis
+   dahin: Versand Economy gratis, cookiefreie Statistik (Plausible) möglich.
+9. **Gratis-Rücksendung mit beiliegendem Etikett:** kostet Axion pro Retoure rund CHF 7.50 bis 10.50 (Post, Stand
+   Oktober 2026); bei Anzügen ohne Anprobe häufig.
+10. **Liechtenstein:** zwingendes Rücktrittsrecht nach liechtensteinischem Konsumentenschutzgesetz, gilt dort auch für
+    Sale-Artikel. Belehrung und Muster-Formular ergänzt die Fachperson (Platzhalter in AGB Ziffer 7).
+
 ## 1. Firmen- und Kontaktangaben
 
 Datei `src/config/shop.ts`, Objekt `contact`. Dieselben Werte erscheinen im Impressum, in den Rechtstexten, im Footer
@@ -55,8 +101,8 @@ in Lovable veröffentlichen.
 | Lieferzeit und Annahmeschluss | `shop.ts` → `delivery` (Annahmeschluss 14:00, 2 bis 5 Arbeitstage)                                                         | Das Lieferdatum auf Produktseite und im Warenkorb stimmt nicht; AGB, «Versand und Rückgabe» und `de.ts`/`en.ts` («Lieferung in 2 bis 5 Arbeitstagen») gemeinsam anpassen      |
 | Zahlungsarten                 | `shop.ts` → `paymentMethods` (Footer-Badges); Zahlungsarten selbst im Stripe-Dashboard einschalten                         | Eine hier genannte, in Stripe nicht aktive Art täuscht Kundschaft. «Klarna» in der Liste zeigt den Klarna-Hinweis auf der Produktseite; TWINT erst nach Freigabe durch Stripe |
 | Versandkosten, «Gratis ab»    | Admin → Einstellungen                                                                                                      | Standard: Versand kostenlos, kein Schwellenwert                                                                                                                               |
-| Liefergebiet                  | Secret `SHIPPING_COUNTRIES` (Standard `CH`)                                                                                | Nur Schweiz. `CH,LI` erst, wenn die Liechtenstein-Klauseln in `pages.ts` und `pages-en.ts` stehen                                                                             |
-| Gutscheinbeträge, Gültigkeit  | Admin → Einstellungen (Standard 5 Jahre)                                                                                   | Standardwerte                                                                                                                                                                 |
+| Liefergebiet                  | Secret `SHIPPING_COUNTRIES` (Standard `CH`; Axion: `CH,LI`)                                                                | Nur Schweiz. Liechtenstein-Klauseln stehen in `pages.ts` und `pages-en.ts` (Belehrung ergänzt die Fachperson)                                                                 |
+| Gutscheinbeträge, Gültigkeit  | Admin → Einstellungen (Axion: ab CHF 25, 30 Jahre; AGB nennen 30 Jahre)                                                    | Standard 5 Jahre widerspricht den AGB                                                                                                                                         |
 
 ## 4. Newsletter und Willkommensrabatt
 
@@ -91,38 +137,26 @@ frei; Ben ersetzt die Platzhalter in beiden Sprachen.
 
 **Impressum**
 
-- `[Rechtsform]`
-- `[Vor- und Nachname, Funktion]` der vertretungsberechtigten Person
-- Handelsregister: `[Eingetragen im Handelsregister des Kantons …, UID …]` oder `[nicht im Handelsregister eingetragen]` (eines streichen)
-- Mehrwertsteuer: `[MWST-Nummer CHE-… MWST]` oder `[Nicht mehrwertsteuerpflichtig]` (eines streichen)
+- `[Rechtsform]` (siehe Abschnitt 0, Punkt 1)
+- `[Vor- und Nachname, Funktion]` der vertretungsberechtigten Person bzw. Inhaber
 
 **Datenschutzerklärung**
 
 - `Stand: [Datum]`
-- `[Datenschutz-E-Mail, sonst {{email}}]`
 - `[Ort]` des Rechenzentrums von Lovable Cloud (Region Europa; Ort bei Lovable bestätigen)
 - `[Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]`
 - `[KI-Anbieter mit Sitz, von der Rechtsberatung zu bestätigen]` für die KI-Suche (`search-assist` über das Lovable AI
   Gateway): Anbieter des KI-Modells und Sitz laut Lovable-Angaben, dazu Auslandsbekanntgabe in Ziffer 5 prüfen
+- Besucherstatistik: `[Vor Livegang zu bestätigen: …]` (nur sichtbar mit Plausible-Domain)
 
 **Allgemeine Geschäftsbedingungen (AGB)**
 
-- `Stand: [Datum]`, `[Domain]`, `[und in Liechtenstein]` (nur bei Liechtenstein-Lieferung)
-- Mindestalter: zwei Varianten (`[Wer noch nicht 18 Jahre alt ist …]` oder `[Bestellen kannst du ab 16 Jahren …]`), eine wählen
-- Preise: `[Bei MWST-Pflicht: Sie enthalten die gesetzliche Mehrwertsteuer.]`
-- Geschenkgutscheine: `[5 Jahre]` (Gültigkeit, gleich wie in Admin → Einstellungen)
-- Freiwilliges Rückgaberecht: `[Ausgeschlossen sind: …]`, Rücksendeetikett `[liegt dem Paket bei / senden wir dir per E-Mail / du frankierst selbst]`,
-  Rücksendekosten `[Die Rücksendung ist für dich gratis.]` oder `[Die Rücksendekosten von CHF … trägst du.]`,
-  Rückerstattung `[Anzahl]` Tage, `[oder als Gutschein, nach deiner Wahl]`, `[gratis]`
-- Nur bei Lieferung nach Liechtenstein: Rücktrittsrecht und zwingendes Wohnsitzrecht (zwei Absätze, Fachperson beiziehen)
+- `Stand: [Datum]`, `[Domain]`
+- Liechtenstein: `[Fachperson: Belehrung und Muster-Formular zum Rücktritt nach liechtensteinischem Recht ergänzen.]`
 
-**Versand und Rückgabe**
-
-- `[und Liechtenstein]`, Versandkosten `[gratis / CHF …]`, Retoure `[Etikett liegt bei / auf Anfrage]`, `[Anzahl]` Tage, `[gratis]`
-
-**Häufige Fragen**
-
-- `[und nach Liechtenstein]`, `[Anzahl]` Tage Rückerstattung
+Erledigt mit den Antworten vom 3.11.2026: Handelsregister, MWST, Datenschutz-E-Mail, Mindestalter, Gutschein-Gültigkeit,
+Rückgabe (Ausschlüsse, Etikett, Kosten, Frist, Wahl der Rückerstattung, Umtausch), Liechtenstein in Liefergebiet, FAQ
+und Gerichtsstand.
 
 Nicht ersetzte Platzhalter sind unschädlich für die Technik, aber die betroffene Seite bleibt Entwurf, und Fragen
 mit Platzhaltern fehlen in den Strukturierten Daten (FAQ). Mit `launched: true` schlägt der Test an, wenn Kontaktdaten

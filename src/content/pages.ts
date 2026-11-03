@@ -98,10 +98,10 @@ Telefon: {{phone}}
 [Vor- und Nachname, Funktion]
 
 **Handelsregister**
-[Eingetragen im Handelsregister des Kantons …, Unternehmens-Identifikationsnummer (UID) {{uid}}] oder [nicht im Handelsregister eingetragen]
+Nicht im Handelsregister eingetragen
 
 **Mehrwertsteuer**
-[MWST-Nummer CHE-… MWST] oder [Nicht mehrwertsteuerpflichtig]
+Nicht mehrwertsteuerpflichtig
 
 **Haftung für Inhalte und Links**
 Wir prüfen die Inhalte dieser Website sorgfältig. Für Inhalte externer Websites, auf die wir verlinken, sind ausschliesslich deren Betreiber verantwortlich.
@@ -122,7 +122,7 @@ Stand: [Datum]
 ### 1. Wer für die Datenbearbeitung verantwortlich ist
 Verantwortlich für die Bearbeitung deiner Personendaten auf dieser Website und im Online-Shop ist:
 {{company}}, {{address}}, Schweiz
-E-Mail für Datenschutzfragen: [Datenschutz-E-Mail, sonst {{email}}]
+E-Mail für Datenschutzfragen: {{email}}
 
 Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über den Datenschutz (DSG).
 
@@ -219,7 +219,7 @@ Wir können diese Datenschutzerklärung anpassen. Es gilt die Version, die auf d
 Stand: [Datum]
 
 ### 1. Geltungsbereich
-Diese AGB gelten für alle Bestellungen und für den Kauf von Geschenkgutscheinen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in der Schweiz [und in Liechtenstein].
+Diese AGB gelten für alle Bestellungen und für den Kauf von Geschenkgutscheinen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in der Schweiz und in Liechtenstein.
 
 ### 2. Bestellung und Vertragsschluss
 Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestellst du:
@@ -232,10 +232,10 @@ Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestells
 
 Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Pro Grösse kannst du höchstens 3 Stück und pro Bestellung höchstens 20 Stück bestellen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
 
-Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. [Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.] oder [Bestellen kannst du ab 16 Jahren; bis 18 Jahre brauchst du die Zustimmung der Eltern oder der gesetzlichen Vertretung.]
+Du kannst als Gast bestellen oder ein Kundenkonto eröffnen.
 
 ### 3. Preise
-Alle Preise sind Endpreise in Schweizer Franken (CHF). [Bei MWST-Pflicht: Sie enthalten die gesetzliche Mehrwertsteuer.] Allfällige Versandkosten siehst du im Warenkorb und auf der Bezahlseite, bevor du bestellst. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.
+Alle Preise sind Endpreise in Schweizer Franken (CHF). Allfällige Versandkosten siehst du im Warenkorb und auf der Bezahlseite, bevor du bestellst. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.
 
 ### 4. Zahlung, Rabattcodes und Gutscheine
 Du kannst mit TWINT, Kredit- oder Debitkarte (Visa, Mastercard, American Express), Apple Pay, Google Pay oder Klarna bezahlen. Welche Zahlungsarten erscheinen, hängt unter anderem von deinem Gerät und vom Betrag ab. Die Zahlung wird bei der Bestellung ausgelöst und über Stripe abgewickelt. Bei Klarna gelten zusätzlich die Bedingungen und Zahlungsfristen von Klarna. Einen eigenen Kauf auf Rechnung bieten wir nicht an.
@@ -247,20 +247,20 @@ Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2
 
 ### 6. Geschenkgutscheine
 - Du erhältst den Gutschein per E-Mail mit einem persönlichen Code. Auf Wunsch senden wir ihn direkt an die beschenkte Person.
-- Der Gutschein gilt ab Kauf so lange, wie auf dem Gutschein angegeben ([5 Jahre]). Das Restguthaben kannst du im Shop jederzeit prüfen.
+- Der Gutschein gilt ab Kauf 30 Jahre, wie auf dem Gutschein angegeben. Das Restguthaben kannst du im Shop jederzeit prüfen.
 - Du kannst den Gutschein in mehreren Bestellungen einlösen, bis das Guthaben aufgebraucht ist. Eine Barauszahlung ist nicht möglich. Geschenkgutscheine kannst du nicht mit Rabattcodes oder anderen Gutscheinen kaufen.
 - Wer den Code kennt, kann ihn einlösen. Bewahre ihn deshalb sorgfältig auf. Ist ein Code verloren gegangen, melde dich sofort: Solange das Guthaben nicht eingelöst ist, sperren wir den Code und übertragen das Restguthaben auf einen neuen.
 - Geschenkgutscheine sind vom freiwilligen Rückgaberecht ausgenommen. Gibst du Ware zurück, die du ganz oder teilweise mit einem Gutschein bezahlt hast, erstatten wir diesen Teil als Gutschein.
 
 ### 7. Freiwilliges Rückgaberecht
 Das Schweizer Recht sieht für Online-Käufe kein Rückgaberecht vor. Wir gewähren dir freiwillig ein Rückgaberecht von {{returnDays}} Tagen ab Erhalt der Ware.
-- **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. [Ausgeschlossen sind: …]
-- **So gehst du vor:** Melde die Rückgabe online unter «Retoure anmelden» (Seite Versand und Rückgabe) mit Bestellnummer und E-Mail-Adresse an, oder per E-Mail an {{email}}. [Rücksendeetikett: liegt dem Paket bei / senden wir dir per E-Mail / du frankierst selbst.]
-- **Kosten:** [Die Rücksendung ist für dich gratis.] oder [Die Rücksendekosten von CHF … trägst du.]
-- **Rückerstattung:** Nach Eingang und Prüfung der Ware erstatten wir den Kaufpreis innert [Anzahl] Tagen auf das ursprüngliche Zahlungsmittel [oder als Gutschein, nach deiner Wahl].
-- **Umtausch:** Eine andere Grösse kannst du [gratis] tauschen, solange sie verfügbar ist.
+- **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. Ausgeschlossen sind Sale-Artikel, getragene Artikel und Schuhe mit Gebrauchsspuren.
+- **So gehst du vor:** Melde die Rückgabe online unter «Retoure anmelden» (Seite Versand und Rückgabe) mit Bestellnummer und E-Mail-Adresse an, oder per E-Mail an {{email}}. Das Rücksendeetikett liegt deinem Paket bei.
+- **Kosten:** Die Rücksendung ist für dich gratis.
+- **Rückerstattung:** Nach Eingang und Prüfung der Ware erstatten wir den Kaufpreis innert 7 Tagen, nach deiner Wahl auf das ursprüngliche Zahlungsmittel oder als Gutschein. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
+- **Umtausch:** Eine andere Grösse kannst du gratis tauschen, solange sie verfügbar ist.
 
-[Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein gilt zusätzlich das gesetzliche Rücktrittsrecht bei Fernabsatzverträgen nach liechtensteinischem Recht. Fachperson beiziehen.]
+Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein gilt zusätzlich das gesetzliche Rücktrittsrecht bei Fernabsatzverträgen nach dem liechtensteinischen Konsumentenschutzgesetz; soweit es weiter geht als diese AGB, gilt es vor. [Fachperson: Belehrung und Muster-Formular zum Rücktritt nach liechtensteinischem Recht ergänzen.]
 
 ### 8. Gewährleistung
 Es gelten die gesetzlichen Bestimmungen. Die Gewährleistungsfrist beträgt zwei Jahre ab Lieferung. Bitte prüfe die Ware nach Erhalt und melde uns Mängel sofort nach ihrer Entdeckung per E-Mail an {{email}}. Bei einem Mangel kannst du nach Gesetz die Rückgängigmachung des Kaufs, eine Minderung des Preises oder eine mangelfreie Ersatzlieferung verlangen. Gerne bieten wir dir auch eine Reparatur an, wenn das für dich passt. Normale Abnutzung und Schäden durch unsachgemässe Pflege sind keine Mängel.
@@ -275,7 +275,7 @@ Wir haften nach den gesetzlichen Bestimmungen. Für leichte Fahrlässigkeit haft
 Wie wir deine Daten bearbeiten, steht in unserer Datenschutzerklärung.
 
 ### 12. Anwendbares Recht und Gerichtsstand
-Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen. [Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein bleiben die zwingenden Bestimmungen ihres Wohnsitzrechts vorbehalten.]
+Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen. Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein bleiben die zwingenden Bestimmungen ihres Wohnsitzrechts vorbehalten.
 
 ### 13. Änderungen
 Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version, die zum Zeitpunkt der Bestellung veröffentlicht war.
@@ -284,15 +284,15 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
   "versand-und-rueckgabe": structure(
     "Versand und Rückgabe",
     `
-- **Liefergebiet:** Schweiz [und Liechtenstein]
+- **Liefergebiet:** Schweiz und Liechtenstein
 - **Versand:** mit der Schweizerischen Post. {{shipping}}
 - **Lieferzeit:** 2 bis 5 Arbeitstage ab Versand; Bestellungen bis 14 Uhr (Arbeitstage) versenden wir am selben Tag, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
 - **Retoure anmelden:** online mit Bestellnummer und E-Mail-Adresse, danach schicken wir dir die Hinweise zur Rücksendung per E-Mail
-- **Rücksendung:** [gratis / CHF …], [Etikett liegt bei / auf Anfrage]
-- **Rückerstattung:** innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
-- **Umtausch:** andere Grösse [gratis], solange verfügbar
-- **Gutscheine:** vom Rückgaberecht ausgenommen
+- **Rücksendung:** gratis, das Etikett liegt deinem Paket bei
+- **Rückerstattung:** innert 7 Tagen nach Eingang der Rücksendung, nach deiner Wahl auf das ursprüngliche Zahlungsmittel oder als Gutschein. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
+- **Umtausch:** andere Grösse gratis, solange verfügbar
+- **Ausgenommen:** Geschenkgutscheine, Sale-Artikel, getragene Artikel und Schuhe mit Gebrauchsspuren
 - **Mängel:** zwei Jahre Gewährleistung nach Gesetz, Meldung per E-Mail an {{email}}
 Die verbindlichen Regeln stehen in den AGB.
 `,
@@ -323,13 +323,13 @@ In der Regel 2 bis 5 Arbeitstage ab Versand. Bestellungen bis 14 Uhr (Arbeitstag
 **Was kostet der Versand?**
 {{shipping}}. Den genauen Betrag siehst du im Warenkorb, bevor du bestellst.
 **Liefert Axion ins Ausland?**
-Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
+Zurzeit liefern wir in die Schweiz und nach Liechtenstein.
 
 ### Rückgabe
 **Kann ich etwas zurückgeben?**
 Ja. Du kannst Artikel innert {{returnDays}} Tagen ab Erhalt zurückgeben, ungetragen und mit allen Etiketten. Melde die Rücksendung vorab online an, mit Bestellnummer und E-Mail-Adresse unter «Retoure anmelden» auf der Seite Versand und Rückgabe. Die Details stehen in den AGB.
 **Wann bekomme ich mein Geld zurück?**
-Innert [Anzahl] Tagen nach Eingang der Rücksendung, auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
+Innert 7 Tagen nach Eingang der Rücksendung, nach deiner Wahl auf das ursprüngliche Zahlungsmittel oder als Gutschein. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
 
 ### Zahlung, Gutscheine und Rabattcodes
 **Wie kann ich bezahlen?**
@@ -339,7 +339,7 @@ Mit Klarna kannst du je nach Prüfung durch Klarna später oder in Raten bezahle
 **Wie löse ich einen Gutschein oder Rabattcode ein?**
 Gib den Code im Warenkorb ein, bevor du zur Kasse gehst. Pro Bestellung kannst du einen Rabattcode und einen Gutschein einlösen.
 **Wie lange gilt ein Geschenkgutschein?**
-So lange, wie auf dem Gutschein steht. Das Restguthaben kannst du jederzeit auf der Gutschein-Seite prüfen.
+30 Jahre ab Kauf, das Datum steht auf dem Gutschein. Das Restguthaben kannst du jederzeit auf der Gutschein-Seite prüfen.
 **Kann ich einen Gutschein direkt verschenken?**
 Ja. Gib beim Kauf Name und E-Mail-Adresse der beschenkten Person an, dann senden wir den Gutschein direkt an sie.
 
