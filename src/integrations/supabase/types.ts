@@ -672,6 +672,8 @@ export type Database = {
           material_de: string | null
           material_en: string | null
           model: string
+          model_height_cm: number | null
+          model_size: string | null
           occasions: string[]
           origin_de: string | null
           origin_en: string | null
@@ -706,6 +708,8 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model: string
+          model_height_cm?: number | null
+          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null
@@ -740,6 +744,8 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model?: string
+          model_height_cm?: number | null
+          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null
@@ -859,6 +865,7 @@ export type Database = {
           gift_card_valid_years: number
           hide_sold_out: boolean
           id: number
+          newsletter_welcome_days: number
           newsletter_welcome_percent: number | null
           notify_email: string | null
           shipping_cents: number
@@ -871,6 +878,7 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
+          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
           shipping_cents?: number
@@ -883,6 +891,7 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
+          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
           shipping_cents?: number

@@ -86,16 +86,15 @@ export const pages = {
     `
 **Anbieterin dieses Online-Shops**
 {{company}}
-[Rechtsform]
+Einzelunternehmen
 {{address}}
 Schweiz
 
 **Kontakt**
 E-Mail: {{email}}
-Telefon: {{phone}}
 
 **Vertretungsberechtigte Person**
-[Vor- und Nachname, Funktion]
+Vasilis Soufis, Inhaber
 
 **Handelsregister**
 Nicht im Handelsregister eingetragen
@@ -122,7 +121,7 @@ Stand: [Datum]
 ### 1. Wer für die Datenbearbeitung verantwortlich ist
 Verantwortlich für die Bearbeitung deiner Personendaten auf dieser Website und im Online-Shop ist:
 {{company}}, {{address}}, Schweiz
-E-Mail für Datenschutzfragen: {{email}}
+E-Mail für Datenschutzfragen: [Datenschutz-E-Mail, sonst {{email}}]
 
 Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über den Datenschutz (DSG).
 
@@ -219,20 +218,20 @@ Wir können diese Datenschutzerklärung anpassen. Es gilt die Version, die auf d
 Stand: [Datum]
 
 ### 1. Geltungsbereich
-Diese AGB gelten für alle Bestellungen und für den Kauf von Geschenkgutscheinen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in der Schweiz und in Liechtenstein.
+Diese AGB gelten für alle Bestellungen und für den Kauf von Geschenkgutscheinen im Online-Shop {{brand}} unter [Domain]. Vertragspartnerin ist {{company}}, {{address}}, Schweiz, E-Mail {{email}} (nachfolgend «wir»). Wir liefern nur an Adressen in der Schweiz [und in Liechtenstein].
 
 ### 2. Bestellung und Vertragsschluss
 Die Darstellung der Produkte im Shop ist kein verbindliches Angebot. So bestellst du:
-1. Grösse wählen und Artikel in den Warenkorb legen.
-2. Im Warenkorb deine E-Mail-Adresse eingeben und, falls vorhanden, einen Rabattcode oder Geschenkgutschein einlösen.
-3. Auf «Zur Kasse» klicken. Du gelangst auf die Bezahlseite unseres Zahlungsdienstleisters Stripe.
-4. Lieferadresse eingeben und Zahlungsart wählen.
-5. Alle Angaben prüfen und bei Bedarf korrigieren.
-6. Die Bestellung mit dem Bezahl-Button verbindlich absenden.
+1. Grösse wählen und auf «In den Warenkorb» klicken.
+2. Den Warenkorb öffnen und auf «Zur Kasse» klicken.
+3. Deine E-Mail-Adresse eingeben und, falls vorhanden, einen Rabattcode oder Geschenkgutschein einlösen.
+4. Auf «Weiter zur Zahlung» klicken (deckt ein Gutschein den ganzen Betrag: «Bestellung abschliessen»). Du gelangst auf die Bezahlseite unseres Zahlungsdienstleisters Stripe.
+5. Lieferadresse eingeben, Zahlungsart wählen, alle Angaben prüfen und bei Bedarf korrigieren.
+6. Die Bestellung mit dem Button «Bezahlen» auf der Bezahlseite verbindlich absenden.
 
 Bis zum Absenden kannst du alle Eingaben ändern oder den Kauf abbrechen. Pro Grösse kannst du höchstens 3 Stück und pro Bestellung höchstens 20 Stück bestellen. Während du bezahlst, reservieren wir die Artikel für kurze Zeit. Nach erfolgreicher Zahlung erhältst du eine Bestellbestätigung per E-Mail. Mit dieser Bestätigung kommt der Vertrag zustande. Ist ein Artikel trotz Bestätigung nicht mehr verfügbar, informieren wir dich sofort und erstatten bereits bezahlte Beträge umgehend zurück.
 
-Du kannst als Gast bestellen oder ein Kundenkonto eröffnen.
+Du kannst als Gast bestellen oder ein Kundenkonto eröffnen. Wer noch nicht 18 Jahre alt ist, braucht für eine Bestellung die Zustimmung der Eltern oder der gesetzlichen Vertretung.
 
 ### 3. Preise
 Alle Preise sind Endpreise in Schweizer Franken (CHF). Allfällige Versandkosten siehst du im Warenkorb und auf der Bezahlseite, bevor du bestellst. Es gilt der Preis, der zum Zeitpunkt der Bestellung im Shop angezeigt wird.
@@ -254,13 +253,13 @@ Wir liefern mit der Schweizerischen Post. Die Lieferzeit beträgt in der Regel 2
 
 ### 7. Freiwilliges Rückgaberecht
 Das Schweizer Recht sieht für Online-Käufe kein Rückgaberecht vor. Wir gewähren dir freiwillig ein Rückgaberecht von {{returnDays}} Tagen ab Erhalt der Ware.
-- **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. Ausgeschlossen sind Sale-Artikel, getragene Artikel und Schuhe mit Gebrauchsspuren.
+- **Voraussetzungen:** Die Ware ist ungetragen, ungewaschen, nicht geändert und vollständig, mit allen Etiketten und möglichst in der Originalverpackung. Ausgeschlossen sind Sale-Artikel, getragene oder geänderte Artikel und Schuhe mit Gebrauchsspuren.
 - **So gehst du vor:** Melde die Rückgabe online unter «Retoure anmelden» (Seite Versand und Rückgabe) mit Bestellnummer und E-Mail-Adresse an, oder per E-Mail an {{email}}. Das Rücksendeetikett liegt deinem Paket bei.
 - **Kosten:** Die Rücksendung ist für dich gratis.
 - **Rückerstattung:** Nach Eingang und Prüfung der Ware erstatten wir den Kaufpreis innert 7 Tagen, nach deiner Wahl auf das ursprüngliche Zahlungsmittel oder als Gutschein. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
 - **Umtausch:** Eine andere Grösse kannst du gratis tauschen, solange sie verfügbar ist.
 
-Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein gilt zusätzlich das gesetzliche Rücktrittsrecht bei Fernabsatzverträgen nach dem liechtensteinischen Konsumentenschutzgesetz; soweit es weiter geht als diese AGB, gilt es vor. [Fachperson: Belehrung und Muster-Formular zum Rücktritt nach liechtensteinischem Recht ergänzen.]
+[Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein gilt zusätzlich das gesetzliche Rücktrittsrecht bei Fernabsatzverträgen nach liechtensteinischem Recht. Fachperson beiziehen.]
 
 ### 8. Gewährleistung
 Es gelten die gesetzlichen Bestimmungen. Die Gewährleistungsfrist beträgt zwei Jahre ab Lieferung. Bitte prüfe die Ware nach Erhalt und melde uns Mängel sofort nach ihrer Entdeckung per E-Mail an {{email}}. Bei einem Mangel kannst du nach Gesetz die Rückgängigmachung des Kaufs, eine Minderung des Preises oder eine mangelfreie Ersatzlieferung verlangen. Gerne bieten wir dir auch eine Reparatur an, wenn das für dich passt. Normale Abnutzung und Schäden durch unsachgemässe Pflege sind keine Mängel.
@@ -275,7 +274,7 @@ Wir haften nach den gesetzlichen Bestimmungen. Für leichte Fahrlässigkeit haft
 Wie wir deine Daten bearbeiten, steht in unserer Datenschutzerklärung.
 
 ### 12. Anwendbares Recht und Gerichtsstand
-Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen. Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein bleiben die zwingenden Bestimmungen ihres Wohnsitzrechts vorbehalten.
+Es gilt Schweizer Recht unter Ausschluss des Wiener Kaufrechts (CISG). Für Streitigkeiten gelten die gesetzlichen Gerichtsstände. Als Konsumentin oder Konsument kannst du an deinem Wohnsitz oder an unserem Sitz klagen. [Nur bei Lieferung nach Liechtenstein: Für Konsumentinnen und Konsumenten mit Wohnsitz in Liechtenstein bleiben die zwingenden Bestimmungen ihres Wohnsitzrechts vorbehalten.]
 
 ### 13. Änderungen
 Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version, die zum Zeitpunkt der Bestellung veröffentlicht war.
@@ -284,7 +283,7 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
   "versand-und-rueckgabe": structure(
     "Versand und Rückgabe",
     `
-- **Liefergebiet:** Schweiz und Liechtenstein
+- **Liefergebiet:** Schweiz [und Liechtenstein]
 - **Versand:** mit der Schweizerischen Post. {{shipping}}
 - **Lieferzeit:** 2 bis 5 Arbeitstage ab Versand; Bestellungen bis 14 Uhr (Arbeitstage) versenden wir am selben Tag, Sendungsnummer per E-Mail
 - **Rückgabe:** innert {{returnDays}} Tagen ab Erhalt, ungetragen und mit Etiketten
@@ -292,7 +291,7 @@ Wir können diese AGB jederzeit ändern. Für deine Bestellung gilt die Version,
 - **Rücksendung:** gratis, das Etikett liegt deinem Paket bei
 - **Rückerstattung:** innert 7 Tagen nach Eingang der Rücksendung, nach deiner Wahl auf das ursprüngliche Zahlungsmittel oder als Gutschein. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.
 - **Umtausch:** andere Grösse gratis, solange verfügbar
-- **Ausgenommen:** Geschenkgutscheine, Sale-Artikel, getragene Artikel und Schuhe mit Gebrauchsspuren
+- **Ausgenommen:** Geschenkgutscheine, Sale-Artikel, getragene oder geänderte Artikel und Schuhe mit Gebrauchsspuren
 - **Mängel:** zwei Jahre Gewährleistung nach Gesetz, Meldung per E-Mail an {{email}}
 Die verbindlichen Regeln stehen in den AGB.
 `,
@@ -305,9 +304,11 @@ Die verbindlichen Regeln stehen in den AGB.
 **Welche Grösse passt mir?**
 Miss Brust- und Taillenumfang und vergleiche die Werte mit unserer Grössentabelle. Bei Fragen helfen wir dir gerne per E-Mail an {{email}}.
 **Was bedeuten die Zahlen 46 bis 56?**
-Das sind die üblichen Konfektionsgrössen für Anzüge, Sakkos, Westen, Mäntel und Hosen. Hemden führen wir nach Kragenweite (38 bis 45), Strick von S bis XXL und Schuhe in EU-Grössen.
+Das sind die üblichen Konfektionsgrössen für Anzüge, Westen und Hosen. T-Shirts führen wir von S bis XL, Schuhe in ganzen EU-Grössen.
+**Sind die Hosen schon gesäumt?**
+Ja, unsere Hosen kommen fertig gesäumt. Die Schrittlänge jeder Grösse steht in der Grössentabelle auf der Produktseite.
 **Kann ich eine andere Grösse tauschen?**
-Ja, innert {{returnDays}} Tagen, solange die Grösse verfügbar ist. Schreib uns an {{email}}.
+Ja, gratis innert {{returnDays}} Tagen, solange die Grösse verfügbar ist. Melde den Umtausch unter «Retoure anmelden» an oder schreib uns an {{email}}.
 
 ### Bestellung und Konto
 **Brauche ich ein Kundenkonto?**
@@ -323,7 +324,7 @@ In der Regel 2 bis 5 Arbeitstage ab Versand. Bestellungen bis 14 Uhr (Arbeitstag
 **Was kostet der Versand?**
 {{shipping}}. Den genauen Betrag siehst du im Warenkorb, bevor du bestellst.
 **Liefert Axion ins Ausland?**
-Zurzeit liefern wir in die Schweiz und nach Liechtenstein.
+Zurzeit liefern wir nur in die Schweiz [und nach Liechtenstein].
 
 ### Rückgabe
 **Kann ich etwas zurückgeben?**

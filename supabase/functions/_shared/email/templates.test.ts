@@ -171,6 +171,7 @@ function all(locale: Locale): [string, EmailContent][] {
           unsubscribeUrl: "https://shop.test/newsletter/abmelden?token=abc",
           welcomeCode: "WILLKOMMEN-ABC123",
           welcomePercent: 10,
+          welcomeDays: 14,
         },
         shop,
       ),
@@ -339,6 +340,38 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     );
     expect(mail.html).toContain('href="https://shop.test/newsletter/abmelden?token=abc"');
     expect(mail.text).toContain("Abmelden: https://shop.test/newsletter/abmelden?token=abc");
+  });
+
+  it("Newsletter-Willkommen: Gültigkeit des Codes aus den Einstellungen, nie fest 90 Tage", () => {
+    const url = "https://shop.test/newsletter/abmelden?token=abc";
+    const welcome = (locale: "de" | "en", welcomeDays: number | null = null) =>
+      newsletterWelcome(
+        {
+          locale,
+          unsubscribeUrl: url,
+          welcomeCode: "WILLKOMMEN-ABC123",
+          welcomePercent: 10,
+          welcomeDays,
+        },
+        shop,
+      );
+    const de = welcome("de", 14);
+    expect(de.text).toContain(
+      "Als Dankeschön erhältst du 10 % auf deine nächste Bestellung. Der Code ist 14 Tage gültig und einmal einlösbar.",
+    );
+    expect(de.html).toContain("Der Code ist 14 Tage gültig und einmal einlösbar.");
+    expect(welcome("en", 30).text).toContain(
+      "you get 10% off your next order. The code is valid for 30 days and can be used once.",
+    );
+    expect(welcome("de", 1).text).toContain("Der Code ist 1 Tag gültig");
+    expect(welcome("en", 1).text).toContain("valid for 1 day and");
+    // Ohne Angabe (Datenbank vor Migration 0024): keine erfundene Gültigkeit
+    for (const mail of [welcome("de"), welcome("en", null)]) {
+      expect(mail.text).not.toMatch(/\d+ (Tage|days)/);
+      expect(mail.text).toContain("WILLKOMMEN-ABC123");
+    }
+    expect(welcome("de").text).toContain("Der Code ist einmal einlösbar.");
+    expect(welcome("en").text).toContain("The code can be used once.");
   });
 
   it("Erinnerung: Artikel mit Bild, Link zum Wiederherstellen, Grund des Versands, kein Rabatt", () => {

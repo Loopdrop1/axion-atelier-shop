@@ -22,6 +22,9 @@ import { DeliveryEstimate } from "./delivery-estimate";
 import { Panel } from "./panel";
 import { ProductCard, useFitLabel } from "./product-card";
 import { SizeGuide } from "./size-guide";
+import { ProductSizeFinder, useSuggestedSize } from "./size-finder";
+import { finderKind } from "@/lib/commerce/size-finder";
+import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { ShareButton } from "./share-button";
 import { StockAlertForm } from "./stock-alert-form";
 /** Bis zu diesem Bestand zeigt die Seite «Nur noch … an Lager» (bei 3 wäre es bei kleinen Beständen fast immer) */
@@ -49,6 +52,11 @@ export function ProductPage({
   const presetSize = onlyVariant?.availableForSale ? onlyVariant.title : "";
   const [size, setSize] = useState(presetSize);
   const [guide, setGuide] = useState(false);
+  const [finder, setFinder] = useState(false);
+  const hasFinder = finderKind(product) !== null;
+  // «Deine Grösse»: Empfehlung aus den im Browser gespeicherten Angaben (erst nach dem Einbinden)
+  const suggested = useSuggestedSize(product);
+  const suggestedVariant = product.variants.find((v) => v.title === suggested);
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const swipeStart = useRef(0);
@@ -302,9 +310,20 @@ export function ProductPage({
                     {t.product.chooseSize}
                     {product.category === "schuhe" ? t.product.euSizes : ""}
                   </span>
-                  <Button variant="icon" onClick={() => setGuide(true)}>
-                    {t.product.sizeGuide}
-                  </Button>
+                  <span className="size-links">
+                    {hasFinder && (
+                      <Button variant="icon" onClick={() => setFinder(true)}>
+                        {suggestedVariant
+                          ? t.product.yourSize(
+                              sizeWithLetter(suggestedVariant.title, suggestedVariant.letter),
+                            )
+                          : t.product.sizeFinder}
+                      </Button>
+                    )}
+                    <Button variant="icon" onClick={() => setGuide(true)}>
+                      {t.product.sizeGuide}
+                    </Button>
+                  </span>
                 </div>
                 {allSoldOut && settings.hideSoldOut && (
                   <p className="size-hint" role="status">
@@ -316,20 +335,38 @@ export function ProductPage({
                     <Button
                       variant="icon"
                       key={v.id}
-                      className={size === v.title ? "selected" : ""}
+                      className={[
+                        size === v.title ? "selected" : "",
+                        suggested === v.title ? "is-suggested" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       disabled={!v.availableForSale}
                       aria-pressed={size === v.title}
                       onClick={() => setSize(v.title)}
                     >
-                      {v.title}
-                      {!v.availableForSale && (
-                        <span className="sr-only">, {t.product.soldOut}</span>
+                      <span className="size-number">{v.title}</span>
+                      {v.letter && (
+                        <span className="size-letter" aria-hidden="true">
+                          {v.letter}
+                        </span>
+                      )}
+                      {/* Für Screenreader in einem Stück: «48 (M), deine Grösse …, ausverkauft» */}
+                      {(v.letter || suggested === v.title || !v.availableForSale) && (
+                        <span className="sr-only">
+                          {[
+                            v.letter ? ` (${v.letter})` : "",
+                            suggested === v.title ? `, ${t.product.yourSizeMark}` : "",
+                            v.availableForSale ? "" : `, ${t.product.soldOut}`,
+                          ].join("")}
+                        </span>
                       )}
                     </Button>
                   ))}
                 </div>
               </>
             )}
+            {product.fitModel && <ModelLine model={product.fitModel} />}
             {/* Immer vorhanden, damit Screenreader den Hinweis beim Wechsel der Grösse vorlesen */}
             <p className="stock-hint" role="status">
               {lowStock > 0 ? t.product.lowStock(lowStock) : ""}
@@ -406,6 +443,19 @@ export function ProductPage({
       <Panel open={guide} onOpenChange={setGuide} title={t.product.sizeGuide}>
         <SizeGuide category={product.category} />
       </Panel>
+      {hasFinder && (
+        <Panel open={finder} onOpenChange={setFinder} title={t.sizeFinder.title}>
+          {finder && (
+            <ProductSizeFinder
+              product={product}
+              onChoose={(title) => {
+                setSize(title);
+                setFinder(false);
+              }}
+            />
+          )}
+        </Panel>
+      )}
       <Panel
         open={zoom !== null}
         onOpenChange={(v) => {
@@ -588,6 +638,18 @@ function OutfitBuilder({
       </Button>
     </section>
   );
+}
+
+/** «Das Model ist 1,86 m gross und trägt Grösse 50 (L).» */
+function ModelLine({ model }: { model: NonNullable<Product["fitModel"]> }) {
+  const t = useT();
+  const locale = useLocale();
+  // «1,86 m» (Deutsch mit Komma, wie im Fliesstext üblich), «1.86 m» (Englisch)
+  const height = model.heightCm
+    ? (model.heightCm / 100).toFixed(2).replace(".", locale === "en" ? "." : ",")
+    : null;
+  const size = model.size ? sizeWithLetter(model.size, model.letter) : null;
+  return <p className="model-line">{t.product.modelLine(height, size)}</p>;
 }
 
 /** Persönlicher Service: Kontakt, auf Wunsch mit Telefonnummer (nur wenn in der Konfiguration eingetragen). */

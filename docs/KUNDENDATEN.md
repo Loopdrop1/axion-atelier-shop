@@ -11,51 +11,62 @@ Git legen. Sie kommen nur in Cloud → Secrets.
 Platzhalter in eckigen Klammern (`[…]`) in `src/config/shop.ts` und in den Rechtstexten erkennt der Shop selbst:
 Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Livegang (Test `launch-gate`).
 
-## 0. Antworten von Axion (Checkliste, unterschrieben am 3.11.2026)
+## 0. Kundencheckliste vom 3.11.2026 (Unterschrift des Kunden ausstehend)
 
-**Übernommen** (Code, Rechtstexte, Einstellungen):
+**Entschieden und umgesetzt** (Code, Rechtstexte, Einstellungen):
 
 - Nicht im Handelsregister, keine UID, nicht MWST-pflichtig (`vatRegistered: false`, Impressum und AGB ohne MWST)
-- Kontakt nur per E-Mail: kein Telefon, keine Zeiten (`phone`, `hours` leer); Datenschutzfragen an dieselbe E-Mail
-- Kein Mindestalter (Satz in den AGB gestrichen)
-- Liefergebiet Schweiz und Liechtenstein (AGB, Versand und Rückgabe, FAQ; Secret `SHIPPING_COUNTRIES=CH,LI` setzen)
+- Kontakt nur per E-Mail: kein Telefon, keine Zeiten (`phone`, `hours` leer)
 - Versand Montag bis Freitag, bis 14 Uhr am selben Tag, 2 bis 5 Arbeitstage (wie bisher)
-- Rückgabe 14 Tage, Rücksendung gratis, Etikett liegt dem Paket bei, Umtausch gratis, Rückerstattung innert 7 Tagen
-  nach Wahl der Kundschaft (Zahlungsmittel oder Gutschein; Wahl im Retourenformular, Migration `0022`), ausgeschlossen:
-  Sale-Artikel, getragene Artikel, Schuhe mit Gebrauchsspuren
-- Gutscheine ab CHF 25, Vorschläge 50/100/150/200, gültig 30 Jahre (Admin → Einstellungen: Gültigkeit 30)
+- Rückgabe 14 Tage ab Erhalt, Rücksendung gratis, Etikett liegt dem Paket bei, Umtausch in eine andere Grösse gratis
+  (solange verfügbar), Rückerstattung innert 7 Tagen nach Eingang, nach Wahl der Kundschaft aufs Zahlungsmittel oder
+  als Gutschein (Retourenformular, Migration `0022`); mit Gutschein bezahlte Teile immer als Gutschein; ausgeschlossen:
+  Sale-Artikel, getragene oder geänderte Artikel, Schuhe mit Gebrauchsspuren
+- Hosen fertig gesäumt (FAQ; Schrittlänge in der Grössentabelle)
+- Gutscheine: feste Beträge CHF 50, 100, 150, 200 und frei ab CHF 25, gültig 30 Jahre (Standard seit Migration
+  `0024`, im Admin unter Einstellungen änderbar)
+- Sortiment zum Start: Anzüge, Westen, Schuhe, Hosen, T-Shirts (neu); Sakkos, Hemden, Mäntel & Jacken, Strick und
+  Accessoires ausgeblendet, nicht gelöscht (in Cloud mit `supabase/demo/sortiment-start.sql`); Anzug = Sakko (in
+  «Anzüge») und Hose (in «Hosen») als eigene Produkte, gegenseitig verknüpft über «Komplettes Outfit»; Anzüge,
+  Westen und Hosen nur in Zahlengrössen 46 bis 56; Schuhe ganze EU-Grössen
 - «Benachrichtigen, wenn wieder da», Versandbestätigung und Warenkorb-Erinnerung: eingebaut
 - Gast-Bestellung möglich, Rabattcodes ja, Kundenkonto vorhanden
+- Messung: bleibt Plausible (ohne Cookies); Google Analytics nicht eingebaut
 - Rechtstexte prüft eine Fachperson (Anwalt/Treuhand) vor dem Livegang
 - Gewünschter Livegang 1.1.2027, Unterlagen komplett bis Ende November, Rückmeldung innert 3 Arbeitstagen
-- Admins: Vasilis Soufis, Andrea Loris Spasari (Logins nach der Einrichtung unter Admin → Zugänge)
+- Betreuung: CHF 550 pro Jahr
 
-**Widersprüchlich oder offen, mit Axion klären:**
+**Bewusst anders als in der Checkliste** (vorsichtigste Lösung, bis die Fachperson oder Axion entscheidet):
 
-1. **Rechtsform:** «Einzelunternehmen», aber zwei Inhaber (Vasilis Soufis und Andrea Loris Spasari). Ein
-   Einzelunternehmen hat genau eine Inhaberin oder einen Inhaber, und der Firmenname muss deren Familiennamen enthalten
-   («Axion» allein genügt nicht). Zu zweit ist es eine einfache Gesellschaft (oder Kollektivgesellschaft mit
-   Handelsregister-Pflicht). Bestimmt Impressum, AGB-Vertragspartner und Stripe-Konto. `contact.company` bleibt bis
-   dahin Platzhalter.
-2. **Adresse:** nur «8620 Wetzikon». Impressum und Rücksendungen brauchen Strasse und Nummer (`contact.address`,
-   Secret `SHOP_ADDRESS`).
-3. **E-Mail info@axion.ch:** `axion.ch` gehört Axion nicht (seit 1999 vergeben, Kauf erst angefragt). Als Domain
-   gewünscht: axiion.ch, axionss.ch, axion-mode.ch. Erst Domain festlegen, dann `info@<domain>` (Kontakt,
-   Bestellmeldungen, Konten).
-4. **Datenschutz-Kontakt «Ben»:** Verantwortlich bleibt Axion; Ben ist Auftragsbearbeiter. Im Shop steht deshalb die
-   Axion-Adresse.
-5. **Kategorien:** angekreuzt Anzüge, Westen, Schuhe, Hosen einzeln, T-Shirt; gleichzeitig «Sakko und Hose als eigene
-   Produkte». Dann braucht es auch Sakkos (oder Anzug = Sakko + Hose als Outfit). Im Admin entsprechend anlegen.
-6. **Grössen «beides» (Zahl und Buchstabe), Zuordnung «nein»:** Ohne Zuordnung (z. B. S = 46) lässt sich «beides» nicht
-   anzeigen. Entweder Zuordnung liefern oder nur Zahlen 46 bis 56.
-7. **Newsletter «10 / 14 Tage»:** unklar (Versandrhythmus? Rabatt?). Willkommensrabatt in Prozent oder keiner.
-8. **Kostenpflichtige Optionen angekreuzt, aber «Paket: keines»:** Wahl Economy/Priority in der Kasse, Kundenbewertungen
-   (nur echte Käufe), Google Analytics (braucht Cookie-Hinweis). Nicht gebaut; Preis und Auftrag zuerst klären. Bis
-   dahin: Versand Economy gratis, cookiefreie Statistik (Plausible) möglich.
-9. **Gratis-Rücksendung mit beiliegendem Etikett:** kostet Axion pro Retoure rund CHF 7.50 bis 10.50 (Post, Stand
-   Oktober 2026); bei Anzügen ohne Anprobe häufig.
-10. **Liechtenstein:** zwingendes Rücktrittsrecht nach liechtensteinischem Konsumentenschutzgesetz, gilt dort auch für
-    Sale-Artikel. Belehrung und Muster-Formular ergänzt die Fachperson (Platzhalter in AGB Ziffer 7).
+1. **Mindestalter:** Axion wünschte «keines». In den AGB steht die Variante «Wer noch nicht 18 Jahre alt ist, braucht die
+   Zustimmung der Eltern» (Minderjährige sind für teure Käufe nur beschränkt handlungsfähig). Die Fachperson entscheidet.
+2. **Liechtenstein:** Axion wünscht CH und LI. Bleibt aus (`SHIPPING_COUNTRIES` nicht ändern), die LI-Klauseln stehen
+   als Platzhalter in AGB, «Versand und Rückgabe» und FAQ. Dort gilt ein zwingendes Rücktrittsrecht (auch für
+   Sale-Artikel); Belehrung und Muster-Formular ergänzt die Fachperson.
+3. **Datenschutz-Kontakt:** Axion schrieb «Ben». Verantwortlich ist Axion, Flowrenix nur Auftragsbearbeiterin; der
+   Platzhalter `[Datenschutz-E-Mail, sonst …]` bleibt, bis Axion eine eigene Adresse nennt.
+4. **Grössen «beides»:** ohne Zuordnung geliefert; Anzüge, Westen und Hosen zeigen nur Zahlen. Die Zuordnung kann
+   später im Admin gepflegt werden (Admin → Grössentabellen), standardmässig leer.
+5. **Kostenpflichtige Optionen** (Priority-Versand, Bewertungen) sind technisch vorbereitet, aber standardmässig aus
+   (Priority erscheint erst mit Preis in Admin → Einstellungen, Bewertungen erst mit `features.reviews`). Preis und
+   Auftrag zuerst klären.
+
+**Offen, Axion liefert oder entscheidet:**
+
+1. **Rechtsform und Inhaber:** «Einzelunternehmen» mit zwei Personen ist nicht möglich. Auf Bens Anweisung vom
+   3.11.2026 vorerst **Vasilis Soufis als Inhaber** eingetragen (Firma «Axion, Vasilis Soufis»). Mit Axion
+   bestätigen: Schreibweise und ob Andrea Loris Spasari Mitinhaber ist (dann einfache Gesellschaft bzw.
+   Kollektivgesellschaft, Texte anpassen).
+2. **Adresse:** nur «8620 Wetzikon»; Strasse und Nummer fehlen (`contact.address`, Secret `SHOP_ADDRESS`).
+3. **Domain und E-Mail:** `axion.ch` gehört Axion nicht. Gewünscht: axiion.ch, axionss.ch, axion-mode.ch. Erst Domain,
+   dann `info@<domain>` (Kontakt, Bestellmeldungen, Datenschutz, Stripe, Resend).
+4. **Newsletter «10 / 14 Tage»:** gelesen als 10 % Willkommensrabatt mit 14 Tagen Gültigkeit; beides im Admin
+   einstellbar (Admin → Einstellungen: Willkommens-Rabatt in % und Gültigkeit des Codes in Tagen, Standard 90 bis
+   Axion bestätigt; die Willkommens-E-Mail nennt die eingestellten Tage). Von Axion bestätigen lassen.
+5. **Produkte, Fotos, Grössentabellen mit Massen (inkl. Schrittlänge), Brand Story, Logo-Datei**: bis Ende November.
+6. **Gratis-Rücksendung mit beiliegendem Etikett** kostet Axion pro Retoure rund CHF 7.50 bis 10.50 (Post, Stand
+   Oktober 2026); bei Anzügen ohne Anprobe häufig. Bewusst entscheiden lassen.
+7. **Unterschrift** unter Checkliste und Konditionen.
 
 ## 1. Firmen- und Kontaktangaben
 
@@ -137,12 +148,13 @@ frei; Ben ersetzt die Platzhalter in beiden Sprachen.
 
 **Impressum**
 
-- `[Rechtsform]` (siehe Abschnitt 0, Punkt 1)
-- `[Vor- und Nachname, Funktion]` der vertretungsberechtigten Person bzw. Inhaber
+- Adresse: `[Strasse und Nummer]` in `contact.address` (Ort 8620 Wetzikon steht)
+- Rechtsform und Inhaber vorläufig: Einzelunternehmen, Vasilis Soufis (Abschnitt 0, Punkt 1)
 
 **Datenschutzerklärung**
 
 - `Stand: [Datum]`
+- `[Datenschutz-E-Mail, sonst {{email}}]` (Abschnitt 0, «Bewusst anders», Punkt 3)
 - `[Ort]` des Rechenzentrums von Lovable Cloud (Region Europa; Ort bei Lovable bestätigen)
 - `[Den Newsletter versenden wir mit: Newsletter-Programm, Sitz.]`
 - `[KI-Anbieter mit Sitz, von der Rechtsberatung zu bestätigen]` für die KI-Suche (`search-assist` über das Lovable AI
@@ -151,12 +163,14 @@ frei; Ben ersetzt die Platzhalter in beiden Sprachen.
 
 **Allgemeine Geschäftsbedingungen (AGB)**
 
-- `Stand: [Datum]`, `[Domain]`
-- Liechtenstein: `[Fachperson: Belehrung und Muster-Formular zum Rücktritt nach liechtensteinischem Recht ergänzen.]`
+- `Stand: [Datum]`, `[Domain]`, `[und in Liechtenstein]`
+- Liechtenstein (nur bei Lieferung dorthin): Rücktrittsrecht und zwingendes Wohnsitzrecht (zwei Absätze, Fachperson)
 
-Erledigt mit den Antworten vom 3.11.2026: Handelsregister, MWST, Datenschutz-E-Mail, Mindestalter, Gutschein-Gültigkeit,
-Rückgabe (Ausschlüsse, Etikett, Kosten, Frist, Wahl der Rückerstattung, Umtausch), Liechtenstein in Liefergebiet, FAQ
-und Gerichtsstand.
+**Versand und Rückgabe, Häufige Fragen:** `[und Liechtenstein]` bzw. `[und nach Liechtenstein]`
+
+Erledigt mit der Checkliste vom 3.11.2026: Handelsregister, MWST, Mindestalter (vorsichtige Variante, Fachperson
+entscheidet), Gutschein-Gültigkeit, Rückgabe (Ausschlüsse, Etikett, Kosten, Frist, Wahl der Rückerstattung, Umtausch),
+Bestellablauf mit den echten Button-Namen, Hosen fertig gesäumt.
 
 Nicht ersetzte Platzhalter sind unschädlich für die Technik, aber die betroffene Seite bleibt Entwurf, und Fragen
 mit Platzhaltern fehlen in den Strukturierten Daten (FAQ). Mit `launched: true` schlägt der Test an, wenn Kontaktdaten
@@ -167,22 +181,22 @@ noch Platzhalter sind. Liste jederzeit neu erzeugen: `grep -n "\[[^]]*\]" src/co
 Alle unter Cloud → Secrets; Bedeutung in `supabase/functions/README.md`. Vollständige Liste aus
 `supabase/functions/_shared/env.ts`:
 
-| Secret                                                                 | Inhalt                                                                        | Wenn leer                                                                                 |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `STRIPE_SECRET_KEY`                                                    | Eingeschränkter Schlüssel `rk_live_…` (Test: `rk_test_…`)                     | Keine Bezahlung möglich                                                                   |
-| `STRIPE_WEBHOOK_SECRET`                                                | `whsec_…` des Webhooks auf `<Cloud-URL>/functions/v1/stripe-webhook`          | Bestellungen werden nie als bezahlt gebucht                                               |
-| `STRIPE_REQUIRE_TERMS`                                                 | `1` = AGB-Häkchen in der Kasse (AGB-Adresse in Stripe hinterlegen)            | Kein Häkchen                                                                              |
-| `RESEND_API_KEY`                                                       | Resend-Schlüssel                                                              | Keine E-Mails (Bestätigung, Versand, Newsletter, Kontaktformular)                         |
-| `EMAIL_FROM`                                                           | Absender, z. B. `Axion <bestellung@domain.ch>` (Domain in Resend verifiziert) | Absender `onboarding@resend.dev`: nur für Tests, landet im Spam                           |
-| `SITE_URL`                                                             | Adresse des Shops                                                             | Links in E-Mails zeigen auf `localhost`                                                   |
-| `ALLOWED_ORIGINS`                                                      | Weitere erlaubte Domains, kommagetrennt                                       | Nur `SITE_URL` ist erlaubt                                                                |
-| `ALLOW_PREVIEW_ORIGINS` / `PREVIEW_ORIGINS`                            | Nur Testphase                                                                 | Vor dem Livegang entfernen (siehe Abschnitt 2)                                            |
-| `SHIPPING_COUNTRIES`                                                   | Liefergebiet                                                                  | `CH`                                                                                      |
-| `SHOP_VAT_RATE`, `SHOP_RETURN_DAYS`                                    | siehe Abschnitt 3                                                             | Beleg ohne MWST, Rückgabefrist 14 Tage                                                    |
-| `SHOP_NAME`, `SHOP_ADDRESS`, `SHOP_CONTACT_EMAIL`, `SHOP_NOTIFY_EMAIL` | siehe Abschnitt 1                                                             | siehe Abschnitt 1                                                                         |
-| `LOVABLE_API_KEY`                                                      | Legt Lovable selbst an (nicht von Hand setzen); Guthaben des Workspaces nötig | KI-Suche und automatische Übersetzung fallen aus: lokale Suche und deutsche Texte bleiben |
-| `TRANSLATE_MODEL`, `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`           | Nur bei anderem KI-Modell oder -Dienst                                        | Standardmodell `google/gemini-2.5-flash`                                                  |
-| `SEND_EMAIL_HOOK_SECRET`                                               | Nur bei eigenem Supabase-Projekt (Konto-E-Mails)                              | Standard-E-Mails von Lovable                                                              |
+| Secret                                                                 | Inhalt                                                                                           | Wenn leer                                                                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`                                                    | Eingeschränkter Schlüssel `rk_live_…` (Test: `rk_test_…`)                                        | Keine Bezahlung möglich                                                                   |
+| `STRIPE_WEBHOOK_SECRET`                                                | `whsec_…` des Webhooks auf `<Cloud-URL>/functions/v1/stripe-webhook`                             | Bestellungen werden nie als bezahlt gebucht                                               |
+| `STRIPE_REQUIRE_TERMS`                                                 | **Pflicht für den Livegang:** `1` = AGB-Häkchen in der Kasse (AGB-Adresse in Stripe hinterlegen) | Kein Häkchen; Admin-Checkliste «Bereit für den Livegang» bleibt rot                       |
+| `RESEND_API_KEY`                                                       | Resend-Schlüssel                                                                                 | Keine E-Mails (Bestätigung, Versand, Newsletter, Kontaktformular)                         |
+| `EMAIL_FROM`                                                           | Absender, z. B. `Axion <bestellung@domain.ch>` (Domain in Resend verifiziert)                    | Absender `onboarding@resend.dev`: nur für Tests, landet im Spam                           |
+| `SITE_URL`                                                             | Adresse des Shops                                                                                | Links in E-Mails zeigen auf `localhost`                                                   |
+| `ALLOWED_ORIGINS`                                                      | Weitere erlaubte Domains, kommagetrennt                                                          | Nur `SITE_URL` ist erlaubt                                                                |
+| `ALLOW_PREVIEW_ORIGINS` / `PREVIEW_ORIGINS`                            | Nur Testphase                                                                                    | Vor dem Livegang entfernen (siehe Abschnitt 2)                                            |
+| `SHIPPING_COUNTRIES`                                                   | Liefergebiet                                                                                     | `CH`                                                                                      |
+| `SHOP_VAT_RATE`, `SHOP_RETURN_DAYS`                                    | siehe Abschnitt 3                                                                                | Beleg ohne MWST, Rückgabefrist 14 Tage                                                    |
+| `SHOP_NAME`, `SHOP_ADDRESS`, `SHOP_CONTACT_EMAIL`, `SHOP_NOTIFY_EMAIL` | siehe Abschnitt 1                                                                                | siehe Abschnitt 1                                                                         |
+| `LOVABLE_API_KEY`                                                      | Legt Lovable selbst an (nicht von Hand setzen); Guthaben des Workspaces nötig                    | KI-Suche und automatische Übersetzung fallen aus: lokale Suche und deutsche Texte bleiben |
+| `TRANSLATE_MODEL`, `TRANSLATE_API_BASE`, `TRANSLATE_API_KEY`           | Nur bei anderem KI-Modell oder -Dienst                                                           | Standardmodell `google/gemini-2.5-flash`                                                  |
+| `SEND_EMAIL_HOOK_SECRET`                                               | Nur bei eigenem Supabase-Projekt (Konto-E-Mails)                                                 | Standard-E-Mails von Lovable                                                              |
 
 Konten, die Axion besitzt oder anlegt: Stripe (Firma, verantwortliche Person, Geschäftskonto), Resend (Domain, SPF/DKIM,
 Auftragsbearbeitungsvertrag), Domain-Registrar (DNS). Zwei-Faktor-Anmeldung überall.
@@ -211,7 +225,7 @@ Alles im Admin (`/admin`); Englisch entsteht beim Speichern automatisch.
    «muster», entfernt Zeichnungen als Kategoriebild, schaltet Kategorien ohne aktive Produkte aus). Vorher echte
    Produkte anlegen. Kategorien danach mit Foto wieder einschalten.
 2. **Edge Functions neu veröffentlichen**, wenn Code der Funktionen oder `supabase/config.toml` geändert wurde (Text
-   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle zehn mit `verify_jwt = false`**.
+   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle elf mit `verify_jwt = false`**.
 3. **Stripe live:** Live-Schlüssel und Live-Webhook mit eigenem `whsec_…`; TWINT nach Freigabe testen.
 4. **Livegang-Prüfungen:**
    - `bun run test` (Test `launch-gate`: `robots.txt` passt zu `launched`, keine Platzhalter in Kontaktdaten bei

@@ -242,7 +242,7 @@ export function CartContents({
                 >
                   <h3>{l.product.title}</h3>
                 </Link>
-                <p>{`${l.product.color.name} · ${sizeText(l.variant.title, t.product.size, t.product.oneSize)}`}</p>
+                <p>{`${l.product.color.name} · ${sizeText(l.variant.title, t.product.size, t.product.oneSize, l.variant.letter)}`}</p>
                 <span className="price">
                   {formatPrice(l.variant.price, locale)}
                   {l.variant.compareAtPrice && (

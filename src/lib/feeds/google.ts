@@ -16,6 +16,7 @@ export const GOOGLE_CATEGORIES: Record<string, string> = {
   sakkos: `${ROOT} > Clothing > Outerwear > Coats & Jackets`,
   hosen: `${ROOT} > Clothing > Pants`,
   hemden: `${ROOT} > Clothing > Shirts & Tops`,
+  "t-shirts": `${ROOT} > Clothing > Shirts & Tops`,
   westen: `${ROOT} > Clothing > Outerwear > Vests`,
   "maentel-jacken": `${ROOT} > Clothing > Outerwear > Coats & Jackets`,
   strick: `${ROOT} > Clothing > Shirts & Tops`,

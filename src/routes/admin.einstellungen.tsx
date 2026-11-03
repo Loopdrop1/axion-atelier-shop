@@ -1,5 +1,5 @@
 // Einstellungen: Versandkosten, ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
-// Newsletter, Adresse für Bestellmeldungen.
+// Newsletter (Prozent und Gültigkeit des Codes), Adresse für Bestellmeldungen.
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +31,7 @@ function SettingsPage() {
     giftMax: "",
     giftYears: "",
     welcome: "",
+    welcomeDays: "",
     notify: "",
   });
   const [hideSoldOut, setHideSoldOut] = useState(false);
@@ -47,10 +48,14 @@ function SettingsPage() {
       giftMax: centsToInput(s.gift_card_max_cents),
       giftYears: String(s.gift_card_valid_years),
       welcome: s.newsletter_welcome_percent ? String(s.newsletter_welcome_percent) : "",
+      welcomeDays: String(s.newsletter_welcome_days ?? 90),
       notify: s.notify_email ?? "",
     });
     setHideSoldOut(s.hide_sold_out);
   }, [query.data]);
+
+  // Spalte aus Migration 0024 (Gültigkeit des Willkommenscodes); fehlt sie in Cloud noch, bleibt das Feld weg
+  const hasWelcomeDays = query.data ? "newsletter_welcome_days" in query.data : false;
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -83,6 +88,9 @@ function SettingsPage() {
     const welcome = form.welcome.trim() ? Number(form.welcome.trim().replace("%", "")) : null;
     if (welcome !== null && (!Number.isInteger(welcome) || welcome < 1 || welcome > 50))
       return setError("Willkommens-Rabatt: ganze Prozent von 1 bis 50, oder leer für keinen.");
+    const welcomeDays = Number(form.welcomeDays.trim());
+    if (hasWelcomeDays && (!Number.isInteger(welcomeDays) || welcomeDays < 1 || welcomeDays > 365))
+      return setError("Gültigkeit des Codes: ganze Tage von 1 bis 365.");
     if (form.notify.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.notify.trim()))
       return setError("Die E-Mail-Adresse für Bestellmeldungen ist ungültig.");
     setBusy(true);
@@ -94,6 +102,8 @@ function SettingsPage() {
         gift_card_max_cents: giftMax,
         gift_card_valid_years: years,
         newsletter_welcome_percent: welcome,
+        // Ohne Migration 0024 in Cloud fehlt die Spalte: dann nicht mitschicken
+        ...(hasWelcomeDays ? { newsletter_welcome_days: welcomeDays } : {}),
         hide_sold_out: hideSoldOut,
         notify_email: form.notify.trim() || null,
       });
@@ -173,7 +183,7 @@ function SettingsPage() {
       </Panel>
       <Panel
         title="Newsletter"
-        description="Rabatt in der Willkommens-E-Mail nach der bestätigten Anmeldung: ein persönlicher Code, einmal einlösbar, 90 Tage gültig."
+        description="Rabatt in der Willkommens-E-Mail nach der bestätigten Anmeldung: ein persönlicher Code, einmal einlösbar, so lange gültig wie unten eingestellt. Die E-Mail nennt die Gültigkeit."
       >
         <div className="admin-form admin-grid-3">
           <TextField
@@ -183,6 +193,15 @@ function SettingsPage() {
             value={form.welcome}
             onChange={set("welcome")}
           />
+          {hasWelcomeDays && (
+            <TextField
+              label="Gültigkeit des Codes (Tage)"
+              hint="1 bis 365. Gilt für neu ausgestellte Codes."
+              inputMode="numeric"
+              value={form.welcomeDays}
+              onChange={set("welcomeDays")}
+            />
+          )}
         </div>
       </Panel>
       <Panel

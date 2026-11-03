@@ -10,6 +10,7 @@ import type { ShopSettings } from "./source";
 import type { CategoryRow, ProductRow } from "./rows";
 import { parseVariants } from "./variants";
 import { colorKeys } from "./color-key";
+import { letterFor, readSizeLetters, tableLetters, type SizeLetters } from "./sizes";
 import type {
   Collection,
   HomeContent,
@@ -107,11 +108,13 @@ export function virtualCollections(locale: Locale): Record<"alle" | "neu" | "sal
   };
 }
 
-/** Produktzeile → Produkt. Ohne (aktive) Kategorie gibt es kein Produkt im Shop. */
+/** Produktzeile → Produkt. Ohne (aktive) Kategorie gibt es kein Produkt im Shop.
+ *  letters: Zuordnung Zahl → Buchstabe (sizes.ts); ohne sie bekommen die Grössen keinen Buchstaben. */
 export function mapProduct(
   row: ProductRow,
   locale: Locale,
   categories: Map<string, CategoryRow>,
+  letters: SizeLetters = {},
 ): Product | null {
   const slug = row.category?.slug;
   const category = slug ? categories.get(slug) : undefined;
@@ -130,6 +133,8 @@ export function mapProduct(
   });
   const sizeName = messages[locale].product.size;
   const colorName = messages[locale].product.color;
+  const fitModel = modelInfo(row, slug, letters);
+  const letter = (size: string) => letterFor(size, slug, letters);
   return {
     id: row.id,
     handle: row.handle,
@@ -158,6 +163,7 @@ export function mapProduct(
     ],
     variants: variants.map((v) => {
       const compare = v.compare_at_cents ?? row.compare_at_cents;
+      const sizeLetter = letter(v.size);
       return {
         id: v.id,
         title: v.size,
@@ -165,6 +171,7 @@ export function mapProduct(
         stock: Math.max(0, v.stock),
         price: money(v.price_cents ?? row.price_cents),
         compareAtPrice: compare ? money(compare) : undefined,
+        ...(sizeLetter ? { letter: sizeLetter } : {}),
         ...(v.sku?.trim() ? { sku: v.sku.trim() } : {}),
         ...(v.barcode?.trim() ? { barcode: v.barcode.trim() } : {}),
         selectedOptions: [
@@ -177,6 +184,29 @@ export function mapProduct(
     compareAtPrice: row.compare_at_cents ? money(row.compare_at_cents) : undefined,
     outfitHandles: row.outfit_handles,
     createdAt: row.created_at,
+    ...(fitModel ? { fitModel } : {}),
+  };
+}
+
+/** Model-Angaben («1,86 m, trägt 50»); fehlende oder unsinnige Werte fallen weg. */
+function modelInfo(
+  row: Pick<ProductRow, "model_height_cm" | "model_size">,
+  category: string,
+  letters: SizeLetters,
+): Product["fitModel"] {
+  const height =
+    typeof row.model_height_cm === "number" &&
+    row.model_height_cm >= 120 &&
+    row.model_height_cm <= 230
+      ? row.model_height_cm
+      : undefined;
+  const size = row.model_size?.trim() || undefined;
+  if (!height && !size) return undefined;
+  const letter = size ? letterFor(size, category, letters) : undefined;
+  return {
+    ...(height ? { heightCm: height } : {}),
+    ...(size ? { size } : {}),
+    ...(letter ? { letter } : {}),
   };
 }
 
@@ -331,12 +361,15 @@ export interface SizeGuideTable {
   columns: string[];
   rows: string[][];
   note: string;
+  /** Buchstabe je Zeile (Spalte «International»), nur bei Konfektionsgrössen mit Zuordnung */
+  international?: string[] | undefined;
 }
 
 /** Grössentabellen: nur Tabellen mit Spalten und mindestens einer ausgefüllten Zeile. */
 export function mapSizeGuides(content: Record<string, Json>, locale: Locale): SizeGuideTable[] {
   const block = content["size_guides"];
   const tables = isObj(block) && Array.isArray(block["tables"]) ? block["tables"] : [];
+  const letters = readSizeLetters(content);
   return tables.flatMap((table, i) => {
     if (!isObj(table)) return [];
     const columns = (Array.isArray(table["columns"]) ? table["columns"] : []).map((c) =>
@@ -349,16 +382,19 @@ export function mapSizeGuides(content: Record<string, Json>, locale: Locale): Si
       return cells.some(Boolean) ? [cells] : [];
     });
     if (!rows.length) return [];
+    const categories = (Array.isArray(table["categories"]) ? table["categories"] : []).flatMap(
+      (c) => (typeof c === "string" ? [c] : []),
+    );
+    const international = tableLetters({ categories, columns, rows }, letters);
     return [
       {
         id: str(table["id"]) || `tabelle-${i + 1}`,
         title: localized(table["title"], locale, null, ""),
-        categories: (Array.isArray(table["categories"]) ? table["categories"] : []).flatMap((c) =>
-          typeof c === "string" ? [c] : [],
-        ),
+        categories,
         columns,
         rows,
         note: localized(table["note"], locale, null, ""),
+        ...(international ? { international } : {}),
       },
     ];
   });

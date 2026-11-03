@@ -9,16 +9,15 @@ export const pagesEn: Partial<Record<WrittenPageHandle, WrittenPage>> = {
     `
 **Operator of this online shop**
 {{company}}
-[Legal form]
+Sole proprietorship
 {{address}}
 Switzerland
 
 **Contact**
 Email: {{email}}
-Phone: {{phone}}
 
 **Authorised representative**
-[First and last name, position]
+Vasilis Soufis, owner
 
 **Commercial register**
 Not registered in the commercial register
@@ -45,7 +44,7 @@ Last updated: [Date]
 ### 1. Who is responsible for processing your data
 The controller responsible for processing your personal data on this website and in the online shop is:
 {{company}}, {{address}}, Switzerland
-Email for data protection questions: {{email}}
+Email for data protection questions: [Data protection email, otherwise {{email}}]
 
 This privacy policy is based on the Swiss Federal Act on Data Protection (FADP).
 
@@ -142,20 +141,20 @@ We may update this privacy policy. The version published on this website applies
 Last updated: [Date]
 
 ### 1. Scope
-These terms and conditions apply to all orders and to the purchase of gift cards in the {{brand}} online shop at [domain]. Your contractual partner is {{company}}, {{address}}, Switzerland, email {{email}} ("we"). We only deliver to addresses in Switzerland and Liechtenstein.
+These terms and conditions apply to all orders and to the purchase of gift cards in the {{brand}} online shop at [domain]. Your contractual partner is {{company}}, {{address}}, Switzerland, email {{email}} ("we"). We only deliver to addresses in Switzerland [and Liechtenstein].
 
 ### 2. Order and conclusion of the contract
 The presentation of the products in the shop is not a binding offer. This is how you order:
-1. Choose a size and add the item to your cart.
-2. Enter your email address in the cart and, if you have one, redeem a discount code or gift card.
-3. Click "Checkout". You are taken to the payment page of our payment service provider Stripe.
-4. Enter your delivery address and choose a payment method.
-5. Check all details and correct them if necessary.
-6. Submit your binding order with the payment button.
+1. Choose a size and click "Add to cart".
+2. Open the cart and click "Checkout".
+3. Enter your email address and, if you have one, redeem a discount code or gift card.
+4. Click "Continue to payment" (if a gift card covers the whole amount: "Place order"). You are taken to the payment page of our payment service provider Stripe.
+5. Enter your delivery address, choose a payment method, check all details and correct them if necessary.
+6. Submit your binding order with the "Pay" button on the payment page.
 
 Until you submit your order, you can change all entries or cancel the purchase. You can order at most 3 pieces per size and at most 20 pieces per order. While you pay, we reserve the items for a short time. After successful payment, you receive an order confirmation by email. The contract is concluded with this confirmation. If an item is no longer available despite the confirmation, we inform you immediately and refund any amounts already paid without delay.
 
-You can order as a guest or open a customer account.
+You can order as a guest or open a customer account. If you are under 18, you need the consent of your parents or legal guardian to place an order.
 
 ### 3. Prices
 All prices are final prices in Swiss francs (CHF). Any shipping costs are shown in the cart and on the payment page before you order. The price shown in the shop at the time of your order applies.
@@ -177,13 +176,13 @@ We deliver with Swiss Post. Delivery usually takes 2 to 5 working days from disp
 
 ### 7. Voluntary right of return
 Swiss law does not provide for a right of return for online purchases. We voluntarily grant you a right of return of {{returnDays}} days from receipt of the goods.
-- **Conditions:** The goods are unworn, unwashed, unaltered and complete, with all tags and, if possible, in the original packaging. Sale items, worn items and shoes with signs of wear are excluded.
+- **Conditions:** The goods are unworn, unwashed, unaltered and complete, with all tags and, if possible, in the original packaging. Sale items, worn or altered items and shoes with signs of wear are excluded.
 - **How to return:** Notify us of the return online under "Register a return" (page Shipping and returns) with your order number and email address, or by email to {{email}}. The return label is enclosed with your parcel.
 - **Costs:** Returns are free for you.
 - **Refund:** After we have received and checked the goods, we refund the purchase price within 7 days, as you choose to the original payment method or as a gift card. Amounts paid with a gift card are credited back to the gift card.
 - **Exchange:** You can exchange an item for another size free of charge while it is available.
 
-Consumers resident in Liechtenstein additionally have the statutory right of withdrawal from distance contracts under the Liechtenstein Consumer Protection Act; where it goes further than these terms, it takes precedence. [Specialist: add the withdrawal information and model form under Liechtenstein law.]
+[Only for delivery to Liechtenstein: Consumers resident in Liechtenstein also have the statutory right of withdrawal from distance contracts under Liechtenstein law. Consult a specialist.]
 
 ### 8. Warranty
 The statutory provisions apply. The warranty period is two years from delivery. Please check the goods when you receive them and notify us of any defects by email to {{email}} as soon as you discover them. In the event of a defect, you can by law demand cancellation of the purchase, a price reduction or a replacement free of defects. We are also happy to offer you a repair if that suits you. Normal wear and tear and damage caused by improper care are not defects.
@@ -198,7 +197,7 @@ We are liable in accordance with the statutory provisions. We are not liable for
 How we process your data is described in our privacy policy.
 
 ### 12. Applicable law and place of jurisdiction
-Swiss law applies, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). The statutory places of jurisdiction apply to disputes. As a consumer, you can take legal action at your place of residence or at our registered office. For consumers resident in Liechtenstein, the mandatory provisions of the law of their place of residence remain reserved.
+Swiss law applies, excluding the UN Convention on Contracts for the International Sale of Goods (CISG). The statutory places of jurisdiction apply to disputes. As a consumer, you can take legal action at your place of residence or at our registered office. [Only for delivery to Liechtenstein: For consumers resident in Liechtenstein, the mandatory provisions of the law of their place of residence remain reserved.]
 
 ### 13. Changes
 We may change these terms and conditions at any time. Your order is governed by the version published at the time of your order.
@@ -207,7 +206,7 @@ We may change these terms and conditions at any time. Your order is governed by 
   "versand-und-rueckgabe": structure(
     "Shipping and returns",
     `
-- **Delivery area:** Switzerland and Liechtenstein
+- **Delivery area:** Switzerland [and Liechtenstein]
 - **Shipping:** with Swiss Post. {{shipping}}
 - **Delivery time:** 2 to 5 working days from dispatch; orders by 2 pm (working days) are dispatched the same day, tracking number by email
 - **Returns:** within {{returnDays}} days of receipt, unworn and with all tags
@@ -215,7 +214,7 @@ We may change these terms and conditions at any time. Your order is governed by 
 - **Return shipping:** free, the label is enclosed with your parcel
 - **Refund:** within 7 days of receiving your return, as you choose to the original payment method or as a gift card. Amounts paid with a gift card are credited back to the gift card.
 - **Exchange:** another size free of charge, while available
-- **Excluded:** gift cards, sale items, worn items and shoes with signs of wear
+- **Excluded:** gift cards, sale items, worn or altered items and shoes with signs of wear
 - **Defects:** two-year statutory warranty, report by email to {{email}}
 The binding rules are set out in the terms and conditions; the German version is legally binding.
 `,
@@ -228,9 +227,11 @@ The binding rules are set out in the terms and conditions; the German version is
 **Which size fits me?**
 Measure your chest and waist and compare the values with our size chart. If you are unsure, email us at {{email}}.
 **What do the numbers 46 to 56 mean?**
-They are the usual European sizes for suits, jackets, waistcoats, coats and trousers. Shirts come in collar sizes (38 to 45), knitwear from S to XXL and shoes in EU sizes.
+They are the usual European sizes for suits, waistcoats and trousers. T-shirts come in S to XL, shoes in whole EU sizes.
+**Are the trousers already hemmed?**
+Yes, our trousers come ready hemmed. The inside leg length of each size is in the size chart on the product page.
 **Can I exchange an item for another size?**
-Yes, within {{returnDays}} days, while the size is available. Email us at {{email}}.
+Yes, free of charge within {{returnDays}} days, while the size is available. Register the exchange under "Register a return" or email us at {{email}}.
 
 ### Orders and account
 **Do I need an account?**
@@ -246,7 +247,7 @@ Usually 2 to 5 working days from dispatch. Orders by 2 pm (working days) are dis
 **How much is shipping?**
 {{shipping}}. You see the exact amount in your cart before you order.
 **Does Axion ship abroad?**
-At the moment we ship within Switzerland and to Liechtenstein.
+At the moment we only ship within Switzerland [and to Liechtenstein].
 
 ### Returns
 **Can I return an item?**

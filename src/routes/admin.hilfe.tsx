@@ -72,6 +72,20 @@ function HelpPage() {
           </li>
         </ul>
       </Panel>
+      <Panel title="Anzug anlegen">
+        <ol className="admin-steps">
+          <li>
+            Sakko und Hose sind zwei eigene Produkte: das Sakko in der Kategorie «Anzüge», die Hose
+            in «Hosen». So wählt die Kundschaft für beide Teile die Grösse einzeln (Zahlengrössen 46
+            bis 56).
+          </li>
+          <li>
+            Beim Sakko unter «Komplettes Outfit» die Hose wählen und bei der Hose das Sakko
+            (gegenseitig verknüpfen). Auf beiden Produktseiten erscheint dann der ganze Anzug zum
+            Kauf in einem Schritt; passende Weste und Schuhe lassen sich zusätzlich verknüpfen.
+          </li>
+        </ol>
+      </Panel>
       <Panel title="Bestellungen">
         <ul className="admin-tips">
           <li>

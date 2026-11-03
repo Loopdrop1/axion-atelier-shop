@@ -674,19 +674,29 @@ export function newsletterWelcome(
     unsubscribeUrl: string;
     welcomeCode?: string | null;
     welcomePercent?: number | null;
+    /** Gültigkeit des Codes in Tagen (shop_settings.newsletter_welcome_days); fehlt sie, nennt die E-Mail keine */
+    welcomeDays?: number | null;
   },
   shop: ShopInfo,
 ): EmailContent {
   const de = data.locale !== "en";
   const subject = de ? "Willkommen bei Axion" : "Welcome to Axion";
+  const days = data.welcomeDays && data.welcomeDays > 0 ? Math.round(data.welcomeDays) : null;
+  const validity = de
+    ? days
+      ? `Der Code ist ${days === 1 ? "1 Tag" : `${days} Tage`} gültig und einmal einlösbar.`
+      : "Der Code ist einmal einlösbar."
+    : days
+      ? `The code is valid for ${days === 1 ? "1 day" : `${days} days`} and can be used once.`
+      : "The code can be used once.";
   const intro = de
     ? "Danke für deine Anmeldung. Du erfährst als Erstes von neuen Stücken, Kombinationen und Aktionen."
     : "Thank you for subscribing. You'll be the first to hear about new pieces, combinations and offers.";
   const gift =
     data.welcomeCode && data.welcomePercent
       ? de
-        ? `Als Dankeschön erhältst du ${data.welcomePercent} % auf deine nächste Bestellung. Der Code ist 90 Tage gültig und einmal einlösbar.`
-        : `As a thank-you, you get ${data.welcomePercent}% off your next order. The code is valid for 90 days and can be used once.`
+        ? `Als Dankeschön erhältst du ${data.welcomePercent} % auf deine nächste Bestellung. ${validity}`
+        : `As a thank-you, you get ${data.welcomePercent}% off your next order. ${validity}`
       : "";
   const unsub = de ? "Abmelden" : "Unsubscribe";
   const body = [

@@ -27,6 +27,9 @@ export interface Variant {
   stock: number;
   price: Money;
   compareAtPrice?: Money | undefined;
+  /** Buchstabe zur Zahlengrösse («M» zu «48») aus der Zuordnung im Admin; fehlt bei Schuhen, Einheitsgrösse,
+   *  Buchstabengrössen und Zahlen ohne Zuordnung */
+  letter?: string | undefined;
   /** Artikelnummer und Barcode (GTIN) der Grösse, freiwillig; nur für den Produktfeed */
   sku?: string | undefined;
   barcode?: string | undefined;
@@ -69,6 +72,8 @@ export interface Product {
   compareAtPrice?: Money | undefined;
   outfitHandles: string[];
   createdAt: string;
+  /** Model auf den Bildern: Körpergrösse und getragene Grösse (mit Buchstabe), freiwillig */
+  fitModel?: { heightCm?: number; size?: string; letter?: string } | undefined;
 }
 export interface Collection {
   handle: string;

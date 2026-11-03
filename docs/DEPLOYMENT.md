@@ -94,7 +94,7 @@ einschalten.
      und reserviert nichts.
    - `STRIPE_SECRET_KEY` (Test-Schlüssel `rk_test_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
      `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (bekommt auch die Nachrichten aus dem Kontaktformular),
-     `SHOP_ADDRESS`. Optional `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion
+     `SHOP_ADDRESS`, **`STRIPE_REQUIRE_TERMS=1` (Pflicht für den Livegang, AGB-Häkchen in der Kasse; die Admin-Checkliste prüft es)**. Optional `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion
      Liechtenstein beliefern will und die Liechtenstein-Klauseln in den Rechtstexten stehen), `TRANSLATE_MODEL`.
      `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`) nur setzen, wenn Axion MWST-pflichtig ist; er wird pro
      Bestellung gespeichert, und der Beleg rechnet damit.
@@ -175,8 +175,9 @@ einschalten.
 - `src/config/shop.ts`: Firma, Adresse, E-Mail, Telefon (leer = keine Nummer im Shop), Erreichbarkeit (leer = ohne),
   UID, `vatRegistered` (mit MWST-Pflicht: Quittung mit MWST-Nummer, Satz und Betrag), `siteUrl`, `returnDays`.
 - Admin → Einstellungen: Versandkosten und «Gratisversand ab», ausverkaufte Grössen ausblenden, Gutscheinbeträge und
-  Gültigkeit (Standard 5 Jahre; wählt Axion «unbegrenzt», 30 Jahre eintragen und die AGB anpassen),
-  Willkommens-Rabatt für den Newsletter (leer = keiner), Adresse für Bestellmeldungen.
+  Gültigkeit (Standard 30 Jahre seit Migration 0024, wie in AGB und FAQ), Willkommens-Rabatt für den Newsletter
+  (leer = keiner) und Gültigkeit des Codes in Tagen (Standard 90; die Willkommens-E-Mail nennt sie), Adresse für
+  Bestellmeldungen.
 - Admin → Kategorien (erscheinen in dieser Reihenfolge im Menü «Kollektion» und in der Kategorien-Reihe der
   Startseite; Bild freigestellt wie bei den Produkten), Produkte (echte Angaben und Fotos, dazu Herkunft und
   Ausstattung mit einem Merkmal pro Zeile; erstes Bild freigestellt auf Weiss oder als PNG mit durchsichtigem
@@ -229,6 +230,11 @@ Ausführliche Schritt-für-Schritt-Anleitung mit Testkarten und Prüfliste: `doc
    erst dann erscheint die Kategorie in der Reihe auf der Startseite); Kategorien ohne aktive Produkte schaltet das
    Skript aus (im Admin wieder einschalten, sobald Produkte darin sind). Danach prüfen, dass der Look der Startseite
    (Admin → Startseite) auf echte Produkte zeigt, und die Grössentabellen mit den Massen von Axion ersetzen.
+   Danach `supabase/demo/sortiment-start.sql` in Cloud ausführen (nach Migration 0024, vor dem Livegang): Es legt die
+   Kategorie «T-Shirts» an, schaltet Anzüge, Hosen, T-Shirts, Westen und Schuhe ein und Sakkos, Hemden, Mäntel &
+   Jacken, Strick und Accessoires aus (nicht gelöscht, Produkte bleiben unverändert, mehrfach ausführbar). Erst nach
+   `muster-entfernen.sql`, sonst schaltet jenes die noch leere Kategorie T-Shirts wieder aus. Foto für T-Shirts unter
+   Admin → Kategorien hinterlegen.
 1. Stripe live: Live-Schlüssel (`rk_live_…`) und Live-Webhook mit eigenem `whsec_…` in die Secrets.
 2. Domain in Lovable verbinden. `SITE_URL` und `ALLOWED_ORIGINS` (Secrets), Site URL und Redirect URLs (Cloud → Users)
    sowie `siteUrl` in `src/config/shop.ts` auf die Domain umstellen. Die Vorschau-Adresse aus `ALLOWED_ORIGINS`

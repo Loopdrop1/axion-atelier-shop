@@ -229,9 +229,36 @@ describe("newsletter: bestätigen und abmelden", () => {
       await post({ action: "confirm", token: t });
       const mail = resend.sent[before]!;
       expect(mail.text).toContain("10% off your next order");
+      // Gültigkeit aus shop_settings.newsletter_welcome_days (Standard 90)
+      expect(mail.text).toContain("The code is valid for 90 days and can be used once.");
       expect(mail.text).toMatch(/WILLKOMMEN-[A-HJ-NP-Z2-9]{10}/);
     } finally {
       await sql("update public.shop_settings set newsletter_welcome_percent = null");
+    }
+  });
+
+  it("Willkommensrabatt mit eingestellter Gültigkeit: die E-Mail nennt die Tage aus den Einstellungen", async () => {
+    await sql(
+      "update public.shop_settings set newsletter_welcome_percent = 10, newsletter_welcome_days = 14",
+    );
+    try {
+      let before = resend.sent.length;
+      await post({
+        action: "subscribe",
+        email: `${uniq("tage")}@example.ch`,
+        consent: CONSENT,
+        locale: "de",
+      });
+      const t = tokenFrom(resend.sent[before]!.text, "bestaetigen");
+      before = resend.sent.length;
+      await post({ action: "confirm", token: t });
+      const mail = resend.sent[before]!;
+      expect(mail.text).toContain("Der Code ist 14 Tage gültig und einmal einlösbar.");
+      expect(mail.text).not.toContain("90 Tage");
+    } finally {
+      await sql(
+        "update public.shop_settings set newsletter_welcome_percent = null, newsletter_welcome_days = 90",
+      );
     }
   });
 

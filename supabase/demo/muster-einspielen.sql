@@ -1,6 +1,7 @@
 -- Muster-Sortiment für die Vorschau in Lovable Cloud: 52 Platzhalter-Produkte in neun Kategorien (Anzüge, Sakkos,
 -- Hosen, Hemden, Westen, Mäntel und Jacken, Strick, Schuhe, Accessoires) mit Illustrationen statt Fotos, Kennzeichen
--- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite).
+-- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite). Dazu die Kategorie «T-Shirts» ohne
+-- Produkte und ohne Bild. Welche Kategorien zum Start sichtbar sind, regelt supabase/demo/sortiment-start.sql.
 -- Einmal ausführen (Cloud → Datenbank → SQL oder durch Claude). Mehrfach ausführbar: legt nur an, was fehlt,
 -- und überschreibt nichts, was im Admin schon erfasst ist (Kategorien, Startseite, Grössentabellen). Grössen und
 -- Bilder kommen nur an Musterprodukte: Gibt es eine Adresse (handle) schon als echtes Produkt, bleibt es unberührt.
@@ -13,12 +14,18 @@ insert into public.categories (slug, name_de, name_en, description_de, descripti
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),
+  ('t-shirts', 'T-Shirts', 'T-shirts', 'Schlichte T-Shirts, unter dem Sakko oder für sich getragen.', 'Simple T-shirts, worn under a jacket or on their own.', null, 45),
   ('westen', 'Westen', 'Waistcoats', 'Einzeln getragen. Oder als Teil des Ganzen.', 'Worn on its own. Or as part of the whole.', 'asset:muster/weste-limmat-marine-1', 50),
   ('maentel-jacken', 'Mäntel & Jacken', 'Coats & jackets', 'Mäntel und Jacken aus Wolle und Kaschmir für die kalten Monate.', 'Coats and jackets in wool and cashmere for the colder months.', 'asset:muster/mantel-gotthard-kamel-1', 60),
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),
   ('schuhe', 'Schuhe', 'Shoes', 'Der passende Abschluss für deinen Auftritt.', 'The finishing touch for your look.', 'asset:muster/oxford-nero-schwarz-1', 80),
   ('accessoires', 'Accessoires', 'Accessories', 'Krawatten, Einstecktücher, Manschettenknöpfe und Gürtel.', 'Ties, pocket squares, cufflinks and belts.', 'asset:muster/krawatte-morcote-bordeaux-1', 90)
 on conflict (slug) do nothing;
+-- T-Shirts ohne aktive Produkte ausblenden (keine leere Kategorie im Menü); sortiment-start.sql schaltet sie ein.
+update public.categories c set active = false
+  where c.slug = 't-shirts'
+    and not exists (select 1 from public.products p where p.category_id = c.id and p.status = 'active');
+
 
 insert into public.products (handle, category_id, model, status, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, origin_de, origin_en, features_de, features_en, fit_note_de, fit_note_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at)
 select 'anzug-limmat-marine', c.id, 'anzug-limmat', 'active', 'Anzug «Limmat»', 'Limmat Suit', 'Der Anzug «Limmat» besteht aus Sakko und Hose. Kombiniere ihn mit der passenden Weste zu einem Dreiteiler.', 'The Limmat suit consists of a jacket and trousers. Add the matching waistcoat for a three-piece look.', 'Schurwolle (Super 110’s) mit wenig Stretch, Futter aus Cupro', 'Wool (Super 110’s) with a little stretch, cupro lining', 'Chemische Reinigung. Nach dem Tragen auf einem breiten Bügel auslüften.', 'Dry clean. Air on a wide hanger after wearing.', 'Gefertigt in Italien', 'Made in Italy', 'Sakko mit zwei Knöpfen und Reverskragen
@@ -1019,6 +1026,22 @@ insert into public.product_images (product_id, path, alt_de, alt_en, width, heig
 select p.id, i.path, i.alt_de, i.alt_en, i.width, i.height, i.sort from public.products p, (values ('asset:muster/socken-vals-marine-1', 'Socken «Vals» in Marine, als Paar (Illustration)', 'Vals Socks in navy, pair (illustration)', 1024, 1280, 0), ('asset:muster/socken-vals-marine-2', 'Socken «Vals» in Marine, einzeln (Illustration)', 'Vals Socks in navy, single (illustration)', 1024, 1280, 10)) as i(path, alt_de, alt_en, width, height, sort)
 where p.handle = 'socken-vals-marine' and 'muster' = any (p.tags)
   and not exists (select 1 from public.product_images x where x.product_id = p.id);
+
+-- Model-Angaben (Migration 20261103002400 / Cloud 0023): drei Muster-Anzüge als Beispiel. Nur Musterstücke ohne
+-- eigene Angaben; ohne die Spalten (Migration noch nicht eingespielt) wird der Schritt übersprungen.
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'products' and column_name = 'model_size') then
+    execute $sql$
+      update public.products as p set model_height_cm = m.height, model_size = m.size
+      from (values ('anzug-limmat-marine', 186, '50'), ('anzug-aare-anthrazit', 182, '48'), ('smoking-thur-schwarz', 189, '52')) as m(handle, height, size)
+      where p.handle = m.handle and 'muster' = any (p.tags)
+        and p.model_height_cm is null and p.model_size is null
+    $sql$;
+  end if;
+end
+$$;
 
 insert into public.site_content (key, value) values
   ('home.look', '{"image": "asset:look", "image_alt": {"de": "Marineblauer Dreiteiler mit schwarzen Oxford-Schuhen in einem hellen Gang", "en": "Navy three-piece suit with black oxford shoes in a bright hallway"}, "image_width": 960, "image_height": 1280, "hotspots": [{"handle": "anzug-limmat-marine", "key": "sakko", "label": {"de": "Sakko", "en": "Jacket"}, "x": 37, "y": 25}, {"handle": "weste-limmat-marine", "key": "weste", "label": {"de": "Weste", "en": "Waistcoat"}, "x": 50, "y": 31}, {"handle": "oxford-nero-schwarz", "key": "schuhe", "label": {"de": "Schuhe", "en": "Shoes"}, "x": 47, "y": 89}], "de": {"eyebrow": "Stücke, die zusammenpassen", "title": "Komplettes Outfit.\nGanz du.", "text": "Vom ersten Knopf bis zum letzten Schritt.", "total": "Ganzes Outfit"}, "en": {"eyebrow": "Pieces that go together", "title": "The complete outfit.\nAll you.", "text": "From the first button to the last step.", "total": "Complete outfit"}}'::jsonb),
