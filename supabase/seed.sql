@@ -1,7 +1,7 @@
 -- Startdaten: Kategorien, Beispielprodukte (Platzhalter) und Inhalte der Startseite.
 -- Bildpfade «asset:…» zeigen auf die im Frontend eingebauten Bilder (src/lib/commerce/media.ts).
--- Alle zehn Kategorien sind hier eingeschaltet (lokale Tests und E2E brauchen sie); «T-Shirts» noch ohne Produkte
--- und ohne Bild (es gibt keine passende Muster-Zeichnung). Cloud nutzt zum Start supabase/demo/sortiment-start.sql
+-- Die neun Muster-Kategorien sind hier eingeschaltet (lokale Tests und E2E brauchen sie); «T-Shirts» ist ausgeblendet,
+-- solange ohne Produkte und ohne Bild (es gibt keine passende Muster-Zeichnung). Cloud nutzt zum Start supabase/demo/sortiment-start.sql
 -- (nur Anzüge, Westen, Schuhe, Hosen, T-Shirts eingeschaltet).
 
 insert into public.categories (slug, name_de, name_en, description_de, description_en, image_path, sort) values
@@ -15,6 +15,9 @@ insert into public.categories (slug, name_de, name_en, description_de, descripti
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),
   ('schuhe', 'Schuhe', 'Shoes', 'Der passende Abschluss für deinen Auftritt.', 'The finishing touch for your look.', 'asset:muster/oxford-nero-schwarz-1', 80),
   ('accessoires', 'Accessoires', 'Accessories', 'Krawatten, Einstecktücher, Manschettenknöpfe und Gürtel.', 'Ties, pocket squares, cufflinks and belts.', 'asset:muster/krawatte-morcote-bordeaux-1', 90);
+-- T-Shirts bleibt ohne Produkte ausgeblendet (sonst leere Kategorie im Menü); sortiment-start.sql schaltet sie ein.
+update public.categories set active = false where slug = 't-shirts';
+
 
 -- Muster-Sortiment (Kennzeichen «muster», Bilder = Illustrationen): dieselben 52 Produkte wie supabase/demo/muster-einspielen.sql.
 insert into public.products (handle, category_id, model, status, title_de, title_en, description_de, description_en, material_de, material_en, care_de, care_en, origin_de, origin_en, features_de, features_en, fit_note_de, fit_note_en, fit, color_name_de, color_name_en, color_hex, tags, occasions, outfit_handles, price_cents, compare_at_cents, sort, created_at)
