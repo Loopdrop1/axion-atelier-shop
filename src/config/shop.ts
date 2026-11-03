@@ -8,9 +8,9 @@ export const shopConfig = {
     company: "[Firmenname]",
     address: "[Adresse]",
     email: "[E-Mail-Adresse]",
-    phone: "", // Axion: Kontakt nur per E-Mail (Checkliste 3.11.2026)
-    hours: "", // freiwillig, leer = ohne
-    uid: "", // keine UID (nicht im Handelsregister, nicht MWST-pflichtig)
+    phone: "" as string, // Axion: Kontakt nur per E-Mail (Checkliste 3.11.2026)
+    hours: "" as string, // freiwillig, leer = ohne
+    uid: "" as string, // keine UID (nicht im Handelsregister, nicht MWST-pflichtig)
   },
   // Social-Kanäle: vollständige https-URL eintragen. Leer = Kanal erscheint weder im Footer noch in der Organization-Auszeichnung.
   social: {
