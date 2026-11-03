@@ -41,6 +41,15 @@ export const sampleCatalog: CatalogData = {
       sort: 40,
     },
     {
+      slug: "t-shirts",
+      name_de: "T-Shirts",
+      name_en: "T-shirts",
+      description_de: "Schlichte T-Shirts, unter dem Sakko oder für sich getragen.",
+      description_en: "Simple T-shirts, worn under a jacket or on their own.",
+      image_path: null,
+      sort: 45,
+    },
+    {
       slug: "westen",
       name_de: "Westen",
       name_en: "Waistcoats",

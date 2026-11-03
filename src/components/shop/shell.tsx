@@ -55,18 +55,9 @@ class OverlayBoundary extends Component<
   }
 }
 
-/** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind (z. B. Vorschau ohne Backend). */
-const defaultCategories = [
-  "anzuege",
-  "sakkos",
-  "hosen",
-  "hemden",
-  "westen",
-  "maentel-jacken",
-  "strick",
-  "schuhe",
-  "accessoires",
-] as const;
+/** Standardmenü, solange die Kategorien aus dem Admin noch nicht geladen sind: das Sortiment zum Start
+ *  (supabase/demo/sortiment-start.sql). Sobald die aktiven Kategorien da sind, gelten nur diese. */
+const defaultCategories = ["anzuege", "hosen", "t-shirts", "westen", "schuhe"] as const;
 const helpPages = [
   "versand-und-rueckgabe",
   "groessenberatung",

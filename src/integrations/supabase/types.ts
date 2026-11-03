@@ -865,6 +865,7 @@ export type Database = {
           gift_card_valid_years: number
           hide_sold_out: boolean
           id: number
+          newsletter_welcome_days: number
           newsletter_welcome_percent: number | null
           notify_email: string | null
           shipping_cents: number
@@ -877,6 +878,7 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
+          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
           shipping_cents?: number
@@ -889,6 +891,7 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
+          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
           shipping_cents?: number

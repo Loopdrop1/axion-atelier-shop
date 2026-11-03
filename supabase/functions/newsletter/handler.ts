@@ -27,6 +27,8 @@ interface ConfirmResult {
   locale?: Locale;
   welcome_code?: string | null;
   welcome_percent?: number | null;
+  /** Gültigkeit des Codes in Tagen (Migration 0024); fehlt vor der Migration */
+  welcome_days?: number | null;
 }
 
 const prefix = (locale: Locale) => (locale === "en" ? "/en" : "");
@@ -113,6 +115,7 @@ async function confirm(deps: Deps, body: Record<string, unknown>): Promise<Respo
         unsubscribeUrl: link(deps, locale, "abmelden", t),
         welcomeCode: result.welcome_code ?? null,
         welcomePercent: result.welcome_percent ?? null,
+        welcomeDays: result.welcome_days ?? null,
       },
       deps.shop,
     );

@@ -1,6 +1,7 @@
 -- Muster-Sortiment für die Vorschau in Lovable Cloud: 52 Platzhalter-Produkte in neun Kategorien (Anzüge, Sakkos,
 -- Hosen, Hemden, Westen, Mäntel und Jacken, Strick, Schuhe, Accessoires) mit Illustrationen statt Fotos, Kennzeichen
--- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite).
+-- «muster» (im Shop: «Muster» auf der Karte, Hinweis auf der Produktseite). Dazu die Kategorie «T-Shirts» ohne
+-- Produkte und ohne Bild. Welche Kategorien zum Start sichtbar sind, regelt supabase/demo/sortiment-start.sql.
 -- Einmal ausführen (Cloud → Datenbank → SQL oder durch Claude). Mehrfach ausführbar: legt nur an, was fehlt,
 -- und überschreibt nichts, was im Admin schon erfasst ist (Kategorien, Startseite, Grössentabellen). Grössen und
 -- Bilder kommen nur an Musterprodukte: Gibt es eine Adresse (handle) schon als echtes Produkt, bleibt es unberührt.
@@ -13,6 +14,7 @@ insert into public.categories (slug, name_de, name_en, description_de, descripti
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),
+  ('t-shirts', 'T-Shirts', 'T-shirts', 'Schlichte T-Shirts, unter dem Sakko oder für sich getragen.', 'Simple T-shirts, worn under a jacket or on their own.', null, 45),
   ('westen', 'Westen', 'Waistcoats', 'Einzeln getragen. Oder als Teil des Ganzen.', 'Worn on its own. Or as part of the whole.', 'asset:muster/weste-limmat-marine-1', 50),
   ('maentel-jacken', 'Mäntel & Jacken', 'Coats & jackets', 'Mäntel und Jacken aus Wolle und Kaschmir für die kalten Monate.', 'Coats and jackets in wool and cashmere for the colder months.', 'asset:muster/mantel-gotthard-kamel-1', 60),
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),

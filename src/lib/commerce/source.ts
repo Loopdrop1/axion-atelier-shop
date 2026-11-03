@@ -78,7 +78,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   freeShippingFromCents: null,
   giftCardMinCents: 2500,
   giftCardMaxCents: 100000,
-  giftCardValidYears: 5,
+  giftCardValidYears: 30,
   hideSoldOut: false,
   newsletterWelcomePercent: null,
 };

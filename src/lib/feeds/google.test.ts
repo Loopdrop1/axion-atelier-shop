@@ -23,13 +23,14 @@ describe("Google-Feed", () => {
     expect(googleCategory("anzuege")).toBe("Apparel & Accessories > Clothing > Suits");
     expect(googleCategory("hosen")).toBe("Apparel & Accessories > Clothing > Pants");
     expect(googleCategory("hemden")).toBe("Apparel & Accessories > Clothing > Shirts & Tops");
+    expect(googleCategory("t-shirts")).toBe("Apparel & Accessories > Clothing > Shirts & Tops");
     expect(googleCategory("maentel-jacken")).toBe(
       "Apparel & Accessories > Clothing > Outerwear > Coats & Jackets",
     );
     expect(googleCategory("schuhe")).toBe("Apparel & Accessories > Shoes");
     expect(googleCategory("accessoires")).toBe("Apparel & Accessories > Clothing Accessories");
     expect(googleCategory("neu-erfunden")).toBe("Apparel & Accessories > Clothing");
-    expect(Object.keys(GOOGLE_CATEGORIES)).toHaveLength(9);
+    expect(Object.keys(GOOGLE_CATEGORIES)).toHaveLength(10);
   });
 
   it("prüft GTIN mit Prüfziffer", () => {

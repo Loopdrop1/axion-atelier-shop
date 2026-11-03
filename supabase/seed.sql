@@ -1,11 +1,15 @@
 -- Startdaten: Kategorien, Beispielprodukte (Platzhalter) und Inhalte der Startseite.
 -- Bildpfade «asset:…» zeigen auf die im Frontend eingebauten Bilder (src/lib/commerce/media.ts).
+-- Alle zehn Kategorien sind hier eingeschaltet (lokale Tests und E2E brauchen sie); «T-Shirts» noch ohne Produkte
+-- und ohne Bild (es gibt keine passende Muster-Zeichnung). Cloud nutzt zum Start supabase/demo/sortiment-start.sql
+-- (nur Anzüge, Westen, Schuhe, Hosen, T-Shirts eingeschaltet).
 
 insert into public.categories (slug, name_de, name_en, description_de, description_en, image_path, sort) values
   ('anzuege', 'Anzüge', 'Suits', 'Zweiteiler und Dreiteiler aus feiner Schurwolle, ab Lager lieferbar.', 'Two- and three-piece suits in fine wool, ready to ship.', 'asset:muster/anzug-limmat-marine-1', 10),
   ('sakkos', 'Sakkos', 'Blazers', 'Blazer und Sakkos für Büro, Abend und Wochenende.', 'Blazers and jackets for the office, the evening and the weekend.', 'asset:muster/sakko-engadin-marine-1', 20),
   ('hosen', 'Hosen', 'Trousers', 'Anzughosen und Chinos, die zu allem passen.', 'Suit trousers and chinos that go with everything.', 'asset:muster/hose-sihl-anthrazit-1', 30),
   ('hemden', 'Hemden', 'Shirts', 'Hemden aus feiner Baumwolle, vom Büro bis zum Smoking.', 'Shirts in fine cotton, from the office to black tie.', 'asset:muster/hemd-rigi-hellblau-1', 40),
+  ('t-shirts', 'T-Shirts', 'T-shirts', 'Schlichte T-Shirts, unter dem Sakko oder für sich getragen.', 'Simple T-shirts, worn under a jacket or on their own.', null, 45),
   ('westen', 'Westen', 'Waistcoats', 'Einzeln getragen. Oder als Teil des Ganzen.', 'Worn on its own. Or as part of the whole.', 'asset:muster/weste-limmat-marine-1', 50),
   ('maentel-jacken', 'Mäntel & Jacken', 'Coats & jackets', 'Mäntel und Jacken aus Wolle und Kaschmir für die kalten Monate.', 'Coats and jackets in wool and cashmere for the colder months.', 'asset:muster/mantel-gotthard-kamel-1', 60),
   ('strick', 'Strick', 'Knitwear', 'Pullover aus Kaschmir und Merino, weich und leicht.', 'Cashmere and merino knitwear, soft and light.', 'asset:muster/pullover-arosa-kamel-1', 70),

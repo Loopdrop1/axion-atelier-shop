@@ -48,6 +48,7 @@ export const en: Messages = {
       sakkos: "Blazers",
       hosen: "Trousers",
       hemden: "Shirts",
+      "t-shirts": "T-shirts",
       westen: "Waistcoats",
       "maentel-jacken": "Coats & jackets",
       strick: "Knitwear",

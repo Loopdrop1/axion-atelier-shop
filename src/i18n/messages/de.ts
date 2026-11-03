@@ -49,6 +49,7 @@ export const de = {
       sakkos: "Sakkos",
       hosen: "Hosen",
       hemden: "Hemden",
+      "t-shirts": "T-Shirts",
       westen: "Westen",
       "maentel-jacken": "Mäntel & Jacken",
       strick: "Strick",
