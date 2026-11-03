@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useMatch } from "@tanstack/react-router";
 import { shopConfig } from "@/config/shop";
-import { sizeGuideQuery } from "@/lib/commerce/queries";
+import { sizeGuideQuery, type SizeGuidePageData } from "@/lib/commerce/queries";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 
 /** category: Slug der Kategorie des Produkts; ohne Angabe alle Tabellen (Seite «Grössenberatung»). */
@@ -16,10 +16,10 @@ export function SizeGuide({ category }: { category?: string }) {
   const initial = useMatch({
     from: "/{-$locale}/groessenberatung",
     shouldThrow: false,
-  })?.loaderData;
+  })?.loaderData as SizeGuidePageData | undefined;
   const { data: tables = [], isLoading } = useQuery({
     ...sizeGuideQuery(locale),
-    ...(initial ? { initialData: initial } : {}),
+    ...(initial?.tables ? { initialData: initial.tables } : {}),
   });
   const shown = category
     ? tables.filter((tb) => tb.categories.length === 0 || tb.categories.includes(category))

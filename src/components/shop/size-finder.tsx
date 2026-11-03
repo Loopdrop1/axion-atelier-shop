@@ -2,6 +2,7 @@
 // Rechnet nur im Browser (findSize in size-finder.ts); die Angaben bleiben in localStorage (size-profile.ts).
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   findSize,
@@ -21,7 +22,7 @@ import {
   sizeWithLetter,
   SHOE_CATEGORIES,
 } from "@/lib/commerce/sizes";
-import { sizeGuideQuery, sizeLettersQuery } from "@/lib/commerce/queries";
+import { sizeGuideQuery, sizeLettersQuery, type SizeGuidePageData } from "@/lib/commerce/queries";
 import type { Product, SizeGuideTable } from "@/lib/commerce";
 import { useLocale, useT } from "@/i18n";
 
@@ -263,8 +264,19 @@ export function SizeFinderSection() {
   const t = useT().sizeFinder;
   const locale = useLocale();
   const id = useId();
-  const { data: tables = [] } = useQuery(sizeGuideQuery(locale));
-  const { data: letters = DEFAULT_LETTERS } = useQuery(sizeLettersQuery());
+  // Startwerte aus dem Loader der Seite, damit Server und Browser dasselbe rendern
+  const initial = useMatch({
+    from: "/{-$locale}/groessenberatung",
+    shouldThrow: false,
+  })?.loaderData as SizeGuidePageData | undefined;
+  const { data: tables = [] } = useQuery({
+    ...sizeGuideQuery(locale),
+    ...(initial?.tables ? { initialData: initial.tables } : {}),
+  });
+  const { data: letters = DEFAULT_LETTERS } = useQuery({
+    ...sizeLettersQuery(),
+    ...(initial?.letters ? { initialData: initial.letters } : {}),
+  });
   const usable = tables.flatMap((table) => {
     const kind = tableKind(table);
     return kind ? [{ table, kind }] : [];
