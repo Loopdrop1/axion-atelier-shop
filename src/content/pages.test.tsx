@@ -28,7 +28,7 @@ describe("Client page content", () => {
         .flatMap((s) => s.blocks)
         .filter((b) => b.type === "questions")
         .flatMap((b) => b.items),
-    ).toHaveLength(19);
+    ).toHaveLength(20);
     expect(pages["versand-und-rueckgabe"].sections[0]?.blocks[0]?.type).toBe("definitions");
   });
   it("describes the real services (no Shopify), accounts, gift cards and newsletter", () => {

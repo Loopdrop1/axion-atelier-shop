@@ -23,6 +23,7 @@ const SECRET_LABELS: Record<string, string> = {
   SHOP_CONTACT_EMAIL: "Kontakt-E-Mail der Mails gesetzt",
   SHOP_NOTIFY_EMAIL: "Empfänger der Bestellmeldungen gesetzt",
   SHOP_ADDRESS: "Adresse im Fuss der E-Mails gesetzt",
+  STRIPE_REQUIRE_TERMS: "AGB-Häkchen in der Kasse aktiv (STRIPE_REQUIRE_TERMS=1)",
 };
 
 /** Prüfungen aus der Antwort der Edge Function. Reine Funktion, damit sie testbar bleibt. */

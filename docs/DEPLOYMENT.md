@@ -94,7 +94,7 @@ einschalten.
      und reserviert nichts.
    - `STRIPE_SECRET_KEY` (Test-Schlüssel `rk_test_…`), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`,
      `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL` (bekommt auch die Nachrichten aus dem Kontaktformular),
-     `SHOP_ADDRESS`. Optional `STRIPE_REQUIRE_TERMS=1`, `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion
+     `SHOP_ADDRESS`, **`STRIPE_REQUIRE_TERMS=1` (Pflicht für den Livegang, AGB-Häkchen in der Kasse; die Admin-Checkliste prüft es)**. Optional `SHIPPING_COUNTRIES` (Standard `CH`; `CH,LI` erst, wenn Axion
      Liechtenstein beliefern will und die Liechtenstein-Klauseln in den Rechtstexten stehen), `TRANSLATE_MODEL`.
      `SHOP_VAT_RATE` (MWST-Satz in Prozent, z. B. `8.1`) nur setzen, wenn Axion MWST-pflichtig ist; er wird pro
      Bestellung gespeichert, und der Beleg rechnet damit.

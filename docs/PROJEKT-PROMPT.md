@@ -1,6 +1,6 @@
 # AXION Online-Shop: vollständiger Projekt-Prompt
 
-> Dieser Prompt beschreibt den Shop so, wie er heute gebaut ist (Stand 3. November 2026, Commit `3751333`). Er dient
+> Dieser Prompt beschreibt den Shop so, wie er heute gebaut ist (Stand 3. November 2026, Commit `ab1a0e7` plus Block A bis D der Kundencheckliste). Er dient
 > drei Zwecken: (1) einem neuen Entwickler oder einer KI das ganze Projekt in einem Stück übergeben, (2) den Shop
 > von Grund auf neu bauen lassen, (3) als Prüfliste, ob bei Änderungen nichts verloren geht. Wo eine Regel mit
 > «nie» oder «immer» formuliert ist, ist sie verbindlich. Platzhalter in eckigen Klammern liefert der Kunde
@@ -15,12 +15,14 @@ Luxussegment** (Anzüge, Sakkos, Hosen, Hemden, Westen, Mäntel und Jacken, Stri
 verkauft **ab Lager, in festen Grössen**. Es gibt **keine Massanfertigung, keine Änderungen, keine Anproben und
 keine Termine**: Nichts davon darf je in Texten, E-Mails, FAQ oder Rechtstexten auftauchen.
 
-- Auftraggeber/Agentur: Flowrenix (Ben). Kunde: Axion. Vertrag: Offerte/Checkliste «axion_checkliste_online-shop»,
-  unterschrieben; Optionen sind inklusive, Anprobe und Änderungsservice gestrichen.
+- Auftraggeber/Agentur: Flowrenix (Ben). Kunde: Axion. Vertrag: Offerte/Checkliste «axion_checkliste_online-shop»
+  (Kundencheckliste ausgefüllt am 3.11.2026, **Unterschrift des Kunden ausstehend**); Anprobe und Änderungsservice
+  gestrichen. Angekreuzte kostenpflichtige Optionen (Priority-Versand, Bewertungen, Messung) sind **preislich
+  ungeklärt** («Paket: keines»); technisch vorbereitet, Bewertungen hinter einem Schalter. Betreuung: CHF 550 pro Jahr.
 - Sprache der Kundschaft: **Deutsch (Schweiz, verbindlich)** und Englisch. Schweizer Schreibweise: **«ss» statt
   «ß»**, Guillemets «…», Beträge «CHF 1'290.00».
 - Ton: ruhig, präzise, hochwertig, du-Form, keine Superlative, keine Füllwörter, keine Emojis.
-- Lieferland: Schweiz (`CH`); Liechtenstein nur, wenn Axion es will und die Rechtstexte ergänzt sind.
+- Lieferland: Schweiz (`CH`). Axion wünscht auch Liechtenstein; bleibt aus, bis die Fachperson die Klauseln (Platzhalter in den AGB) freigibt.
 
 ## 2. Technik-Stack
 
@@ -143,7 +145,11 @@ Pflege/Herkunft/Merkmale/Passformhinweis DE+EN mit `en_auto`, Passform, Farbe DE
 `profiles`, `user_roles`, `shop_settings`, `site_content`, `private.rate_limits`. RLS überall; heikle RPCs nur für
 `service_role`.
 
-**Kategorien (9):** Anzüge, Sakkos, Hosen, Hemden, Westen, Mäntel & Jacken, Strick, Schuhe, Accessoires.
+**Kategorien:** Muster-Sortiment mit 9 Kategorien (Anzüge, Sakkos, Hosen, Hemden, Westen, Mäntel & Jacken, Strick,
+Schuhe, Accessoires). **Start laut Kundencheckliste:** aktiv Anzüge, Westen, Schuhe, Hosen, T-Shirts (neu, S bis XL);
+Sakkos, Hemden, Mäntel & Jacken, Strick, Accessoires ausgeblendet, nicht gelöscht (Skript in `supabase/demo/`).
+Anzug = Sakko und Hose als eigene Produkte, verknüpft über «Komplettes Outfit»; Sakkos stehen in «Anzüge», Hosen in
+«Hosen». Anzüge, Westen und Hosen in Zahlengrössen 46 bis 56 (keine Buchstaben), Schuhe in ganzen EU-Grössen.
 **Anlässe:** Hochzeit, Business, Abschlussfeier, Gala.
 
 **Muster-Sortiment:** 52 Produkte mit Tag `muster` (Karten-Badge «Muster», Hinweis auf der Produktseite),
@@ -186,7 +192,11 @@ ausverkaufte nicht wählbar, nichts in den Warenkorb, solange einem gewählten T
 4. **`stripe-webhook`** (Signatur geprüft, Ereignisse dedupliziert in `stripe_events`):
    `checkout.session.completed` → bezahlt, Bestätigung an Kundschaft, Meldung an Shop, Geschenkkarte ausstellen
    und mailen; Niedrigbestand-Mail (einmal pro Bestellung, Schwelle `LOW_STOCK_THRESHOLD`, Standard 2; wirft nie in
-   den Webhook); `checkout.session.expired` → storniert, Bestand zurück, Erinnerungsmail nur mit Einwilligung;
+   den Webhook); `checkout.session.completed` mit `payment_status=unpaid` (asynchrone Zahlung) wartet;
+   `checkout.session.async_payment_succeeded` → wie bezahlt (gleiche Funktion `onPaid`);
+   `checkout.session.async_payment_failed` → storniert (`cancel_order`, Grund `payment_failed`, Bestand zurück, keine
+   Erinnerung); `checkout.session.expired` → storniert (Grund `expired`), Bestand zurück, Erinnerungsmail nur mit
+   Einwilligung;
    Rückerstattung → Betrag nachführen, Mail einmal pro Betrag (unbekannte Bestellung → Fehler, Stripe wiederholt);
    `charge.dispute.created` und `radar.early_fraud_warning.created` → `record_dispute`: `needs_attention`, Notiz
    in `admin_note`, gekaufte Geschenkkarte gesperrt.
@@ -276,8 +286,9 @@ Grössenlimit 20 KB. Logik in `handler.ts` mit Tests, `index.ts` verbindet nur S
 **Secrets (Lovable Cloud → Secrets):** `SITE_URL` (veröffentlichte Adresse, ohne sie meldet der Browser «Keine
 Verbindung»), `ALLOWED_ORIGINS` (Editor-Vorschau), `STRIPE_SECRET_KEY` (eingeschränkt `rk_…`),
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, `SHOP_NAME`, `SHOP_NOTIFY_EMAIL`, `SHOP_CONTACT_EMAIL`,
-`SHOP_ADDRESS` («Strasse Nr, PLZ Ort»), optional `SHOP_RETURN_DAYS`, `SHOP_VAT_RATE`, `SHIPPING_COUNTRIES`,
-`STRIPE_REQUIRE_TERMS=1`, `LOW_STOCK_THRESHOLD`, `TRANSLATE_MODEL`, `POST_CLIENT_ID`, `POST_CLIENT_SECRET`,
+`SHOP_ADDRESS` («Strasse Nr, PLZ Ort»), **`STRIPE_REQUIRE_TERMS=1` (Pflicht für den Livegang: AGB-Häkchen in der
+Stripe-Kasse; die Admin-Checkliste prüft es als Ja/Nein)**, optional `SHOP_RETURN_DAYS`, `SHOP_VAT_RATE`,
+`SHIPPING_COUNTRIES`, `LOW_STOCK_THRESHOLD`, `TRANSLATE_MODEL`, `POST_CLIENT_ID`, `POST_CLIENT_SECRET`,
 `POST_FRANKING_LICENSE`, `POST_PRODUCT` (ECO/PRI). `LOVABLE_API_KEY` legt Lovable selbst an.
 Stripe-Webhook-Ereignisse: `checkout.session.completed`, `checkout.session.expired`,
 `checkout.session.async_payment_succeeded/failed`, `charge.refunded`, `charge.dispute.created`,
@@ -288,7 +299,9 @@ Stripe-Webhook-Ereignisse: `checkout.session.completed`, `checkout.session.expir
 core · commerce · rpc · storage · account · checkout_release · contact_and_settings · produktseite_und_hero ·
 stock_alerts · search_assist · review_fixes · wishlist · image_variants · client_errors · client_errors_prune ·
 checkout_reminder · return_requests · low_stock_alert · audit_followups · checkout_limits · receipt_vat ·
-audit_round2 (in `supabase/migrations/2026…` und als `drizzle/migrations/0001…0021`; alle in Cloud angewendet).
+audit_round2 (in `supabase/migrations/2026…` und als `drizzle/migrations/0000…0021`; alle in Cloud angewendet) ·
+return_refund_method (`0022`, in Cloud angewendet) · weitere ab `0023` aus Block B bis D der Kundencheckliste
+(Liste und Cloud-Status in `docs/KUNDENDATEN.md`).
 
 ## 16. Stand und offene Punkte
 
@@ -305,7 +318,10 @@ Audit-Runden (Sicherheit, Kasse, Rechtstexte, Texte, Design) abgeschlossen.
 4. Echte Produkte, Fotos und Hero-Video statt Muster; `muster-entfernen.sql` ausführen.
 5. Eigene Domain verbinden, `SITE_URL`/`ALLOWED_ORIGINS`/Auth-Redirects anpassen, `ALLOW_PREVIEW_ORIGINS`
    entfernen, `launched: true`, robots synchronisieren, Search Console, Merchant Center.
-6. Optional: Post-Geschäftskundenkonto für Etiketten (bisher nur gegen Fake getestet), Liechtenstein.
+6. Optional: Post-Geschäftskundenkonto für Etiketten (bisher nur gegen Fake getestet), Liechtenstein (nach Freigabe der
+   Klauseln durch die Fachperson).
+7. `STRIPE_REQUIRE_TERMS=1` setzen (Pflicht vor dem Livegang).
+8. Unterschrift des Kunden unter Checkliste und Konditionen; Preise der angekreuzten Optionen klären.
 
 ## 17. Definition of Done für jede Änderung
 
