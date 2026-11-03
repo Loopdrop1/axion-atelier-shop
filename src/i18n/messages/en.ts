@@ -696,10 +696,11 @@ export const en: Messages = {
       "Register a return for your Axion order: your order number and email address are all you need.",
     eyebrow: "Returns",
     intro:
-      "Enter your order number and the email address of the order, then choose the pieces and a reason. We will then email you the instructions for sending your return.",
+      "Enter your order number and the email address of the order, then choose the pieces and a reason. We will then email you the instructions for sending your return. Returns are free: the label is enclosed in your parcel.",
     cta: "Register a return",
     accountLink: "Register a return",
-    accountHint: (days: number) => `Returns within ${days} days of receipt, unworn and with tags.`,
+    accountHint: (days: number) =>
+      `Returns within ${days} days of receipt, unworn and with tags. Returns are free.`,
     orderNumber: "Order number",
     orderNumberHint: "Shown in your confirmation email, for example AX-10001.",
     email: "Email address of the order",
@@ -722,6 +723,19 @@ export const en: Messages = {
       wrong_item: "Wrong item received",
       other: "Other reason",
     },
+    refundTitle: "How would you like your money back?",
+    refundOptions: {
+      original: {
+        label: "To the original payment method",
+        hint: "The amount goes back to whatever you paid with.",
+      },
+      gift_card: {
+        label: "As a gift card",
+        hint: "You receive the amount as a gift card for your next purchase.",
+      },
+    },
+    refundHint: (days: number) =>
+      `We refund within ${days} days of your return arriving. Amounts paid with a gift card go back to the gift card.`,
     comment: "Comment (optional)",
     commentHint: "For example what did not fit. 1000 characters at most.",
     privacy: "We use your details only to process the return.",
@@ -748,7 +762,9 @@ export const en: Messages = {
     done: (ref: string, order: string) =>
       `Thank you, your return ${ref} for order ${order} is registered.`,
     doneMail:
-      "We have emailed you the instructions for sending your return. Pack the pieces unworn and with tags, include the order number and send the parcel to the address in the email.",
+      "We have emailed you the instructions for sending your return. Pack the pieces unworn and with tags, include the order number and attach the return label enclosed in your parcel. Returns are free.",
+    doneRefund: (method: "original" | "gift_card", days: number) =>
+      `Within ${days} days of your return arriving, we refund the amount ${method === "gift_card" ? "as a gift card" : "to the original payment method"}; amounts paid with a gift card go back to the gift card.`,
     doneMailFailed:
       "We could not send the confirmation email. Your registration is saved anyway: we will get in touch.",
     another: "Register another return",

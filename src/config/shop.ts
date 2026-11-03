@@ -8,9 +8,9 @@ export const shopConfig = {
     company: "[Firmenname]",
     address: "[Adresse]",
     email: "[E-Mail-Adresse]",
-    phone: "[Telefonnummer]", // freiwillig: leer lassen, wenn keine Nummer erscheinen soll
-    hours: "[Erreichbarkeit, z. B. Montag bis Freitag, 9 bis 17 Uhr]", // freiwillig, leer = ohne
-    uid: "[UID]",
+    phone: "" as string, // Axion: Kontakt nur per E-Mail (Checkliste 3.11.2026)
+    hours: "" as string, // freiwillig, leer = ohne
+    uid: "" as string, // keine UID (nicht im Handelsregister, nicht MWST-pflichtig)
   },
   // Social-Kanäle: vollständige https-URL eintragen. Leer = Kanal erscheint weder im Footer noch in der Organization-Auszeichnung.
   social: {
@@ -32,9 +32,9 @@ export const shopConfig = {
     google: "", // Google Search Console, google-site-verification
     bing: "", // Bing Webmaster Tools, msvalidate.01
   },
-  returnDays: 14, // Vom Kunden noch zu bestätigen.
+  returnDays: 14, // Von Axion bestätigt (Checkliste 3.11.2026).
   // Lieferschätzung (Europe/Zurich): Bestellungen vor dem Annahmeschluss gehen am selben Arbeitstag raus.
-  // Vom Kunden zu bestätigen.
+  // Von Axion bestätigt: Montag bis Freitag, bis 14 Uhr am selben Tag (Checkliste 3.11.2026).
   delivery: {
     dispatchCutoff: "14:00",
     processingDays: 0, // zusätzliche Arbeitstage bis zum Versand

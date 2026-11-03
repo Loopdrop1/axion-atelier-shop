@@ -1,5 +1,6 @@
-// Retoure anmelden: gemeinsame Regeln für die Edge Function «return-request» (Gründe, Bestellnummer, Positionen).
-// Dieselben Gründe und dieselbe Bestellnummer-Regel stehen in src/lib/returns.ts; src/lib/returns.test.ts prüft die Gleichheit.
+// Retoure anmelden: gemeinsame Regeln für die Edge Function «return-request» (Gründe, Rückerstattung, Bestellnummer,
+// Positionen). Dieselben Gründe, Rückerstattungsarten und dieselbe Bestellnummer-Regel stehen in src/lib/returns.ts;
+// src/lib/returns.test.ts prüft die Gleichheit.
 import { UUID } from "./http.ts";
 
 export const RETURN_REASONS = [
@@ -13,6 +14,18 @@ export const RETURN_REASONS = [
 export type ReturnReason = (typeof RETURN_REASONS)[number];
 
 export const MAX_RETURN_COMMENT = 1000;
+
+/** Rückerstattung: aufs ursprüngliche Zahlungsmittel oder als Gutschein (gleiche Werte wie return_requests.refund_method). */
+export const REFUND_METHODS = ["original", "gift_card"] as const;
+export type RefundMethod = (typeof REFUND_METHODS)[number];
+
+/** Tage nach Eingang der Rücksendung, innert derer wir erstatten (Mails und Formular). */
+export const REFUND_WITHIN_DAYS = 7;
+
+/** Unbekannte oder fehlende Werte → «original» (wie return_submit in der Datenbank). */
+export function parseRefundMethod(value: unknown): RefundMethod {
+  return value === "gift_card" ? "gift_card" : "original";
+}
 
 /** «AX-10001», «#10001» oder «10001» → 10001; sonst null. */
 export function parseOrderNumber(value: unknown): number | null {
@@ -79,3 +92,8 @@ export const REASON_LABELS = {
 export function reasonLabel(reason: string, locale: "de" | "en"): string {
   return (REASON_LABELS[locale] as Record<string, string>)[reason] ?? reason;
 }
+
+export const REFUND_METHOD_LABELS = {
+  de: { original: "Ursprüngliches Zahlungsmittel", gift_card: "Gutschein" },
+  en: { original: "Original payment method", gift_card: "Gift card" },
+} as const satisfies Record<"de" | "en", Record<RefundMethod, string>>;

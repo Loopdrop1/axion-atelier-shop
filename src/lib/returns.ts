@@ -1,5 +1,6 @@
-// Retoure anmelden (Seite /retoure): Gründe, Bestellnummer und Aufruf der Edge Function «return-request».
-// Gründe und Bestellnummer-Regel sind dieselben wie in supabase/functions/_shared/returns.ts; returns.test.ts prüft das.
+// Retoure anmelden (Seite /retoure): Gründe, Rückerstattung, Bestellnummer und Aufruf der Edge Function «return-request».
+// Gründe, Rückerstattungsarten und Bestellnummer-Regel sind dieselben wie in supabase/functions/_shared/returns.ts;
+// returns.test.ts prüft das.
 import { callFunction } from "@/integrations/supabase/functions";
 
 export const RETURN_REASONS = [
@@ -13,6 +14,13 @@ export const RETURN_REASONS = [
 export type ReturnReason = (typeof RETURN_REASONS)[number];
 
 export const MAX_RETURN_COMMENT = 1000;
+
+/** Rückerstattung: aufs ursprüngliche Zahlungsmittel (Standard) oder als Gutschein. */
+export const REFUND_METHODS = ["original", "gift_card"] as const;
+export type RefundMethod = (typeof REFUND_METHODS)[number];
+
+/** Tage nach Eingang der Rücksendung, innert derer wir erstatten. */
+export const REFUND_WITHIN_DAYS = 7;
 
 /** «AX-10001», «#10001» oder «10001» → 10001; sonst null. */
 export function parseOrderNumber(value: string): number | null {
@@ -103,6 +111,7 @@ export interface ReturnSelection {
 export interface ReturnReceipt {
   returnNumber: string;
   orderNumber: number;
+  refundMethod: RefundMethod;
   emailed: boolean;
 }
 
@@ -110,6 +119,7 @@ export function submitReturn(args: {
   orderNumber: string;
   email: string;
   items: ReturnSelection[];
+  refundMethod: RefundMethod;
   comment: string;
   locale: string;
   requestId: string;

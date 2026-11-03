@@ -1,8 +1,15 @@
 // E-Mails zur Retoure: Bestätigung mit Hinweisen an die Kundschaft, Meldung an den Shop.
-// Bewusst allgemein: Es wird kein Rücksendeetikett und keine Kostenübernahme versprochen (das regelt die Seite
-// «Versand und Rückgabe»). Die Rücksendeadresse ist die Adresse des Shops (SHOP_ADDRESS), sonst ein Platzhalter.
+// Die Rücksendung ist gratis: Das Rücksendeetikett liegt dem Paket bei. Rückerstattung innert 7 Tagen nach Eingang,
+// je nach Wahl aufs ursprüngliche Zahlungsmittel oder als Gutschein; mit Gutschein bezahlte Beträge gehen auf den
+// Gutschein. Die Rücksendeadresse ist die Adresse des Shops (SHOP_ADDRESS), sonst ein Platzhalter.
 import type { Locale } from "../money.ts";
-import { reasonLabel, returnRef } from "../returns.ts";
+import {
+  REFUND_METHOD_LABELS,
+  REFUND_WITHIN_DAYS,
+  reasonLabel,
+  returnRef,
+  type RefundMethod,
+} from "../returns.ts";
 import { sizeText } from "../size.ts";
 import { orderNumber, type EmailContent } from "./templates.ts";
 import { divider, esc, escLines, h1, label, layout, p, rows, type ShopInfo } from "./layout.ts";
@@ -22,6 +29,7 @@ export interface ReturnMailData {
   email: string;
   items: ReturnMailItem[];
   comment: string | null;
+  refundMethod: RefundMethod;
 }
 
 const word = {
@@ -65,19 +73,22 @@ export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailC
   const intro = de
     ? `Danke, wir haben deine Retoure zur Bestellung ${order} notiert. So geht es weiter:`
     : `Thank you, we have noted your return for order ${order}. Here is what happens next:`;
+  const giftCard = data.refundMethod === "gift_card";
+  const days = REFUND_WITHIN_DAYS;
   const steps = de
     ? [
         `Verpacke die Stücke ungetragen, mit allen Etiketten und möglichst in der Originalverpackung.`,
         `Lege einen Zettel mit der Bestellnummer ${order} und der Retourennummer ${ref} bei.`,
-        `Schicke das Paket an: ${address}`,
-        `Sobald die Rücksendung bei uns eingetroffen ist und wir sie geprüft haben, erstatten wir den Kaufpreis der zurückgegebenen Stücke auf das ursprüngliche Zahlungsmittel. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.`,
+        `Klebe das Rücksendeetikett auf, das deinem Paket beiliegt, und gib das Paket bei der Post ab. Die Rücksendung ist für dich gratis. Rücksendeadresse: ${address}`,
+        `Innert ${days} Tagen nach Eingang deiner Rücksendung erstatten wir den Kaufpreis der zurückgegebenen Stücke ${giftCard ? "als Gutschein" : "auf das ursprüngliche Zahlungsmittel"}. Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.`,
       ]
     : [
         `Pack the pieces unworn, with all tags and preferably in the original packaging.`,
         `Include a note with the order number ${order} and the return number ${ref}.`,
-        `Send the parcel to: ${address}`,
-        `Once your return has arrived and we have checked it, we refund the price of the returned pieces to the original payment method. Amounts paid with a gift card are credited back to the gift card.`,
+        `Attach the return label enclosed in your parcel and drop the parcel off at the post office. Returns are free for you. Return address: ${address}`,
+        `Within ${days} days of your return arriving, we refund the price of the returned pieces ${giftCard ? "as a gift card" : "to the original payment method"}. Amounts paid with a gift card are credited back to the gift card.`,
       ];
+  const refundLine = `${de ? "Rückerstattung" : "Refund"}: ${REFUND_METHOD_LABELS[data.locale][data.refundMethod]}`;
   const note = de
     ? `Details zu Frist, Rücksendekosten und Rückerstattung stehen unter ${info}`
     : `Details on the deadline, return shipping costs and refunds are at ${info}`;
@@ -87,7 +98,9 @@ export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailC
   const body = [
     h1(de ? "Deine Retoure ist angemeldet" : "Your return is registered"),
     p(esc(intro)),
-    p(`${de ? "Retourennummer" : "Return number"}: <strong>${esc(ref)}</strong>`),
+    p(
+      `${de ? "Retourennummer" : "Return number"}: <strong>${esc(ref)}</strong><br>${esc(refundLine)}`,
+    ),
     label(de ? "Zurückgegebene Stücke" : "Returned pieces"),
     itemRows(data),
     data.comment
@@ -105,6 +118,7 @@ export function returnConfirmation(data: ReturnMailData, shop: ShopInfo): EmailC
     intro,
     "",
     `${de ? "Retourennummer" : "Return number"}: ${ref}`,
+    refundLine,
     "",
     itemLines(data),
     ...(data.comment ? ["", `${de ? "Dein Kommentar" : "Your comment"}: ${data.comment}`] : []),
@@ -131,9 +145,11 @@ export function returnNotification(
   const order = orderNumber(data.orderNumber);
   const subject = `Neue Retoure ${ref} zu ${order}`;
   const lang = data.locale === "en" ? " (Englisch)" : "";
+  const refund = `Rückerstattung: ${data.refundMethod === "gift_card" ? "Gutschein" : "Zahlungsmittel"}`;
   const body = [
     h1(`Neue Retoure ${ref}`),
     p(`Bestellung <strong>${esc(order)}</strong>, ${esc(data.email)}${lang}`),
+    p(`<strong>${esc(refund)}</strong>`),
     itemRows({ ...data, locale: "de" }),
     data.comment
       ? `${divider()}${p(`<strong>Kommentar</strong><br>${escLines(data.comment)}`)}`
@@ -148,6 +164,7 @@ export function returnNotification(
   const text = [
     `Neue Retoure ${ref} zu ${order}`,
     `${data.email}${lang}`,
+    refund,
     "",
     itemLines({ ...data, locale: "de" }),
     ...(data.comment ? ["", `Kommentar: ${data.comment}`] : []),

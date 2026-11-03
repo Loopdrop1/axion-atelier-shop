@@ -180,6 +180,49 @@ describe("return_submit", () => {
     expect(after.items?.map((i) => i.quantity)).toEqual([1, 1]);
   });
 
+  it("Rückerstattung: Standard Zahlungsmittel, Gutschein wählbar, Unbekanntes → Zahlungsmittel", async () => {
+    const withMethod = (
+      o: Made,
+      item: string,
+      method: string | null,
+      requestId: string | null = null,
+    ) =>
+      rpc<Result & { refund_method: string }>("return_submit", [
+        o.number,
+        o.email,
+        JSON.stringify([{ order_item_id: item, quantity: 1, reason: "style" }]),
+        null,
+        "de",
+        "10.9.0.3",
+        14,
+        requestId,
+        method,
+      ]);
+    const o = await order();
+    expect(
+      (await submit(o, [{ order_item_id: o.itemIds[1], quantity: 1, reason: "style" }])).status,
+    ).toBe("ok");
+    const requestId = crypto.randomUUID();
+    expect(await withMethod(o, o.itemIds[0]!, "gift_card", requestId)).toMatchObject({
+      status: "ok",
+      duplicate: false,
+      refund_method: "gift_card",
+    });
+    // Dieselbe Formular-Id: gespeicherte Wahl, auch im Duplikat
+    expect(await withMethod(o, o.itemIds[0]!, "original", requestId)).toMatchObject({
+      duplicate: true,
+      refund_method: "gift_card",
+    });
+    expect(await withMethod(o, o.itemIds[0]!, "bargeld")).toMatchObject({
+      refund_method: "original",
+    });
+    const rows = await sql<{ refund_method: string }>(
+      "select refund_method from public.return_requests where order_id = $1 order by number",
+      [o.orderId],
+    );
+    expect(rows.map((r) => r.refund_method)).toEqual(["original", "gift_card", "original"]);
+  });
+
   it("lehnt zu grosse Mengen, doppelte und fremde Positionen, unbekannte Gründe ab", async () => {
     const o = await order();
     const other = await order();

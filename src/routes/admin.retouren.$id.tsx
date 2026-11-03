@@ -9,11 +9,13 @@ import {
   parseReturnLines,
   RETURN_STATUS,
   RETURN_STATUSES,
+  refundMethodLabel,
   returnReasonLabel,
   returnRef,
   type ReturnStatus,
 } from "@/lib/admin/returns";
 import { imageUrl } from "@/lib/commerce/mapping";
+import { REFUND_WITHIN_DAYS } from "@/lib/returns";
 import { sizeText } from "@/lib/commerce/one-size";
 import {
   AreaField,
@@ -89,6 +91,11 @@ function ReturnView({ row }: { row: ReturnRow }) {
         description={
           <>
             <Badge tone={current?.tone ?? "neutral"}>{current?.label ?? row.status}</Badge>{" "}
+            {row.refund_method === "gift_card" && (
+              <>
+                <Badge tone="neutral">Gutschein</Badge>{" "}
+              </>
+            )}
             Angemeldet {dateTime(row.created_at)} · {row.email}
             {row.locale === "en" && " · Englisch"}
           </>
@@ -115,6 +122,13 @@ function ReturnView({ row }: { row: ReturnRow }) {
           )
         }
       >
+        <p>
+          <strong>Rückerstattung: {refundMethodLabel(row.refund_method)}</strong>
+          {row.refund_method === "gift_card"
+            ? " – die Kundschaft wünscht einen Gutschein. Mit Gutschein bezahlte Anteile gehen ohnehin auf den Gutschein."
+            : " – aufs ursprüngliche Zahlungsmittel; mit Gutschein bezahlte Anteile gehen auf den Gutschein."}{" "}
+          Innert {REFUND_WITHIN_DAYS} Tagen nach Eingang erstatten.
+        </p>
         <p className="admin-muted">
           Erstattung und «Retoure einbuchen» (Bestand) erledigst du in der Bestellung. Danach hier
           den Status auf «Erstattet» setzen.

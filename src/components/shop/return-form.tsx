@@ -1,4 +1,5 @@
-// Retoure anmelden: Bestellnummer + E-Mail → Stücke, Menge und Grund wählen → anmelden (Edge Function «return-request»).
+// Retoure anmelden: Bestellnummer + E-Mail → Stücke, Menge, Grund und Rückerstattung (Zahlungsmittel oder Gutschein)
+// wählen → anmelden (Edge Function «return-request»).
 // Gastfreundlich; aus dem Kundenkonto kommt die Bestellnummer vorbelegt (?order=…) und die E-Mail-Adresse der Sitzung.
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
@@ -18,12 +19,15 @@ import { imageUrl } from "@/lib/commerce/mapping";
 import { sizeText } from "@/lib/commerce/one-size";
 import {
   MAX_RETURN_COMMENT,
+  REFUND_METHODS,
+  REFUND_WITHIN_DAYS,
   RETURN_REASONS,
   lookupReturn,
   parseOrderNumber,
   selectionFrom,
   submitReturn,
   type Draft,
+  type RefundMethod,
   type ReturnFailure,
   type ReturnLookup,
   type ReturnReceipt,
@@ -66,6 +70,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
   const [website, setWebsite] = useState("");
   const [lookup, setLookup] = useState<ReturnLookup | null>(null);
   const [drafts, setDrafts] = useState<Record<string, Draft | undefined>>({});
+  const [refundMethod, setRefundMethod] = useState<RefundMethod>("original");
   const [comment, setComment] = useState("");
   const [receipt, setReceipt] = useState<ReturnReceipt | null>(null);
   const [busy, setBusy] = useState(false);
@@ -98,6 +103,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
     if (!result.ok) return setError(problemText(r, result, t.common));
     requestId.current = crypto.randomUUID();
     setDrafts({});
+    setRefundMethod("original");
     setComment("");
     setLookup(result.data);
   }
@@ -117,6 +123,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
       orderNumber,
       email,
       items: selection,
+      refundMethod,
       comment: comment.trim(),
       locale,
       requestId: requestId.current,
@@ -131,6 +138,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
     setReceipt(null);
     setLookup(null);
     setDrafts({});
+    setRefundMethod("original");
     setComment("");
     setError("");
   }
@@ -150,6 +158,7 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
           {r.done(receipt.returnNumber, `AX-${receipt.orderNumber}`)}
         </Notice>
         <p>{receipt.emailed ? r.doneMail : r.doneMailFailed}</p>
+        <p>{r.doneRefund(receipt.refundMethod, REFUND_WITHIN_DAYS)}</p>
         <div className="return-actions">
           <Button type="button" variant="outline" onClick={reset}>
             {r.another}
@@ -297,6 +306,31 @@ export function ReturnForm({ initialOrder }: { initialOrder?: string | undefined
             </div>
           );
         })}
+      </fieldset>
+      <fieldset className="choice-group return-refund">
+        <legend>{r.refundTitle}</legend>
+        {REFUND_METHODS.map((method) => {
+          const optionId = `${id}-refund-${method}`;
+          return (
+            <div className="return-refund-option" key={method}>
+              <input
+                type="radio"
+                id={optionId}
+                name={`${id}-refund`}
+                value={method}
+                required
+                checked={refundMethod === method}
+                aria-describedby={`${optionId}-hint`}
+                onChange={() => setRefundMethod(method)}
+              />
+              <div>
+                <label htmlFor={optionId}>{r.refundOptions[method].label}</label>
+                <p id={`${optionId}-hint`}>{r.refundOptions[method].hint}</p>
+              </div>
+            </div>
+          );
+        })}
+        <p className="text-muted">{r.refundHint(REFUND_WITHIN_DAYS)}</p>
       </fieldset>
       <TextAreaField
         label={r.comment}

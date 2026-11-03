@@ -708,11 +708,11 @@ export const de = {
       "Melde eine Rücksendung zu deiner Axion-Bestellung an: Bestellnummer und E-Mail-Adresse genügen.",
     eyebrow: "Rückgabe",
     intro:
-      "Gib deine Bestellnummer und die E-Mail-Adresse der Bestellung ein, wähle die Stücke und den Grund. Danach schicken wir dir per E-Mail die Hinweise zur Rücksendung.",
+      "Gib deine Bestellnummer und die E-Mail-Adresse der Bestellung ein, wähle die Stücke und den Grund. Danach schicken wir dir per E-Mail die Hinweise zur Rücksendung. Die Rücksendung ist gratis: Das Etikett liegt deinem Paket bei.",
     cta: "Retoure anmelden",
     accountLink: "Retoure anmelden",
     accountHint: (days: number) =>
-      `Rückgabe innert ${days} Tagen ab Erhalt, ungetragen und mit Etiketten.`,
+      `Rückgabe innert ${days} Tagen ab Erhalt, ungetragen und mit Etiketten. Die Rücksendung ist gratis.`,
     orderNumber: "Bestellnummer",
     orderNumberHint: "Steht in der Bestätigungs-E-Mail, zum Beispiel AX-10001.",
     email: "E-Mail-Adresse der Bestellung",
@@ -735,6 +735,19 @@ export const de = {
       wrong_item: "Falsches Stück erhalten",
       other: "Anderer Grund",
     },
+    refundTitle: "Wie möchtest du dein Geld zurück?",
+    refundOptions: {
+      original: {
+        label: "Aufs ursprüngliche Zahlungsmittel",
+        hint: "Der Betrag geht dorthin zurück, womit du bezahlt hast.",
+      },
+      gift_card: {
+        label: "Als Gutschein",
+        hint: "Du bekommst den Betrag als Gutschein für deinen nächsten Einkauf.",
+      },
+    },
+    refundHint: (days: number) =>
+      `Wir erstatten innert ${days} Tagen nach Eingang deiner Rücksendung. Mit einem Gutschein bezahlte Beträge kommen auf den Gutschein.`,
     comment: "Kommentar (freiwillig)",
     commentHint: "Zum Beispiel was nicht gepasst hat. Höchstens 1000 Zeichen.",
     privacy: "Wir verwenden deine Angaben nur, um die Retoure zu bearbeiten.",
@@ -761,7 +774,9 @@ export const de = {
     done: (ref: string, order: string) =>
       `Danke, deine Retoure ${ref} zur Bestellung ${order} ist angemeldet.`,
     doneMail:
-      "Wir haben dir eine E-Mail mit den Hinweisen zur Rücksendung geschickt. Packe die Stücke ungetragen und mit Etiketten ein, lege die Bestellnummer bei und schicke das Paket an die Adresse in der E-Mail.",
+      "Wir haben dir eine E-Mail mit den Hinweisen zur Rücksendung geschickt. Packe die Stücke ungetragen und mit Etiketten ein, lege die Bestellnummer bei und klebe das Rücksendeetikett auf, das deinem Paket beiliegt. Die Rücksendung ist gratis.",
+    doneRefund: (method: "original" | "gift_card", days: number) =>
+      `Innert ${days} Tagen nach Eingang erstatten wir den Betrag ${method === "gift_card" ? "als Gutschein" : "aufs ursprüngliche Zahlungsmittel"}; mit einem Gutschein bezahlte Beträge kommen auf den Gutschein.`,
     doneMailFailed:
       "Die Bestätigungs-E-Mail konnte nicht verschickt werden. Deine Anmeldung ist trotzdem gespeichert: Wir melden uns bei dir.",
     another: "Weitere Retoure anmelden",

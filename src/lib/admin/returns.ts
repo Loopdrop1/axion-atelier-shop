@@ -31,6 +31,16 @@ export const RETURN_STATUS: Record<
   },
 };
 
+/** Gewünschte Rückerstattung im Admin. */
+export const REFUND_METHOD_LABEL: Record<string, string> = {
+  original: "Zahlungsmittel",
+  gift_card: "Gutschein",
+};
+
+export function refundMethodLabel(method: string | null | undefined): string {
+  return REFUND_METHOD_LABEL[method ?? "original"] ?? REFUND_METHOD_LABEL["original"]!;
+}
+
 export function returnStatusLabel(status: string): string {
   return RETURN_STATUS[status as ReturnStatus]?.label ?? status;
 }

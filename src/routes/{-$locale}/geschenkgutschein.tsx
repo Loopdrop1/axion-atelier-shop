@@ -22,7 +22,7 @@ import { Field, Notice, TextAreaField, focusFirstInvalid } from "@/components/ac
 import { normalizeGiftCode } from "@/components/shop/checkout-summary";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const PRESETS = [50, 100, 150, 200, 300];
+const PRESETS = [50, 100, 150, 200];
 const MESSAGE_MAX = 500;
 
 export const Route = createFileRoute("/{-$locale}/geschenkgutschein")({
