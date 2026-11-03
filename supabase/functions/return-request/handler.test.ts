@@ -133,6 +133,23 @@ describe("return-request: lookup", () => {
     expect(body.items[0]!.orderItemId).toBe(o.items[0]!.id);
   });
 
+  it("Sale-Stücke: lookup meldet onSale, submit lehnt sie ab (ITEMS_NOT_RETURNABLE)", async () => {
+    const o = await order();
+    await sql("update public.order_items set on_sale = true where id = $1", [o.items[1]!.id]);
+    const body = (await (await lookup(o)).json()) as {
+      items: { orderItemId: string; onSale: boolean }[];
+    };
+    expect(body.items.map((i) => i.onSale)).toEqual([false, true]);
+    const res = await post({
+      action: "submit",
+      orderNumber: `AX-${o.number}`,
+      email: o.email,
+      items: [{ orderItemId: o.items[1]!.id, quantity: 1, reason: "style" }],
+    });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "ITEMS_NOT_RETURNABLE" });
+  });
+
   it("falsche Adresse, unbekannte Nummer, offene und abgebrochene Bestellung: gleiche Antwort NOT_FOUND", async () => {
     const o = await order();
     const pending = await order({ status: "pending" });

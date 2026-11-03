@@ -347,6 +347,8 @@ export interface AdminOrderItem {
   quantity: number;
   line_total_cents: number;
   restocked_quantity: number;
+  /** Beim Kauf im Sale (von der Rückgabe ausgenommen); fehlt vor Migration 0025 */
+  on_sale?: boolean;
 }
 
 export interface AdminOrder {
@@ -363,6 +365,8 @@ export interface AdminOrder {
   discount_code: string | null;
   gift_card_cents: number;
   shipping_cents: number;
+  /** Post Economy oder Post Priority (Migration 0025); fehlt bei alter Datenbank → Economy */
+  shipping_method?: string | null;
   total_cents: number;
   refunded_cents: number;
   /** MWST-Satz in Prozent, zum Kaufzeitpunkt gespeichert; null bei Altbestellungen */

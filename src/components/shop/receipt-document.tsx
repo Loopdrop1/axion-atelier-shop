@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { shopConfig } from "@/config/shop";
 import { sizeText } from "@/lib/commerce/one-size";
 import { formatCents } from "@/lib/commerce/format";
+import { parseShippingMethod, SHIPPING_METHOD_NAMES } from "@/lib/commerce/shipping-method";
 import { vatIncluded } from "@/lib/admin/vat";
 
 export interface ReceiptData {
@@ -36,6 +37,8 @@ export interface ReceiptData {
   discount_cents: number;
   discount_code: string | null;
   shipping_cents: number;
+  /** Post Economy oder Post Priority; fehlt bei alten Bestellungen → Economy */
+  shipping_method?: string | null | undefined;
   gift_card_cents: number;
   total_cents: number;
   refunded_cents: number;
@@ -222,7 +225,9 @@ export function ReceiptDocument({ data: order }: { data: ReceiptData }) {
         )}
         {order.kind === "cart" && (
           <div>
-            <dt>{t.shipping}</dt>
+            <dt>
+              {t.shipping} ({SHIPPING_METHOD_NAMES[parseShippingMethod(order.shipping_method)]})
+            </dt>
             <dd>{order.shipping_cents ? money(order.shipping_cents) : t.free}</dd>
           </div>
         )}

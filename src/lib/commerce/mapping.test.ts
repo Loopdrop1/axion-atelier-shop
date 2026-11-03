@@ -224,6 +224,7 @@ describe("Beträge im Warenkorb (wie reserve_checkout)", () => {
       shippingCents: 0,
       giftCardCents: 10000,
       totalCents: 56420,
+      shippingMethod: "economy",
     });
   });
 

@@ -1,4 +1,4 @@
-// Einstellungen: Versandkosten, ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
+// Einstellungen: Versandkosten (Economy, optional Priority), ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
 // Newsletter, Adresse für Bestellmeldungen.
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -27,6 +27,7 @@ function SettingsPage() {
   const [form, setForm] = useState({
     shipping: "",
     freeFrom: "",
+    priority: "",
     giftMin: "",
     giftMax: "",
     giftYears: "",
@@ -43,6 +44,7 @@ function SettingsPage() {
     setForm({
       shipping: centsToInput(s.shipping_cents),
       freeFrom: centsToInput(s.free_shipping_from_cents),
+      priority: centsToInput(s.priority_shipping_cents ?? null),
       giftMin: centsToInput(s.gift_card_min_cents),
       giftMax: centsToInput(s.gift_card_max_cents),
       giftYears: String(s.gift_card_valid_years),
@@ -59,6 +61,7 @@ function SettingsPage() {
     setError("");
     const shipping = parseChf(form.shipping || "0");
     const freeFrom = form.freeFrom.trim() ? parseChf(form.freeFrom) : null;
+    const priority = form.priority.trim() ? parseChf(form.priority) : null;
     const giftMin = parseChf(form.giftMin);
     const giftMax = parseChf(form.giftMax);
     const years = Number(form.giftYears);
@@ -66,6 +69,8 @@ function SettingsPage() {
       return setError("Versandkosten in Franken, höchstens CHF 1'000.");
     if (form.freeFrom.trim() && freeFrom === null)
       return setError("Gratisversand ab: Betrag in Franken oder leer.");
+    if (form.priority.trim() && (priority === null || priority > 100000))
+      return setError("Priority-Versand: Betrag in Franken (höchstens CHF 1'000) oder leer.");
     if (
       giftMin === null ||
       giftMax === null ||
@@ -90,6 +95,7 @@ function SettingsPage() {
       await saveSettings({
         shipping_cents: shipping,
         free_shipping_from_cents: freeFrom,
+        priority_shipping_cents: priority,
         gift_card_min_cents: giftMin,
         gift_card_max_cents: giftMax,
         gift_card_valid_years: years,
@@ -128,6 +134,13 @@ function SettingsPage() {
             inputMode="decimal"
             value={form.freeFrom}
             onChange={set("freeFrom")}
+          />
+          <TextField
+            label="Priority-Versand (CHF, leer = nicht angeboten)"
+            hint="Mit Betrag wählt die Kundschaft im Warenkorb zwischen Post Economy (Versandkosten oben) und Post Priority (immer dieser Betrag, auch über der Gratis-Schwelle). Zustellung in der Regel am nächsten Arbeitstag."
+            inputMode="decimal"
+            value={form.priority}
+            onChange={set("priority")}
           />
         </div>
         <p className="admin-hint">

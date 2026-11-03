@@ -4,6 +4,7 @@ import { backendConfigured } from "@/lib/backend";
 import { callFunction } from "@/integrations/supabase/functions";
 import { trackEvent } from "@/lib/analytics";
 import type { Locale } from "@/i18n/locale";
+import type { ShippingMethod } from "./shipping-method";
 
 export interface DiscountCheck {
   valid: boolean;
@@ -48,6 +49,8 @@ export type CheckoutInput =
       email?: string | undefined;
       discountCode?: string | undefined;
       giftCardCode?: string | undefined;
+      /** Post Economy (Standard) oder Post Priority; Priority ohne Preis verrechnet die Kasse als Economy */
+      shippingMethod?: ShippingMethod | undefined;
       /** Ausdrückliche Einwilligung zur einmaligen Erinnerung per E-Mail, wenn die Kasse abläuft */
       remind?: boolean | undefined;
       locale: Locale;

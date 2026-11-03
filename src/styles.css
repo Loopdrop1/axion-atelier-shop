@@ -3178,6 +3178,39 @@ button.text-link {
 .checkout-summary > .shop-button {
   margin-top: 6px;
 }
+/* Versandart (nur mit Priority-Preis sichtbar) */
+.checkout-shipping {
+  gap: 12px;
+  margin: 18px 0;
+}
+.checkout-shipping legend {
+  margin-bottom: 12px;
+}
+.checkout-shipping-option {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+.checkout-shipping-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+}
+.checkout-shipping-option label {
+  font-size: 15px;
+  cursor: pointer;
+}
+.checkout-shipping-option p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+.checkout-shipping-option .price {
+  font-size: 15px;
+  white-space: nowrap;
+}
 .checkout-summary > .form-notice {
   display: block;
   margin: 18px 0 0;
@@ -5124,6 +5157,18 @@ button.text-link {
 .return-refund > .text-muted {
   font-size: 13px;
   margin: 0;
+}
+/* Sale-Stücke: von der Rückgabe ausgenommen, ausgegraut */
+.return-item.is-excluded .order-line-image,
+.return-item.is-excluded input[type="checkbox"] {
+  opacity: 0.5;
+}
+.return-item.is-excluded h3 {
+  color: var(--muted);
+}
+.return-item p.return-item-note {
+  color: var(--ink);
+  margin-top: 4px;
 }
 .return-actions {
   display: flex;

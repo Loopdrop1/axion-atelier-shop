@@ -16,8 +16,14 @@ import {
   REASON_LABELS,
   REFUND_METHODS as SERVER_REFUND_METHODS,
   REFUND_WITHIN_DAYS as SERVER_REFUND_DAYS,
+  RETURN_POLICY,
   parseRefundMethod,
 } from "../../supabase/functions/_shared/returns";
+import {
+  refundStep,
+  returnConfirmation,
+  sendBackStep,
+} from "../../supabase/functions/_shared/email/returns";
 import { messages } from "@/i18n";
 import { shopConfig } from "@/config/shop";
 import { readEnv } from "../../supabase/functions/_shared/env";
@@ -69,6 +75,71 @@ describe("Rückgabefrist", () => {
   });
 });
 
+describe("Rückgabe-Zusagen", () => {
+  it("Shop-Konfiguration und Edge Functions sagen dasselbe zu", () => {
+    expect(RETURN_POLICY).toEqual(shopConfig.returns);
+    expect(REFUND_WITHIN_DAYS).toBe(shopConfig.returns.refundDays);
+  });
+
+  const all = [true, false].flatMap((freeReturn) =>
+    [true, false].map((labelEnclosed) => ({ freeReturn, labelEnclosed })),
+  );
+
+  it("Texte im Shop folgen den Zusagen (gratis, Etikett) statt fester Sätze", () => {
+    for (const p of all) {
+      for (const locale of ["de", "en"] as const) {
+        const r = messages[locale].returns;
+        const free = locale === "de" ? /gratis/ : /free/i;
+        const label = locale === "de" ? /rücksendeetikett|etikett liegt/i : /label/;
+        const texts = [r.shippingPromise(p), r.doneMail(p), r.accountHint(14, p.freeReturn)];
+        expect(free.test(r.shippingPromise(p)), JSON.stringify(p)).toBe(p.freeReturn);
+        expect(label.test(r.shippingPromise(p)), JSON.stringify(p)).toBe(p.labelEnclosed);
+        expect(free.test(r.doneMail(p))).toBe(p.freeReturn);
+        expect(label.test(r.doneMail(p))).toBe(p.labelEnclosed);
+        expect(free.test(r.accountHint(14, p.freeReturn))).toBe(p.freeReturn);
+        expect(r.intro(r.shippingPromise(p))).toContain(r.shippingPromise(p));
+        for (const text of texts) expect(text).not.toMatch(/ {2}|\. \.|^ | $/);
+      }
+    }
+    expect(messages.de.sizeGuide.exchange(14, true)).toMatch(/gratis/);
+    expect(messages.de.sizeGuide.exchange(14, false)).not.toMatch(/gratis|tausch/);
+    expect(messages.en.sizeGuide.exchange(14, true)).toMatch(/free of charge/);
+  });
+
+  it("Retouren-Mail folgt denselben Zusagen", () => {
+    for (const p of all) {
+      const policy = { ...RETURN_POLICY, ...p };
+      expect(/gratis/.test(sendBackStep(policy, "Adresse", true))).toBe(p.freeReturn);
+      expect(/etikett/i.test(sendBackStep(policy, "Adresse", true))).toBe(p.labelEnclosed);
+      expect(/free/.test(sendBackStep(policy, "Address", false))).toBe(p.freeReturn);
+      expect(/label/.test(sendBackStep(policy, "Address", false))).toBe(p.labelEnclosed);
+    }
+    expect(refundStep({ ...RETURN_POLICY, refundDays: 10 }, true, true)).toMatch(
+      /^Innert 10 Tagen .* als Gutschein\. Mit einem Gutschein bezahlte Beträge schreiben wir immer dem Gutschein gut\.$/,
+    );
+    const mail = returnConfirmation(
+      {
+        locale: "de",
+        returnNumber: 1,
+        orderNumber: 10001,
+        email: "a@example.ch",
+        items: [],
+        comment: null,
+        refundMethod: "original",
+      },
+      {
+        name: "Axion",
+        siteUrl: "https://shop.test",
+        contactEmail: "hallo@shop.test",
+        address: "Strasse 1, 8000 Zürich",
+        returnDays: 14,
+      },
+      { freeReturn: false, labelEnclosed: false, freeExchange: false, refundDays: 7 },
+    );
+    expect(mail.text).not.toMatch(/gratis|rücksendeetikett/i);
+  });
+});
+
 describe("returnProblem", () => {
   it("ordnet Fehlercodes zu", () => {
     expect(returnProblem("NOT_FOUND", 404)).toBe("notFound");
@@ -81,8 +152,33 @@ describe("returnProblem", () => {
 
 describe("selectionFrom", () => {
   const items: ReturnItem[] = [
-    { orderItemId: "a", title: "Anzug", size: "50", color: "Blau", image: null, quantity: 2 },
-    { orderItemId: "b", title: "Hemd", size: "41", color: null, image: null, quantity: 1 },
+    {
+      orderItemId: "a",
+      title: "Anzug",
+      size: "50",
+      color: "Blau",
+      image: null,
+      quantity: 2,
+      onSale: false,
+    },
+    {
+      orderItemId: "b",
+      title: "Hemd",
+      size: "41",
+      color: null,
+      image: null,
+      quantity: 1,
+      onSale: false,
+    },
+    {
+      orderItemId: "s",
+      title: "Gilet",
+      size: "48",
+      color: null,
+      image: null,
+      quantity: 1,
+      onSale: true,
+    },
   ];
   const draft = (d: Partial<Draft>): Draft => ({
     checked: true,
@@ -104,5 +200,12 @@ describe("selectionFrom", () => {
     expect(selectionFrom(items, {}).error).toBe("noItem");
     expect(selectionFrom(items, { a: draft({ checked: false }) }).error).toBe("noItem");
     expect(selectionFrom(items, { a: draft({ reason: "" }) }).error).toBe("noReason");
+  });
+
+  it("Sale-Stücke sind nie wählbar, auch wenn ein Entwurf sie markiert", () => {
+    expect(selectionFrom(items, { s: draft({}) }).error).toBe("noItem");
+    expect(selectionFrom(items, { s: draft({}), b: draft({}) }).selection).toEqual([
+      { orderItemId: "b", quantity: 1, reason: "style" },
+    ]);
   });
 });

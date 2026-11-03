@@ -9,6 +9,7 @@ import { getMyOrder, trackingUrl, type OrderDetail, type ProfileAddress } from "
 import { useGuestOrderClaim } from "@/lib/account/claim";
 import { formatCents, formatDate } from "@/lib/commerce/format";
 import { sizeText } from "@/lib/commerce/one-size";
+import { parseShippingMethod, SHIPPING_METHOD_NAMES } from "@/lib/commerce/shipping-method";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { useRequireSession } from "@/components/account/use-require-session";
 import { Notice } from "@/components/account/form";
@@ -164,7 +165,7 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
               )}
             {order.kind === "cart" &&
               row(
-                t.checkout.shipping,
+                `${t.checkout.shipping} (${SHIPPING_METHOD_NAMES[parseShippingMethod(order.shipping_method)]})`,
                 order.shipping_cents > 0 ? money(order.shipping_cents) : t.common.free,
                 order.shipping_cents > 0 ? "" : "text-muted",
               )}
@@ -184,7 +185,9 @@ function OrderView({ order, back }: { order: OrderDetail; back: ReactNode }) {
               >
                 {t.returns.accountLink}
               </Link>
-              <p className="text-muted">{t.returns.accountHint(shopConfig.returnDays)}</p>
+              <p className="text-muted">
+                {t.returns.accountHint(shopConfig.returnDays, shopConfig.returns.freeReturn)}
+              </p>
             </div>
           )}
           {receiptAvailable(order) && (

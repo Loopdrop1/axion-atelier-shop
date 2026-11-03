@@ -1,6 +1,6 @@
 // Retoure anmelden: gemeinsame Regeln für die Edge Function «return-request» (Gründe, Rückerstattung, Bestellnummer,
-// Positionen). Dieselben Gründe, Rückerstattungsarten und dieselbe Bestellnummer-Regel stehen in src/lib/returns.ts;
-// src/lib/returns.test.ts prüft die Gleichheit.
+// Positionen, Rückgabe-Zusagen). Dieselben Gründe, Rückerstattungsarten, Bestellnummer-Regel und Zusagen stehen in
+// src/lib/returns.ts bzw. src/config/shop.ts (returns); src/lib/returns.test.ts prüft die Gleichheit.
 import { UUID } from "./http.ts";
 
 export const RETURN_REASONS = [
@@ -19,8 +19,28 @@ export const MAX_RETURN_COMMENT = 1000;
 export const REFUND_METHODS = ["original", "gift_card"] as const;
 export type RefundMethod = (typeof REFUND_METHODS)[number];
 
+export interface ReturnPolicy {
+  /** Rücksendung für die Kundschaft gratis */
+  freeReturn: boolean;
+  /** Rücksendeetikett liegt dem Paket bei */
+  labelEnclosed: boolean;
+  /** Umtausch in eine andere Grösse gratis (solange verfügbar) */
+  freeExchange: boolean;
+  /** Tage nach Eingang der Rücksendung, innert derer wir erstatten */
+  refundDays: number;
+}
+
+/** Rückgabe-Zusagen (von Axion bestätigt, Checkliste 3.11.2026). Gleich wie shopConfig.returns; Mails bauen ihre
+ *  Sätze daraus, damit nichts fest im Text steht. */
+export const RETURN_POLICY: ReturnPolicy = {
+  freeReturn: true,
+  labelEnclosed: true,
+  freeExchange: true,
+  refundDays: 7,
+};
+
 /** Tage nach Eingang der Rücksendung, innert derer wir erstatten (Mails und Formular). */
-export const REFUND_WITHIN_DAYS = 7;
+export const REFUND_WITHIN_DAYS = RETURN_POLICY.refundDays;
 
 /** Unbekannte oder fehlende Werte → «original» (wie return_submit in der Datenbank). */
 export function parseRefundMethod(value: unknown): RefundMethod {

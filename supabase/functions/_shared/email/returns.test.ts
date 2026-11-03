@@ -38,7 +38,7 @@ describe("returnConfirmation", () => {
       "Innert 7 Tagen nach Eingang deiner Rücksendung erstatten wir den Kaufpreis der zurückgegebenen Stücke auf das ursprüngliche Zahlungsmittel.",
     );
     expect(m.text).toContain(
-      "Mit einem Gutschein bezahlte Beträge schreiben wir dem Gutschein gut.",
+      "Mit einem Gutschein bezahlte Beträge schreiben wir immer dem Gutschein gut.",
     );
     expect(m.text).toContain("https://shop.test/versand-und-rueckgabe");
     expect(m.html).toContain("Rückerstattung: Ursprüngliches Zahlungsmittel");

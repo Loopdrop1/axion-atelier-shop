@@ -2,6 +2,12 @@
 import { formatChf, type Locale } from "../money.ts";
 import { sizeText } from "../size.ts";
 import {
+  parseShippingMethod,
+  SHIPPING_METHOD_NAMES,
+  TRANSIT_DAYS,
+  transitPhrase,
+} from "../shipping.ts";
+import {
   button,
   codeBox,
   divider,
@@ -68,6 +74,8 @@ export interface OrderData {
   discount_code: string | null;
   gift_card_cents: number;
   shipping_cents: number;
+  /** Versandart der Bestellung (Migration 0025); fehlt bei alten Daten → Economy */
+  shipping_method?: string | null;
   total_cents: number;
   payment_method: string | null;
   shipping_name: string | null;
@@ -88,6 +96,10 @@ export interface OrderData {
 }
 
 export const orderNumber = (n: number) => `AX-${n}`;
+
+/** Versandart der Bestellung (unbekannt → Economy). */
+export const shippingMethodOf = (order: Pick<OrderData, "shipping_method">) =>
+  parseShippingMethod(order.shipping_method);
 
 export function trackingUrl(tracking: string): string {
   return `https://www.post.ch/swisspost-tracking?formattedParcelCodes=${encodeURIComponent(tracking)}`;
@@ -211,7 +223,7 @@ function totalsBlock(order: OrderData): { html: string; text: string } {
     entries.push({ left: t.giftCard, right: `−${L(order.gift_card_cents)}` });
   if (order.kind === "cart")
     entries.push({
-      left: t.shipping,
+      left: `${t.shipping} (${SHIPPING_METHOD_NAMES[shippingMethodOf(order)]})`,
       right: order.shipping_cents > 0 ? L(order.shipping_cents) : t.free,
     });
   entries.push({ left: t.total, right: L(order.total_cents), strong: true });
@@ -243,9 +255,13 @@ export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailConten
     ? de
       ? `Wir haben deinen Geschenkgutschein über ${formatChf(order.total_cents, "de")} ${recipient ? `per E-Mail an ${recipient} geschickt` : "per E-Mail an dich geschickt"}.`
       : `We have emailed your gift card worth ${formatChf(order.total_cents, "en")} ${recipient ? `to ${recipient}` : "to you"}.`
-    : de
-      ? "Wir packen deine Stücke sorgfältig ein und melden uns, sobald sie unterwegs sind. Die Lieferung dauert 2 bis 5 Arbeitstage."
-      : "We will pack your pieces carefully and let you know as soon as they are on their way. Delivery takes 2 to 5 working days.";
+    : shippingMethodOf(order) === "priority"
+      ? de
+        ? `Wir packen deine Stücke sorgfältig ein und melden uns, sobald sie unterwegs sind. Mit ${SHIPPING_METHOD_NAMES.priority} ist die Sendung in der Regel ${transitPhrase("priority", "de")} nach dem Versand bei dir.`
+        : `We will pack your pieces carefully and let you know as soon as they are on their way. With ${SHIPPING_METHOD_NAMES.priority}, your parcel usually arrives ${transitPhrase("priority", "en")} after dispatch.`
+      : de
+        ? `Wir packen deine Stücke sorgfältig ein und melden uns, sobald sie unterwegs sind. Die Lieferung dauert ${TRANSIT_DAYS.economy.min} bis ${TRANSIT_DAYS.economy.max} Arbeitstage.`
+        : `We will pack your pieces carefully and let you know as soon as they are on their way. Delivery takes ${TRANSIT_DAYS.economy.min} to ${TRANSIT_DAYS.economy.max} working days.`;
   const body = [
     h1(de ? "Danke für deine Bestellung" : "Thank you for your order"),
     p(esc(intro)),
@@ -315,7 +331,11 @@ export function orderConfirmation(order: OrderData, shop: ShopInfo): EmailConten
 export function shopNotification(order: OrderData, shop: ShopInfo): EmailContent {
   const no = orderNumber(order.number);
   const isGift = order.kind === "gift_card";
-  const subject = `${order.needs_attention ? "Bitte prüfen: " : ""}${isGift ? "Gutscheinkauf" : "Neue Bestellung"} ${no} · ${formatChf(order.total_cents, "de")}`;
+  const priority = !isGift && shippingMethodOf(order) === "priority";
+  const subject = `${order.needs_attention ? "Bitte prüfen: " : ""}${isGift ? "Gutscheinkauf" : "Neue Bestellung"} ${no} · ${formatChf(order.total_cents, "de")}${priority ? ` · ${SHIPPING_METHOD_NAMES.priority}` : ""}`;
+  const methodLine = isGift
+    ? ""
+    : `Versandart: ${SHIPPING_METHOD_NAMES[shippingMethodOf(order)]}${priority ? " (am selben Arbeitstag versenden)" : ""}`;
   const deOrder: OrderData = { ...order, locale: "de" };
   const items = itemsBlock(deOrder);
   const totals = totalsBlock(deOrder);
@@ -332,6 +352,7 @@ export function shopNotification(order: OrderData, shop: ShopInfo): EmailContent
     p(
       `<strong>${esc(no)}</strong> von ${esc(order.email)}${order.locale === "en" ? " (Englisch)" : ""}`,
     ),
+    methodLine ? p(priority ? `<strong>${esc(methodLine)}</strong>` : esc(methodLine)) : "",
     button("Im Admin öffnen", adminUrl),
     isGift
       ? rows([{ left: "Geschenkgutschein", right: esc(formatChf(order.total_cents, "de")) }])
@@ -351,6 +372,7 @@ export function shopNotification(order: OrderData, shop: ShopInfo): EmailContent
     isGift ? "Gutschein verkauft" : "Neue Bestellung",
     attention ? `\n${attention}\n` : "",
     `${no} von ${order.email}`,
+    ...(methodLine ? [methodLine] : []),
     "",
     isGift ? `Geschenkgutschein: ${formatChf(order.total_cents, "de")}` : items.text,
     "",
@@ -403,9 +425,10 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
   const tracking = order.tracking_number;
   const items = itemsBlock(order);
   const address = addressLines(order.shipping_name, order.shipping_address, order.locale);
+  const method = shippingMethodOf(order);
   const intro = de
-    ? "Gute Nachricht: Wir haben deine Bestellung der Post übergeben. Sie ist in der Regel in 2 bis 5 Arbeitstagen bei dir."
-    : "Good news: we have handed your order to Swiss Post. It usually arrives within 2 to 5 working days.";
+    ? `Gute Nachricht: Wir haben deine Bestellung der Post übergeben (${SHIPPING_METHOD_NAMES[method]}). Sie ist in der Regel ${transitPhrase(method, "de")} bei dir.`
+    : `Good news: we have handed your order to Swiss Post (${SHIPPING_METHOD_NAMES[method]}). It usually arrives ${transitPhrase(method, "en")}.`;
   const noTracking = de
     ? "Eine Sendungsnummer liegt uns für diese Sendung nicht vor. Schreib uns gern, wenn du den Stand wissen möchtest."
     : "We do not have a tracking number for this parcel. Get in touch if you would like an update.";

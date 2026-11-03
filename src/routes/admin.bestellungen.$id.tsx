@@ -26,6 +26,7 @@ import { paymentLabel } from "@/lib/admin/accounting-export";
 import { parseChf } from "@/lib/admin/money";
 import { imageUrl } from "@/lib/commerce/mapping";
 import { sizeText } from "@/lib/commerce/one-size";
+import { parseShippingMethod, SHIPPING_METHOD_NAMES } from "@/lib/commerce/shipping-method";
 import { trackingUrl } from "@/lib/account/api";
 import {
   AreaField,
@@ -104,6 +105,11 @@ function OrderView({ order }: { order: AdminOrder }) {
           <>
             <StatusBadge status={order.status} />{" "}
             {order.kind === "gift_card" && <Badge>Gutschein</Badge>}{" "}
+            {order.kind === "cart" && parseShippingMethod(order.shipping_method) === "priority" && (
+              <>
+                <Badge tone="warn">{SHIPPING_METHOD_NAMES.priority}</Badge>{" "}
+              </>
+            )}
             {order.needs_attention && <Badge tone="danger">Prüfen</Badge>} Erstellt{" "}
             {dateTime(order.created_at)}
             {order.paid_at && ` · bezahlt ${dateTime(order.paid_at)}`}
@@ -191,6 +197,7 @@ function OrderView({ order }: { order: AdminOrder }) {
                                   .join(" · ")}
                                 {item.restocked_quantity > 0 &&
                                   ` · ${item.restocked_quantity} zurückgebucht`}
+                                {item.on_sale && " · Sale (keine Rückgabe)"}
                               </span>
                             </div>
                           </div>
@@ -217,7 +224,9 @@ function OrderView({ order }: { order: AdminOrder }) {
               )}
               {order.kind === "cart" && (
                 <div>
-                  <dt>Versand</dt>
+                  <dt>
+                    Versand ({SHIPPING_METHOD_NAMES[parseShippingMethod(order.shipping_method)]})
+                  </dt>
                   <dd>{order.shipping_cents ? chf(order.shipping_cents) : "Gratis"}</dd>
                 </div>
               )}
@@ -426,7 +435,11 @@ function ShipPanel({ order, onDone }: { order: AdminOrder; onDone: () => void })
   return (
     <Panel
       title="Versenden"
-      description="Paket bei der Post aufgeben, dann hier die Sendungsnummer eintragen."
+      description={
+        parseShippingMethod(order.shipping_method) === "priority"
+          ? "Post Priority bestellt: am selben Arbeitstag als A-Post aufgeben, dann hier die Sendungsnummer eintragen. Das Post-Etikett nimmt Priority automatisch."
+          : "Paket bei der Post aufgeben, dann hier die Sendungsnummer eintragen."
+      }
       className="admin-highlight"
     >
       <div className="admin-form">

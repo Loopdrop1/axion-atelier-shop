@@ -86,6 +86,7 @@ export interface Reservation {
   discount_cents: number;
   gift_card_cents: number;
   shipping_cents: number;
+  shipping_method: "economy" | "priority";
   total_cents: number;
   discount_code: string | null;
   lines: {
@@ -104,11 +105,16 @@ export async function reserve(args: {
   discount?: string | null;
   giftCard?: string | null;
   userId?: string | null;
+  /** Ohne Angabe: Standard der Datenbank ('economy') */
+  shippingMethod?: string;
 }): Promise<Reservation> {
+  const withMethod = args.shippingMethod !== undefined;
   const rows = await q<{ r: Reservation }>(
     "service_role",
     null,
-    "select public.reserve_checkout($1::jsonb, $2, $3, $4, $5, $6) as r",
+    withMethod
+      ? "select public.reserve_checkout($1::jsonb, $2, $3, $4, $5, $6, $7) as r"
+      : "select public.reserve_checkout($1::jsonb, $2, $3, $4, $5, $6) as r",
     [
       JSON.stringify(args.lines),
       args.email ?? `${uniq("kunde")}@example.ch`,
@@ -116,6 +122,7 @@ export async function reserve(args: {
       args.discount ?? null,
       args.giftCard ?? null,
       args.userId ?? null,
+      ...(withMethod ? [args.shippingMethod] : []),
     ],
   );
   return rows[0]!.r;

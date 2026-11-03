@@ -248,11 +248,11 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(de.text).toMatch(/Total: CHF\s644\.20/);
     expect(de.text).toMatch(/Rabatt \(LAUNCH10\): −CHF\s73\.80/);
     expect(de.text).toMatch(/Geschenkgutschein: −CHF\s20\.00/);
-    expect(de.text).toContain("Versand: Gratis");
+    expect(de.text).toContain("Versand (Post Economy): Gratis");
     expect(de.text).toContain("Bezahlt mit: TWINT");
     expect(de.text).toContain("https://shop.test/bestellung/0c6b2b9a-0000-4000-8000-000000000002");
     const en = orderConfirmation(order("en"), shop);
-    expect(en.text).toContain("Shipping: Free");
+    expect(en.text).toContain("Shipping (Post Economy): Free");
     expect(en.text).toContain(
       "https://shop.test/en/bestellung/0c6b2b9a-0000-4000-8000-000000000002",
     );
@@ -313,7 +313,8 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(normal.text).toContain(
       "https://shop.test/admin/bestellungen/6b1f0c1e-0000-4000-8000-000000000001",
     );
-    expect(normal.text).toContain("Versand: Gratis");
+    expect(normal.text).toContain("Versand (Post Economy): Gratis");
+    expect(normal.text).toContain("Versandart: Post Economy");
     const attention = shopNotification(
       order("de", { needs_attention: true, admin_note: "Bestand fehlte nach Zahlungseingang" }),
       shop,
@@ -321,6 +322,31 @@ describe("E-Mail-Vorlagen: Inhalte", () => {
     expect(attention.subject).toMatch(/^Bitte prüfen: Neue Bestellung/);
     expect(attention.text).toContain("Achtung, bitte prüfen: Bestand fehlte nach Zahlungseingang");
     expect(attention.html).toContain("Bestand fehlte nach Zahlungseingang");
+  });
+
+  it("Versandart Priority: Bestätigung, Shop-Meldung und Versandmeldung nennen sie", () => {
+    const priority = order("de", { shipping_method: "priority", shipping_cents: 1500 });
+    const confirm = orderConfirmation(priority, shop);
+    expect(confirm.text).toMatch(/Versand \(Post Priority\): CHF\s15\.00/);
+    expect(confirm.text).toContain(
+      "Mit Post Priority ist die Sendung in der Regel am nächsten Arbeitstag nach dem Versand bei dir.",
+    );
+    expect(orderConfirmation(order("de"), shop).text).toContain(
+      "Die Lieferung dauert 2 bis 5 Arbeitstage.",
+    );
+    const en = orderConfirmation({ ...priority, locale: "en" }, shop);
+    expect(en.text).toMatch(/Shipping \(Post Priority\): CHF\s15\.00/);
+    expect(en.text).toContain("usually arrives on the next working day after dispatch");
+    const note = shopNotification(priority, shop);
+    expect(note.subject).toMatch(/· Post Priority$/);
+    expect(note.text).toContain("Versandart: Post Priority (am selben Arbeitstag versenden)");
+    const shipped = shippingConfirmation(priority, shop);
+    expect(shipped.text).toContain(
+      "Wir haben deine Bestellung der Post übergeben (Post Priority). Sie ist in der Regel am nächsten Arbeitstag bei dir.",
+    );
+    expect(shippingConfirmation(order("en"), shop).text).toContain(
+      "(Post Economy). It usually arrives within 2 to 5 working days.",
+    );
   });
 
   it("Gutschein: Code, Betrag, Gültigkeit und maskierte persönliche Nachricht", () => {
