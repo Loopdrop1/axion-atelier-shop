@@ -46,7 +46,10 @@ Er blendet die Angabe aus, markiert die Seite als Entwurf oder verhindert den Li
    später im Admin gepflegt werden (Admin → Grössentabellen), standardmässig leer.
 5. **Kostenpflichtige Optionen** (Priority-Versand, Bewertungen) sind technisch vorbereitet, aber standardmässig aus
    (Priority erscheint erst mit Preis in Admin → Einstellungen, Bewertungen erst mit `features.reviews`). Preis und
-   Auftrag zuerst klären.
+   Auftrag zuerst klären. Bewertungen brauchen beide Schalter: `features.reviews` in `src/config/shop.ts` (Code,
+   Deploy) und danach Admin → Einstellungen → «Bewertungen» (Migration `0026` und Funktion `review`, beide in Cloud noch einzuspielen). Nur echte Käufe
+   (Link in der Versandmeldung), Freigabe im Admin, keine Beispielbewertungen; Datenschutz-Absatz erscheint mit dem
+   Schalter.
 
 **Offen, Axion liefert oder entscheidet:**
 
@@ -221,7 +224,7 @@ Alles im Admin (`/admin`); Englisch entsteht beim Speichern automatisch.
    «muster», entfernt Zeichnungen als Kategoriebild, schaltet Kategorien ohne aktive Produkte aus). Vorher echte
    Produkte anlegen. Kategorien danach mit Foto wieder einschalten.
 2. **Edge Functions neu veröffentlichen**, wenn Code der Funktionen oder `supabase/config.toml` geändert wurde (Text
-   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle elf mit `verify_jwt = false`**.
+   in `docs/DEPLOYMENT.md`, Punkt 2.3). Kontrolle: Cloud → Edge functions, **alle zwölf mit `verify_jwt = false`**.
 3. **Stripe live:** Live-Schlüssel und Live-Webhook mit eigenem `whsec_…`; TWINT nach Freigabe testen.
 4. **Livegang-Prüfungen:**
    - `bun run test` (Test `launch-gate`: `robots.txt` passt zu `launched`, keine Platzhalter in Kontaktdaten bei

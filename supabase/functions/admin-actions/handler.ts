@@ -21,7 +21,7 @@ import {
   withHttp,
 } from "../_shared/http.ts";
 import { toLocale } from "../_shared/money.ts";
-import { sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
+import { reviewLinkFor, sendShippingEmail, type OrderRecord } from "../_shared/order-mail.ts";
 import {
   createPostLabel,
   isPostConfigured,
@@ -82,8 +82,9 @@ async function ship(deps: Deps, body: Record<string, unknown>): Promise<Response
   const result = { status: order.status, trackingNumber: order.tracking_number };
   if (body["notify"] === false) return json(200, { ...result, emailed: false });
   // Der Versand ist gespeichert; scheitert die E-Mail, kann das Admin sie erneut senden.
+  // Mit eingeschalteten Bewertungen (shop_settings.reviews_enabled) enthält die erste Versandmeldung einen Link dazu.
   try {
-    await sendShippingEmail(deps, order);
+    await sendShippingEmail(deps, order, { reviewUrl: await reviewLinkFor(deps, order) });
   } catch (error) {
     console.error("Versand-E-Mail fehlgeschlagen", error);
     return json(200, { ...result, emailed: false, emailError: true });
@@ -94,7 +95,11 @@ async function ship(deps: Deps, body: Record<string, unknown>): Promise<Response
 async function resendShipping(deps: Deps, body: Record<string, unknown>): Promise<Response> {
   const order = await loadOrder(deps, uuid(body["orderId"]));
   if (order.status !== "shipped") throw new HttpError(409, "ORDER_NOT_SHIPPED");
-  await sendShippingEmail(deps, order, { dedupe: false });
+  // Bewusst erneut gesendet: neuer Bewertungslink (der alte gilt dann nicht mehr), nur mit eingeschalteten Bewertungen
+  await sendShippingEmail(deps, order, {
+    dedupe: false,
+    reviewUrl: await reviewLinkFor(deps, order, true),
+  });
   return json(200, { emailed: true, to: order.email });
 }
 

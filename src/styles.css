@@ -5234,6 +5234,136 @@ button.text-link {
   margin-top: 32px;
 }
 
+/* Kundenbewertungen (nur mit features.reviews): Abschnitt auf der Produktseite und Formular /bewertung */
+.review-stars {
+  display: inline-flex;
+  gap: 2px;
+  color: transparent;
+  vertical-align: middle;
+}
+.review-stars svg {
+  fill: currentColor;
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+/* Gefüllte Sterne in Grün (Kontrast über 3:1 auf Papier), leere nur als Umriss */
+.review-stars .is-on {
+  color: var(--green);
+  stroke: var(--green);
+}
+.review-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  font-size: 15px;
+}
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  max-width: 760px;
+}
+.review-item {
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.review-item h3 {
+  font-size: 16px;
+  margin: 8px 0 4px;
+}
+.review-body {
+  margin: 8px 0;
+  white-space: pre-line;
+}
+.review-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.review-form .return-form {
+  margin-top: 16px;
+}
+.review-consent {
+  font-size: 13px;
+  margin: 0;
+}
+.star-input {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.star-input legend {
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.star-input-options {
+  display: inline-flex;
+  gap: 4px;
+}
+.star-input-options label {
+  position: relative;
+  display: inline-flex;
+  padding: 6px;
+  cursor: pointer;
+  color: transparent;
+}
+.star-input-options label.is-on {
+  color: var(--green);
+}
+.star-input-options svg {
+  fill: currentColor;
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.star-input-options input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.star-input-options label:has(input:focus-visible) {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.admin-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.admin-review {
+  border: 1px solid var(--line);
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+.admin-review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.admin-review-title {
+  font-size: 15px;
+  margin: 0;
+}
+.admin-review-body {
+  margin: 0;
+  white-space: pre-line;
+}
+.admin-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Motion: Einstieg, Parallaxe, Bild-Enthüllung, Raster-Staffelung, Bildflug Karte → Produktseite.
    Alles nur ohne «weniger Bewegung»; ohne JS bzw. ohne Browser-Unterstützung bleibt der Inhalt ruhig sichtbar. */
 .hero-line {

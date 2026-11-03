@@ -1,9 +1,11 @@
 // Strukturierte Daten (schema.org) für Suchmaschinen und KI-Antworten: Organisation, Website-Suche,
-// Breadcrumbs und FAQ. Werte mit Platzhaltern ([...]) aus der Konfiguration bleiben weg, bis der Kunde sie liefert.
+// Breadcrumbs, Produkt (mit Bewertungen nur, wenn echte, freigegebene da sind) und FAQ. Werte mit Platzhaltern ([...]) aus der Konfiguration bleiben weg, bis der Kunde sie liefert.
 import { shopConfig } from "@/config/shop";
 import type { WrittenPage } from "@/content/pages";
 import { htmlLang, type Locale } from "@/i18n/locale";
 import { pageUrl } from "@/lib/commerce/seo";
+import type { Product } from "@/lib/commerce/types";
+import type { ProductReviews } from "@/lib/commerce/reviews";
 
 const filled = (value: string) => Boolean(value.trim()) && !/\[[^\]]+\]/.test(value);
 
@@ -122,5 +124,80 @@ export function articleLd(
     image: new URL("/og.jpg", shopConfig.siteUrl).href,
     author: organization,
     publisher: organization,
+  };
+}
+
+/**
+ * Bewertungen für das Produkt-Markup: nur mit Schalter (shopConfig.features.reviews), nur mit mindestens einer echten,
+ * freigegebenen Bewertung und nie für Muster-Produkte (Tag «muster»). Sonst ein leeres Objekt (nichts wird erfunden).
+ */
+export function reviewLd(
+  product: Pick<Product, "tags">,
+  reviews: ProductReviews | null | undefined,
+  enabled: boolean = shopConfig.features.reviews,
+) {
+  if (!enabled || !reviews || reviews.count < 1 || reviews.average === null) return {};
+  if (product.tags.includes("muster")) return {};
+  return {
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: reviews.average,
+      reviewCount: reviews.count,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    review: reviews.items.slice(0, 5).map((r) => ({
+      "@type": "Review",
+      reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+      author: { "@type": "Person", name: r.displayName },
+      ...(r.date ? { datePublished: r.date.slice(0, 10) } : {}),
+      ...(r.title ? { name: r.title } : {}),
+      reviewBody: r.body,
+      inLanguage: htmlLang(r.locale),
+    })),
+  };
+}
+
+/** Produkt mit Marke, SKU, Farbe, Material, Angebot und Rückgaberichtlinie; Bewertungen siehe reviewLd. */
+export function productLd(
+  p: Product,
+  path: string,
+  locale: Locale,
+  reviews: ProductReviews | null = null,
+  reviewsEnabled: boolean = shopConfig.features.reviews,
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${p.title}, ${p.color.name}`,
+    brand: { "@type": "Brand", name: shopConfig.brand },
+    sku: p.handle,
+    color: p.color.name,
+    ...(p.details.material ? { material: p.details.material } : {}),
+    category: p.categoryTitle,
+    ...(p.images.length
+      ? { image: p.images.map((i) => new URL(i.url, shopConfig.siteUrl).href) }
+      : {}),
+    ...(p.description ? { description: p.description } : {}),
+    url: pageUrl(path, locale),
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "CHF",
+      lowPrice: p.priceRange.min.amount,
+      highPrice: p.priceRange.max.amount,
+      offerCount: p.variants.length,
+      availability: p.variants.some((v) => v.availableForSale)
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "CH",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: shopConfig.returnDays,
+        returnMethod: "https://schema.org/ReturnByMail",
+      },
+    },
+    ...reviewLd(p, reviews, reviewsEnabled),
   };
 }

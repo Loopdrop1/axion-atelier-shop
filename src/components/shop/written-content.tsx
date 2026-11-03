@@ -30,12 +30,24 @@ export function resolvePageVariables(text: string) {
   );
 }
 /** Bedingte Aufzählungspunkte: Beginnt ein Punkt mit {{analytics}}, erscheint er nur, wenn die Besucherstatistik
- *  in shop.ts eingeschaltet ist (analytics.plausibleDomain); die Marke selbst wird nie angezeigt. */
+ *  in shop.ts eingeschaltet ist (analytics.plausibleDomain); mit {{reviews}} nur mit Kundenbewertungen
+ *  (features.reviews). Die Marke selbst wird nie angezeigt. */
 const ANALYTICS_MARK = "{{analytics}}";
-export function visibleItems(items: string[], analytics = plausibleDomain() !== ""): string[] {
-  return items
-    .filter((text) => analytics || !text.startsWith(ANALYTICS_MARK))
-    .map((text) => (text.startsWith(ANALYTICS_MARK) ? text.slice(ANALYTICS_MARK.length) : text));
+const REVIEWS_MARK = "{{reviews}}";
+export function visibleItems(
+  items: string[],
+  analytics = plausibleDomain() !== "",
+  reviews: boolean = shopConfig.features.reviews,
+): string[] {
+  const marks: [string, boolean][] = [
+    [ANALYTICS_MARK, analytics],
+    [REVIEWS_MARK, reviews],
+  ];
+  return items.flatMap((text) => {
+    const mark = marks.find(([m]) => text.startsWith(m));
+    if (!mark) return [text];
+    return mark[1] ? [text.slice(mark[0].length)] : [];
+  });
 }
 export function pageHasPlaceholder(page: WrittenPage) {
   const strings: string[] = [page.title];

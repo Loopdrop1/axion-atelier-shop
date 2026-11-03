@@ -74,7 +74,7 @@ Befehle: `bun run dev`, `bun run build`, `bun run test`, `bun run db:reset`, `bu
   `vatRate` 8.1, Kontakt mit Platzhaltern, Social-Links, `analytics.plausibleDomain`, `verification` Google/Bing,
   `returnDays` 14, Lieferung: Annahmeschluss 14:00 Europe/Zurich, 0 Bearbeitungstage, Laufzeit 2–5 Arbeitstage,
   Zahlarten TWINT/Visa/Mastercard/Amex/Apple Pay/Google Pay/Klarna, Feature-Schalter Newsletter, Kundenkonten,
-  Gutscheine).
+  Gutscheine, Bewertungen (`features.reviews`, Standard aus, kostenpflichtige Option)).
 - **Commerce-Adapter:** Die UI liest Daten **nur** über async Exporte aus `src/lib/commerce/index.ts`. Katalog aus
   Supabase via `source.ts` (Server-Cache 30 s). Verträge in `types.ts`, Zeilen-Mapping in `mapping.ts`,
   Bildmetadaten in `media.ts`. Seiten fragen nie Tabellen direkt ab.
@@ -228,13 +228,20 @@ Whitelist-bereinigt, pro Sitzung gecacht).
   Rate-Limits pro E-Mail erst nach Treffer) → `return_requests` (requested → received → refunded/rejected).
   **Keine Versprechen zu Etikett oder Kosten.** Gründe in `_shared/returns.ts` und `src/lib/returns.ts` (Parität).
 - **Newsletter:** Double-Opt-in, Willkommensmail, Abmeldelink; offene Anmeldungen nach 30 Tagen gelöscht.
+- **Bewertungen (Option, standardmässig aus):** nur wenn `features.reviews` (Code) **und** `shop_settings.reviews_enabled`
+  (Admin → Einstellungen) an sind. Link nur aus echten Käufen: «Versendet» (`admin-actions`) erzeugt pro Bestellung
+  einen Schlüssel (Hash gespeichert, 90 Tage), die Versandmeldung enthält den Abschnitt mit `/bewertung/<schlüssel>`
+  → `review` (`lookup`, `submit`; eine Bewertung pro Position und Produkt, Bremsen pro IP und Bestellung) → `reviews`
+  (pending → approved/rejected, Admin → Bewertungen). Öffentlich nur `product_reviews` (Anzeigename, Sterne, Text,
+  Datum; nie Muster). Produktseite lädt den Abschnitt lazy; `aggregateRating` nur mit echten, freigegebenen
+  Bewertungen. Datenschutz-Punkte mit Marke `{{reviews}}`. Nie Beispielbewertungen oder erfundene Sterne.
 - **Kontakt:** `contact` (5/IP bzw. IPv6-/64 und 3/Adresse pro Stunde, global 20/h und 50/Tag, Honeypot
   `website`, Nachrichten nicht gespeichert, Rate-Keys nur als Hash) → Mail an `SHOP_CONTACT_EMAIL`.
 
 ## 11. E-Mails (Resend, DE/EN, Axion-Layout, HTML + Text)
 
 Bestellbestätigung · Meldung neue Bestellung an den Shop («Bitte prüfen:» bei `needs_attention`) · Versandmeldung
-mit Tracking · Geschenkkarte · Rückerstattung · Warenkorb-Erinnerung (nur mit Einwilligung, einmal) · Newsletter
+mit Tracking (mit Bewertungen eingeschaltet: Abschnitt mit Bewertungslink) · Geschenkkarte · Rückerstattung · Warenkorb-Erinnerung (nur mit Einwilligung, einmal) · Newsletter
 bestätigen · Newsletter willkommen · Benachrichtigung bestätigen · Wieder verfügbar · Niedrigbestand (an Shop) ·
 Kontaktformular (an Shop) · Sicherheitshinweis · Konto-Mails (`authEmail`; mit Lovable Cloud verschickt Lovable
 sie selbst, `auth-email-hook` nur für eigenes Supabase). Idempotenz-Keys pro Mail (z. B. `order-<id>-lowstock`).
@@ -245,7 +252,7 @@ sie selbst, `auth-email-hook` nur für eigenes Supabase). Idempotenz-Keys pro Ma
 Secret-Werte) · Bestellungen (Liste, Detail, Notiz, Versendet mit Sendungsnummer, Post-Etikett, Rückerstattung,
 Retoure einbuchen, Beleg drucken `receipt.tsx`, Versanddokumente) · Retouren · Produkte (Formular DE/EN, Bilder mit
 Varianten-Zuordnung, Varianten/Grössen, Muster-Badge) · Kategorien · Lager (`admin_adjust_stock`, Bewegungen) ·
-Rabattcodes · Gutscheine · Newsletter (Export) · Startseite und Laufband (`site_content`: Hero-Bild/Video,
+Rabattcodes · Gutscheine · Bewertungen (nur mit `features.reviews`) · Newsletter (Export) · Startseite und Laufband (`site_content`: Hero-Bild/Video,
 Ankündigungen, Look, Texte) · Grössentabellen (`size_guides`, freiwillige Zuordnung Buchstaben) · Fehler (`client_errors`) · Zugänge (Admins) ·
 Einstellungen (`shop_settings`: Versandkosten, Gratis-ab-Schwelle usw.) · Anleitung.
 
@@ -258,10 +265,11 @@ Herkunft pro Feld (`en_auto`, `auto`). Von Hand geschriebenes Englisch wird nie 
 
 - `launched` (in `shop.ts`) steuert Indexierung; danach `bun scripts/sync-robots.ts` → `public/robots.txt`.
   Nach dem Launch erlaubt robots öffentliche Seiten, sperrt Konto, Warenkorb, Bestellstatus, Bestätigungslinks,
-  Suche, Admin, Retoure, `/api/health`.
+  Suche, Admin, Retoure, Bewertungslinks (`/bewertung/`), `/api/health`.
 - `/sitemap.xml`, `/llms.txt` (Zusammenfassung für KI-Suche, vor Launch 404), strukturierte Daten
   (`src/lib/seo/structured.ts`: Organization + WebSite-Suche auf Home, BreadcrumbList, Product mit Marke, SKU,
-  Farbe, Material, Rückgaberichtlinie, FAQPage ohne Platzhalter-Fragen).
+  Farbe, Material, Rückgaberichtlinie, `aggregateRating`/`review` nur mit Bewertungen eingeschaltet und echten,
+  freigegebenen Bewertungen, nie für Muster; FAQPage ohne Platzhalter-Fragen).
 - `/feeds/google.xml` (RSS 2.0 mit `g:`, ein Eintrag pro Grösse, ohne `muster`, vor Launch 404) für Google
   Merchant Center und Meta.
 - Plausible (ohne Cookies) nur mit Domain und `launched`, nie im Admin/Dev; Datenschutzabsatz erscheint nur dann.
@@ -274,11 +282,11 @@ Herkunft pro Feld (`en_auto`, `auto`). Von Hand geschriebenes Englisch wird nie 
 - Runbooks: `docs/BETRIEB.md`, `docs/TESTKAUF.md`, `docs/IPHONE-CHECK.md`, `docs/MARKETING.md`,
   `docs/DEPLOYMENT.md`, `docs/KUNDENDATEN.md`.
 
-## 14. Edge Functions (11, Deno)
+## 14. Edge Functions (12, Deno)
 
 `checkout`, `stripe-webhook`, `newsletter`, `admin-actions` (Admin-Aktionen, `system_status`, `translate`,
 `notify_restock`, `post_label`, Rückerstattung …), `contact`, `account-delete`, `stock-alert`, `search-assist`,
-`client-error`, `return-request`, `auth-email-hook`. Gemeinsamer Rahmen `_shared/http.ts`: CORS nur für
+`client-error`, `return-request`, `review` (Bewertungen, nur mit `reviews_enabled`), `auth-email-hook`. Gemeinsamer Rahmen `_shared/http.ts`: CORS nur für
 `SITE_URL` + `ALLOWED_ORIGINS` (+ Vorschau nur mit `ALLOW_PREVIEW_ORIGINS=1`, vor Launch entfernen), CORS-Header
 auch auf Fehlerantworten, JSON-Fehler `{error: CODE}`, nur `Content-Type: application/json` (sonst 415),
 Grössenlimit 20 KB. Logik in `handler.ts` mit Tests, `index.ts` verbindet nur Secrets.
@@ -305,7 +313,7 @@ return_refund_method (`0022`, in Cloud angewendet) · weitere ab `0023` aus Bloc
 
 ## 16. Stand und offene Punkte
 
-**Fertig:** alles oben; Cloud-Schema identisch mit lokal; 11 Funktionen deployt; Shop veröffentlicht; zwei
+**Fertig:** alles oben; Cloud-Schema identisch mit lokal; 11 Funktionen deployt (`review` aus Block D noch nicht); Shop veröffentlicht; zwei
 Audit-Runden (Sicherheit, Kasse, Rechtstexte, Texte, Design) abgeschlossen.
 
 **Offen, vom Kunden/Ben:**

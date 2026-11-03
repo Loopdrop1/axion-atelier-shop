@@ -169,6 +169,13 @@
       "when": 1792750000000,
       "tag": "0023_axion_size_details",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792780000000,
+      "tag": "0026_axion_reviews",
+      "breakpoints": true
     }
   ]
 }

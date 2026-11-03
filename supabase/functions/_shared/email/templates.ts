@@ -396,8 +396,22 @@ export function contactMessage(msg: ContactMessage, shop: ShopInfo): EmailConten
 }
 
 /** Versandbestätigung mit Sendungsnummer. */
-export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailContent {
+/**
+ * Versandmeldung. Mit `reviewUrl` (nur wenn Bewertungen eingeschaltet sind und admin-actions einen Link erzeugt hat)
+ * folgt eine kurze, freiwillige Bitte um eine Bewertung; ohne bleibt die Mail wie bisher.
+ */
+export function shippingConfirmation(
+  order: OrderData,
+  shop: ShopInfo,
+  opts: { reviewUrl?: string | null } = {},
+): EmailContent {
   const de = order.locale !== "en";
+  const reviewUrl = opts.reviewUrl ?? null;
+  const reviewTitle = de ? "Wie gefällt dir dein Stück?" : "How do you like your piece?";
+  const reviewText = de
+    ? "Wenn du es eine Weile getragen hast, freuen wir uns über deine Bewertung. Sie ist freiwillig und erscheint nach unserer Prüfung mit deinem gewählten Anzeigenamen im Shop. Der Link gilt 90 Tage."
+    : "Once you have worn it for a while, we would love to hear what you think. Reviews are optional and appear in the shop under the display name you choose after we have checked them. The link is valid for 90 days.";
+  const reviewButton = de ? "Bewertung schreiben" : "Write a review";
   const no = orderNumber(order.number);
   const subject = de ? `Deine Bestellung ${no} ist unterwegs` : `Your order ${no} is on its way`;
   const tracking = order.tracking_number;
@@ -421,6 +435,9 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
     address.length
       ? divider() + label(T[order.locale].shipTo) + p(address.map(esc).join("<br>"))
       : "",
+    reviewUrl
+      ? divider() + label(reviewTitle) + p(esc(reviewText)) + button(reviewButton, reviewUrl)
+      : "",
     divider(),
     p(esc(returnsNote(shop, de)), { muted: true, size: 13 }),
     p(esc(T[order.locale].questions), { muted: true, size: 13 }),
@@ -436,6 +453,7 @@ export function shippingConfirmation(order: OrderData, shop: ShopInfo): EmailCon
     `${de ? "Bestellung" : "Order"} ${no}`,
     items.text,
     address.length ? `\n${T[order.locale].shipTo}:\n${address.join("\n")}` : "",
+    reviewUrl ? `\n${reviewTitle}\n${reviewText}\n${reviewUrl}` : "",
     "",
     returnsNote(shop, de),
   ].join("\n");

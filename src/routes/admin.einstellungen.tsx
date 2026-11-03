@@ -1,9 +1,10 @@
 // Einstellungen: Versandkosten, ausverkaufte Grössen, Gutscheinbeträge und -gültigkeit, Willkommens-Rabatt im
-// Newsletter, Adresse für Bestellmeldungen.
+// Newsletter, Adresse für Bestellmeldungen, Kundenbewertungen (nur mit shopConfig.features.reviews).
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { shopConfig } from "@/config/shop";
 import { getSettings, saveSettings } from "@/lib/admin/api";
 import { centsToInput, parseChf } from "@/lib/admin/money";
 import { invalidateCatalog } from "@/lib/commerce/source";
@@ -34,6 +35,7 @@ function SettingsPage() {
     notify: "",
   });
   const [hideSoldOut, setHideSoldOut] = useState(false);
+  const [reviews, setReviews] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -50,6 +52,7 @@ function SettingsPage() {
       notify: s.notify_email ?? "",
     });
     setHideSoldOut(s.hide_sold_out);
+    setReviews(Boolean(s.reviews_enabled));
   }, [query.data]);
 
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
@@ -96,6 +99,8 @@ function SettingsPage() {
         newsletter_welcome_percent: welcome,
         hide_sold_out: hideSoldOut,
         notify_email: form.notify.trim() || null,
+        // Nur mit Schalter im Code: ohne ihn bliebe die Seite /bewertung ein 404, Links in Mails wären falsch
+        ...(shopConfig.features.reviews ? { reviews_enabled: reviews } : {}),
       });
       invalidateCatalog();
       void queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
@@ -198,6 +203,21 @@ function SettingsPage() {
           />
         </div>
       </Panel>
+      {shopConfig.features.reviews && (
+        <Panel
+          title="Bewertungen"
+          description="Kundenbewertungen aus echten Käufen. Mit Haken enthält die Versandmeldung einen Link zur Bewertung, und freigegebene Bewertungen erscheinen auf der Produktseite."
+        >
+          <div className="admin-form">
+            <CheckField
+              label="Bewertungen einschalten"
+              hint="Prüfen und freigeben unter «Bewertungen». Ohne Haken: keine Links in Mails, keine Bewertungen im Shop."
+              checked={reviews}
+              onChange={setReviews}
+            />
+          </div>
+        </Panel>
+      )}
       {error && (
         <p className="admin-error" role="alert">
           {error}

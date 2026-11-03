@@ -18,6 +18,7 @@ import {
   Percent,
   Settings,
   ShoppingBag,
+  Star,
   Store,
   Undo2,
   Users,
@@ -25,16 +26,18 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { shopConfig } from "@/config/shop";
 import { backendConfigured } from "@/lib/backend";
 import { isAdmin } from "@/lib/admin/api";
 import { signOut } from "@/lib/account/api";
 import { useSession } from "@/lib/account/session";
 import { Loading } from "./ui";
 
-const NAV = [
+const ALL_NAV = [
   { to: "/admin", label: "Übersicht", icon: BarChart3, exact: true },
   { to: "/admin/bestellungen", label: "Bestellungen", icon: ShoppingBag },
   { to: "/admin/retouren", label: "Retouren", icon: Undo2 },
+  { to: "/admin/bewertungen", label: "Bewertungen", icon: Star },
   { to: "/admin/produkte", label: "Produkte", icon: Package },
   { to: "/admin/kategorien", label: "Kategorien", icon: FolderTree },
   { to: "/admin/lager", label: "Lager", icon: Boxes },
@@ -48,6 +51,10 @@ const NAV = [
   { to: "/admin/einstellungen", label: "Einstellungen", icon: Settings },
   { to: "/admin/hilfe", label: "Anleitung", icon: BookOpen },
 ] as const;
+// Bewertungen nur mit dem Schalter im Code (kostenpflichtige Option)
+const NAV = ALL_NAV.filter(
+  (item) => item.to !== "/admin/bewertungen" || shopConfig.features.reviews,
+);
 
 function useAdminSignOut() {
   const queryClient = useQueryClient();

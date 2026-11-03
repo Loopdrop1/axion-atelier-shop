@@ -55,5 +55,8 @@ export const shopConfig = {
     newsletter: true,
     customerAccounts: true,
     giftCards: true,
+    // Kundenbewertungen: kostenpflichtige Option laut Checkliste, Preis offen. Erscheinen nur, wenn zusätzlich
+    // Admin → Einstellungen → «Bewertungen» (shop_settings.reviews_enabled) an ist. Mit false ändert sich nichts.
+    reviews: false,
   },
 } as const;

@@ -184,6 +184,36 @@ describe("admin-actions: Versand", () => {
     expect(row[0]!.shipping_sent_at).not.toBeNull();
   });
 
+  it("Bewertungen: Link nur mit shop_settings.reviews_enabled; erneut senden ersetzt ihn", async () => {
+    const off = await paidOrder();
+    const before = resend.sent.length;
+    await post({ action: "ship", orderId: off.order_id, trackingNumber: "ABC123456" });
+    expect(resend.sent[before]!.text).not.toContain("/bewertung/");
+    expect(resend.sent[before]!.text).not.toContain("Bewertung");
+    await sql("update public.shop_settings set reviews_enabled = true where id = 1");
+    try {
+      const on = await paidOrder();
+      const start = resend.sent.length;
+      await post({ action: "ship", orderId: on.order_id, trackingNumber: "ABC123456" });
+      const first = /https:\/\/shop\.test\/bewertung\/([0-9a-f]{48})/.exec(
+        resend.sent[start]!.text,
+      );
+      expect(first).not.toBeNull();
+      expect(resend.sent[start]!.text).toContain("Wie gefällt dir dein Stück?");
+      // Wiederholter Klick: kein neuer Link (der erste bleibt gültig)
+      await post({ action: "ship", orderId: on.order_id, trackingNumber: "XYZ987654" });
+      expect(resend.sent[start + 1]!.text).not.toContain("/bewertung/");
+      expect(await rpc("review_lookup", [first![1], "10.5.0.1"])).toMatchObject({ status: "ok" });
+      // Bewusst erneut senden: neuer Link, der alte gilt nicht mehr
+      await post({ action: "resend_shipping", orderId: on.order_id });
+      const second = /\/bewertung\/([0-9a-f]{48})/.exec(resend.sent[start + 2]!.text);
+      expect(second![1]).not.toBe(first![1]);
+      expect(await rpc("review_lookup", [first![1], "10.5.0.2"])).toEqual({ status: "not_found" });
+    } finally {
+      await sql("update public.shop_settings set reviews_enabled = false where id = 1");
+    }
+  });
+
   it("ohne Benachrichtigung: keine E-Mail", async () => {
     const r = await paidOrder();
     const before = resend.sent.length;

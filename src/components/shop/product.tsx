@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import { SIZES } from "@/lib/commerce/variants";
 import { outfitKey } from "./outfit-key";
 import { isSoldOut, sizesFor, useOutfit } from "./outfit";
@@ -13,7 +13,7 @@ import { oneSizeVariant } from "@/lib/commerce/one-size";
 import { shippingLabel } from "@/lib/commerce/shipping-text";
 import { useShopSettings } from "@/lib/commerce/use-settings";
 import { useRecentlyViewed, useWishlist, useShopUI } from "@/lib/commerce/stores";
-import { getProductsByHandles, type Product } from "@/lib/commerce";
+import { getProductsByHandles, type Product, type ProductReviews } from "@/lib/commerce";
 import { useStoreHydrated } from "@/hooks/use-store-hydrated";
 import { useLocale, useLocaleParam, useT } from "@/i18n";
 import { Photo } from "./primitives";
@@ -27,6 +27,10 @@ import { finderKind } from "@/lib/commerce/size-finder";
 import { sizeWithLetter } from "@/lib/commerce/sizes";
 import { ShareButton } from "./share-button";
 import { StockAlertForm } from "./stock-alert-form";
+// Bewertungen als eigener Teil: ohne shopConfig.features.reviews wird er nie geladen
+const ReviewsSection = lazy(() =>
+  import("./product-reviews").then((m) => ({ default: m.ProductReviewsSection })),
+);
 /** Bis zu diesem Bestand zeigt die Seite «Nur noch … an Lager» (bei 3 wäre es bei kleinen Beständen fast immer) */
 const LOW_STOCK = 2;
 
@@ -35,11 +39,14 @@ export function ProductPage({
   siblings,
   outfit,
   recommendations,
+  reviews = null,
 }: {
   product: Product;
   siblings: Product[];
   outfit: Product[];
   recommendations: Product[];
+  /** Startwert der Bewertungen aus dem Loader (nur mit shopConfig.features.reviews) */
+  reviews?: ProductReviews | null;
 }) {
   const t = useT();
   const locale = useLocale();
@@ -427,6 +434,11 @@ export function ProductPage({
             outfit={[product, ...outfit]}
             startVariantId={chosen?.id ?? ""}
           />
+        )}
+        {shopConfig.features.reviews && (
+          <Suspense fallback={null}>
+            <ReviewsSection handle={product.handle} initial={reviews} />
+          </Suspense>
         )}
         <section className="section pb-0">
           <div className="section-head">

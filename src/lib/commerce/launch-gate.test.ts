@@ -24,6 +24,8 @@ describe("Launch-Gate", () => {
     expect(open).toContain("Disallow: /en/konto");
     expect(open).toContain("Disallow: /retoure\n");
     expect(open).toContain("Disallow: /en/retoure\n");
+    expect(open).toContain("Disallow: /bewertung/\n");
+    expect(open).toContain("Disallow: /en/bewertung/\n");
     expect(open).toContain("Sitemap: https://x.ch/sitemap.xml");
   });
 

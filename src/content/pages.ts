@@ -132,6 +132,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - **Geschenkgutscheine:** Code, Wert, Restguthaben und Ablaufdatum, E-Mail-Adresse der kaufenden Person und, falls angegeben, Name und E-Mail-Adresse der beschenkten Person, Absendername und Grussbotschaft.
 - **Newsletter (freiwillig):** E-Mail-Adresse, Sprache, Wortlaut und Zeitpunkt deiner Einwilligung, Zeitpunkt der Bestätigung und einer allfälligen Abmeldung sowie, wenn wir einen Willkommensrabatt anbieten, dein persönlicher Rabattcode.
 - **Benachrichtigung bei Wiederverfügbarkeit (freiwillig):** E-Mail-Adresse, Sprache, gewünschtes Stück und Grösse sowie Zeitpunkt von Anfrage und Bestätigung.
+- {{reviews}}**Bewertungen (freiwillig):** Wenn du nach einem Kauf über den Link in der Versandmeldung ein Stück bewertest: Sterne, Titel, Text, dein selbst gewählter Anzeigename, Sprache, Zeitpunkt, das bewertete Stück und die Verbindung zu deiner Bestellung, damit nur echte Käufe bewertet werden.
 - **Retoure (auf Anfrage):** Bestellnummer, E-Mail-Adresse, zurückgegebene Stücke mit Menge und Grund, dein freiwilliger Kommentar sowie Zeitpunkt und Stand der Retoure.
 - **Erinnerung an einen nicht abgeschlossenen Kauf (freiwillig):** Nur wenn du im Warenkorb das Kästchen «Erinnere mich per E-Mail, falls ich den Kauf nicht abschliesse» ankreuzt, schicken wir dir einmalig eine E-Mail mit deinen Artikeln und einem Link zum Warenkorb, falls die Zahlung nicht zustande kommt; wir speichern dazu deine Einwilligung bei der Bestellung, und ohne Häkchen erhältst du keine Erinnerung.
 - **Kommunikation:** Name, E-Mail-Adresse, Inhalt und Zeitpunkt deiner Nachrichten, wenn du uns über das Kontaktformular, per E-Mail oder per Telefon kontaktierst.
@@ -147,6 +148,7 @@ Diese Datenschutzerklärung richtet sich nach dem Schweizer Bundesgesetz über d
 - um dir den Newsletter zu senden, wenn du dich angemeldet und die Anmeldung per E-Mail bestätigt hast;
 - um dich einmalig per E-Mail zu informieren, wenn eine ausverkaufte Grösse wieder da ist, sofern du das angefordert und per E-Mail bestätigt hast;
 - um dich einmalig an einen nicht abgeschlossenen Kauf zu erinnern, wenn du das im Warenkorb angekreuzt hast;
+- {{reviews}}um deine Bewertung zu prüfen und nach unserer Freigabe mit Anzeigename, Sternen, Titel, Text und Datum öffentlich auf der Produktseite zu zeigen, ohne E-Mail-Adresse und Bestelldaten; Grundlage ist deine Einwilligung beim Absenden;
 - um deine Fragen zu beantworten;
 - um die Website sicher und funktionsfähig zu betreiben und Missbrauch zu verhindern;
 - um gesetzliche Pflichten zu erfüllen, insbesondere die Aufbewahrung von Geschäftsunterlagen.
@@ -190,6 +192,7 @@ Wir bewahren Personendaten so lange auf, wie wir sie für die genannten Zwecke b
 - **Newsletter:** bis du dich abmeldest. Den Nachweis deiner Einwilligung und Abmeldung bewahren wir auf, solange wir ihn als Beleg brauchen. Unbestätigte Anmeldungen löschen wir nach 30 Tagen.
 - **Retouren:** zusammen mit der Bestellung während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Benachrichtigung bei Wiederverfügbarkeit:** Bestätigte Anfragen bewahren wir auf, bis das Stück wieder verfügbar ist und die Benachrichtigung versendet wurde; danach löschen wir deine Adresse. Unbestätigte Anfragen löschen wir nach 30 Tagen.
+- {{reviews}}**Bewertungen:** Veröffentlichte Bewertungen bleiben, solange das Produkt im Shop geführt wird, oder bis du die Löschung verlangst; eine kurze Nachricht an uns genügt. Abgelehnte Bewertungen löschen wir nach 90 Tagen. Der Link zur Bewertung ist 90 Tage gültig.
 - **Geschenkgutscheine:** bis zum Ablauf und danach während der gesetzlichen Frist für Geschäftsunterlagen.
 - **Nachrichten über das Kontaktformular:** Der Shop speichert sie nicht, sie kommen als E-Mail in unser Postfach. Wir bewahren sie auf, solange wir sie für deine Anfrage brauchen.
 - **Schutz vor Missbrauch:** Damit niemand Formulare, Kasse oder Gutscheinprüfung massenhaft benutzt, zählen wir Anfragen pro IP-Adresse und E-Mail-Adresse. Gespeichert wird dafür nur ein Prüfwert (Hash), nicht die Adresse selbst, zusammen mit der Anzahl und dem Zeitpunkt. Abgelaufene Zähler löschen wir laufend, in der Regel nach zwei Tagen.

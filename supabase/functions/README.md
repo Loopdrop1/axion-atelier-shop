@@ -21,6 +21,7 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 | `search-assist`   | Shop (Gast)                     | KI-Suche: Satz in Shop-Filter übersetzen (begrenzt pro IP und gesamt)                                                  |
 | `client-error`    | Shop (Browser, Gast)            | technische Fehlerberichte ohne Personendaten (Admin → Fehler)                                                          |
 | `return-request`  | Shop (Gast oder eingeloggt)     | «Retoure anmelden»: Bestellung per Nummer und E-Mail finden (lookup), Stücke und Grund speichern (submit), E-Mails     |
+| `review`          | Shop (Gast, Link aus der Mail)  | Kundenbewertung abgeben (nur mit Bewertungen eingeschaltet): Stücke der Bestellung (lookup), Bewertung speichern       |
 | `auth-email-hook` | Supabase Auth (Send Email Hook) | Konto-E-Mails in Axion-Optik, DE/EN                                                                                    |
 
 ## checkout
@@ -66,6 +67,38 @@ die Zähler stehen nur als Hash in `private.rate_limits` und werden nach rund zw
 - Bremsen (`private.hit_rate_limit`, nur als Hash gezählt): lookup pro IP 30, pro Adresse 15, pro Bestellnummer 20, gesamt 3000 pro Stunde (Schlüssel `return-global`, von lookup und submit gemeinsam genutzt); submit pro IP 10 und pro Adresse 5 pro Stunde (dazu dieselben Bestellnummer- und Gesamtgrenzen) → `429 RATE_LIMITED`. Die Zähler pro Adresse laufen erst, wenn Bestellnummer und Adresse zusammenpassen (Migration `20261030002200`), damit Fremde mit falschen Nummern keine Adresse aussperren.
 - Admin → Retouren (`/admin/retouren`) liest und ändert `status` (`requested → received → refunded | rejected`) und `admin_note` per RLS; Erstattung und «Retoure einbuchen» bleiben an der Bestellung.
 
+## review
+
+Kundenbewertungen (kostenpflichtige Option, standardmässig aus; Tabellen `reviews` und `review_invites`, Migration
+`20261104002700_reviews.sql` bzw. Cloud `0026`). Sichtbar nur, wenn **beide** Schalter an sind: `features.reviews` in
+`src/config/shop.ts` (Seite `/bewertung/<schlüssel>`, Abschnitt auf der Produktseite, Admin → Bewertungen, Datenschutz-
+Absatz) und `shop_settings.reviews_enabled` (Admin → Einstellungen → «Bewertungen»; die Funktionen lesen nur diesen).
+Nur JSON (`415` sonst), verstecktes Feld `website` (ausgefüllt → `404`). Regeln in den RPCs `review_lookup` und
+`review_submit` (nur `service_role`).
+
+- Link: Beim Schritt «Versendet» (`admin-actions` `ship`) erzeugt `review_invite_create` pro Bestellung einen Schlüssel
+  (48 Hex-Zeichen, gespeichert nur als Hash, 90 Tage gültig) und die Versandmeldung bekommt einen kurzen Abschnitt
+  «Wie gefällt dir dein Stück?» mit dem Link `/bewertung/<schlüssel>` (`/en/…` auf Englisch). Ein wiederholter Klick
+  auf «Versendet» lässt den ersten Link gültig (die neue Mail kommt dann ohne Link); «Versandmeldung erneut senden»
+  (`resend_shipping`) erzeugt einen neuen Link, der alte gilt nicht mehr. Ohne `reviews_enabled` kein Link, die Mail
+  bleibt wie bisher. Bewusst kein eigener Zeitplaner für eine spätere Mail: der Abschnitt in der Versandmeldung ist
+  die einfachste robuste Lösung (kein Cron, keine zusätzliche Mail, keine weitere Einwilligung nötig).
+- `{ action: "lookup", token }` → `200 { status: "ok", orderNumber, locale, items: [{ orderItemId, title, size, color, image, handle, reviewed }] }`:
+  pro Produkt die erste Position, nur aktive Produkte, ganz zurückgenommene Stücke nicht. Nur versendete
+  Warenkorb-Bestellungen.
+- `{ action: "submit", token, orderItemId, rating (1–5), title? (≤ 80), body (10–2000), displayName (1–40), locale, website? }`
+  → `200 { status: "ok", items }`. Gespeichert als `pending`; im Shop erst nach Freigabe in Admin → Bewertungen.
+  Höchstens eine Bewertung pro Bestellposition und pro Bestellung und Produkt (`409 ALREADY_REVIEWED`).
+- Fehler: `409 REVIEWS_DISABLED` (Schalter in den Einstellungen aus), `404 NOT_FOUND` (unbekannter, abgelaufener oder
+  ersetzter Link, Bestellung nicht mehr versendet), `400 INVALID_REVIEW | BAD_REQUEST`, `409 ITEM_NOT_REVIEWABLE`,
+  `429 RATE_LIMITED` (pro IP 30 pro Stunde für lookup und submit zusammen, pro Bestellung 10 Einreichungen pro Tag).
+- Öffentlich lesen nur über `product_reviews(handle)` (anon): Durchschnitt, Anzahl und die 20 neuesten freigegebenen
+  Bewertungen mit Anzeigename, Sternen, Titel, Text, Sprache und Datum; nie E-Mail oder Bestelldaten. `null`, wenn
+  `reviews_enabled` aus ist, das Produkt nicht aktiv ist oder den Tag `muster` hat. Strukturierte Daten
+  (`aggregateRating`, `review`) nur mit beiden Schaltern, echten freigegebenen Bewertungen und nie für Muster.
+- Admin: RLS (nur Admins lesen, ändern `status`/`admin_note`, löschen auf Wunsch der Person). Abgelehnte Bewertungen
+  und abgelaufene Links räumt `review_invite_create` nach 90 Tagen bzw. nach Ablauf auf.
+
 ## search-assist
 
 KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (Kategorien, Farbgruppen, Anlässe, Passform, Preis, Stichworte). Gleiches Gateway wie `translate` (`LOVABLE_API_KEY`).
@@ -76,7 +109,7 @@ KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (K
 
 ## admin-actions (nur Admin)
 
-- `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`; mit Benachrichtigung ist die Sendungsnummer Pflicht (`400 TRACKING_REQUIRED`)
+- `{ action: "ship", orderId, trackingNumber?, notify?: true }` → `200 { status, trackingNumber, emailed, emailError? }`; mit Benachrichtigung ist die Sendungsnummer Pflicht (`400 TRACKING_REQUIRED`). Mit `shop_settings.reviews_enabled` enthält die erste Versandmeldung den Link zur Bewertung (siehe `review`).
 - `{ action: "post_label", orderId }` → `200 { identCode, labelPdfBase64, warnings }`: A6-Etikett der Schweizerischen Post (Digital Commerce API «Barcode», `_shared/swiss-post.ts`). Nur für bezahlte, noch nicht versendete Warenkorb-Bestellungen mit Lieferadresse in CH oder LI. Markiert **nicht** als versendet: Das Admin trägt `identCode` als Sendungsnummer ein und löst «Versendet» (mit Versandmeldung) selbst aus. `409 POST_NOT_CONFIGURED | ORDER_NOT_PAID | POST_NOT_DOMESTIC | POST_SENDER_INVALID`, `422 POST_ADDRESS_INVALID`, `502 POST_AUTH_FAILED | POST_LICENSE_INVALID | POST_REJECTED | POST_BAD_RESPONSE`, `503 POST_UNAVAILABLE | POST_RATE_LIMITED`. **Noch nicht gegen die echte API getestet** (Axion hat noch kein Post-Geschäftskundenkonto); die Tests laufen gegen einen Fake. Der Absender kommt aus `SHOP_NAME` und `SHOP_ADDRESS` im Format «Strasse Nr, PLZ Ort». `system_status` meldet nur das Boolean `swissPost`.
 - `{ action: "resend_shipping", orderId }`, `{ action: "resend_confirmation", orderId, to? }` → `200 { emailed: true, to }`
 - `{ action: "issue_gift_card", amountCents, locale?, recipientEmail?, recipientName?, senderName?, message?, note?, send?: true }` → `200 { giftCard, emailed, emailError? }`
