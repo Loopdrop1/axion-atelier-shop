@@ -101,6 +101,12 @@ function Returns() {
                       <td className="num">{returnPieces(r.items)}</td>
                       <td>
                         <Badge tone={status?.tone ?? "neutral"}>{status?.label ?? r.status}</Badge>
+                        {r.refund_method === "gift_card" && (
+                          <>
+                            {" "}
+                            <Badge tone="neutral">Gutschein</Badge>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );

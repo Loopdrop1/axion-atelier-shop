@@ -1,5 +1,6 @@
 // Retoure anmelden. Schritt 1 «lookup»: Bestellnummer + E-Mail → zurückgebbare Stücke. Schritt 2 «submit»: Auswahl
-// speichern, Bestätigung an die Kundschaft, Meldung an den Shop. Die Regeln (Status, Frist, Mengen, Bremsen) stehen
+// und gewünschte Rückerstattung (Zahlungsmittel oder Gutschein) speichern, Bestätigung an die Kundschaft, Meldung an
+// den Shop. Die Regeln (Status, Frist, Mengen, Bremsen) stehen
 // in den RPCs return_lookup / return_submit; hier nur Eingaben, Antworten und E-Mails.
 // Die Antwort verrät nie, ob eine Bestellung existiert: unbekannte Nummer und falsche Adresse sind beide NOT_FOUND.
 import type { Deps } from "../_shared/deps.ts";
@@ -12,6 +13,7 @@ import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 import {
   MAX_RETURN_COMMENT,
   parseOrderNumber,
+  parseRefundMethod,
   parseReturnItems,
   returnRef,
 } from "../_shared/returns.ts";
@@ -45,6 +47,7 @@ interface SubmitResult {
   email?: string;
   locale?: string;
   comment?: string | null;
+  refund_method?: string;
   return_days?: number;
   items?: {
     order_item_id: string;
@@ -120,6 +123,8 @@ async function submit(deps: Deps, req: Request, body: Record<string, unknown>): 
   if (rawComment.length > MAX_RETURN_COMMENT) throw new HttpError(400, "COMMENT_TOO_LONG");
   const requestId = str(body["requestId"], 36);
   if (requestId !== undefined && !UUID.test(requestId)) throw new HttpError(400, "BAD_REQUEST");
+  // Unbekannte Werte: aufs ursprüngliche Zahlungsmittel (dieselbe Regel in return_submit).
+  const refundMethod = parseRefundMethod(body["refundMethod"]);
   const result = await deps
     .rpc<SubmitResult>("return_submit", {
       p_order_number: orderNumber,
@@ -134,6 +139,7 @@ async function submit(deps: Deps, req: Request, body: Record<string, unknown>): 
       p_ip: clientIp(req),
       p_days: deps.env.shopReturnDays,
       p_request_id: requestId ?? null,
+      p_refund_method: refundMethod,
     })
     .catch((error: unknown) => {
       // Ungültige Positions-IDs oder Mengen, die die Datenbank nicht umwandeln kann
@@ -153,6 +159,8 @@ async function submit(deps: Deps, req: Request, body: Record<string, unknown>): 
     email: result.email ?? email,
     items: result.items ?? [],
     comment: result.comment ?? null,
+    // Bei derselben Formular-Id gilt die gespeicherte Wahl der ersten Anmeldung.
+    refundMethod: parseRefundMethod(result.refund_method ?? refundMethod),
   };
   // Beide Mails mit Idempotency-Key; scheitert eine, ist die Anmeldung trotzdem gespeichert (sichtbar im Admin).
   let emailed = true;
@@ -183,6 +191,7 @@ async function submit(deps: Deps, req: Request, body: Record<string, unknown>): 
     status: "ok",
     returnNumber: returnRef(mail.returnNumber),
     orderNumber: mail.orderNumber,
+    refundMethod: mail.refundMethod,
     emailed,
   });
 }

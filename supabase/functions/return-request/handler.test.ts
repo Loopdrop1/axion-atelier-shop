@@ -248,13 +248,25 @@ describe("return-request: submit", () => {
       status: string;
       returnNumber: string;
       orderNumber: number;
+      refundMethod: string;
       emailed: boolean;
     };
-    expect(body).toMatchObject({ status: "ok", orderNumber: o.number, emailed: true });
+    expect(body).toMatchObject({
+      status: "ok",
+      orderNumber: o.number,
+      refundMethod: "original",
+      emailed: true,
+    });
     expect(body.returnNumber).toMatch(/^R-\d+$/);
 
-    const rows = await sql<{ id: string; status: string; email: string; comment: string }>(
-      "select id, status, email, comment from public.return_requests where order_id = $1",
+    const rows = await sql<{
+      id: string;
+      status: string;
+      email: string;
+      comment: string;
+      refund_method: string;
+    }>(
+      "select id, status, email, comment, refund_method from public.return_requests where order_id = $1",
       [o.id],
     );
     expect(rows).toHaveLength(1);
@@ -262,6 +274,7 @@ describe("return-request: submit", () => {
       status: "requested",
       email: o.email,
       comment: "Passt leider nicht",
+      refund_method: "original",
     });
 
     const mails = resend.sent.slice(before);
@@ -272,12 +285,59 @@ describe("return-request: submit", () => {
     expect(customer.text).toContain("Axion AG, Teststrasse 1, 8000 Zürich");
     expect(customer.text).toContain("Anzug Limmat");
     expect(customer.text).toContain("Zu gross");
-    expect(customer.text).not.toMatch(/Etikett (liegt|folgt)|Retourenetikette/);
+    expect(customer.text).toContain("Rücksendeetikett auf, das deinem Paket beiliegt");
+    expect(customer.text).toContain("Die Rücksendung ist für dich gratis.");
+    expect(customer.text).toContain("Rückerstattung: Ursprüngliches Zahlungsmittel");
+    expect(customer.text).toContain("Innert 7 Tagen nach Eingang");
     expect(customer.idempotencyKey).toBe(`return-${rows[0]!.id}-customer`);
     const shop = mails.find((m) => m.to[0] === "shop@axion.test")!;
     expect(shop.subject).toBe(`Neue Retoure ${body.returnNumber} zu AX-${o.number}`);
     expect(shop.reply_to).toBe(o.email);
     expect(shop.idempotencyKey).toBe(`return-${rows[0]!.id}-shop`);
+    expect(shop.text).toContain("Rückerstattung: Zahlungsmittel");
+  });
+
+  it("Gutschein gewählt: wird gespeichert und steht in beiden Mails", async () => {
+    const o = await order();
+    const before = resend.sent.length;
+    const res = await submit(o, [{ orderItemId: o.items[1]!.id, quantity: 1, reason: "style" }], {
+      refundMethod: "gift_card",
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ status: "ok", refundMethod: "gift_card" });
+    const rows = await sql<{ refund_method: string }>(
+      "select refund_method from public.return_requests where order_id = $1",
+      [o.id],
+    );
+    expect(rows).toEqual([{ refund_method: "gift_card" }]);
+    const mails = resend.sent.slice(before);
+    const customer = mails.find((m) => m.to[0] === o.email)!;
+    expect(customer.text).toContain("Rückerstattung: Gutschein");
+    expect(customer.text).toContain("zurückgegebenen Stücke als Gutschein.");
+    const shop = mails.find((m) => m.to[0] === "shop@axion.test")!;
+    expect(shop.text).toContain("Rückerstattung: Gutschein");
+  });
+
+  it("unbekannte Rückerstattung: gilt als ursprüngliches Zahlungsmittel", async () => {
+    const o = await order();
+    const res = await submit(o, [{ orderItemId: o.items[1]!.id, quantity: 1, reason: "style" }], {
+      refundMethod: "bargeld",
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ status: "ok", refundMethod: "original" });
+    expect(
+      await sql("select refund_method from public.return_requests where order_id = $1", [o.id]),
+    ).toEqual([{ refund_method: "original" }]);
+  });
+
+  it("gleiche requestId: die gespeicherte Wahl der ersten Anmeldung gilt", async () => {
+    const o = await order();
+    const requestId = crypto.randomUUID();
+    const items = [{ orderItemId: o.items[1]!.id, quantity: 1, reason: "other" }];
+    await submit(o, items, { requestId, refundMethod: "gift_card" });
+    const again = await submit(o, items, { requestId, refundMethod: "original" });
+    expect(again.status).toBe(200);
+    expect(await again.json()).toMatchObject({ refundMethod: "gift_card" });
   });
 
   it("englische Bestätigung bei locale en", async () => {

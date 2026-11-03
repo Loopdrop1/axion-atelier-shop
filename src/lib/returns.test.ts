@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  REFUND_METHODS,
+  REFUND_WITHIN_DAYS,
   RETURN_REASONS,
   parseOrderNumber,
   returnProblem,
@@ -12,6 +14,9 @@ import {
   RETURN_REASONS as SERVER_REASONS,
   parseOrderNumber as serverParse,
   REASON_LABELS,
+  REFUND_METHODS as SERVER_REFUND_METHODS,
+  REFUND_WITHIN_DAYS as SERVER_REFUND_DAYS,
+  parseRefundMethod,
 } from "../../supabase/functions/_shared/returns";
 import { messages } from "@/i18n";
 import { shopConfig } from "@/config/shop";
@@ -38,6 +43,23 @@ describe("Gründe", () => {
       expect(messages.de.returns.reasons[reason]).toBe(REASON_LABELS.de[reason]);
       expect(messages.en.returns.reasons[reason]).toBe(REASON_LABELS.en[reason]);
     }
+  });
+});
+
+describe("Rückerstattung", () => {
+  it("Formular und Server kennen dieselben Arten, alle in beiden Sprachen beschriftet", () => {
+    expect([...REFUND_METHODS]).toEqual([...SERVER_REFUND_METHODS]);
+    expect(REFUND_WITHIN_DAYS).toBe(SERVER_REFUND_DAYS);
+    for (const method of REFUND_METHODS) {
+      expect(messages.de.returns.refundOptions[method].label).toBeTruthy();
+      expect(messages.en.returns.refundOptions[method].label).toBeTruthy();
+      expect(parseRefundMethod(method)).toBe(method);
+    }
+  });
+
+  it("unbekannte Werte gelten als ursprüngliches Zahlungsmittel", () => {
+    for (const value of [undefined, null, "", "voucher", "GIFT_CARD", 1])
+      expect(parseRefundMethod(value)).toBe("original");
   });
 });
 

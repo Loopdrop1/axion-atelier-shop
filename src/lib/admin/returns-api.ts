@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { backendConfigured } from "@/lib/backend";
 import { AdminError } from "@/lib/admin/api";
+import type { RefundMethod } from "@/lib/returns";
 import type { ReturnStatus } from "@/lib/admin/returns";
 
 export interface ReturnRow {
@@ -13,6 +14,8 @@ export interface ReturnRow {
   status: ReturnStatus;
   items: unknown;
   comment: string | null;
+  /** Wunsch der Kundschaft: aufs ursprüngliche Zahlungsmittel oder als Gutschein (Migration 20261103002300/Cloud 0022). */
+  refund_method: RefundMethod;
   admin_note: string | null;
   created_at: string;
   updated_at: string;
@@ -20,7 +23,7 @@ export interface ReturnRow {
 }
 
 const COLUMNS =
-  "id, number, order_id, email, locale, status, items, comment, admin_note, created_at, updated_at, orders(number, status, total_cents, refunded_cents)";
+  "id, number, order_id, email, locale, status, items, comment, refund_method, admin_note, created_at, updated_at, orders(number, status, total_cents, refunded_cents)";
 
 function db() {
   if (!backendConfigured) throw new AdminError("NOT_CONFIGURED");
