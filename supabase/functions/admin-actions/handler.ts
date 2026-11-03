@@ -408,11 +408,12 @@ function systemStatus(deps: Deps): Response {
     SHOP_CONTACT_EMAIL: set(env.shopContactEmail),
     SHOP_NOTIFY_EMAIL: set(env.shopNotifyEmail),
     SHOP_ADDRESS: set(env.shopAddress),
+    // Pflicht für den Livegang: AGB-Häkchen in der Stripe-Kasse (nur Ja/Nein, nie der Wert)
+    STRIPE_REQUIRE_TERMS: env.stripeRequireTerms,
   };
   const optional = {
     LOVABLE_API_KEY: set(env.translate.apiKey),
     SHOP_VAT_RATE: env.vatRate !== null,
-    STRIPE_REQUIRE_TERMS: env.stripeRequireTerms,
   };
   // Optional: Post-Etiketten (POST_CLIENT_ID, POST_CLIENT_SECRET, POST_FRANKING_LICENSE), nur Ja/Nein
   const swissPost = isPostConfigured(deps.post);

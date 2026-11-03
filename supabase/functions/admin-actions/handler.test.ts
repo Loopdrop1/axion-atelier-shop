@@ -559,8 +559,10 @@ describe("admin-actions: system_status", () => {
       SHOP_CONTACT_EMAIL: true,
       SHOP_ADDRESS: true,
       SHOP_NOTIFY_EMAIL: false,
+      STRIPE_REQUIRE_TERMS: false,
     });
     expect(body["optional"]).toMatchObject({ LOVABLE_API_KEY: false });
+    expect(body["optional"]).not.toHaveProperty("STRIPE_REQUIRE_TERMS");
   });
 
   it("Stripe-Modus live, onboarding-Absender und Vorschau-Freigabe werden erkannt; ohne Secrets alles false", async () => {
