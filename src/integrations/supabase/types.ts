@@ -1365,24 +1365,6 @@ export type Database = {
         Returns: Json
       }
       restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
-      review_invite_create: {
-        Args: { p_days?: number; p_order_id: string; p_replace?: boolean }
-        Returns: string
-      }
-      review_lookup: { Args: { p_ip?: string; p_token: string }; Returns: Json }
-      review_submit: {
-        Args: {
-          p_body: string
-          p_display_name: string
-          p_ip?: string
-          p_locale: string
-          p_order_item_id: string
-          p_rating: number
-          p_title: string
-          p_token: string
-        }
-        Returns: Json
-      }
       return_lookup: {
         Args: {
           p_days: number
@@ -1403,6 +1385,24 @@ export type Database = {
           p_order_number: number
           p_refund_method?: string
           p_request_id?: string
+        }
+        Returns: Json
+      }
+      review_invite_create: {
+        Args: { p_days?: number; p_order_id: string; p_replace?: boolean }
+        Returns: string
+      }
+      review_lookup: { Args: { p_ip?: string; p_token: string }; Returns: Json }
+      review_submit: {
+        Args: {
+          p_body: string
+          p_display_name: string
+          p_ip?: string
+          p_locale: string
+          p_order_item_id: string
+          p_rating: number
+          p_title: string
+          p_token: string
         }
         Returns: Json
       }
