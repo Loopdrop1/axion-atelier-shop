@@ -24,6 +24,13 @@ describe("parseQuery", () => {
     expect(en.colors).toEqual(["blau"]);
     expect(en.occasions).toEqual(["business"]);
   });
+  it("T-Shirt ist eine eigene Kategorie, «Shirt» allein bleibt Hemd", () => {
+    for (const q of ["T-Shirt", "t shirt", "Tshirts", "weisses T-Shirt M", "tee"])
+      expect(parseQuery(q).categories, q).toEqual(["t-shirts"]);
+    expect(parseQuery("shirt").categories).toEqual(["hemden"]);
+    expect(parseQuery("Hemd").categories).toEqual(["hemden"]);
+  });
+
   it("«fit» und «passform» sind nur Begleiter der Passform", () => {
     for (const q of ["slim fit", "schmale passform", "passform regular", "regular fit"]) {
       const i = parseQuery(q);

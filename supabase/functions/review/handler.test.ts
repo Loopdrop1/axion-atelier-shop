@@ -33,6 +33,7 @@ beforeAll(async () => {
             RESEND_API_KEY: "re_test",
             RESEND_API_BASE: resend.url,
             EMAIL_FROM: "Axion <shop@axion.test>",
+            SHOP_NOTIFY_EMAIL: "laden@axion.test",
           })[k],
       ),
     ),
@@ -141,6 +142,10 @@ describe("review: submit", () => {
       [itemId],
     );
     expect(rows).toEqual([{ status: "pending", locale: "en", display_name: "Marco R." }]);
+    // Meldung an den Shop (Empfänger aus den Einstellungen), ohne Personendaten der Kundschaft
+    const notice = resend.sent.find((m) => m.idempotencyKey === `review-${itemId}-notice`);
+    expect(notice?.subject).toMatch(/^Neue Bewertung \(\d\/5\): /);
+    expect(notice?.text).not.toContain("Marco");
     const again = await post({ action: "submit", token, orderItemId: itemId, ...review });
     expect(again.status).toBe(409);
     expect(await again.json()).toEqual({ error: "ALREADY_REVIEWED" });

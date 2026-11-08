@@ -24,7 +24,8 @@ export interface MailState {
 
 export type OrderRecord = OrderData & MailState;
 
-async function notifyAddress(deps: Deps): Promise<string> {
+/** Empfänger von Meldungen an den Shop: Admin → Einstellungen, sonst Secret SHOP_NOTIFY_EMAIL. */
+export async function notifyAddress(deps: Deps): Promise<string> {
   const fromDb = await deps.rpc<string | null>("get_shop_notify_email").catch(() => null);
   return fromDb || deps.env.shopNotifyEmail;
 }

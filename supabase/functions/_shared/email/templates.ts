@@ -682,6 +682,40 @@ export function lowStockAlert(
   return { subject, html: layout({ locale: "de", subject, preheader: subject, body, shop }), text };
 }
 
+/** Meldung an den Shop: neue Kundenbewertung wartet auf Freigabe (ohne Personendaten der Kundschaft). */
+export function reviewNotice(
+  data: { productTitle: string; rating: number; reviewTitle: string | null },
+  shop: ShopInfo,
+): EmailContent {
+  const stars = "★".repeat(data.rating) + "☆".repeat(Math.max(0, 5 - data.rating));
+  const subject = `Neue Bewertung (${data.rating}/5): ${data.productTitle}`;
+  const adminUrl = `${shop.siteUrl}/admin/bewertungen`;
+  const intro =
+    "Eine Kundin oder ein Kunde hat ein gekauftes Stück bewertet. Die Bewertung erscheint erst im Shop, wenn du sie im Admin freigibst.";
+  const body = [
+    h1(subject),
+    p(esc(intro)),
+    rows([
+      { left: "Stück", right: esc(data.productTitle) },
+      { left: "Sterne", right: `${stars} (${data.rating}/5)` },
+      ...(data.reviewTitle ? [{ left: "Titel", right: esc(data.reviewTitle) }] : []),
+    ]),
+    button("Bewertung prüfen", adminUrl),
+  ].join("\n");
+  const text = [
+    subject,
+    "",
+    intro,
+    "",
+    `Stück: ${data.productTitle}`,
+    `Sterne: ${data.rating}/5`,
+    ...(data.reviewTitle ? [`Titel: ${data.reviewTitle}`] : []),
+    "",
+    `Admin: ${adminUrl}`,
+  ].join("\n");
+  return { subject, html: layout({ locale: "de", subject, preheader: subject, body, shop }), text };
+}
+
 /** Einmalige Nachricht, sobald die gewünschte Grösse wieder an Lager ist. */
 export function backInStock(
   data: { locale: Locale; productUrl: string; item: StockAlertItem },

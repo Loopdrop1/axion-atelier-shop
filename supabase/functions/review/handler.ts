@@ -10,6 +10,9 @@ import { clientIp, HttpError, json, readJson, str, UUID, withHttp } from "../_sh
 import { toLocale } from "../_shared/money.ts";
 import { pruneRateLimitsSometimes } from "../_shared/rate-limits.ts";
 import { parseReview, REVIEW_TOKEN } from "../_shared/reviews.ts";
+import { sendEmail } from "../_shared/email/send.ts";
+import { reviewNotice } from "../_shared/email/templates.ts";
+import { notifyAddress } from "../_shared/order-mail.ts";
 
 interface ReviewItem {
   order_item_id: string;
@@ -81,6 +84,35 @@ async function lookup(deps: Deps, req: Request, body: Record<string, unknown>): 
   });
 }
 
+/** Meldung an den Shop, dass eine Bewertung auf Freigabe wartet. Ein Mailfehler kippt die gespeicherte Bewertung nie. */
+async function notifyShop(
+  deps: Deps,
+  result: RpcResult,
+  orderItemId: string,
+  review: { rating: number; title: string | null },
+): Promise<void> {
+  try {
+    const to = await notifyAddress(deps);
+    if (!to || !deps.mail.apiKey) return;
+    const item = result.items?.find((i) => i.order_item_id === orderItemId);
+    await sendEmail(
+      to,
+      reviewNotice(
+        {
+          productTitle: item?.title ?? "Stück",
+          rating: review.rating,
+          reviewTitle: review.title,
+        },
+        deps.shop,
+      ),
+      deps.mail,
+      `review-${orderItemId}-notice`,
+    );
+  } catch (error) {
+    console.error("Meldung zur Bewertung fehlgeschlagen", (error as Error).message);
+  }
+}
+
 async function submit(deps: Deps, req: Request, body: Record<string, unknown>): Promise<Response> {
   const key = token(body);
   const orderItemId = str(body["orderItemId"], 36);
@@ -106,6 +138,7 @@ async function submit(deps: Deps, req: Request, body: Record<string, unknown>): 
     });
   await pruneRateLimitsSometimes(deps);
   failFor(result.status);
+  await notifyShop(deps, result, orderItemId, review);
   return json(200, { status: "ok", items: items(result.items) });
 }
 
