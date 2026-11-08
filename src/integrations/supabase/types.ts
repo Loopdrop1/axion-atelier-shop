@@ -318,7 +318,6 @@ export type Database = {
           id: string
           image: string | null
           line_total_cents: number
-          on_sale: boolean
           order_id: string
           product_id: string | null
           quantity: number
@@ -335,7 +334,6 @@ export type Database = {
           id?: string
           image?: string | null
           line_total_cents: number
-          on_sale?: boolean
           order_id: string
           product_id?: string | null
           quantity: number
@@ -352,7 +350,6 @@ export type Database = {
           id?: string
           image?: string | null
           line_total_cents?: number
-          on_sale?: boolean
           order_id?: string
           product_id?: string | null
           quantity?: number
@@ -420,7 +417,6 @@ export type Database = {
           shipped_at: string | null
           shipping_address: Json | null
           shipping_cents: number
-          shipping_method: string
           shipping_name: string | null
           shipping_sent_at: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -467,7 +463,6 @@ export type Database = {
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
-          shipping_method?: string
           shipping_name?: string | null
           shipping_sent_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -514,7 +509,6 @@ export type Database = {
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_cents?: number
-          shipping_method?: string
           shipping_name?: string | null
           shipping_sent_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -678,8 +672,6 @@ export type Database = {
           material_de: string | null
           material_en: string | null
           model: string
-          model_height_cm: number | null
-          model_size: string | null
           occasions: string[]
           origin_de: string | null
           origin_en: string | null
@@ -714,8 +706,6 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model: string
-          model_height_cm?: number | null
-          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null
@@ -750,8 +740,6 @@ export type Database = {
           material_de?: string | null
           material_en?: string | null
           model?: string
-          model_height_cm?: number | null
-          model_size?: string | null
           occasions?: string[]
           origin_de?: string | null
           origin_en?: string | null
@@ -863,108 +851,6 @@ export type Database = {
           },
         ]
       }
-      review_invites: {
-        Row: {
-          created_at: string
-          expires_at: string
-          order_id: string
-          token_hash: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at: string
-          order_id: string
-          token_hash: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          order_id?: string
-          token_hash?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "review_invites_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: true
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reviews: {
-        Row: {
-          admin_note: string | null
-          approved_at: string | null
-          body: string
-          created_at: string
-          display_name: string
-          id: string
-          locale: string
-          order_id: string | null
-          order_item_id: string | null
-          product_id: string
-          rating: number
-          status: string
-          title: string | null
-          updated_at: string
-        }
-        Insert: {
-          admin_note?: string | null
-          approved_at?: string | null
-          body: string
-          created_at?: string
-          display_name: string
-          id?: string
-          locale?: string
-          order_id?: string | null
-          order_item_id?: string | null
-          product_id: string
-          rating: number
-          status?: string
-          title?: string | null
-          updated_at?: string
-        }
-        Update: {
-          admin_note?: string | null
-          approved_at?: string | null
-          body?: string
-          created_at?: string
-          display_name?: string
-          id?: string
-          locale?: string
-          order_id?: string | null
-          order_item_id?: string | null
-          product_id?: string
-          rating?: number
-          status?: string
-          title?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_order_item_id_fkey"
-            columns: ["order_item_id"]
-            isOneToOne: false
-            referencedRelation: "order_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       shop_settings: {
         Row: {
           free_shipping_from_cents: number | null
@@ -973,11 +859,8 @@ export type Database = {
           gift_card_valid_years: number
           hide_sold_out: boolean
           id: number
-          newsletter_welcome_days: number
           newsletter_welcome_percent: number | null
           notify_email: string | null
-          priority_shipping_cents: number | null
-          reviews_enabled: boolean
           shipping_cents: number
           updated_at: string
         }
@@ -988,11 +871,8 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
-          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
-          priority_shipping_cents?: number | null
-          reviews_enabled?: boolean
           shipping_cents?: number
           updated_at?: string
         }
@@ -1003,11 +883,8 @@ export type Database = {
           gift_card_valid_years?: number
           hide_sold_out?: boolean
           id?: number
-          newsletter_welcome_days?: number
           newsletter_welcome_percent?: number | null
           notify_email?: string | null
-          priority_shipping_cents?: number | null
-          reviews_enabled?: boolean
           shipping_cents?: number
           updated_at?: string
         }
@@ -1323,10 +1200,6 @@ export type Database = {
       newsletter_unsubscribe: { Args: { p_token: string }; Returns: Json }
       pending_checkout_by_token: { Args: { p_token: string }; Returns: Json }
       prepare_account_deletion: { Args: { p_user_id: string }; Returns: Json }
-      product_reviews: {
-        Args: { p_handle: string; p_limit?: number }
-        Returns: Json
-      }
       prune_abandoned_orders: { Args: never; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
       record_dispute: {
@@ -1349,7 +1222,6 @@ export type Database = {
           p_gift_card_code?: string
           p_lines: Json
           p_locale?: string
-          p_shipping_method?: string
           p_user_id?: string
         }
         Returns: Json
@@ -1365,24 +1237,6 @@ export type Database = {
         Returns: Json
       }
       restore_cart_by_token: { Args: { p_token: string }; Returns: Json }
-      review_invite_create: {
-        Args: { p_days?: number; p_order_id: string; p_replace?: boolean }
-        Returns: string
-      }
-      review_lookup: { Args: { p_ip?: string; p_token: string }; Returns: Json }
-      review_submit: {
-        Args: {
-          p_body: string
-          p_display_name: string
-          p_ip?: string
-          p_locale: string
-          p_order_item_id: string
-          p_rating: number
-          p_title: string
-          p_token: string
-        }
-        Returns: Json
-      }
       return_lookup: {
         Args: {
           p_days: number
