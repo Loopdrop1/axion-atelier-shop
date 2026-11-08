@@ -2,10 +2,11 @@ import type { Product } from "./types";
 
 /** Ergänzende Kategorien je Kategorie, die wichtigste zuerst (Anzug → Hemd, Schuhe, Accessoires …). */
 export const COMPLEMENTS: Record<string, string[]> = {
-  anzuege: ["hemden", "schuhe", "accessoires", "westen", "maentel-jacken"],
-  sakkos: ["hosen", "hemden", "schuhe", "accessoires"],
-  hosen: ["hemden", "sakkos", "schuhe", "accessoires"],
+  anzuege: ["hemden", "schuhe", "accessoires", "westen", "t-shirts", "maentel-jacken"],
+  sakkos: ["hosen", "hemden", "t-shirts", "schuhe", "accessoires"],
+  hosen: ["hemden", "t-shirts", "sakkos", "schuhe", "accessoires"],
   hemden: ["anzuege", "hosen", "accessoires", "schuhe"],
+  "t-shirts": ["hosen", "sakkos", "anzuege", "schuhe"],
   westen: ["hemden", "hosen", "accessoires", "schuhe"],
   strick: ["hosen", "sakkos", "schuhe", "accessoires"],
   "maentel-jacken": ["anzuege", "strick", "schuhe", "accessoires"],

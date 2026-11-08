@@ -102,6 +102,7 @@ const CATEGORY_WORDS: Record<string, string[]> = {
   sakkos: ["sakko", "sakkos", "blazer", "jackett", "veston", "jacket", "jackets", "dinnerjacket"],
   hosen: ["hose", "hosen", "trousers", "pants", "chino", "chinos", "anzughose"],
   hemden: ["hemd", "hemden", "shirt", "shirts", "businesshemd", "oxfordhemd"],
+  "t-shirts": ["tshirt", "tshirts", "tee", "tees", "leibchen"],
   westen: ["weste", "westen", "gilet", "waistcoat", "vest"],
   "maentel-jacken": [
     "mantel",
@@ -364,6 +365,8 @@ export function parseQuery(query: string): SearchIntent {
     text = text.replace(bare[0], " ");
   }
   const tokens = text
+    // «T-Shirt», «T Shirt», «Tshirt» sind T-Shirts, nicht Hemden («shirt» allein bleibt Hemd)
+    .replace(/\bt[\s-]?shirts?\b/g, (m) => (m.endsWith("s") ? "tshirts" : "tshirt"))
     .replace(/dinner jacket/g, "dinnerjacket")
     .replace(/black tie/g, "blacktie")
     .replace(/bow tie/g, "bowtie")
@@ -389,7 +392,9 @@ export function parseQuery(query: string): SearchIntent {
       continue;
     }
     let used = false;
-    for (const [slug, words] of Object.entries(CATEGORY_WORDS))
+    // Ein Wort, das genau zu einer Kategorie gehört («tshirt»), zählt nicht zusätzlich als Teilwort («shirt» → Hemden)
+    const direct = Object.entries(CATEGORY_WORDS).filter(([, words]) => words.includes(token));
+    for (const [slug, words] of direct.length ? direct : Object.entries(CATEGORY_WORDS))
       if (hits(token, words)) {
         if (afterContextWord) context.push(slug);
         else if (!intent.categories.includes(slug)) intent.categories.push(slug);

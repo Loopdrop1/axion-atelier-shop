@@ -100,6 +100,8 @@ Nur JSON (`415` sonst), verstecktes Feld `website` (ausgefüllt → `404`). Rege
 - Admin: RLS (nur Admins lesen, ändern `status`/`admin_note`, löschen auf Wunsch der Person). Abgelehnte Bewertungen
   und abgelaufene Links räumt `review_invite_create` nach 90 Tagen bzw. nach Ablauf auf.
 
+Nach jeder neuen Bewertung geht eine Meldung an den Shop (Empfänger aus Admin → Einstellungen, sonst `SHOP_NOTIFY_EMAIL`): Stück, Sterne, Titel, Link zu `/admin/bewertungen`, ohne Personendaten. Ein Mailfehler kippt das Speichern nicht.
+
 ## search-assist
 
 KI-Suche ohne Anmeldung: übersetzt längere Suchanfragen in Filter des Shops (Kategorien, Farbgruppen, Anlässe, Passform, Preis, Stichworte). Gleiches Gateway wie `translate` (`LOVABLE_API_KEY`).
